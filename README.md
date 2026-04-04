@@ -1,4 +1,4 @@
-# 🚀 SAVANA - WorkFlow App
+# 🚀 CMOS - WorkFlow App
 
 <div align="center">
 
@@ -15,9 +15,9 @@
 
 ---
 
-## 📋 Tentang SAVANA
+## 📋 Tentang CMOS
 
-SAVANA adalah aplikasi manajemen workflow modern yang dirancang untuk organisasi/komunitas dalam mengelola:
+CMOS adalah aplikasi manajemen workflow modern yang dirancang untuk organisasi/komunitas dalam mengelola:
 
 -   📊 **Program Kerja (Proker)** - Tracking progress program dengan timeline
 -   ✅ **Task Management** - Penugasan dan monitoring task per anggota
@@ -106,33 +106,7 @@ SAVANA adalah aplikasi manajemen workflow modern yang dirancang untuk organisasi
 -   Docker Desktop
 -   Git
 
-### Installation
 
-```bash
-# Clone repository
-git clone https://github.com/thoriqqrn/SAVANA-WorkFlow-App.git
-cd SAVANA-WorkFlow-App
-
-# Copy environment file
-cp .env.example .env
-
-# Install dependencies via Docker
-docker run --rm \
-    -u "$(id -u):$(id -g)" \
-    -v "$(pwd):/var/www/html" \
-    -w /var/www/html \
-    laravelsail/php85-composer:latest \
-    composer install --ignore-platform-reqs
-
-# Start Docker containers
-./vendor/bin/sail up -d
-
-# Generate app key
-./vendor/bin/sail artisan key:generate
-
-# Run migrations & seeder
-./vendor/bin/sail artisan migrate --seed
-```
 
 ### Access
 
