@@ -4,49 +4,85 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class MessageController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $user = auth()->user();
-        
+        $user = $request->user();
+
         // Get all users except current
         $users = User::where('id', '!=', $user->id)
             ->where('status', 'active')
+            ->with(['role', 'department'])
             ->orderBy('name')
             ->get();
-        
+
         // Get conversations
         $conversations = Message::getConversations($user->id);
-        
+
         return view('messages.index', compact('users', 'conversations'));
     }
 
-    public function unreadCount()
+    public function unreadCount(Request $request)
     {
-        $count = Message::unreadCountFor(auth()->id());
-        
+        $count = Message::unreadCountFor($request->user()->id);
+
         return response()->json(['count' => $count]);
     }
 
-    public function conversation(User $user)
+    public function sidebarData(Request $request): JsonResponse
     {
-        $currentUser = auth()->user();
-        
+        $user = $request->user();
+
+        $users = User::query()
+            ->where('id', '!=', $user->id)
+            ->where('status', 'active')
+            ->with(['role', 'department'])
+            ->orderBy('name')
+            ->get();
+
+        $conversations = Message::getConversations($user->id);
+
+        return response()->json([
+            'users' => $users->map(fn (User $chatUser) => [
+                'id' => $chatUser->id,
+                'name' => $chatUser->name,
+                'avatar' => $chatUser->avatar_url,
+                'role' => $chatUser->role_name,
+                'department' => $chatUser->department?->name ?? '-',
+            ])->values(),
+            'conversations' => $conversations->values()->map(fn (User $conversation) => [
+                'id' => $conversation->id,
+                'name' => $conversation->name,
+                'avatar' => $conversation->avatar_url,
+                'role' => $conversation->role_name,
+                'department' => $conversation->department?->name ?? '-',
+                'unreadCount' => $conversation->unread_count ?? 0,
+                'lastMessage' => $conversation->last_message?->content,
+                'lastMessageAt' => $conversation->last_message?->created_at?->toIso8601String(),
+            ])->values(),
+        ]);
+    }
+
+    public function conversation(Request $request, User $user)
+    {
+        $currentUser = $request->user();
+
         $messages = Message::betweenUsers($currentUser->id, $user->id)
             ->orderBy('created_at')
             ->get();
-        
+
         // Mark as read
         Message::where('sender_id', $user->id)
             ->where('receiver_id', $currentUser->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);
-        
+
         return response()->json([
-            'messages' => $messages->map(fn($m) => [
+            'messages' => $messages->map(fn ($m) => [
                 'id' => $m->id,
                 'content' => $m->content,
                 'is_mine' => $m->sender_id === $currentUser->id,
@@ -70,7 +106,7 @@ class MessageController extends Controller
         ]);
 
         $message = Message::create([
-            'sender_id' => auth()->id(),
+            'sender_id' => $request->user()->id,
             'receiver_id' => $user->id,
             'content' => $validated['content'],
         ]);
@@ -81,15 +117,15 @@ class MessageController extends Controller
                 'id' => $message->id,
                 'content' => $message->content,
                 'is_mine' => true,
-                'created_at' => $message->created_at->format('H:i'),
+                'created_at' => $message->created_at->toIso8601String(),
             ],
         ]);
     }
 
-    public function markRead(User $user)
+    public function markRead(Request $request, User $user)
     {
         Message::where('sender_id', $user->id)
-            ->where('receiver_id', auth()->id())
+            ->where('receiver_id', $request->user()->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);
 

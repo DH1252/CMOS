@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
-use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
@@ -16,7 +15,11 @@ class NotificationController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        return view('notifications.index', compact('notifications'));
+        $unreadCount = Notification::forUser(auth()->id())
+            ->unread()
+            ->count();
+
+        return view('notifications.index', compact('notifications', 'unreadCount'));
     }
 
     /**
@@ -68,8 +71,8 @@ class NotificationController extends Controller
         }
 
         // Redirect based on notification type
-        $redirect = match($notification->type) {
-            Notification::TYPE_TASK_ASSIGNED, 
+        $redirect = match ($notification->type) {
+            Notification::TYPE_TASK_ASSIGNED,
             Notification::TYPE_DEADLINE_REMINDER => route('tasks.show', $notification->data['task_id'] ?? 0),
             Notification::TYPE_EVALUATION_NEW => route('evaluations.my'),
             Notification::TYPE_ANNOUNCEMENT => route('announcements.index'),

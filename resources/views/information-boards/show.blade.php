@@ -2,63 +2,49 @@
 
 @section('title', $informationBoard->title)
 @section('page-title', 'Detail Artikel Informasi')
+@section('page-meta', 'Baca artikel informasi lengkap beserta konteks publikasi dan artikel terbaru lainnya.')
 
 @section('content')
-<div class="row">
-    <div class="col-12 col-lg-8">
-        <div class="card animate-fadeIn">
-            @if($informationBoard->cover_image_url)
-                <img src="{{ $informationBoard->cover_image_url }}" alt="{{ $informationBoard->title }}" style="width: 100%; max-height: 340px; object-fit: cover; border-radius: 16px 16px 0 0;">
-            @endif
-            <div class="card-body">
-                <div class="d-flex align-center gap-2" style="margin-bottom: 10px; flex-wrap: wrap;">
-                    <span class="badge badge-{{ $informationBoard->status === 'published' ? 'success' : 'secondary' }}">{{ ucfirst($informationBoard->status) }}</span>
-                    @foreach($informationBoard->categories as $cat)
-                        <span class="badge badge-info">{{ $cat->name }}</span>
-                    @endforeach
-                    <span class="text-muted fs-sm"><i class="fas fa-user"></i> {{ $informationBoard->user?->name ?? '-' }}</span>
-                    <span class="text-muted fs-sm"><i class="fas fa-calendar"></i> {{ optional($informationBoard->published_at)->format('d M Y H:i') ?? $informationBoard->created_at->format('d M Y H:i') }}</span>
-                </div>
+@php
+    $canManage = auth()->user()->isAdmin() || $informationBoard->user_id === auth()->id();
 
-                <h2 style="margin-bottom: 14px;">{{ $informationBoard->title }}</h2>
+    $props = [
+        'article' => [
+            'title' => $informationBoard->title,
+            'coverImage' => $informationBoard->cover_image_url,
+            'badges' => collect([
+                [
+                    'label' => ucfirst($informationBoard->status),
+                    'tone' => $informationBoard->status === 'published' ? 'success' : 'secondary',
+                ],
+            ])->merge($informationBoard->categories->map(fn($category) => [
+                'label' => $category->name,
+                'tone' => 'info',
+            ]))->values(),
+            'metadata' => [
+                ['label' => $informationBoard->user?->name ?? '-', 'icon' => 'fas fa-user'],
+                ['label' => optional($informationBoard->published_at)?->toIso8601String() ?? $informationBoard->created_at->toIso8601String(), 'icon' => 'fas fa-calendar'],
+            ],
+            'contentHtml' => $informationBoard->content,
+            'backAction' => [
+                'href' => route('information-boards.index'),
+                'label' => 'Kembali',
+                'icon' => 'fas fa-arrow-left',
+            ],
+            'editAction' => $canManage ? [
+                'href' => route('information-boards.edit', $informationBoard),
+                'label' => 'Edit Artikel',
+                'icon' => 'fas fa-edit',
+            ] : null,
+        ],
+        'latestArticles' => $latestArticles->map(fn($article) => [
+            'title' => $article->title,
+            'date' => optional($article->published_at)?->toIso8601String(),
+            'href' => route('information-boards.show', $article),
+        ])->values(),
+    ];
+@endphp
 
-                <div style="line-height: 1.85; color: var(--text-color);">{!! $informationBoard->content !!}</div>
-
-                <div class="d-flex gap-2 mt-4" style="flex-wrap: wrap;">
-                    <a href="{{ route('information-boards.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i>
-                        Kembali
-                    </a>
-                    @if(auth()->user()->isAdmin() || $informationBoard->user_id === auth()->id())
-                    <a href="{{ route('information-boards.edit', $informationBoard) }}" class="btn btn-primary">
-                        <i class="fas fa-edit"></i>
-                        Edit Artikel
-                    </a>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-        <div class="card animate-fadeIn">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-stream text-primary"></i>
-                    Artikel Terbaru
-                </h3>
-            </div>
-            <div class="card-body" style="display: grid; gap: 12px;">
-                @forelse($latestArticles as $article)
-                    <a href="{{ route('information-boards.show', $article) }}" style="display: block; text-decoration: none; color: inherit; padding: 10px; border-radius: 10px; border: 1px solid var(--border-color);">
-                        <div class="fw-semibold" style="margin-bottom: 4px;">{{ $article->title }}</div>
-                        <div class="text-muted fs-xs">{{ optional($article->published_at)->format('d M Y H:i') ?? '-' }}</div>
-                    </a>
-                @empty
-                    <p class="text-muted mb-0">Belum ada artikel lain.</p>
-                @endforelse
-            </div>
-        </div>
-    </div>
-</div>
+<script id="svelte-information-board-show-props" type="application/json">{!! str_replace('</', '<\/', json_encode($props, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
+<div id="svelte-information-board-show-root"></div>
 @endsection

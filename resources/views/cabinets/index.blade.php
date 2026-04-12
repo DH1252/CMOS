@@ -2,70 +2,70 @@
 
 @section('title', 'Kabinet')
 @section('page-title', 'Kabinet')
+@section('page-meta', 'Kelola periode kepengurusan, status kabinet, dan jumlah departemen yang berjalan di dalamnya.')
 
 @section('content')
-<div class="card animate-fadeIn">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="fas fa-landmark text-primary"></i>
-            Daftar Kabinet
-        </h3>
-        <a href="{{ route('cabinets.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i>
-            Tambah Kabinet
-        </a>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-container">
-            <table class="table datatable">
-                <thead>
-                    <tr>
-                        <th>Nama</th>
-                        <th>Tahun</th>
-                        <th>Departemen</th>
-                        <th>Status</th>
-                        <th class="no-sort" style="width: 120px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($cabinets as $cabinet)
-                    <tr>
-                        <td class="fw-semibold">{{ $cabinet->name }}</td>
-                        <td>{{ $cabinet->year }}</td>
-                        <td>
-                            <span class="badge badge-info">{{ $cabinet->departments_count }} departemen</span>
-                        </td>
-                        <td>
-                            @if($cabinet->status === 'active')
-                                <span class="badge badge-success">
-                                    <i class="fas fa-star"></i> Active
-                                </span>
-                            @else
-                                <span class="badge badge-secondary">Inactive</span>
-                            @endif
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a href="{{ route('cabinets.show', $cabinet) }}" class="btn btn-sm btn-secondary btn-icon" title="Detail">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('cabinets.edit', $cabinet) }}" class="btn btn-sm btn-primary btn-icon" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('cabinets.destroy', $cabinet) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-danger btn-icon" data-confirm-delete="{{ $cabinet->name }}" title="Hapus">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+@php
+    $props = [
+        'title' => 'Daftar Kabinet',
+        'description' => 'Struktur kepengurusan ditata per periode agar perpindahan kabinet, departemen, dan status aktif tetap terbaca jelas.',
+        'icon' => 'fas fa-landmark',
+        'csrfToken' => csrf_token(),
+        'enableDataTable' => true,
+        'primaryAction' => [
+            'label' => 'Tambah Kabinet',
+            'href' => route('cabinets.create'),
+            'icon' => 'fas fa-plus',
+        ],
+        'columns' => [
+            ['label' => 'Kabinet'],
+            ['label' => 'Departemen'],
+            ['label' => 'Status'],
+            ['label' => 'Aksi', 'width' => '120px'],
+        ],
+        'rows' => $cabinets->map(function ($cabinet) {
+            return [
+                'cells' => [
+                    [
+                        'type' => 'stack',
+                        'lines' => [
+                            ['text' => $cabinet->name, 'href' => route('cabinets.show', $cabinet), 'className' => 'fw-semibold'],
+                            ['text' => $cabinet->year, 'muted' => true],
+                        ],
+                    ],
+                    ['type' => 'badge', 'label' => "{$cabinet->departments_count} departemen", 'tone' => 'info'],
+                    [
+                        'type' => 'badge',
+                        'label' => $cabinet->status === 'active' ? 'Active' : 'Inactive',
+                        'tone' => $cabinet->status === 'active' ? 'success' : 'secondary',
+                        'icon' => $cabinet->status === 'active' ? 'fas fa-star' : null,
+                    ],
+                    [
+                        'type' => 'actions',
+                        'items' => [
+                            ['href' => route('cabinets.show', $cabinet), 'label' => 'Detail', 'icon' => 'fas fa-eye', 'tone' => 'secondary'],
+                            ['href' => route('cabinets.edit', $cabinet), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'],
+                            [
+                                'action' => route('cabinets.destroy', $cabinet),
+                                'method' => 'DELETE',
+                                'label' => 'Hapus',
+                                'icon' => 'fas fa-trash',
+                                'tone' => 'danger',
+                                'confirm' => $cabinet->name,
+                                'confirmText' => "Hapus kabinet {$cabinet->name}?",
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        })->values(),
+        'emptyState' => [
+            'title' => 'Belum ada kabinet',
+            'text' => 'Tambahkan periode kepengurusan baru untuk mulai menyusun struktur organisasi.',
+        ],
+    ];
+@endphp
+
+<script id="svelte-crud-table-props" type="application/json">{!! str_replace('</', '<\/', json_encode($props, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
+<div id="svelte-crud-table-root"></div>
 @endsection

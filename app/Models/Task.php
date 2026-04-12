@@ -15,6 +15,7 @@ class Task extends Model
         'assigned_to',
         'created_by',
         'status',
+        'sort_order',
         'progress',
         'priority',
         'deadline',
@@ -24,6 +25,7 @@ class Task extends Model
     protected $casts = [
         'deadline' => 'date',
         'progress' => 'integer',
+        'sort_order' => 'integer',
         'is_global' => 'boolean',
     ];
 

@@ -17,7 +17,7 @@ class UserController extends Controller
         $users = User::with(['role', 'department'])
             ->orderBy('name')
             ->get();
-            
+
         return view('users.index', compact('users'));
     }
 
@@ -25,7 +25,7 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $departments = Department::active()->get();
-        
+
         return view('users.create', compact('roles', 'departments'));
     }
 
@@ -41,9 +41,9 @@ class UserController extends Controller
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-        
+
         $user = User::create($validated);
-        
+
         ActivityLog::log('created', "Created user: {$user->name}", $user);
 
         return redirect()->route('users.index')
@@ -53,7 +53,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load(['role', 'department', 'tasks', 'evaluations', 'programs']);
-        
+
         return view('users.show', compact('user'));
     }
 
@@ -61,7 +61,7 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $departments = Department::active()->get();
-        
+
         return view('users.edit', compact('user', 'roles', 'departments'));
     }
 
@@ -76,14 +76,14 @@ class UserController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
             unset($validated['password']);
         }
 
         $user->update($validated);
-        
+
         ActivityLog::log('updated', "Updated user: {$user->name}", $user);
 
         return redirect()->route('users.index')
@@ -97,9 +97,9 @@ class UserController extends Controller
         }
 
         $name = $user->name;
-        
+
         ActivityLog::log('deleted', "Deleted user: {$name}", $user);
-        
+
         $user->delete();
 
         return redirect()->route('users.index')
@@ -113,7 +113,7 @@ class UserController extends Controller
     {
         $departments = Department::active()->get();
         $roles = Role::all();
-        
+
         return view('users.import', compact('departments', 'roles'));
     }
 
@@ -128,20 +128,20 @@ class UserController extends Controller
 
         $file = $request->file('csv_file');
         $handle = fopen($file->getPathname(), 'r');
-        
+
         // Skip header row
         $header = fgetcsv($handle);
-        
+
         $results = [
             'success' => [],
             'errors' => [],
         ];
-        
+
         $rowNumber = 1;
-        
+
         while (($row = fgetcsv($handle)) !== false) {
             $rowNumber++;
-            
+
             // Map CSV columns
             $data = [
                 'name' => trim($row[0] ?? ''),
@@ -150,7 +150,7 @@ class UserController extends Controller
                 'role' => strtolower(trim($row[3] ?? '')),
                 'department' => trim($row[4] ?? ''),
             ];
-            
+
             // Validate required fields
             if (empty($data['name']) || empty($data['email']) || empty($data['password']) || empty($data['role'])) {
                 $results['errors'][] = [
@@ -158,9 +158,10 @@ class UserController extends Controller
                     'data' => $data['name'] ?: $data['email'] ?: "Row {$rowNumber}",
                     'message' => 'Kolom wajib tidak lengkap (name, email, password, role)',
                 ];
+
                 continue;
             }
-            
+
             // Check email unique
             if (User::where('email', $data['email'])->exists()) {
                 $results['errors'][] = [
@@ -168,19 +169,21 @@ class UserController extends Controller
                     'data' => $data['email'],
                     'message' => 'Email sudah terdaftar',
                 ];
+
                 continue;
             }
-            
+
             // Validate email format
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            if (! filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 $results['errors'][] = [
                     'row' => $rowNumber,
                     'data' => $data['email'],
                     'message' => 'Format email tidak valid',
                 ];
+
                 continue;
             }
-            
+
             // Password length
             if (strlen($data['password']) < 6) {
                 $results['errors'][] = [
@@ -188,29 +191,31 @@ class UserController extends Controller
                     'data' => $data['name'],
                     'message' => 'Password minimal 6 karakter',
                 ];
+
                 continue;
             }
-            
+
             // Find role
-            $role = Role::where('slug', $data['role'])->first();
-            if (!$role) {
+            $role = Role::where('name', $data['role'])->first();
+            if (! $role) {
                 $results['errors'][] = [
                     'row' => $rowNumber,
                     'data' => $data['name'],
                     'message' => "Role '{$data['role']}' tidak ditemukan (gunakan: admin, bph, kabinet, staff)",
                 ];
+
                 continue;
             }
-            
+
             // Find department (optional)
             $departmentId = null;
-            if (!empty($data['department'])) {
+            if (! empty($data['department'])) {
                 $department = Department::where('name', 'LIKE', "%{$data['department']}%")->first();
                 if ($department) {
                     $departmentId = $department->id;
                 }
             }
-            
+
             // Create user
             try {
                 $user = User::create([
@@ -221,29 +226,29 @@ class UserController extends Controller
                     'department_id' => $departmentId,
                     'status' => 'active',
                 ]);
-                
+
                 $results['success'][] = [
                     'row' => $rowNumber,
                     'data' => $user->name,
-                    'message' => "User berhasil ditambahkan",
+                    'message' => 'User berhasil ditambahkan',
                 ];
-                
+
                 ActivityLog::log('created', "Imported user: {$user->name}", $user);
-                
+
             } catch (\Exception $e) {
                 $results['errors'][] = [
                     'row' => $rowNumber,
                     'data' => $data['name'],
-                    'message' => 'Gagal menyimpan: ' . $e->getMessage(),
+                    'message' => 'Gagal menyimpan: '.$e->getMessage(),
                 ];
             }
         }
-        
+
         fclose($handle);
-        
+
         return redirect()->route('users.import')
             ->with('import_results', $results)
-            ->with('success', count($results['success']) . ' user berhasil diimport, ' . count($results['errors']) . ' gagal');
+            ->with('success', count($results['success']).' user berhasil diimport, '.count($results['errors']).' gagal');
     }
 
     /**
@@ -255,7 +260,7 @@ class UserController extends Controller
         $content .= "John Doe,john@example.com,password123,staff,Divisi IT\n";
         $content .= "Jane Doe,jane@example.com,password456,kabinet,Divisi Humas\n";
         $content .= "Admin User,admin@example.com,admin123,admin,\n";
-        
+
         return response($content)
             ->header('Content-Type', 'text/csv')
             ->header('Content-Disposition', 'attachment; filename="user_import_template.csv"');

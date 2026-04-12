@@ -2,72 +2,65 @@
 
 @section('title', 'Departemen')
 @section('page-title', 'Departemen')
+@section('page-meta', 'Lihat struktur departemen, kapasitas anggota, dan keterhubungannya dengan kabinet serta program kerja.')
 
 @section('content')
-<div class="card animate-fadeIn">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="fas fa-building text-primary"></i>
-            Daftar Departemen
-        </h3>
-        <a href="{{ route('departments.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i>
-            Tambah Departemen
-        </a>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-container">
-            <table class="table datatable">
-                <thead>
-                    <tr>
-                        <th>Nama</th>
-                        <th>Deskripsi</th>
-                        <th>Kabinet</th>
-                        <th>Anggota</th>
-                        <th>Proker</th>
-                        <th>Status</th>
-                        <th class="no-sort" style="width: 120px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($departments as $department)
-                    <tr>
-                        <td class="fw-semibold">{{ $department->name }}</td>
-                        <td class="text-muted fs-sm">{{ Str::limit($department->description, 50) ?? '-' }}</td>
-                        <td>{{ $department->cabinet?->name ?? '-' }}</td>
-                        <td>
-                            <span class="badge badge-info">{{ $department->users_count }} orang</span>
-                        </td>
-                        <td>
-                            <span class="badge badge-primary">{{ $department->programs_count }} proker</span>
-                        </td>
-                        <td>
-                            <span class="badge badge-{{ $department->status === 'active' ? 'success' : 'secondary' }}">
-                                {{ ucfirst($department->status) }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a href="{{ route('departments.show', $department) }}" class="btn btn-sm btn-secondary btn-icon" title="Detail">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('departments.edit', $department) }}" class="btn btn-sm btn-primary btn-icon" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('departments.destroy', $department) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-danger btn-icon" data-confirm-delete="{{ $department->name }}" title="Hapus">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+@php
+    $props = [
+        'title' => 'Daftar Departemen',
+        'description' => 'Setiap departemen membawa anggota, program kerja, dan konteks operasionalnya masing-masing.',
+        'icon' => 'fas fa-building',
+        'csrfToken' => csrf_token(),
+        'enableDataTable' => true,
+        'primaryAction' => [
+            'label' => 'Tambah Departemen',
+            'href' => route('departments.create'),
+            'icon' => 'fas fa-plus',
+        ],
+        'columns' => [
+            ['label' => 'Nama'],
+            ['label' => 'Deskripsi'],
+            ['label' => 'Kabinet'],
+            ['label' => 'Anggota'],
+            ['label' => 'Proker'],
+            ['label' => 'Status'],
+            ['label' => 'Aksi', 'width' => '120px'],
+        ],
+        'rows' => $departments->map(function ($department) {
+            return [
+                'cells' => [
+                    ['type' => 'text', 'text' => $department->name, 'href' => route('departments.show', $department), 'className' => 'fw-semibold'],
+                    ['type' => 'text', 'text' => \Illuminate\Support\Str::limit($department->description ?: '-', 58), 'muted' => true],
+                    ['type' => 'text', 'text' => $department->cabinet?->name ?? '-', 'muted' => !$department->cabinet],
+                    ['type' => 'badge', 'label' => "{$department->users_count} orang", 'tone' => 'info'],
+                    ['type' => 'badge', 'label' => "{$department->programs_count} proker", 'tone' => 'primary'],
+                    ['type' => 'badge', 'label' => ucfirst($department->status), 'tone' => $department->status === 'active' ? 'success' : 'secondary'],
+                    [
+                        'type' => 'actions',
+                        'items' => [
+                            ['href' => route('departments.show', $department), 'label' => 'Detail', 'icon' => 'fas fa-eye', 'tone' => 'secondary'],
+                            ['href' => route('departments.edit', $department), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'],
+                            [
+                                'action' => route('departments.destroy', $department),
+                                'method' => 'DELETE',
+                                'label' => 'Hapus',
+                                'icon' => 'fas fa-trash',
+                                'tone' => 'danger',
+                                'confirm' => $department->name,
+                                'confirmText' => "Hapus departemen {$department->name}?",
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        })->values(),
+        'emptyState' => [
+            'title' => 'Belum ada departemen',
+            'text' => 'Tambahkan departemen untuk membangun struktur kerja organisasi.',
+        ],
+    ];
+@endphp
+
+<script id="svelte-crud-table-props" type="application/json">{!! str_replace('</', '<\/', json_encode($props, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
+<div id="svelte-crud-table-root"></div>
 @endsection

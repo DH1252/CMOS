@@ -2,116 +2,87 @@
 
 @section('title', 'Detail Kabinet')
 @section('page-title', $cabinet->name)
+@section('page-meta', 'Lihat komposisi departemen, jumlah anggota, dan status kabinet dalam satu ringkasan kepengurusan.')
 
 @section('content')
-<div class="row">
-    <div class="col-12 col-lg-4">
-        <div class="card animate-fadeIn">
-            <div class="card-body">
-                <div class="d-flex align-center gap-3 mb-3">
-                    <div class="stat-icon primary" style="width: 56px; height: 56px; font-size: 1.5rem;">
-                        <i class="fas fa-landmark"></i>
-                    </div>
-                    <div>
-                        <h4 class="mb-1">{{ $cabinet->name }}</h4>
-                        <span class="text-muted">{{ $cabinet->year }}</span>
-                    </div>
-                </div>
-                
-                <div class="text-center mt-3">
-                    @if($cabinet->status === 'active')
-                        <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">
-                            <i class="fas fa-star"></i> Kabinet Aktif
-                        </span>
-                    @else
-                        <span class="badge badge-secondary" style="font-size: 1rem; padding: 0.5rem 1rem;">
-                            Inactive
-                        </span>
-                    @endif
-                </div>
-                
-                <hr class="my-3">
-                
-                <div class="d-flex justify-between mb-2">
-                    <span class="text-muted">Total Departemen</span>
-                    <span class="fw-semibold">{{ $cabinet->departments->count() }}</span>
-                </div>
-                <div class="d-flex justify-between mb-2">
-                    <span class="text-muted">Total Anggota</span>
-                    <span class="fw-semibold">{{ $cabinet->departments->sum(fn($d) => $d->users->count()) }}</span>
-                </div>
-                
-                <div class="d-flex gap-2 mt-4">
-                    <a href="{{ route('cabinets.edit', $cabinet) }}" class="btn btn-primary flex-1">
-                        <i class="fas fa-edit"></i> Edit
-                    </a>
-                    <a href="{{ route('cabinets.index') }}" class="btn btn-secondary flex-1">
-                        <i class="fas fa-arrow-left"></i> Kembali
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-12 col-lg-8">
-        <div class="card animate-fadeIn">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-building text-primary"></i>
-                    Departemen
-                </h3>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Nama</th>
-                                <th>Kepala Departemen</th>
-                                <th>Anggota</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($cabinet->departments as $department)
-                            <tr>
-                                <td>
-                                    <a href="{{ route('departments.show', $department) }}" class="fw-semibold">
-                                        {{ $department->name }}
-                                    </a>
-                                </td>
-                                <td>
-                                    @php $head = $department->head @endphp
-                                    @if($head)
-                                        <div class="d-flex align-center gap-2">
-                                            <img src="{{ $head->avatar_url }}" alt="{{ $head->name }}" class="avatar-sm">
-                                            <span>{{ $head->name }}</span>
-                                        </div>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="badge badge-info">{{ $department->users->count() }} orang</span>
-                                </td>
-                                <td>
-                                    <span class="badge badge-{{ $department->status === 'active' ? 'success' : 'secondary' }}">
-                                        {{ ucfirst($department->status) }}
-                                    </span>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">
-                                    Belum ada departemen
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@php
+    $cabinet->loadMissing(['departments.users.role', 'departments.programs']);
+
+    $activeDepartments = $cabinet->departments->where('status', 'active')->count();
+    $totalMembers = $cabinet->departments->sum(fn($department) => $department->users->count());
+    $totalPrograms = $cabinet->departments->sum(fn($department) => $department->programs->count());
+
+    $props = [
+        'csrfToken' => csrf_token(),
+        'summary' => [
+            'icon' => 'fas fa-landmark',
+            'title' => $cabinet->name,
+            'subtitle' => $cabinet->year,
+            'badges' => [
+                [
+                    'label' => $cabinet->status === 'active' ? 'Kabinet Aktif' : 'Inactive',
+                    'tone' => $cabinet->status === 'active' ? 'success' : 'secondary',
+                    'icon' => $cabinet->status === 'active' ? 'fas fa-star' : null,
+                ],
+            ],
+            'description' => 'Kabinet ini menjadi payung untuk struktur departemen, jumlah anggota, dan distribusi program kerja pada periode terkait.',
+            'facts' => [
+                ['label' => 'Total Departemen', 'value' => $cabinet->departments->count()],
+                ['label' => 'Departemen Aktif', 'value' => $activeDepartments],
+                ['label' => 'Total Anggota', 'value' => $totalMembers . ' orang'],
+                ['label' => 'Total Proker', 'value' => $totalPrograms . ' proker'],
+            ],
+            'actions' => [
+                ['href' => route('cabinets.edit', $cabinet), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'],
+                ['href' => route('cabinets.index'), 'label' => 'Kembali', 'icon' => 'fas fa-arrow-left', 'tone' => 'secondary'],
+            ],
+        ],
+        'stats' => [
+            ['label' => 'Departemen', 'value' => $cabinet->departments->count(), 'icon' => 'fas fa-building', 'tone' => 'primary'],
+            ['label' => 'Anggota', 'value' => $totalMembers, 'icon' => 'fas fa-users', 'tone' => 'info'],
+            ['label' => 'Proker', 'value' => $totalPrograms, 'icon' => 'fas fa-diagram-project', 'tone' => 'warning'],
+        ],
+        'sections' => [
+            [
+                'kind' => 'table',
+                'title' => 'Departemen',
+                'icon' => 'fas fa-building',
+                'columns' => [
+                    ['label' => 'Nama'],
+                    ['label' => 'Kepala Departemen'],
+                    ['label' => 'Anggota'],
+                    ['label' => 'Proker'],
+                    ['label' => 'Status'],
+                ],
+                'rows' => $cabinet->departments->map(function ($department) {
+                    $head = $department->users->first(function ($user) {
+                        return $user->role?->name === 'kabinet';
+                    });
+
+                    return [
+                        'cells' => [
+                            [
+                                'type' => 'stack',
+                                'lines' => [
+                                    ['text' => $department->name, 'href' => route('departments.show', $department), 'className' => 'fw-semibold'],
+                                ],
+                            ],
+                            $head
+                                ? ['type' => 'avatar', 'image' => $head->avatar_url, 'title' => $head->name, 'subtitle' => $head->email]
+                                : ['type' => 'text', 'text' => '-', 'muted' => true],
+                            ['type' => 'badge', 'label' => $department->users->count() . ' orang', 'tone' => 'info'],
+                            ['type' => 'badge', 'label' => $department->programs->count() . ' proker', 'tone' => 'primary'],
+                            ['type' => 'badge', 'label' => ucfirst($department->status), 'tone' => $department->status === 'active' ? 'success' : 'secondary'],
+                        ],
+                    ];
+                })->values(),
+                'emptyText' => 'Belum ada departemen di kabinet ini.',
+                'spacingClass' => 'mb-0',
+            ],
+        ],
+    ];
+@endphp
+
+<script id="svelte-entity-detail-props" type="application/json">{!! str_replace('</', '<\/', json_encode($props, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
+<div id="svelte-entity-detail-root"></div>
 @endsection

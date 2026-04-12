@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "$lib/*": ["resources/svelte/lib/*"],
+      "lib/*": ["resources/svelte/lib/*"],
+      "components/*": ["resources/svelte/lib/components/*"],
+      "hooks/*": ["resources/svelte/lib/hooks/*"],
+      "ui/*": ["resources/svelte/lib/components/ui/*"],
+      "utils": ["resources/svelte/lib/utils.js"]
+    }
+  },
+  "include": [
+    "resources/**/*.js",
+    "resources/**/*.svelte",
+    "vite.config.js"
+  ]
+}

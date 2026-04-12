@@ -2,118 +2,75 @@
 
 @section('title', 'Kumpulan Link')
 @section('page-title', 'Kumpulan Link')
+@section('page-meta', 'Direktori tautan kerja dan referensi organisasi yang dikelompokkan per kebutuhan operasional.')
 
 @section('content')
-<div class="card animate-fadeIn">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="fas fa-link text-primary"></i>
-            Link Berguna
-        </h3>
-        @if(auth()->user()->hasRole(['admin', 'bph']))
-        <a href="{{ route('links.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i>
-            Tambah Link
-        </a>
-        @endif
-    </div>
-    <div class="card-body">
-        @forelse($linksByCategory as $categoryKey => $links)
-        @php 
-            $cat = $categories[$categoryKey] ?? ['name' => 'Lainnya', 'icon' => 'fas fa-link'];
-        @endphp
-        <div class="mb-4">
-            <h5 class="mb-3 d-flex align-center gap-2">
-                <i class="{{ $cat['icon'] }} text-primary"></i>
-                {{ $cat['name'] }}
-            </h5>
-            <div class="row">
-                @foreach($links as $link)
-                <div class="col-12 col-md-6 col-lg-4 mb-3">
-                    <div class="link-card">
-                        <div class="link-card-icon">
-                            <i class="{{ $link->icon }}"></i>
-                        </div>
-                        <div class="link-card-content">
-                            <h6 class="link-card-title">{{ $link->title }}</h6>
-                            @if($link->description)
-                            <p class="link-card-desc">{{ $link->description }}</p>
-                            @endif
-                        </div>
-                        <div class="link-card-actions">
-                            <a href="{{ $link->url }}" target="_blank" class="btn btn-primary btn-sm">
-                                <i class="fas fa-external-link-alt"></i> Buka
-                            </a>
-                            @if(auth()->user()->hasRole(['admin', 'bph']))
-                            <a href="{{ route('links.edit', $link) }}" class="btn btn-secondary btn-sm btn-icon">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-        @empty
-        <div class="empty-state">
-            <div class="empty-state-icon">
-                <i class="fas fa-link"></i>
-            </div>
-            <h5 class="empty-state-title">Belum Ada Link</h5>
-            <p class="empty-state-text">Admin atau BPH belum menambahkan link.</p>
-        </div>
-        @endforelse
-    </div>
-</div>
-@endsection
+@php
+    $canManage = auth()->user()->hasRole(['admin', 'bph']);
 
-@push('styles')
-<style>
-.link-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 16px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    transition: all 0.2s ease;
-}
-.link-card:hover {
-    border-color: var(--primary);
-    box-shadow: var(--shadow-purple);
-    transform: translateY(-2px);
-}
-.link-card-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: var(--primary-light);
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    margin-bottom: 12px;
-}
-.link-card-content {
-    flex: 1;
-}
-.link-card-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-.link-card-desc {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-    line-height: 1.4;
-}
-.link-card-actions {
-    display: flex;
-    gap: 8px;
-}
-</style>
-@endpush
+    $groups = collect($categories)
+        ->map(function ($category, $key) use ($linksByCategory, $canManage) {
+            $links = $linksByCategory->get($key, collect());
+
+            if ($links->isEmpty()) {
+                return null;
+            }
+
+            return [
+                'name' => $category['name'],
+                'icon' => $category['icon'],
+                'description' => match ($key) {
+                    'template' => 'Template dan format kerja yang sering dipakai lintas kepengurusan.',
+                    'tracker' => 'Tautan pelacakan progres, arsip, dan ritme operasional.',
+                    'rules' => 'Dokumen rujukan untuk kebijakan, aturan, dan ketertiban kerja.',
+                    'form' => 'Akses cepat ke form pengajuan, peminjaman, dan kebutuhan administrasi.',
+                    'resource' => 'Perpustakaan file dan referensi penunjang kegiatan organisasi.',
+                    default => 'Tautan umum yang sering dibuka oleh pengurus dalam pekerjaan harian.',
+                },
+                'cards' => $links->map(function ($link) use ($canManage) {
+                    return [
+                        'title' => $link->title,
+                        'description' => $link->description,
+                        'href' => $link->url,
+                        'icon' => $link->icon ?: 'fas fa-link',
+                        'primaryLabel' => 'Buka Link',
+                        'badges' => array_values(array_filter([
+                            $link->sort_order ? ['label' => 'Urutan ' . $link->sort_order, 'tone' => 'secondary'] : null,
+                            $link->creator?->name ? ['label' => $link->creator->name, 'tone' => 'info'] : null,
+                        ])),
+                        'meta' => array_values(array_filter([
+                            parse_url($link->url, PHP_URL_HOST) ? ['text' => parse_url($link->url, PHP_URL_HOST), 'muted' => true] : null,
+                        ])),
+                        'editHref' => $canManage ? route('links.edit', $link) : null,
+                        'deleteAction' => $canManage ? route('links.destroy', $link) : null,
+                        'deleteMethod' => 'DELETE',
+                        'confirm' => $link->title,
+                        'confirmText' => "Hapus link {$link->title}?",
+                    ];
+                })->values(),
+            ];
+        })
+        ->filter()
+        ->values();
+
+    $props = [
+        'title' => 'Link Berguna',
+        'description' => 'Ruang ini merangkum tautan kerja yang paling sering dipakai pengurus, dari template sampai arsip rujukan.',
+        'icon' => 'fas fa-link',
+        'csrfToken' => csrf_token(),
+        'primaryAction' => $canManage ? [
+            'label' => 'Tambah Link',
+            'href' => route('links.create'),
+            'icon' => 'fas fa-plus',
+        ] : null,
+        'groups' => $groups,
+        'emptyState' => [
+            'title' => 'Belum ada link',
+            'text' => 'Admin atau BPH belum menambahkan tautan kerja untuk dibagikan ke pengurus.',
+        ],
+    ];
+@endphp
+
+<script id="svelte-link-directory-props" type="application/json">{!! str_replace('</', '<\/', json_encode($props, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
+<div id="svelte-link-directory-root"></div>
+@endsection

@@ -1,18 +1,43 @@
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import tailwindcss from '@tailwindcss/vite';
+import path from "node:path";
+import { enhancedImages } from "@sveltejs/enhanced-img";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
+import tailwindcss from "@tailwindcss/vite";
+import laravel from "laravel-vite-plugin";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-    plugins: [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
-            refresh: true,
-        }),
-        tailwindcss(),
-    ],
-    server: {
-        watch: {
-            ignored: ['**/storage/framework/views/**'],
-        },
-    },
+	plugins: [
+		enhancedImages(),
+		svelte(),
+		laravel({
+			input: ["resources/css/app.css", "resources/js/app.js"],
+			ssr: "resources/js/ssr.js",
+			refresh: true,
+		}),
+		tailwindcss(),
+	],
+	server: {
+		watch: {
+			ignored: [
+				"**/storage/framework/views/**",
+				"**/storage/framework/sessions/**",
+				"**/storage/framework/cache/**",
+				"**/storage/logs/**",
+				"**/.playwright-mcp/**",
+			],
+		},
+	},
+	resolve: {
+		alias: {
+			$lib: path.resolve("./resources/svelte/lib"),
+			lib: path.resolve("./resources/svelte/lib"),
+			components: path.resolve("./resources/svelte/lib/components"),
+			hooks: path.resolve("./resources/svelte/lib/hooks"),
+			"tailwind-merge": path.resolve(
+				"./resources/svelte/lib/tailwind-merge.js",
+			),
+			ui: path.resolve("./resources/svelte/lib/components/ui"),
+			utils: path.resolve("./resources/svelte/lib/utils.js"),
+		},
+	},
 });

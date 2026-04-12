@@ -10,7 +10,7 @@ class ProfileController extends Controller
     public function edit()
     {
         return view('profile.edit', [
-            'user' => auth()->user()
+            'user' => auth()->user()->loadMissing(['role', 'department']),
         ]);
     }
 
@@ -29,13 +29,13 @@ class ProfileController extends Controller
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
             // Delete old avatar if exists
-            if ($user->avatar && Storage::disk('public')->exists('avatars/' . $user->avatar)) {
-                Storage::disk('public')->delete('avatars/' . $user->avatar);
+            if ($user->avatar && Storage::disk('public')->exists('avatars/'.$user->avatar)) {
+                Storage::disk('public')->delete('avatars/'.$user->avatar);
             }
 
             // Store new avatar
             $file = $request->file('avatar');
-            $filename = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $filename = 'avatar_'.$user->id.'_'.time().'.'.$file->getClientOriginalExtension();
             $file->storeAs('avatars', $filename, 'public');
             $user->avatar = $filename;
         }
@@ -50,8 +50,8 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->avatar && Storage::disk('public')->exists('avatars/' . $user->avatar)) {
-            Storage::disk('public')->delete('avatars/' . $user->avatar);
+        if ($user->avatar && Storage::disk('public')->exists('avatars/'.$user->avatar)) {
+            Storage::disk('public')->delete('avatars/'.$user->avatar);
         }
 
         $user->avatar = null;
@@ -60,6 +60,4 @@ class ProfileController extends Controller
         return redirect()->back()
             ->with('success', 'Foto profil berhasil dihapus!');
     }
-    
-    
 }

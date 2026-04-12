@@ -78,7 +78,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityLog::class);
     }
-    
+
     public function informationBoards(): HasMany
     {
         return $this->hasMany(InformationBoard::class);
@@ -108,6 +108,7 @@ class User extends Authenticatable
     public function hasRole(string|array $roles): bool
     {
         $roles = is_array($roles) ? $roles : [$roles];
+
         return in_array($this->role?->name, $roles);
     }
 
@@ -119,7 +120,7 @@ class User extends Authenticatable
 
     public function scopeByRole($query, string $role)
     {
-        return $query->whereHas('role', fn($q) => $q->where('name', $role));
+        return $query->whereHas('role', fn ($q) => $q->where('name', $role));
     }
 
     public function scopeByDepartment($query, int $departmentId)
@@ -131,9 +132,10 @@ class User extends Authenticatable
     public function getAvatarUrlAttribute(): string
     {
         if ($this->avatar) {
-            return asset('storage/avatars/' . $this->avatar);
+            return asset('storage/avatars/'.$this->avatar);
         }
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=7C3AED&color=fff';
+
+        return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=251d39&color=f5c518&bold=true';
     }
 
     public function getRoleNameAttribute(): string
@@ -145,6 +147,7 @@ class User extends Authenticatable
     public function getTaskStatsAttribute(): array
     {
         $tasks = $this->tasks;
+
         return [
             'total' => $tasks->count(),
             'todo' => $tasks->where('status', 'todo')->count(),
@@ -156,6 +159,7 @@ class User extends Authenticatable
     public function getAverageEvaluationScoreAttribute(): ?float
     {
         $avg = $this->evaluations()->avg('total_score');
+
         return $avg ? round($avg / 4, 1) : null;
     }
 }
