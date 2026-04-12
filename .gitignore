@@ -39,4 +39,21 @@ pnpm-debug.log*
 /console*.txt
 /network*.txt
 *.Zone.Identifier
+*:Zone.Identifier
 *lighthouse.*/
+
+# Local AI/tooling state
+/.agents/
+/.codex
+/.impeccable.md
+/.kilocode/
+/.kilo/.gitignore
+/.kilo/bun.lock
+/.kilo/kilo.json
+/.kilo/node_modules/
+/.kilo/package.json
+/.kilo/plans/
+/.kilo/worktrees/
+/boost.json
+/opencode.json
+/skills-lock.json
