@@ -136,10 +136,9 @@
             'organizationName' => $organizationName,
             'pageTitle' => $pageTitle,
             'pageMeta' => $pageMeta,
-            'themeColor' => $themeColor,
-            'palette' => $colors,
             'csrfToken' => csrf_token(),
             'user' => [
+                'id' => $currentUser->id,
                 'name' => $currentUser->name,
                 'roleName' => $currentUser->role_name,
                 'avatarUrl' => $currentUser->avatar_url,
@@ -155,6 +154,7 @@
                 'logout' => route('logout'),
             ],
             'endpoints' => [
+                'realtimeSnapshot' => route('realtime.snapshot'),
                 'notificationsRecent' => route('notifications.recent'),
                 'notificationsUnread' => route('notifications.unread-count'),
                 'notificationsMarkAll' => route('notifications.mark-all-read'),
@@ -178,6 +178,7 @@
                     'unreadCount' => (int) ($conversation->unread_count ?? 0),
                 ]),
                 'endpoints' => [
+                    'realtimeSnapshot' => route('realtime.snapshot'),
                     'unread' => route('messages.unread'),
                     'sidebarData' => route('messages.sidebar-data'),
                     'conversationBase' => url('/messages/conversation'),
@@ -197,10 +198,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --brand-primary: #f5c518;
-            --brand-hover: #d4a017;
-            --brand-soft: #4a3b12;
-            --brand-light: #2d2611;
+            --brand-primary: {{ $colors['primary'] }};
+            --brand-hover: {{ $colors['hover'] }};
+            --brand-soft: {{ $colors['soft'] }};
+            --brand-light: {{ $colors['light'] }};
             --brand-secondary: #8b5cf6;
             --brand-secondary-soft: #251d39;
         }
@@ -209,6 +210,7 @@
     @stack('styles')
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
     <script id="svelte-auth-props" type="application/json">{!! str_replace('</', '<\/', json_encode($authProps, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
     @if(session('swal'))
         <script id="session-swal-data" type="application/json">{!! str_replace('</', '<\/', json_encode([
@@ -220,7 +222,7 @@
     @endif
     <div id="svelte-auth-root"></div>
 
-    <div id="server-page-content" aria-hidden="true">
+    <div id="server-page-content">
         <main class="page-content">
             @if(session('success'))
                 <div class="alert alert-success animate-fadeIn">

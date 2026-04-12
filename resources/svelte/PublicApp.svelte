@@ -50,7 +50,7 @@
     },
     {
       label: 'Nada yang dijaga',
-      value: 'Formal, rapi, dan terbuka tanpa terasa seperti dashboard startup.',
+      value: 'Formal, rapi, dan terbuka untuk kebutuhan informasi organisasi.',
     },
   ];
 

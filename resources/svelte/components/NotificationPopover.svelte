@@ -28,8 +28,8 @@
 <Popover.Root bind:open>
   <Popover.Trigger>
     {#snippet child({ props })}
-      <button {...props} class={`shell-action-btn ${props.class || ''}`} aria-label="Notifications">
-        <i class="fas fa-bell"></i>
+      <button {...props} class={`shell-action-btn ${props.class || ''}`} aria-label="Notifikasi">
+        <i class="fas fa-bell" aria-hidden="true"></i>
         {#if unreadCount > 0}
           <span class="shell-badge">{unreadCount}</span>
         {/if}
@@ -79,8 +79,8 @@
 <style>
   .shell-action-btn {
     position: relative;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
     border: 1px solid var(--border);
     border-radius: 0.625rem;
     background: var(--card);
@@ -93,6 +93,14 @@
 
   .shell-action-btn:hover {
     background: var(--muted);
+  }
+
+  .shell-action-btn:focus-visible,
+  .shell-text-btn:focus-visible,
+  .shell-notification-item:focus-visible,
+  .shell-popover-footer:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   .shell-badge {
@@ -134,7 +142,7 @@
   .shell-text-btn {
     border: none;
     background: transparent;
-    color: var(--brand-primary);
+    color: var(--brand-hover);
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
@@ -194,7 +202,7 @@
   .shell-popover-footer {
     display: block;
     padding: 0.9rem 1rem;
-    color: var(--brand-primary);
+    color: var(--brand-hover);
     text-decoration: none;
     font-size: 0.84rem;
     font-weight: 600;
@@ -202,7 +210,7 @@
 
   .tone-primary {
     background: color-mix(in srgb, var(--brand-primary) 18%, transparent);
-    color: var(--brand-primary);
+    color: var(--brand-hover);
   }
 
   .tone-success {

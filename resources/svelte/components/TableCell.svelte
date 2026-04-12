@@ -30,7 +30,12 @@
   };
 
   const progressClass = (tone) => (tone === 'success' ? 'table-progress success' : 'table-progress');
-  const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
+  const fallbackAvatar = (name = 'User') => {
+    const initial = (name || 'User').trim().charAt(0).toUpperCase() || 'U';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="#251d39"/><text x="50%" y="50%" dy=".35em" fill="#f5c518" font-family="Public Sans, Arial, sans-serif" font-size="28" font-weight="700" text-anchor="middle">${initial}</text></svg>`;
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
 
   const handleImageError = (event) => {
     const nextSrc = fallbackAvatar(event.currentTarget.alt || cell.title || 'User');
@@ -92,7 +97,7 @@
   </div>
 {:else if cell.type === 'stack'}
   <div class={`table-stack ${cell.className || ''}`.trim()}>
-    {#each cell.lines || [] as line, index (`${line.href || line.text || 'line'}-${index}`)}
+    {#each cell.lines || [] as line, index (index)}
       {#if line.href}
         <a href={line.href} class={`${line.className || ''} ${line.muted ? 'table-subtle-text' : 'table-link-strong'}`.trim()}>{line.text}</a>
       {:else}
@@ -104,7 +109,7 @@
   <StatusBadge label={cell.label} icon={cell.icon} tone={badgeTone(cell.tone)} />
 {:else if cell.type === 'badges'}
   <div class="table-badges">
-    {#each cell.items || [] as badge, badgeIndex (`${badge.label || badge.icon || 'badge'}-${badgeIndex}`)}
+    {#each cell.items || [] as badge, badgeIndex (badgeIndex)}
       <StatusBadge label={badge.label} icon={badge.icon} tone={badgeTone(badge.tone)} />
     {/each}
   </div>
@@ -115,7 +120,7 @@
   </div>
 {:else if cell.type === 'actions'}
   <div class="table-actions">
-    {#each cell.items || [] as item, itemIndex (`${item.href || item.action || item.label || 'action'}-${itemIndex}`)}
+    {#each cell.items || [] as item, itemIndex (itemIndex)}
       {#if item.href}
         <Button
           href={item.href}
@@ -160,6 +165,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    min-width: 0;
   }
 
   .table-avatar-copy,
@@ -167,6 +173,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    min-width: 0;
   }
 
   .table-badges,
@@ -222,6 +229,7 @@
     color: var(--text-strong);
     font-weight: 700;
     text-decoration: none;
+    overflow-wrap: anywhere;
   }
 
   .table-link-strong:hover {
@@ -231,6 +239,7 @@
   .table-subtle-text {
     color: var(--text-muted);
     text-decoration: none;
+    overflow-wrap: anywhere;
   }
 
   form {

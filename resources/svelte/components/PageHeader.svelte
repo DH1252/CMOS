@@ -50,7 +50,7 @@
   <div class="min-w-0 max-w-[68ch]">
     <div class="flex items-start gap-2">
       {#if icon}
-        <span class={`mt-1 inline-flex w-4 shrink-0 items-center justify-center text-brand-primary ${compact ? 'text-sm' : 'text-base'}`}><i class={icon}></i></span>
+        <span class={`mt-1 inline-flex w-4 shrink-0 items-center justify-center text-[color:var(--brand-hover)] ${compact ? 'text-sm' : 'text-base'}`}><i class={icon} aria-hidden="true"></i></span>
       {/if}
       <svelte:element this={headingTag} class={`m-0 font-semibold leading-tight text-foreground ${compact ? 'text-lg' : 'text-2xl'}`}>
         {title}
@@ -58,7 +58,7 @@
     </div>
 
     {#if description}
-      <p class="mt-2 max-w-[62ch] text-sm leading-7 text-muted-foreground">{description}</p>
+      <p class={`max-w-[62ch] text-sm text-muted-foreground ${compact ? 'mt-1.5 leading-6' : 'mt-2 leading-7'}`}>{description}</p>
     {/if}
   </div>
 

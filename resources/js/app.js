@@ -1,59 +1,29 @@
 import "./bootstrap";
 import { hydrate, mount } from "svelte";
 
-const scriptRegistry = new Map();
+const createDialogFacade = () => ({
+	async fire(options = {}) {
+		const title = options.title || "";
+		const text = options.text || "";
+		const message = [title, text].filter(Boolean).join("\n\n").trim();
 
-const loadScriptOnce = (src) => {
-	if (typeof document === "undefined") {
-		return Promise.resolve();
-	}
+		if (options.showCancelButton) {
+			return {
+				isConfirmed: window.confirm(message || "Lanjutkan tindakan ini?"),
+			};
+		}
 
-	if (scriptRegistry.has(src)) {
-		return scriptRegistry.get(src);
-	}
+		window.alert(message || title || "Notifikasi");
 
-	const existing = document.querySelector(`script[src="${src}"]`);
+		return {
+			isConfirmed: true,
+		};
+	},
+});
 
-	if (existing) {
-		const promise = Promise.resolve(existing);
-		scriptRegistry.set(src, promise);
-		return promise;
-	}
-
-	const promise = new Promise((resolve, reject) => {
-		const script = document.createElement("script");
-		script.src = src;
-		script.async = true;
-		script.onload = () => resolve(script);
-		script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
-		document.head.appendChild(script);
-	});
-
-	scriptRegistry.set(src, promise);
-
-	return promise;
-};
-
-const loadSweetAlert = async () => {
-	if (window.Swal) {
-		return window.Swal;
-	}
-
-	await loadScriptOnce("https://cdn.jsdelivr.net/npm/sweetalert2@11");
-
-	return window.Swal;
-};
-
-const loadLegacyTableLibraries = async () => {
-	if (window.$?.fn?.DataTable) {
-		return;
-	}
-
-	await loadScriptOnce("https://code.jquery.com/jquery-3.7.1.min.js");
-	await loadScriptOnce(
-		"https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js",
-	);
-};
+if (typeof window !== "undefined" && !window.Swal) {
+	window.Swal = createDialogFacade();
+}
 
 const parseJson = (id) => {
 	const node = document.getElementById(id);
@@ -104,10 +74,8 @@ const loaders = {
 	timelineFormPage: () => import("../svelte/pages/TimelineFormPage.svelte"),
 	timelineCalendarPage: () =>
 		import("../svelte/pages/TimelineCalendarPage.svelte"),
-	reportDashboardPage: async () => {
-		await loadScriptOnce("https://cdn.jsdelivr.net/npm/chart.js");
-		return import("../svelte/pages/ReportDashboardPage.svelte");
-	},
+	reportDashboardPage: () =>
+		import("../svelte/pages/ReportDashboardPage.svelte"),
 	settingsPage: () => import("../svelte/pages/SettingsPage.svelte"),
 	notificationInboxPage: () =>
 		import("../svelte/pages/NotificationInboxPage.svelte"),
@@ -150,7 +118,6 @@ mountIfPresent("svelte-login-root", loaders.loginPage, (mountPoint) => ({
 	emailError: mountPoint.dataset.emailError || "",
 	passwordError: mountPoint.dataset.passwordError || "",
 	remember: mountPoint.dataset.remember === "1",
-	themeColor: mountPoint.dataset.themeColor || "purple",
 }));
 
 [
@@ -272,63 +239,168 @@ mountIfPresent("svelte-login-root", loaders.loginPage, (mountPoint) => ({
 	mountIfPresent(mountId, loader, () => parseJson(propsId));
 });
 
-const initLegacyTables = async () => {
-	if (!document.querySelector("table.datatable")) {
+const enhanceLegacyTable = (table) => {
+	if (table.dataset.enhanced === "true") {
 		return;
 	}
 
-	await loadLegacyTableLibraries();
+	const tbody = table.tBodies[0];
 
-	document.querySelectorAll("table.datatable").forEach((table) => {
-		if (window.$.fn.DataTable.isDataTable(table)) {
-			return;
+	if (!tbody) {
+		return;
+	}
+
+	const rows = Array.from(tbody.rows);
+	const toolbar = document.createElement("div");
+	const searchLabel = document.createElement("label");
+	const searchText = document.createElement("span");
+	const searchInput = document.createElement("input");
+	const pageSizeLabel = document.createElement("label");
+	const pageSizeText = document.createElement("span");
+	const pageSizeSelect = document.createElement("select");
+	const footer = document.createElement("div");
+	const info = document.createElement("div");
+	const pagination = document.createElement("div");
+	const previousButton = document.createElement("button");
+	const nextButton = document.createElement("button");
+	const pageState = document.createElement("span");
+
+	let query = "";
+	let pageSize = 10;
+	let currentPage = 1;
+
+	toolbar.className = "d-flex justify-between align-center gap-3 mb-3";
+	footer.className = "d-flex justify-between align-center gap-3 mt-3";
+	pagination.className = "d-flex align-center gap-2";
+	info.className = "text-muted fs-sm";
+	pageState.className = "text-muted fs-sm";
+
+	searchLabel.style.minWidth = "min(100%, 18rem)";
+	searchLabel.style.display = "grid";
+	searchLabel.style.gap = "0.45rem";
+	searchText.className = "text-muted fs-sm";
+	searchText.textContent = "Cari";
+	searchInput.type = "search";
+	searchInput.className = "form-control";
+	searchInput.placeholder = "Cari data";
+
+	pageSizeLabel.style.minWidth = "9rem";
+	pageSizeLabel.style.display = "grid";
+	pageSizeLabel.style.gap = "0.45rem";
+	pageSizeText.className = "text-muted fs-sm";
+	pageSizeText.textContent = "Tampilkan";
+	pageSizeSelect.className = "form-select";
+
+	[10, 25, 50, -1].forEach((option) => {
+		const element = document.createElement("option");
+		element.value = String(option);
+		element.textContent = option === -1 ? "Semua" : String(option);
+		pageSizeSelect.appendChild(element);
+	});
+
+	previousButton.type = "button";
+	previousButton.className = "btn btn-secondary btn-sm";
+	previousButton.textContent = "Sebelumnya";
+	nextButton.type = "button";
+	nextButton.className = "btn btn-secondary btn-sm";
+	nextButton.textContent = "Selanjutnya";
+
+	searchLabel.append(searchText, searchInput);
+	pageSizeLabel.append(pageSizeText, pageSizeSelect);
+	pagination.append(previousButton, pageState, nextButton);
+	toolbar.append(searchLabel, pageSizeLabel);
+	footer.append(info, pagination);
+
+	table.parentElement?.insertBefore(toolbar, table);
+	table.parentElement?.appendChild(footer);
+
+	const render = () => {
+		const filteredRows = rows.filter((row) => {
+			return row.textContent.toLowerCase().includes(query);
+		});
+		const effectivePageSize =
+			pageSize === -1 ? filteredRows.length || 1 : pageSize;
+		const totalPages = Math.max(
+			1,
+			Math.ceil(filteredRows.length / effectivePageSize),
+		);
+
+		if (currentPage > totalPages) {
+			currentPage = totalPages;
 		}
 
-		window.$(table).DataTable({
-			responsive: true,
-			language: {
-				search: "Cari:",
-				lengthMenu: "Tampilkan _MENU_ data",
-				info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-				infoEmpty: "Tidak ada data",
-				infoFiltered: "(filter dari _MAX_ total data)",
-				zeroRecords: "Tidak ada data yang cocok",
-				paginate: {
-					first: "Pertama",
-					last: "Terakhir",
-					next: "Selanjutnya",
-					previous: "Sebelumnya",
-				},
-			},
-			dom: '<"d-flex justify-between align-center mb-3"lf>rt<"d-flex justify-between align-center mt-3"ip>',
-			pageLength: 10,
+		const start = (currentPage - 1) * effectivePageSize;
+		const visibleRows = new Set(
+			filteredRows.slice(start, start + effectivePageSize),
+		);
+
+		rows.forEach((row) => {
+			row.hidden = !visibleRows.has(row);
 		});
+
+		const rangeStart = filteredRows.length === 0 ? 0 : start + 1;
+		const rangeEnd =
+			filteredRows.length === 0
+				? 0
+				: Math.min(start + effectivePageSize, filteredRows.length);
+
+		info.textContent = `Menampilkan ${rangeStart}-${rangeEnd} dari ${filteredRows.length} data`;
+		pageState.textContent = `Halaman ${currentPage} / ${totalPages}`;
+		previousButton.disabled = currentPage === 1;
+		nextButton.disabled = currentPage === totalPages;
+	};
+
+	searchInput.addEventListener("input", (event) => {
+		query = event.currentTarget.value.trim().toLowerCase();
+		currentPage = 1;
+		render();
+	});
+
+	pageSizeSelect.addEventListener("change", (event) => {
+		pageSize = Number(event.currentTarget.value);
+		currentPage = 1;
+		render();
+	});
+
+	previousButton.addEventListener("click", () => {
+		currentPage = Math.max(1, currentPage - 1);
+		render();
+	});
+
+	nextButton.addEventListener("click", () => {
+		const totalPages = Math.max(
+			1,
+			Math.ceil(
+				rows.filter((row) => row.textContent.toLowerCase().includes(query))
+					.length / (pageSize === -1 ? rows.length || 1 : pageSize),
+			),
+		);
+		currentPage = Math.min(totalPages, currentPage + 1);
+		render();
+	});
+
+	table.dataset.enhanced = "true";
+	render();
+};
+
+const initLegacyTables = () => {
+	document.querySelectorAll("table.datatable").forEach((table) => {
+		enhanceLegacyTable(table);
 	});
 };
 
 const confirmAction = async (event, label) => {
 	const text = `Lanjutkan tindakan untuk ${label || "item ini"}?`;
+	const result = await window.Swal.fire({
+		title: "Konfirmasi",
+		text,
+		icon: "warning",
+		showCancelButton: true,
+		confirmButtonText: "Lanjutkan",
+		cancelButtonText: "Batal",
+	});
 
-	try {
-		const Swal = await loadSweetAlert();
-		const result = await Swal.fire({
-			title: "Konfirmasi",
-			text,
-			icon: "warning",
-			showCancelButton: true,
-			confirmButtonText: "Lanjutkan",
-			cancelButtonText: "Batal",
-		});
-
-		if (result.isConfirmed) {
-			event.currentTarget.closest("form")?.submit();
-		}
-		return;
-	} catch (error) {
-		console.error("Failed to load SweetAlert", error);
-	}
-
-	if (window.confirm(text)) {
+	if (result.isConfirmed) {
 		event.currentTarget.closest("form")?.submit();
 	}
 };
@@ -340,17 +412,11 @@ const showSessionSwal = async () => {
 		return;
 	}
 
-	try {
-		const Swal = await loadSweetAlert();
-		await Swal.fire({
-			icon: payload.type || "success",
-			title: payload.title,
-			text: payload.text || "",
-			confirmButtonColor: payload.confirmButtonColor || "#f5c518",
-		});
-	} catch (error) {
-		console.error("Failed to load session alert", error);
-	}
+	await window.Swal.fire({
+		icon: payload.type || "success",
+		title: payload.title,
+		text: payload.text || "",
+	});
 };
 
 document.addEventListener("click", (event) => {
@@ -368,7 +434,8 @@ document.addEventListener("click", (event) => {
 });
 
 const bootLegacyHelpers = async () => {
-	await Promise.all([initLegacyTables(), showSessionSwal()]);
+	initLegacyTables();
+	await showSessionSwal();
 };
 
 if (document.readyState === "loading") {

@@ -1,30 +1,46 @@
 <script>
   import { onDestroy, onMount, tick } from 'svelte';
+  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import StatusBadge from './StatusBadge.svelte';
 
-  export let quickChat = null;
+  let { quickChat = null } = $props();
 
-  let isOpen = false;
-  let activeUserId = null;
-  let activeUser = null;
-  let search = '';
-  let draft = '';
-  let unreadCount = 0;
-  let messages = [];
-  let users = quickChat?.users?.map((item) => ({ ...item })) || [];
-  let summaries = quickChat?.conversations?.map((item) => ({ ...item })) || [];
-  let visibleUsers = [];
-  let hasLoadedDirectory = users.length > 0;
-  let isLoadingDirectory = false;
-  let directoryError = '';
-  let pollTimer = null;
-  let isPollingActive = false;
-  let visibilityHandler = null;
-  let isSending = false;
-  let messageViewport;
-  const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
+  const initialUsers = () => quickChat?.users?.map((item) => ({ ...item })) || [];
+  const initialSummaries = () => quickChat?.conversations?.map((item) => ({ ...item })) || [];
+
+  let isOpen = $state(false);
+  let activeUserId = $state(null);
+  let activeUser = $state(null);
+  let search = $state('');
+  let draft = $state('');
+  let unreadCount = $state(0);
+  let messages = $state([]);
+  let users = $state([]);
+  let summaries = $state([]);
+  let hasLoadedDirectory = $state(false);
+  let isLoadingDirectory = $state(false);
+  let directoryError = $state('');
+  let liveUpdatesCleanup = $state(null);
+  let isSending = $state(false);
+  let messageViewport = $state(null);
+  const fallbackAvatar = (name = 'User') => {
+    const initial = (name || 'User').trim().charAt(0).toUpperCase() || 'U';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="#251d39"/><text x="50%" y="50%" dy=".35em" fill="#f5c518" font-family="Public Sans, Arial, sans-serif" font-size="28" font-weight="700" text-anchor="middle">${initial}</text></svg>`;
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
+
+  $effect(() => {
+    if (hasLoadedDirectory || users.length || !quickChat) {
+      return;
+    }
+
+    users = initialUsers();
+    summaries = initialSummaries();
+    hasLoadedDirectory = users.length > 0;
+  });
 
   const endpointFor = (base, id) => `${String(base || '').replace(/\/$/, '')}/${id}`;
 
@@ -41,7 +57,7 @@
         return rightTime - leftTime;
       }
 
-      return left.name.localeCompare(right.name, 'id');
+      return (left.name || 'Kontak').localeCompare(right.name || 'Kontak', 'id');
     });
 
   const buildUsers = () => {
@@ -62,8 +78,21 @@
     );
   };
 
-  const ensureDirectoryData = async () => {
-    if (hasLoadedDirectory || isLoadingDirectory || !quickChat?.endpoints?.sidebarData) {
+  const visibleUsers = $derived.by(() => {
+    const allUsers = buildUsers();
+    const keyword = search.trim().toLowerCase();
+
+    return keyword === ''
+      ? allUsers
+      : allUsers.filter((user) => {
+          const haystack = `${user.name} ${user.role || ''} ${user.department || ''}`.toLowerCase();
+
+          return haystack.includes(keyword);
+        });
+  });
+
+  const ensureDirectoryData = async (force = false) => {
+    if ((!force && hasLoadedDirectory) || isLoadingDirectory || !quickChat?.endpoints?.sidebarData) {
       return;
     }
 
@@ -134,6 +163,20 @@
     }
   };
 
+  $effect(() => {
+    const currentUserId = activeUserId;
+    const viewport = messageViewport;
+    const totalMessages = messages.length;
+    const lastMessageKey = messages[totalMessages - 1]?.id || messages[totalMessages - 1]?.created_at || null;
+
+    if (!currentUserId || !viewport) {
+      return;
+    }
+
+    void lastMessageKey;
+    void scrollToBottom();
+  });
+
   const syncUnreadBadge = async () => {
     if (!quickChat?.endpoints?.unread) {
       return;
@@ -160,12 +203,18 @@
   const syncSummary = (userId, payload) => {
     const lastMessage = payload[payload.length - 1] || null;
     const existing = summaries.find((item) => Number(item.id) === Number(userId));
+    const user = users.find((item) => Number(item.id) === Number(userId));
     const nextSummary = {
+      ...(user || {}),
       ...(existing || {}),
       id: Number(userId),
+      name: existing?.name || user?.name || activeUser?.name || 'Kontak',
+      avatar: existing?.avatar || user?.avatar || activeUser?.avatar || null,
+      role: existing?.role || user?.role || activeUser?.role || '',
+      department: existing?.department || user?.department || activeUser?.department || null,
       unreadCount: 0,
       lastMessage: lastMessage?.content || existing?.lastMessage || '',
-      lastMessageAt: lastMessage?.created_at || existing?.lastMessageAt || null,
+      lastMessageAt: lastMessage?.created_at_raw || lastMessage?.created_at || existing?.lastMessageAt || null,
     };
 
     summaries = sortedUsers([
@@ -255,91 +304,32 @@
     messages = [];
   };
 
-  const startPolling = () => {
-    if (pollTimer || isPollingActive) {
-      return;
-    }
-
-    isPollingActive = true;
-
-    const scheduleNext = () => {
-      if (!isPollingActive) {
-        return;
-      }
-
-      pollTimer = window.setTimeout(async () => {
-        if (!isPollingActive) {
-          return;
-        }
-
-        if (!document.hidden) {
-          await syncUnreadBadge();
-
-          if (isOpen && activeUserId) {
-            await loadConversation(activeUserId, false);
-          }
-        }
-
-        scheduleNext();
-      }, 15000);
-    };
-
-    scheduleNext();
-  };
-
-  const stopPolling = () => {
-    isPollingActive = false;
-
-    if (!pollTimer) {
-      return;
-    }
-
-    window.clearTimeout(pollTimer);
-    pollTimer = null;
-  };
-
-  $: {
-    const allUsers = buildUsers();
-    const keyword = search.trim().toLowerCase();
-
-    visibleUsers = keyword === ''
-      ? allUsers
-      : allUsers.filter((user) => {
-          const haystack = `${user.name} ${user.role || ''} ${user.department || ''}`.toLowerCase();
-
-          return haystack.includes(keyword);
-        });
-  }
-
-  $: if (isOpen && !document.hidden) {
-    startPolling();
-  } else {
-    stopPolling();
-  }
-
   onMount(() => {
     syncUnreadBadge();
 
-    visibilityHandler = () => {
-      if (document.hidden) {
-        stopPolling();
-        return;
-      }
+    liveUpdatesCleanup = subscribeToLiveUpdates(
+      quickChat?.endpoints?.realtimeSnapshot,
+      async ({ changed }) => {
+        if (!changed.includes('messages')) {
+          return;
+        }
 
-      syncUnreadBadge();
-      if (isOpen && activeUserId) {
-        loadConversation(activeUserId, false);
-      }
-    };
+        await syncUnreadBadge();
 
-    document.addEventListener('visibilitychange', visibilityHandler);
+        if (hasLoadedDirectory || isOpen) {
+          await ensureDirectoryData(true);
+        }
+
+        if (isOpen && activeUserId) {
+          await loadConversation(activeUserId, false);
+        }
+      },
+      { interval: 7000 },
+    );
   });
 
   onDestroy(() => {
-    if (visibilityHandler) {
-      document.removeEventListener('visibilitychange', visibilityHandler);
-    }
-    stopPolling();
+    liveUpdatesCleanup?.();
   });
 </script>
 

@@ -1,5 +1,4 @@
 <script>
-  import { onMount } from 'svelte';
   import * as Table from '$lib/components/ui/table/index.js';
   import EmptyStatePanel from './EmptyStatePanel.svelte';
   import TableCell from './TableCell.svelte';
@@ -16,84 +15,152 @@
     tableClass = '',
   } = $props();
 
-  let tableRef = $state(null);
-  let dataTable;
+  const pageSizeOptions = [10, 25, 50, -1];
 
-  onMount(() => {
-    if (!enableDataTable || !rows.length || !tableRef || !window.$?.fn?.DataTable) {
-      return undefined;
-    }
+  let searchQuery = $state('');
+  let pageSize = $state(10);
+  let currentPage = $state(1);
 
-    if (window.$.fn.DataTable.isDataTable(tableRef)) {
-      return undefined;
-    }
+  const normalizedRows = $derived.by(() => {
+    const columnCount = columns.length;
 
-    dataTable = window.$(tableRef).DataTable({
-      responsive: true,
-      language: {
-        search: 'Cari:',
-        lengthMenu: 'Tampilkan _MENU_ data',
-        info: 'Menampilkan _START_ - _END_ dari _TOTAL_ data',
-        infoEmpty: 'Tidak ada data',
-        infoFiltered: '(filter dari _MAX_ total data)',
-        zeroRecords: 'Tidak ada data yang cocok',
-        paginate: {
-          first: 'Pertama',
-          last: 'Terakhir',
-          next: 'Selanjutnya',
-          previous: 'Sebelumnya',
-        },
-      },
-      dom: '<"d-flex justify-between align-center mb-3"lf>rt<"d-flex justify-between align-center mt-3"ip>',
-      pageLength: 10,
+    return (rows || []).map((row, rowIndex) => {
+      const providedCells = Array.isArray(row?.cells) ? row.cells.slice(0, columnCount) : [];
+      const missingCellCount = Math.max(columnCount - providedCells.length, 0);
+
+      const fillerCells = Array.from({ length: missingCellCount }, (_, fillerIndex) => ({
+        id: `filler-${row?.id || rowIndex}-${fillerIndex}`,
+        text: '',
+        muted: true,
+      }));
+
+      return {
+        ...row,
+        cells: [...providedCells, ...fillerCells],
+      };
     });
-
-    return () => {
-      dataTable?.destroy?.();
-    };
   });
+
+  const extractCellText = (value) => {
+    if (value == null) {
+      return '';
+    }
+
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map(extractCellText).join(' ');
+    }
+
+    if (typeof value === 'object') {
+      return Object.values(value).map(extractCellText).join(' ');
+    }
+
+    return '';
+  };
+
+  const searchableRows = $derived.by(() =>
+    normalizedRows.map((row) => ({
+      ...row,
+      searchText: row.cells.map((cell) => extractCellText(cell)).join(' ').toLowerCase(),
+    })),
+  );
+
+  const filteredRows = $derived.by(() => {
+    if (!enableDataTable) {
+      return normalizedRows;
+    }
+
+    const keyword = searchQuery.trim().toLowerCase();
+
+    if (keyword === '') {
+      return searchableRows;
+    }
+
+    return searchableRows.filter((row) => row.searchText.includes(keyword));
+  });
+
+  const effectivePageSize = $derived.by(() => {
+    if (!enableDataTable) {
+      return filteredRows.length || 1;
+    }
+
+    if (pageSize === -1) {
+      return filteredRows.length || 1;
+    }
+
+    return pageSize;
+  });
+
+  const totalPages = $derived.by(() => Math.max(1, Math.ceil(filteredRows.length / effectivePageSize)));
+  const activePage = $derived.by(() => Math.min(Math.max(currentPage, 1), totalPages));
+
+  const paginatedRows = $derived.by(() => {
+    if (!enableDataTable) {
+      return filteredRows;
+    }
+
+    const start = (activePage - 1) * effectivePageSize;
+    return filteredRows.slice(start, start + effectivePageSize);
+  });
+
+  const currentRows = $derived.by(() => (enableDataTable ? paginatedRows : filteredRows));
+
+  const rangeStart = $derived.by(() => {
+    if (filteredRows.length === 0) {
+      return 0;
+    }
+
+    return enableDataTable ? (activePage - 1) * effectivePageSize + 1 : 1;
+  });
+
+  const rangeEnd = $derived.by(() => {
+    if (filteredRows.length === 0) {
+      return 0;
+    }
+
+    return enableDataTable ? Math.min(rangeStart + effectivePageSize - 1, filteredRows.length) : filteredRows.length;
+  });
+
+  const handleSearchInput = (event) => {
+    searchQuery = event.currentTarget.value;
+    currentPage = 1;
+  };
+
+  const handlePageSizeChange = (event) => {
+    pageSize = Number(event.currentTarget.value);
+    currentPage = 1;
+  };
 </script>
 
 <div class="cn-data-table">
-  <Table.Root bind:ref={tableRef} class={`cn-data-table-table ${enableDataTable ? 'datatable' : ''} ${tableClass}`.trim()}>
-    <Table.Header>
-      <Table.Row class="border-border bg-muted hover:bg-muted">
-        {#each columns as column, columnIndex (column.key || column.label || columnIndex)}
-          <Table.Head style={column.width ? `width:${column.width}` : undefined} class={column.className || ''}>
-            {column.label}
-          </Table.Head>
-        {/each}
-      </Table.Row>
-    </Table.Header>
+  {#if enableDataTable}
+    <div class="cn-data-table-toolbar">
+      <label class="cn-data-table-control">
+        <span>Cari</span>
+        <input
+          type="search"
+          class="form-control"
+          value={searchQuery}
+          oninput={handleSearchInput}
+          placeholder="Cari data"
+        />
+      </label>
 
-    <Table.Body>
-      {#if rows.length === 0 && !enableDataTable}
-        <Table.Row class="hover:bg-transparent">
-          <Table.Cell colspan={columns.length} class="p-4">
-            <EmptyStatePanel
-              title={emptyState.title}
-              text={emptyState.text}
-              icon={emptyState.icon || 'fas fa-inbox'}
-              action={emptyState.action || null}
-              compact={true}
-            />
-          </Table.Cell>
-        </Table.Row>
-      {:else}
-        {#each rows as row, rowIndex (row.id || rowIndex)}
-          <Table.Row class="border-border/70 hover:bg-muted/50">
-            {#each row.cells as cell, cellIndex (cell.id || `${rowIndex}-${cellIndex}`)}
-              <Table.Cell class={cell.align === 'right' ? 'text-right' : ''}>
-                <TableCell {cell} {csrfToken} />
-              </Table.Cell>
-            {/each}
-          </Table.Row>
-        {/each}
-      {/if}
-    </Table.Body>
-  </Table.Root>
+      <label class="cn-data-table-control cn-data-table-control-small">
+        <span>Tampilkan</span>
+        <select class="form-select" value={pageSize} onchange={handlePageSizeChange}>
+          {#each pageSizeOptions as option (option)}
+            <option value={option}>{option === -1 ? 'Semua' : option}</option>
+          {/each}
+        </select>
+      </label>
+    </div>
+  {/if}
 
-  {#if rows.length === 0 && enableDataTable}
+  {#if currentRows.length === 0}
     <div class="cn-data-table-empty">
       <EmptyStatePanel
         title={emptyState.title}
@@ -103,74 +170,180 @@
         compact={true}
       />
     </div>
+  {:else}
+    <div class="cn-data-table-desktop cn-data-table-table">
+      <Table.Root class={tableClass}>
+        <Table.Header>
+          <Table.Row class="border-border bg-muted hover:bg-muted">
+            {#each columns as column, columnIndex (column.key || column.label || columnIndex)}
+              <Table.Head style={column.width ? `width:${column.width}` : undefined} class={column.className || ''}>
+                {column.label}
+              </Table.Head>
+            {/each}
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>
+          {#each currentRows as row, rowIndex (row.id || rowIndex)}
+            <Table.Row class="border-border/70 hover:bg-muted/50">
+              {#each row.cells as cell, cellIndex (cell.id || `${rowIndex}-${cellIndex}`)}
+                <Table.Cell class={cell.align === 'right' ? 'text-right' : ''}>
+                  <TableCell {cell} {csrfToken} />
+                </Table.Cell>
+              {/each}
+            </Table.Row>
+          {/each}
+        </Table.Body>
+      </Table.Root>
+    </div>
+
+    <div class="cn-data-table-mobile">
+      {#each currentRows as row, rowIndex (row.id || rowIndex)}
+        <article class="cn-data-table-card">
+          {#each row.cells as cell, cellIndex (cell.id || `${rowIndex}-${cellIndex}`)}
+            <div class="cn-data-table-card-row">
+              <div class="cn-data-table-card-label">{columns[cellIndex]?.label || `Kolom ${cellIndex + 1}`}</div>
+              <div class="cn-data-table-card-value">
+                <TableCell {cell} {csrfToken} />
+              </div>
+            </div>
+          {/each}
+        </article>
+      {/each}
+    </div>
+  {/if}
+
+  {#if enableDataTable && currentRows.length > 0}
+    <div class="cn-data-table-footer">
+      <div class="cn-data-table-info">
+        Menampilkan {rangeStart}-{rangeEnd} dari {filteredRows.length} data
+      </div>
+
+      <div class="cn-data-table-pagination">
+        <button type="button" class="btn btn-secondary btn-sm" onclick={() => (currentPage = Math.max(1, activePage - 1))} disabled={activePage === 1}>
+          Sebelumnya
+        </button>
+        <span class="cn-data-table-page">Halaman {activePage} / {totalPages}</span>
+        <button type="button" class="btn btn-secondary btn-sm" onclick={() => (currentPage = Math.min(totalPages, activePage + 1))} disabled={activePage === totalPages}>
+          Selanjutnya
+        </button>
+      </div>
+    </div>
   {/if}
 </div>
 
 <style>
   .cn-data-table {
     width: 100%;
-  }
-
-  .cn-data-table-empty {
     padding: 1rem;
   }
 
-  :global(.cn-data-table .dataTables_wrapper) {
-    padding: 1rem;
-  }
-
-  :global(.cn-data-table .dataTables_wrapper .d-flex) {
+  .cn-data-table-toolbar,
+  .cn-data-table-footer {
     display: flex;
-    align-items: center;
+    align-items: end;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
   }
 
-  :global(.cn-data-table .dataTables_wrapper .dataTables_length),
-  :global(.cn-data-table .dataTables_wrapper .dataTables_filter),
-  :global(.cn-data-table .dataTables_wrapper .dataTables_info),
-  :global(.cn-data-table .dataTables_wrapper .dataTables_paginate) {
+  .cn-data-table-toolbar {
+    margin-bottom: 1rem;
+  }
+
+  .cn-data-table-footer {
+    margin-top: 1rem;
+  }
+
+  .cn-data-table-control {
+    display: grid;
+    gap: 0.45rem;
+    min-width: min(100%, 18rem);
+  }
+
+  .cn-data-table-control span,
+  .cn-data-table-info,
+  .cn-data-table-page {
     font-size: 0.88rem;
     color: var(--text-muted);
   }
 
-  :global(.cn-data-table .dataTables_wrapper .dataTables_length select),
-  :global(.cn-data-table .dataTables_wrapper .dataTables_filter input) {
-    margin-left: 0.45rem;
+  .cn-data-table-control-small {
+    min-width: 9rem;
+  }
+
+    .cn-data-table-desktop {
+      display: block;
+      overflow-x: auto;
+    }
+
+    .cn-data-table-table {
+      width: 100%;
+    }
+
+  .cn-data-table-mobile {
+    display: none;
+  }
+
+  .cn-data-table-card {
     border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.45rem 0.7rem;
+    border-radius: 0.625rem;
     background: var(--background);
-    color: var(--foreground);
+    padding: 0.95rem;
+    display: grid;
+    gap: 0.9rem;
   }
 
-  :global(.cn-data-table .dataTables_wrapper .dataTables_paginate .paginate_button) {
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.35rem 0.7rem;
-    margin-left: 0.35rem;
-    color: var(--foreground) !important;
-    background: var(--background) !important;
+  .cn-data-table-card-row {
+    display: grid;
+    gap: 0.4rem;
   }
 
-  :global(.cn-data-table .dataTables_wrapper .dataTables_paginate .paginate_button.current),
-  :global(.cn-data-table .dataTables_wrapper .dataTables_paginate .paginate_button:hover) {
-    border-color: color-mix(in srgb, var(--brand-primary) 35%, transparent) !important;
-    background: var(--muted) !important;
-    color: var(--foreground) !important;
+  .cn-data-table-card-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .cn-data-table-card-value {
+    min-width: 0;
+  }
+
+  .cn-data-table-empty {
+    padding: 0;
+  }
+
+  .cn-data-table-pagination {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
   }
 
   @media (max-width: 767px) {
-    :global(.cn-data-table .dataTables_wrapper) {
+    .cn-data-table {
       padding: 0.75rem;
     }
 
-    :global(.cn-data-table .dataTables_wrapper .dataTables_length),
-    :global(.cn-data-table .dataTables_wrapper .dataTables_filter),
-    :global(.cn-data-table .dataTables_wrapper .dataTables_info),
-    :global(.cn-data-table .dataTables_wrapper .dataTables_paginate) {
+    .cn-data-table-toolbar,
+    .cn-data-table-footer {
+      align-items: stretch;
+    }
+
+    .cn-data-table-control,
+    .cn-data-table-control-small,
+    .cn-data-table-pagination,
+    .cn-data-table-pagination :global(.btn) {
       width: 100%;
+    }
+
+    .cn-data-table-desktop {
+      display: none;
+    }
+
+    .cn-data-table-mobile {
+      display: grid;
+      gap: 0.75rem;
     }
   }
 </style>
