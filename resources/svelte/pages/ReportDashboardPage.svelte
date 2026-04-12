@@ -1,5 +1,4 @@
 <script>
-  import { onMount } from 'svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import DataTable from '../components/DataTable.svelte';
@@ -18,11 +17,6 @@
     topStaff = [],
     exports = [],
   } = $props();
-
-  let taskCanvas = $state(null);
-  let programCanvas = $state(null);
-  let taskChart;
-  let programChart;
 
   const fallbackPalette = {
     primary: '#7c3aed',
@@ -50,65 +44,8 @@
     return value || fallbackPalette[tone] || fallbackPalette.secondary;
   };
 
-  const buildChart = (canvas, label, dataset, chartType = 'doughnut') => {
-    if (!canvas || !window.Chart || !dataset.length) {
-      return null;
-    }
-
-    return new window.Chart(canvas, {
-      type: chartType,
-      data: {
-        labels: dataset.map((item) => item.label),
-        datasets: [
-          {
-            label,
-            data: dataset.map((item) => item.value),
-            backgroundColor: dataset.map((item) => resolveToneColor(item.tone)),
-            borderWidth: 0,
-            borderRadius: chartType === 'bar' ? 14 : 0,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: chartType === 'doughnut' ? '68%' : undefined,
-        scales:
-          chartType === 'bar'
-            ? {
-                x: {
-                  grid: { display: false },
-                  border: { display: false },
-                  ticks: { color: resolveToneColor('secondary') },
-                },
-                y: {
-                  beginAtZero: true,
-                  grid: {
-                    color: 'rgba(148, 163, 184, 0.16)',
-                  },
-                  border: { display: false },
-                  ticks: {
-                    precision: 0,
-                    color: resolveToneColor('secondary'),
-                  },
-                },
-              }
-            : undefined,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              boxWidth: 10,
-              boxHeight: 10,
-              usePointStyle: true,
-              pointStyle: 'circle',
-              color: resolveToneColor('secondary'),
-              padding: 18,
-            },
-          },
-        },
-      },
-    });
+  const maxDistributionValue = (items = []) => {
+    return items.reduce((max, item) => Math.max(max, Number(item?.value || 0)), 0) || 1;
   };
 
   const departmentColumns = [
@@ -166,7 +103,12 @@
     return 'outline';
   };
 
-  const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
+  const fallbackAvatar = (name = 'User') => {
+    const initial = (name || 'User').trim().charAt(0).toUpperCase() || 'U';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="#251d39"/><text x="50%" y="50%" dy=".35em" fill="#f5c518" font-family="Public Sans, Arial, sans-serif" font-size="28" font-weight="700" text-anchor="middle">${initial}</text></svg>`;
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
 
   const handleImageError = (event) => {
     const nextSrc = fallbackAvatar(event.currentTarget.alt || 'User');
@@ -178,15 +120,6 @@
     event.currentTarget.src = nextSrc;
   };
 
-  onMount(() => {
-    taskChart = buildChart(taskCanvas, 'Task', taskDistribution, 'doughnut');
-    programChart = buildChart(programCanvas, 'Program', programDistribution, 'bar');
-
-    return () => {
-      taskChart?.destroy();
-      programChart?.destroy();
-    };
-  });
 </script>
 
 <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
@@ -228,8 +161,18 @@
 
     <Card.Content class="pt-5">
       {#if taskDistribution.length}
-        <div class="report-chart-shell">
-          <canvas bind:this={taskCanvas}></canvas>
+        <div class="report-distribution-list" aria-label="Distribusi task">
+          {#each taskDistribution as item, index (item.label || index)}
+            <div class="report-distribution-item">
+              <div class="report-distribution-head">
+                <strong>{item.label}</strong>
+                <span>{item.value}</span>
+              </div>
+              <div class="report-distribution-track" aria-hidden="true">
+                <div class="report-distribution-bar" style={`width:${Math.max(8, (Number(item.value || 0) / maxDistributionValue(taskDistribution)) * 100)}%; background:${resolveToneColor(item.tone)};`}></div>
+              </div>
+            </div>
+          {/each}
         </div>
         <div class="report-legend-strip">
           {#each taskDistribution as item, index (item.label || index)}
@@ -255,8 +198,18 @@
 
     <Card.Content class="pt-5">
       {#if programDistribution.length}
-        <div class="report-chart-shell">
-          <canvas bind:this={programCanvas}></canvas>
+        <div class="report-distribution-list" aria-label="Distribusi program">
+          {#each programDistribution as item, index (item.label || index)}
+            <div class="report-distribution-item">
+              <div class="report-distribution-head">
+                <strong>{item.label}</strong>
+                <span>{item.value}</span>
+              </div>
+              <div class="report-distribution-track" aria-hidden="true">
+                <div class="report-distribution-bar" style={`width:${Math.max(8, (Number(item.value || 0) / maxDistributionValue(programDistribution)) * 100)}%; background:${resolveToneColor(item.tone)};`}></div>
+              </div>
+            </div>
+          {/each}
         </div>
         <div class="report-legend-strip report-legend-strip-compact">
           {#each programDistribution as item, index (item.label || index)}
@@ -361,9 +314,42 @@
     grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.95fr);
   }
 
-  .report-chart-shell {
-    position: relative;
-    min-height: 19rem;
+  .report-distribution-list {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .report-distribution-item {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .report-distribution-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .report-distribution-head strong {
+    font-size: 0.9rem;
+  }
+
+  .report-distribution-head span {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+
+  .report-distribution-track {
+    height: 0.7rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--muted);
+  }
+
+  .report-distribution-bar {
+    height: 100%;
+    border-radius: inherit;
   }
 
   .report-legend-strip {
@@ -478,10 +464,6 @@
 
     .report-intro-actions :global([data-slot='button']) {
       width: 100%;
-    }
-
-    .report-chart-shell {
-      min-height: 16rem;
     }
 
     .report-leaderboard-item {

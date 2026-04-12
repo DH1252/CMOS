@@ -21,7 +21,12 @@
   };
 
   const initialsFor = (value) => (value || 'U').trim().charAt(0).toUpperCase();
-  const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
+  const fallbackAvatar = (name = 'User') => {
+    const initial = (name || 'User').trim().charAt(0).toUpperCase() || 'U';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="#251d39"/><text x="50%" y="50%" dy=".35em" fill="#f5c518" font-family="Public Sans, Arial, sans-serif" font-size="28" font-weight="700" text-anchor="middle">${initial}</text></svg>`;
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
 
   const handleImageError = (event) => {
     const nextSrc = fallbackAvatar(event.currentTarget.alt || user.name || 'User');
@@ -44,7 +49,7 @@
 <DropdownMenu.Root bind:open>
   <DropdownMenu.Trigger>
     {#snippet child({ props })}
-      <button {...props} class={`shell-user-btn ${props.class || ''}`} aria-label="Open user menu">
+      <button {...props} class={`shell-user-btn ${props.class || ''}`} aria-label="Buka menu pengguna">
         {#if user.avatarUrl}
           <img src={user.avatarUrl || fallbackAvatar(user.name)} alt={user.name} onerror={handleImageError} />
         {:else}
@@ -54,7 +59,7 @@
           <strong>{user.name}</strong>
           <small>{user.roleName}</small>
         </span>
-        <i class="fas fa-chevron-down"></i>
+        <i class="fas fa-chevron-down" aria-hidden="true"></i>
       </button>
     {/snippet}
   </DropdownMenu.Trigger>
@@ -117,6 +122,7 @@
     align-items: center;
     gap: 0.65rem;
     min-width: 0;
+    min-height: 2.75rem;
     padding: 0.3rem 0.55rem 0.3rem 0.3rem;
     border: 1px solid var(--border);
     border-radius: 0.625rem;
@@ -128,6 +134,12 @@
 
   .shell-user-btn:hover {
     background: var(--muted);
+  }
+
+  .shell-user-btn:focus-visible,
+  .shell-menu-item:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   .shell-user-btn img,

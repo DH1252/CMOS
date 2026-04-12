@@ -1,6 +1,7 @@
 <script>
-  import { onMount, tick } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
   import { toast } from 'svelte-sonner';
+  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
   import { Toaster } from '$lib/components/ui/sonner/index.js';
   import FloatingChat from './components/FloatingChat.svelte';
@@ -15,7 +16,6 @@
     pageMeta = '',
     user = {},
     navSections = [],
-    palette = {},
     csrfToken = '',
     links = {},
     endpoints = {},
@@ -30,6 +30,7 @@
   let isLoadingNotifications = $state(false);
   let contentHost = $state(null);
   let themeMode = $state('dark');
+  let liveUpdatesCleanup = $state(null);
 
   const toneMap = {
     primary: 'tone-primary',
@@ -203,15 +204,32 @@
     await moveServerContent();
     await syncUnreadCount();
 
-    window.addEventListener('resize', handleResize);
+    liveUpdatesCleanup = subscribeToLiveUpdates(
+      endpoints.realtimeSnapshot,
+      async ({ changed, payload }) => {
+        if (!changed.includes('notifications')) {
+          return;
+        }
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+        unreadCount = Number(payload.notifications?.unreadCount || 0);
+
+        if (isNotificationsOpen) {
+          await loadNotifications();
+        }
+      },
+      { interval: 7000 },
+    );
+
+    window.addEventListener('resize', handleResize);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener('resize', handleResize);
+    liveUpdatesCleanup?.();
   });
 </script>
 
-<div class="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[248px_minmax(0,1fr)]" data-palette={Object.keys(palette || {}).length ? 'custom' : 'default'}>
+<div class="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
   <aside class="hidden h-screen border-r border-sidebar-border bg-sidebar lg:block">
     <SidebarNav
       {appName}
@@ -231,10 +249,10 @@
                 <button
                   {...props}
                   type="button"
-                  class="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-border bg-card text-foreground transition-colors hover:bg-muted lg:hidden"
-                  aria-label="Open navigation"
+                  class="inline-flex h-11 w-11 items-center justify-center rounded-[10px] border border-border bg-card text-foreground transition-colors hover:bg-muted lg:hidden"
+                  aria-label="Buka navigasi"
                 >
-                  <i class="fas fa-bars"></i>
+                  <i class="fas fa-bars" aria-hidden="true"></i>
                 </button>
               {/snippet}
             </Sheet.Trigger>
@@ -265,11 +283,12 @@
         <div class="flex shrink-0 items-center gap-2">
           <button
             type="button"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-border bg-card text-foreground transition-colors hover:bg-muted"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-[10px] border border-border bg-card text-foreground transition-colors hover:bg-muted"
             onclick={toggleThemeMode}
-            aria-label="Toggle theme"
+            aria-label={themeMode === 'dark' ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'}
+            aria-pressed={themeMode === 'light'}
           >
-            <i class={`fas ${themeMode === 'dark' ? 'fa-sun' : 'fa-moon'}`}></i>
+            <i class={`fas ${themeMode === 'dark' ? 'fa-sun' : 'fa-moon'}`} aria-hidden="true"></i>
           </button>
 
           <NotificationPopover
@@ -297,7 +316,7 @@
       </div>
     </header>
 
-    <main class="px-4 py-5 md:px-6 lg:px-8">
+    <main id="main-content" class="px-4 py-5 md:px-6 lg:px-8">
       <div bind:this={contentHost} class="min-h-full"></div>
     </main>
   </div>
