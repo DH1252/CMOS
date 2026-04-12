@@ -1,1 +1,42 @@
-node_modules
+# Dependencies
+/node_modules/
+/vendor/
+
+# Environment and local editor state
+/.env
+/.env.*
+!/.env.example
+/.vscode/
+/.idea/
+
+# PHPUnit and local tooling caches
+/.phpunit.result.cache
+/.playwright-mcp/
+/storage/pail/
+/vendor/_laravel_ide/
+
+# Frontend build output
+/public/build/
+/bootstrap/ssr/
+/public/hot
+
+# Laravel runtime files
+/bootstrap/cache/*.php
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/testing/
+/storage/framework/views/
+/storage/logs/*.log
+
+# Package manager and debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local diagnostic artifacts
+/*.png
+/console*.txt
+/network*.txt
+*.Zone.Identifier
+*lighthouse.*/
