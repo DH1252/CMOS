@@ -7,7 +7,6 @@ use App\Models\InformationBoard;
 use App\Models\InformationCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class InformationBoardController extends Controller
 {
@@ -32,13 +31,25 @@ class InformationBoardController extends Controller
         }
 
         if ($category) {
-            $query->whereHas('categories', fn($q) => $q->where('information_categories.id', $category));
+            $query->whereHas('categories', fn ($q) => $q->where('information_categories.id', $category));
         }
 
         $informationBoards = $query->paginate(12)->withQueryString();
         $categories = InformationCategory::orderBy('name')->get();
+        $totalCount = InformationBoard::count();
+        $publishedCount = InformationBoard::where('status', 'published')->count();
+        $draftCount = InformationBoard::where('status', 'draft')->count();
 
-        return view('information-boards.index', compact('informationBoards', 'categories', 'search', 'status', 'category'));
+        return view('information-boards.index', compact(
+            'informationBoards',
+            'categories',
+            'search',
+            'status',
+            'category',
+            'totalCount',
+            'publishedCount',
+            'draftCount'
+        ));
     }
 
     public function create()
@@ -158,7 +169,7 @@ class InformationBoardController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user->isAdmin() && $informationBoard->user_id !== $user->id) {
+        if (! $user->isAdmin() && $informationBoard->user_id !== $user->id) {
             abort(403, 'Anda tidak memiliki izin untuk mengelola artikel ini.');
         }
     }
@@ -175,6 +186,7 @@ class InformationBoardController extends Controller
     private function sanitizeHtml(string $content): string
     {
         $clean = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $content) ?? '';
+
         return strip_tags($clean, '<p><br><strong><b><em><i><u><ul><ol><li><a><h1><h2><h3><h4><blockquote>');
     }
 }

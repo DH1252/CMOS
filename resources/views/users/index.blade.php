@@ -2,77 +2,75 @@
 
 @section('title', 'Data User')
 @section('page-title', 'Data User')
+@section('page-meta', 'Kelola akun anggota, peran organisasi, dan status keaktifan dalam satu tabel operasional.')
 
 @section('content')
-<div class="card animate-fadeIn">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="fas fa-users text-primary"></i>
-            Daftar User
-        </h3>
-        <a href="{{ route('users.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i>
-            Tambah User
-        </a>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-container">
-            <table class="table datatable">
-                <thead>
-                    <tr>
-                        <th>Nama</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Departemen</th>
-                        <th>Status</th>
-                        <th class="no-sort" style="width: 120px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
-                    <tr>
-                        <td>
-                            <div class="d-flex align-center gap-2">
-                                <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="avatar-sm">
-                                <span class="fw-semibold">{{ $user->name }}</span>
-                            </div>
-                        </td>
-                        <td>{{ $user->email }}</td>
-                        <td>
-                            <span class="badge badge-{{ $user->role?->name === 'admin' ? 'danger' : ($user->role?->name === 'bph' ? 'warning' : ($user->role?->name === 'kabinet' ? 'info' : 'secondary')) }}">
-                                {{ ucfirst($user->role?->name ?? '-') }}
-                            </span>
-                        </td>
-                        <td>{{ $user->department?->name ?? '-' }}</td>
-                        <td>
-                            <span class="badge badge-{{ $user->status === 'active' ? 'success' : 'secondary' }}">
-                                {{ ucfirst($user->status) }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a href="{{ route('users.show', $user) }}" class="btn btn-sm btn-secondary btn-icon" title="Detail">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-primary btn-icon" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                @if($user->id !== auth()->id())
-                                <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-danger btn-icon" data-confirm-delete="{{ $user->name }}" title="Hapus">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+@php
+    $props = [
+        'title' => 'Daftar User',
+        'description' => 'Akun organisasi dikelola di sini untuk kebutuhan akses, departemen, dan peran kerja.',
+        'icon' => 'fas fa-users',
+        'csrfToken' => csrf_token(),
+        'enableDataTable' => true,
+        'primaryAction' => [
+            'label' => 'Tambah User',
+            'href' => route('users.create'),
+            'icon' => 'fas fa-plus',
+        ],
+        'columns' => [
+            ['label' => 'Nama'],
+            ['label' => 'Email'],
+            ['label' => 'Role'],
+            ['label' => 'Departemen'],
+            ['label' => 'Status'],
+            ['label' => 'Aksi', 'width' => '120px'],
+        ],
+        'rows' => $users->map(function ($user) {
+            $roleTone = match($user->role?->name) {
+                'admin' => 'danger',
+                'bph' => 'warning',
+                'kabinet' => 'info',
+                default => 'secondary',
+            };
+
+            return [
+                'cells' => [
+                    [
+                        'type' => 'avatar',
+                        'image' => $user->avatar_url,
+                        'title' => $user->name,
+                        'href' => route('users.show', $user),
+                    ],
+                    ['type' => 'text', 'text' => $user->email],
+                    ['type' => 'badge', 'label' => ucfirst($user->role?->name ?? '-'), 'tone' => $roleTone],
+                    ['type' => 'text', 'text' => $user->department?->name ?? '-', 'muted' => !$user->department],
+                    ['type' => 'badge', 'label' => ucfirst($user->status), 'tone' => $user->status === 'active' ? 'success' : 'secondary'],
+                    [
+                        'type' => 'actions',
+                        'items' => array_values(array_filter([
+                            ['href' => route('users.show', $user), 'label' => 'Detail', 'icon' => 'fas fa-eye', 'tone' => 'secondary'],
+                            ['href' => route('users.edit', $user), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'],
+                            $user->id !== auth()->id() ? [
+                                'action' => route('users.destroy', $user),
+                                'method' => 'DELETE',
+                                'label' => 'Hapus',
+                                'icon' => 'fas fa-trash',
+                                'tone' => 'danger',
+                                'confirm' => $user->name,
+                                'confirmText' => "Hapus akun {$user->name}?",
+                            ] : null,
+                        ])),
+                    ],
+                ],
+            ];
+        })->values(),
+        'emptyState' => [
+            'title' => 'Belum ada user',
+            'text' => 'Tambahkan akun baru untuk mulai mengelola organisasi di dalam sistem.',
+        ],
+    ];
+@endphp
+
+<script id="svelte-crud-table-props" type="application/json">{!! str_replace('</', '<\/', json_encode($props, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
+<div id="svelte-crud-table-root"></div>
 @endsection

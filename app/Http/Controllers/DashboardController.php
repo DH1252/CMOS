@@ -3,19 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
-use App\Models\Evaluation;
 use App\Models\Program;
 use App\Models\Task;
 use App\Models\Timeline;
 use App\Models\User;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         $user = auth()->user();
-        
+
         $data = [
             'user' => $user,
             'stats' => $this->getStats($user),
@@ -26,7 +24,6 @@ class DashboardController extends Controller
 
         // Add extra stats for admin/bph
         if ($user->hasRole(['admin', 'bph'])) {
-            $data['departmentStats'] = $this->getDepartmentStats();
             $data['staffRanking'] = $this->getStaffRanking();
             $data['departmentProgress'] = $this->getDepartmentProgress();
             $data['monthlyTrends'] = $this->getMonthlyTrends();
@@ -38,19 +35,19 @@ class DashboardController extends Controller
     private function getStats($user): array
     {
         $baseQuery = Task::query();
-        
+
         // Staff only sees their own tasks
         if ($user->isStaff()) {
             $baseQuery->where('assigned_to', $user->id);
         } elseif ($user->isKabinet() && $user->department_id) {
-            $baseQuery->whereHas('program', fn($q) => $q->where('department_id', $user->department_id));
+            $baseQuery->whereHas('program', fn ($q) => $q->where('department_id', $user->department_id));
         }
 
         return [
             'totalUsers' => $user->hasRole(['admin', 'bph']) ? User::active()->count() : null,
-            'totalPrograms' => $user->isStaff() 
-                ? $user->programs()->count() 
-                : ($user->isKabinet() 
+            'totalPrograms' => $user->isStaff()
+                ? $user->programs()->count()
+                : ($user->isKabinet()
                     ? Program::where('department_id', $user->department_id)->count()
                     : Program::count()),
             'totalTasks' => (clone $baseQuery)->count(),
@@ -69,7 +66,7 @@ class DashboardController extends Controller
         if ($user->isStaff()) {
             $query->where('assigned_to', $user->id);
         } elseif ($user->isKabinet() && $user->department_id) {
-            $query->whereHas('program', fn($q) => $q->where('department_id', $user->department_id));
+            $query->whereHas('program', fn ($q) => $q->where('department_id', $user->department_id));
         }
 
         return $query->get();
@@ -98,7 +95,7 @@ class DashboardController extends Controller
         if ($user->isStaff()) {
             $query->where('assigned_to', $user->id);
         } elseif ($user->isKabinet() && $user->department_id) {
-            $query->whereHas('program', fn($q) => $q->where('department_id', $user->department_id));
+            $query->whereHas('program', fn ($q) => $q->where('department_id', $user->department_id));
         }
 
         return [
@@ -106,14 +103,6 @@ class DashboardController extends Controller
             'in_progress' => (clone $query)->where('status', 'in_progress')->count(),
             'done' => (clone $query)->where('status', 'done')->count(),
         ];
-    }
-
-    private function getDepartmentStats()
-    {
-        return Department::withCount(['users', 'programs'])
-            ->with(['programs' => fn($q) => $q->withCount('tasks')])
-            ->active()
-            ->get();
     }
 
     private function getStaffRanking()
@@ -131,23 +120,29 @@ class DashboardController extends Controller
      */
     private function getDepartmentProgress(): array
     {
-        $departments = Department::active()->get();
-        $progress = [];
+        return Department::query()
+            ->where('departments.status', 'active')
+            ->leftJoin('programs', 'programs.department_id', '=', 'departments.id')
+            ->leftJoin('tasks', 'tasks.program_id', '=', 'programs.id')
+            ->select('departments.name')
+            ->selectRaw('COUNT(tasks.id) as total_tasks')
+            ->selectRaw("SUM(CASE WHEN tasks.status = 'done' THEN 1 ELSE 0 END) as done_tasks")
+            ->groupBy('departments.id', 'departments.name')
+            ->orderBy('departments.name')
+            ->get()
+            ->map(function ($department) {
+                $totalTasks = (int) ($department->total_tasks ?? 0);
+                $doneTasks = (int) ($department->done_tasks ?? 0);
 
-        foreach ($departments as $dept) {
-            $programIds = $dept->programs()->pluck('id');
-            $totalTasks = Task::whereIn('program_id', $programIds)->count();
-            $doneTasks = Task::whereIn('program_id', $programIds)->where('status', 'done')->count();
-            
-            $progress[] = [
-                'name' => $dept->name,
-                'total' => $totalTasks,
-                'done' => $doneTasks,
-                'percentage' => $totalTasks > 0 ? round(($doneTasks / $totalTasks) * 100) : 0,
-            ];
-        }
-
-        return $progress;
+                return [
+                    'name' => $department->name,
+                    'total' => $totalTasks,
+                    'done' => $doneTasks,
+                    'percentage' => $totalTasks > 0 ? round(($doneTasks / $totalTasks) * 100) : 0,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     /**
@@ -155,22 +150,34 @@ class DashboardController extends Controller
      */
     private function getMonthlyTrends(): array
     {
-        $trends = [];
-        
+        $months = [];
+        $startDate = now()->subMonths(5)->startOfMonth();
+        $endDate = now()->endOfMonth();
+
+        $createdByMonth = Task::query()
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, COUNT(*) as total")
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+
+        $completedByMonth = Task::query()
+            ->selectRaw("DATE_FORMAT(updated_at, '%Y-%m') as month_key, COUNT(*) as total")
+            ->where('status', 'done')
+            ->whereBetween('updated_at', [$startDate, $endDate])
+            ->groupBy('month_key')
+            ->pluck('total', 'month_key');
+
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $monthStart = $date->startOfMonth()->toDateString();
-            $monthEnd = $date->copy()->endOfMonth()->toDateString();
-            
-            $trends[] = [
+            $monthKey = $date->format('Y-m');
+
+            $months[] = [
                 'month' => $date->translatedFormat('M Y'),
-                'created' => Task::whereBetween('created_at', [$monthStart, $monthEnd])->count(),
-                'completed' => Task::where('status', 'done')
-                    ->whereBetween('updated_at', [$monthStart, $monthEnd])
-                    ->count(),
+                'created' => (int) ($createdByMonth[$monthKey] ?? 0),
+                'completed' => (int) ($completedByMonth[$monthKey] ?? 0),
             ];
         }
 
-        return $trends;
+        return $months;
     }
 }

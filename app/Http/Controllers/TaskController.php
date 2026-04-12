@@ -8,6 +8,7 @@ use App\Models\Program;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
@@ -16,20 +17,20 @@ class TaskController extends Controller
      * Kabinet/Staff: Redirect to their department
      * Admin/BPH: See all departments
      */
-    public function index()
+    public function index(Request $request)
     {
-        $user = auth()->user();
-        
+        $user = $request->user();
+
         // Kabinet and Staff: redirect to their department
         if ($user->hasRole(['kabinet', 'staff']) && $user->department_id) {
             return redirect()->route('tasks.department', $user->department_id);
         }
-        
+
         // Admin and BPH: show all departments
-        $departments = Department::withCount([
-            'tasks as total_tasks' => fn($q) => $q->whereNull('program_id'),
-            'tasks as pending_tasks' => fn($q) => $q->whereNull('program_id')->where('status', '!=', 'done'),
-        ])->get();
+        $departments = Department::with('cabinet')->withCount([
+            'tasks as total_tasks' => fn ($q) => $q->whereNull('program_id'),
+            'tasks as pending_tasks' => fn ($q) => $q->whereNull('program_id')->where('status', '!=', 'done'),
+        ])->orderBy('name')->get();
 
         $globalTasksCount = Task::global()->count();
         $globalPendingCount = Task::global()->where('status', '!=', 'done')->count();
@@ -44,10 +45,12 @@ class TaskController extends Controller
     {
         $tasks = Task::global()
             ->with(['assignee', 'creator'])
+            ->orderByDesc('sort_order')
+            ->orderByDesc('created_at')
             ->get()
             ->groupBy('status');
 
-        $users = User::active()->get();
+        $users = User::active()->with('role')->orderBy('name')->get();
 
         return view('tasks.kanban', [
             'tasks' => $tasks,
@@ -69,14 +72,19 @@ class TaskController extends Controller
         $programs = $department->programs()
             ->withCount([
                 'tasks as total_tasks',
-                'tasks as pending_tasks' => fn($q) => $q->where('status', '!=', 'done'),
+                'tasks as pending_tasks' => fn ($q) => $q->where('status', '!=', 'done'),
+                'tasks as done_tasks' => fn ($q) => $q->where('status', 'done'),
             ])
+            ->orderBy('name')
             ->get();
 
-        $deptTasksCount = Task::forDepartment($department->id)->count();
-        $deptPendingCount = Task::forDepartment($department->id)->where('status', '!=', 'done')->count();
+        $departmentTasks = Task::forDepartment($department->id);
 
-        return view('tasks.programs', compact('department', 'programs', 'deptTasksCount', 'deptPendingCount'));
+        $deptTasksCount = (clone $departmentTasks)->count();
+        $deptPendingCount = (clone $departmentTasks)->where('status', '!=', 'done')->count();
+        $deptDoneCount = (clone $departmentTasks)->done()->count();
+
+        return view('tasks.programs', compact('department', 'programs', 'deptTasksCount', 'deptPendingCount', 'deptDoneCount'));
     }
 
     /**
@@ -87,10 +95,12 @@ class TaskController extends Controller
     {
         $tasks = Task::forDepartment($department->id)
             ->with(['assignee', 'creator'])
+            ->orderByDesc('sort_order')
+            ->orderByDesc('created_at')
             ->get()
             ->groupBy('status');
 
-        $users = User::active()->get();
+        $users = User::active()->with('role')->orderBy('name')->get();
 
         return view('tasks.kanban', [
             'tasks' => $tasks,
@@ -111,10 +121,12 @@ class TaskController extends Controller
     {
         $tasks = Task::forProgram($program->id)
             ->with(['assignee', 'creator'])
+            ->orderByDesc('sort_order')
+            ->orderByDesc('created_at')
             ->get()
             ->groupBy('status');
 
-        $users = User::active()->get();
+        $users = User::active()->with('role')->orderBy('name')->get();
 
         return view('tasks.kanban', [
             'tasks' => $tasks,
@@ -133,12 +145,22 @@ class TaskController extends Controller
      */
     public function create(Request $request)
     {
-        $type = $request->get('type', 'program');
+        $type = $request->get('type');
         $typeId = $request->get('id');
 
-        $users = User::active()->get();
-        $programs = Program::all();
-        $departments = Department::all();
+        if (! $type && $request->filled('program_id')) {
+            $type = 'program';
+            $typeId = $request->get('program_id');
+        } elseif (! $type && $request->filled('department_id')) {
+            $type = 'department';
+            $typeId = $request->get('department_id');
+        }
+
+        $type = $type ?: 'program';
+
+        $users = User::active()->with('role')->orderBy('name')->get();
+        $programs = Program::with('department')->orderBy('name')->get();
+        $departments = Department::orderBy('name')->get();
 
         return view('tasks.create', compact('type', 'typeId', 'users', 'programs', 'departments'));
     }
@@ -166,8 +188,9 @@ class TaskController extends Controller
             'department_id' => $validated['type'] === 'department' ? $validated['department_id'] : null,
             'is_global' => $validated['type'] === 'global',
             'assigned_to' => $validated['assigned_to'] ?? null,
-            'created_by' => auth()->id(),
+            'created_by' => $request->user()->id,
             'status' => 'todo',
+            'sort_order' => $this->nextSortOrder($validated['type'], $validated['type'] === 'program' ? $validated['program_id'] : ($validated['type'] === 'department' ? $validated['department_id'] : null), 'todo'),
             'priority' => $validated['priority'],
             'progress' => 0,
             'deadline' => $validated['deadline'] ?? null,
@@ -190,7 +213,7 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        $task->load(['program.department', 'department', 'assignee', 'creator']);
+        $task->load(['program.department', 'department', 'assignee.role', 'creator']);
 
         return view('tasks.show', compact('task'));
     }
@@ -230,25 +253,35 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'status' => 'required|in:todo,in_progress,pending,done',
+            'column_orders' => 'sometimes|array',
+            'column_orders.*' => 'array',
         ]);
 
         $oldStatus = $task->status;
-        $task->status = $validated['status'];
 
-        // Auto-update progress
-        if ($validated['status'] === 'done') {
-            $task->progress = 100;
-        } elseif ($validated['status'] === 'todo' && $task->progress > 0) {
-            $task->progress = 0;
-        }
+        DB::transaction(function () use ($task, $validated): void {
+            $task->status = $validated['status'];
 
-        $task->save();
+            if ($validated['status'] === 'done') {
+                $task->progress = 100;
+            } elseif ($validated['status'] === 'todo' && $task->progress > 0) {
+                $task->progress = 0;
+            }
+
+            $task->save();
+
+            if (! empty($validated['column_orders'])) {
+                $this->applyColumnOrders($task, $validated['column_orders']);
+            }
+        });
 
         ActivityLog::log('updated', "Changed task status: {$task->title} from {$oldStatus} to {$task->status}", $task);
 
+        $task->load(['assignee', 'creator']);
+
         return response()->json([
             'success' => true,
-            'task' => $task->fresh(),
+            'task' => $this->formatTask($task),
         ]);
     }
 
@@ -297,29 +330,30 @@ class TaskController extends Controller
     public function storeInline(Request $request)
     {
         $validated = $request->validate([
-            'title'         => 'required|string|max:255',
-            'description'   => 'nullable|string',
-            'type'          => 'required|in:global,department,program',
-            'program_id'    => 'required_if:type,program|nullable|exists:programs,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'required|in:global,department,program',
+            'program_id' => 'required_if:type,program|nullable|exists:programs,id',
             'department_id' => 'required_if:type,department|nullable|exists:departments,id',
-            'assigned_to'   => 'nullable|exists:users,id',
-            'priority'      => 'required|in:low,medium,high',
-            'deadline'      => 'nullable|date',
-            'status'        => 'nullable|in:todo,in_progress,pending,done',
+            'assigned_to' => 'nullable|exists:users,id',
+            'priority' => 'required|in:low,medium,high',
+            'deadline' => 'nullable|date',
+            'status' => 'nullable|in:todo,in_progress,pending,done',
         ]);
 
         $task = Task::create([
-            'title'         => $validated['title'],
-            'description'   => $validated['description'] ?? null,
-            'program_id'    => $validated['type'] === 'program' ? $validated['program_id'] : null,
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'program_id' => $validated['type'] === 'program' ? $validated['program_id'] : null,
             'department_id' => $validated['type'] === 'department' ? $validated['department_id'] : null,
-            'is_global'     => $validated['type'] === 'global',
-            'assigned_to'   => $validated['assigned_to'] ?? null,
-            'created_by'    => auth()->id(),
-            'status'        => $validated['status'] ?? 'todo',
-            'priority'      => $validated['priority'],
-            'progress'      => 0,
-            'deadline'      => $validated['deadline'] ?? null,
+            'is_global' => $validated['type'] === 'global',
+            'assigned_to' => $validated['assigned_to'] ?? null,
+            'created_by' => $request->user()->id,
+            'status' => $validated['status'] ?? 'todo',
+            'sort_order' => $this->nextSortOrder($validated['type'], $validated['type'] === 'program' ? $validated['program_id'] : ($validated['type'] === 'department' ? $validated['department_id'] : null), $validated['status'] ?? 'todo'),
+            'priority' => $validated['priority'],
+            'progress' => 0,
+            'deadline' => $validated['deadline'] ?? null,
         ]);
 
         ActivityLog::log('created', "Created task: {$task->title}", $task);
@@ -328,7 +362,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'task'    => $this->formatTask($task),
+            'task' => $this->formatTask($task),
         ]);
     }
 
@@ -338,13 +372,13 @@ class TaskController extends Controller
     public function updateInline(Request $request, Task $task)
     {
         $validated = $request->validate([
-            'title'       => 'sometimes|required|string|max:255',
+            'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'assigned_to' => 'nullable|exists:users,id',
-            'status'      => 'sometimes|required|in:todo,in_progress,pending,done',
-            'priority'    => 'sometimes|required|in:low,medium,high',
-            'progress'    => 'sometimes|required|integer|min:0|max:100',
-            'deadline'    => 'nullable|date',
+            'status' => 'sometimes|required|in:todo,in_progress,pending,done',
+            'priority' => 'sometimes|required|in:low,medium,high',
+            'progress' => 'sometimes|required|integer|min:0|max:100',
+            'deadline' => 'nullable|date',
         ]);
 
         // Auto-update status based on progress
@@ -363,7 +397,7 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'task'    => $this->formatTask($task),
+            'task' => $this->formatTask($task),
         ]);
     }
 
@@ -385,22 +419,84 @@ class TaskController extends Controller
     private function formatTask(Task $task): array
     {
         return [
-            'id'            => $task->id,
-            'title'         => $task->title,
-            'description'   => $task->description,
-            'status'        => $task->status,
-            'status_label'  => $task->status_label,
-            'priority'      => $task->priority,
-            'priority_label'=> $task->priority_label,
-            'progress'      => $task->progress,
-            'deadline'      => $task->deadline ? $task->deadline->format('Y-m-d') : null,
-            'deadline_fmt'  => $task->deadline ? $task->deadline->format('d M Y') : null,
-            'is_overdue'    => $task->is_overdue,
-            'assigned_to'   => $task->assigned_to,
+            'id' => $task->id,
+            'title' => $task->title,
+            'description' => $task->description,
+            'status' => $task->status,
+            'status_label' => $task->status_label,
+            'sort_order' => $task->sort_order,
+            'priority' => $task->priority,
+            'priority_label' => $task->priority_label,
+            'progress' => $task->progress,
+            'deadline' => $task->deadline ? $task->deadline->format('Y-m-d') : null,
+            'deadline_fmt' => $task->deadline ? $task->deadline->format('d M Y') : null,
+            'is_overdue' => $task->is_overdue,
+            'assigned_to' => $task->assigned_to,
             'assignee_name' => $task->assignee?->name,
-            'assignee_avatar'=> $task->assignee?->avatar_url,
-            'created_by'    => $task->created_by,
-            'creator_name'  => $task->creator?->name,
+            'assignee_avatar' => $task->assignee?->avatar_url,
+            'created_by' => $task->created_by,
+            'creator_name' => $task->creator?->name,
+            'showHref' => route('tasks.show', $task),
         ];
+    }
+
+    private function nextSortOrder(string $type, ?int $typeId, string $status): int
+    {
+        $query = Task::query()->where('status', $status);
+
+        if ($type === 'global') {
+            $query->where('is_global', true);
+        } elseif ($type === 'department') {
+            $query->where('department_id', $typeId)->whereNull('program_id');
+        } else {
+            $query->where('program_id', $typeId);
+        }
+
+        return ((int) $query->max('sort_order')) + 1;
+    }
+
+    private function applyColumnOrders(Task $task, array $columnOrders): void
+    {
+        $contextQuery = $this->contextTaskQuery($task);
+
+        foreach ($columnOrders as $status => $orderedIds) {
+            if (! in_array($status, Task::STATUSES, true) || ! is_array($orderedIds)) {
+                continue;
+            }
+
+            $allowedIds = (clone $contextQuery)
+                ->where('status', $status)
+                ->pluck('id')
+                ->map(fn (mixed $id) => (int) $id)
+                ->all();
+
+            $filteredIds = array_values(array_filter(
+                array_map(static fn (mixed $id): int => (int) $id, $orderedIds),
+                static fn (int $id): bool => in_array($id, $allowedIds, true),
+            ));
+
+            $count = count($filteredIds);
+
+            foreach ($filteredIds as $index => $id) {
+                Task::query()
+                    ->whereKey($id)
+                    ->update(['sort_order' => $count - $index]);
+            }
+        }
+    }
+
+    private function contextTaskQuery(Task $task)
+    {
+        $query = Task::query();
+
+        if ($task->is_global) {
+            return $query->where('is_global', true);
+        }
+
+        if ($task->program_id) {
+            return $query->where('program_id', $task->program_id);
+        }
+
+        return $query->where('department_id', $task->department_id)->whereNull('program_id');
     }
 }

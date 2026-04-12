@@ -13,7 +13,7 @@ class CabinetController extends Controller
         $cabinets = Cabinet::withCount('departments')
             ->orderByDesc('year')
             ->get();
-            
+
         return view('cabinets.index', compact('cabinets'));
     }
 
@@ -36,7 +36,7 @@ class CabinetController extends Controller
         }
 
         $cabinet = Cabinet::create($validated);
-        
+
         ActivityLog::log('created', "Created cabinet: {$cabinet->name}", $cabinet);
 
         return redirect()->route('cabinets.index')
@@ -45,8 +45,8 @@ class CabinetController extends Controller
 
     public function show(Cabinet $cabinet)
     {
-        $cabinet->load('departments.users');
-        
+        $cabinet->load(['departments.users.role', 'departments.programs']);
+
         return view('cabinets.show', compact('cabinet'));
     }
 
@@ -71,7 +71,7 @@ class CabinetController extends Controller
         }
 
         $cabinet->update($validated);
-        
+
         ActivityLog::log('updated', "Updated cabinet: {$cabinet->name}", $cabinet);
 
         return redirect()->route('cabinets.index')
@@ -81,13 +81,13 @@ class CabinetController extends Controller
     public function destroy(Cabinet $cabinet)
     {
         $name = $cabinet->name;
-        
+
         if ($cabinet->departments()->count() > 0) {
             return back()->with('error', 'Tidak dapat menghapus kabinet yang masih memiliki departemen!');
         }
-        
+
         ActivityLog::log('deleted', "Deleted cabinet: {$name}", $cabinet);
-        
+
         $cabinet->delete();
 
         return redirect()->route('cabinets.index')

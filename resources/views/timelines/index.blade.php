@@ -4,89 +4,94 @@
 @section('page-title', 'Timeline')
 
 @section('content')
-<div class="card animate-fadeIn">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="fas fa-calendar-alt text-primary"></i>
-            Semua Timeline
-        </h3>
-        @if(auth()->user()->hasRole(['admin', 'bph', 'kabinet']))
-        <a href="{{ route('timelines.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i>
-            Tambah Timeline
-        </a>
-        @endif
-    </div>
-    <div class="card-body p-0">
-        <div class="table-container">
-            <table class="table datatable">
-                <thead>
-                    <tr>
-                        <th>Judul</th>
-                        <th>Tipe</th>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                        @if(auth()->user()->hasRole(['admin', 'bph', 'kabinet']))
-                        <th class="no-sort" style="width: 100px;">Aksi</th>
-                        @endif
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($timelines as $timeline)
-                    <tr>
-                        <td>
-                            <div class="d-flex align-center gap-2">
-                                <div style="width: 12px; height: 12px; background: {{ $timeline->color }}; border-radius: 50%;"></div>
-                                <span class="fw-semibold">{{ $timeline->title }}</span>
-                            </div>
-                            @if($timeline->description)
-                            <div class="text-muted fs-xs">{{ Str::limit($timeline->description, 50) }}</div>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="badge badge-{{ $timeline->type === 'global' ? 'primary' : ($timeline->type === 'department' ? 'info' : 'secondary') }}">
-                                {{ ucfirst($timeline->type) }}
-                            </span>
-                            @if($timeline->department)
-                                <div class="fs-xs text-muted">{{ $timeline->department->name }}</div>
-                            @endif
-                            @if($timeline->program)
-                                <div class="fs-xs text-muted">{{ $timeline->program->name }}</div>
-                            @endif
-                        </td>
-                        <td class="fs-sm">
-                            {{ $timeline->start_date->format('d M') }} - {{ $timeline->end_date->format('d M Y') }}
-                        </td>
-                        <td>
-                            @if($timeline->end_date->isPast())
-                                <span class="badge badge-secondary">Selesai</span>
-                            @elseif($timeline->start_date->isFuture())
-                                <span class="badge badge-info">Akan Datang</span>
-                            @else
-                                <span class="badge badge-success">Berlangsung</span>
-                            @endif
-                        </td>
-                        @if(auth()->user()->hasRole(['admin', 'bph', 'kabinet']))
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a href="{{ route('timelines.edit', $timeline) }}" class="btn btn-sm btn-primary btn-icon" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('timelines.destroy', $timeline) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-danger btn-icon" data-confirm-delete="{{ $timeline->title }}" title="Hapus">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                        @endif
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+@php
+    $today = now()->toDateString();
+    $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+
+    $statusFor = function ($timeline) use ($today) {
+        if ($timeline->end_date->toDateString() < $today) {
+            return ['label' => 'Selesai', 'tone' => 'secondary'];
+        }
+
+        if ($timeline->start_date->toDateString() > $today) {
+            return ['label' => 'Akan Datang', 'tone' => 'info'];
+        }
+
+        return ['label' => 'Berlangsung', 'tone' => 'success'];
+    };
+
+    $props = [
+        'title' => 'Semua Timeline',
+        'description' => 'Pantau agenda global, departemen, dan program kerja dalam satu daftar yang rapi.',
+        'icon' => 'fas fa-calendar-alt',
+        'actions' => array_values(array_filter([
+            ['href' => route('timelines.calendar'), 'label' => 'Kalender', 'icon' => 'fas fa-calendar-days', 'tone' => 'secondary'],
+            $canManage ? ['href' => route('timelines.create'), 'label' => 'Tambah Timeline', 'icon' => 'fas fa-plus', 'tone' => 'primary'] : null,
+        ])),
+        'summary' => [
+            ['label' => 'Total', 'value' => $timelines->count()],
+            ['label' => 'Berlangsung', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'success')->count()],
+            ['label' => 'Akan Datang', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'info')->count()],
+        ],
+        'items' => $timelines->map(function ($timeline) use ($statusFor, $canManage) {
+            $scope = match ($timeline->type) {
+                'global' => ['label' => 'Global', 'tone' => 'primary'],
+                'department' => ['label' => 'Departemen', 'tone' => 'info'],
+                default => ['label' => 'Program', 'tone' => 'secondary'],
+            };
+
+            $meta = [];
+
+            if ($timeline->department) {
+                $meta[] = ['icon' => 'fas fa-building', 'label' => $timeline->department->name];
+            }
+
+            if ($timeline->program) {
+                $meta[] = ['icon' => 'fas fa-diagram-project', 'label' => $timeline->program->name];
+            }
+
+            return [
+                'title' => $timeline->title,
+                'description' => $timeline->description ?: 'Tidak ada deskripsi tambahan untuk timeline ini.',
+                'color' => $timeline->color ?? '#7C3AED',
+                'range' => $timeline->start_date->format('d M Y') . ' - ' . $timeline->end_date->format('d M Y'),
+                'scope' => $scope,
+                'status' => $statusFor($timeline),
+                'meta' => $meta,
+                'actions' => $canManage ? [
+                    [
+                        'href' => route('timelines.edit', $timeline),
+                        'label' => 'Edit timeline',
+                        'icon' => 'fas fa-pen',
+                        'tone' => 'secondary',
+                        'iconOnly' => true,
+                    ],
+                    [
+                        'href' => route('timelines.destroy', $timeline),
+                        'label' => 'Hapus timeline',
+                        'icon' => 'fas fa-trash',
+                        'tone' => 'danger',
+                        'method' => 'POST',
+                        'spoofMethod' => 'DELETE',
+                        'csrfToken' => csrf_token(),
+                        'confirm' => $timeline->title,
+                        'iconOnly' => true,
+                    ],
+                ] : [],
+            ];
+        })->values(),
+        'emptyState' => [
+            'title' => 'Belum ada timeline',
+            'text' => 'Timeline organisasi akan tampil di sini setelah dibuat.',
+            'action' => $canManage ? [
+                'href' => route('timelines.create'),
+                'label' => 'Tambah Timeline',
+                'icon' => 'fas fa-plus',
+            ] : null,
+        ],
+    ];
+@endphp
+
+<script id="svelte-timeline-collection-props" type="application/json">{!! str_replace('</', '<\/', json_encode($props, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
+<div id="svelte-timeline-collection-root"></div>
 @endsection

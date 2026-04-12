@@ -4,72 +4,80 @@
 @section('page-title', 'Edit Akun Drive')
 
 @section('content')
-<div class="row justify-center">
-    <div class="col-12 col-lg-6">
-        <div class="card animate-fadeIn">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fab fa-google-drive text-primary"></i>
-                    Edit: {{ $drive->name }}
-                </h3>
-            </div>
-            <div class="card-body">
-                <form action="{{ route('drives.update', $drive) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    
-                    <div class="form-group">
-                        <label for="name" class="form-label">Nama Drive <span class="text-danger">*</span></label>
-                        <input type="text" id="name" name="name" class="form-control" value="{{ old('name', $drive->name) }}" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="department_id" class="form-label">Departemen</label>
-                        <select id="department_id" name="department_id" class="form-control form-select">
-                            <option value="">-- Umum (Semua Departemen) --</option>
-                            @foreach($departments as $dept)
-                                <option value="{{ $dept->id }}" {{ old('department_id', $drive->department_id) == $dept->id ? 'selected' : '' }}>
-                                    {{ $dept->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email" class="form-label">Email Google <span class="text-danger">*</span></label>
-                        <input type="email" id="email" name="email" class="form-control" value="{{ old('email', $drive->email) }}" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-                        <input type="text" id="password" name="password" class="form-control" value="{{ old('password', $drive->password) }}" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="drive_url" class="form-label">URL Google Drive <span class="text-danger">*</span></label>
-                        <input type="url" id="drive_url" name="drive_url" class="form-control" value="{{ old('drive_url', $drive->drive_url) }}" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-check">
-                            <input type="checkbox" name="is_active" value="1" class="form-check-input" {{ old('is_active', $drive->is_active) ? 'checked' : '' }}>
-                            <span>Aktif</span>
-                        </label>
-                    </div>
-                    
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i>
-                            Update
-                        </button>
-                        <a href="{{ route('drives.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i>
-                            Kembali
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+@php
+    $props = [
+        'title' => "Edit Drive: {$drive->name}",
+        'description' => 'Perbarui kredensial, penempatan departemen, dan status akun Drive organisasi.',
+        'icon' => 'fab fa-google-drive',
+        'form' => [
+            'action' => route('drives.update', $drive),
+            'method' => 'PUT',
+            'csrfToken' => csrf_token(),
+            'submitLabel' => 'Update',
+            'submitIcon' => 'fas fa-save',
+        ],
+        'cancelAction' => [
+            'href' => route('drives.index'),
+            'label' => 'Kembali',
+            'icon' => 'fas fa-arrow-left',
+        ],
+        'fields' => [
+            [
+                'name' => 'name',
+                'label' => 'Nama Drive',
+                'type' => 'text',
+                'required' => true,
+                'value' => old('name', $drive->name),
+                'error' => $errors->first('name'),
+            ],
+            [
+                'name' => 'department_id',
+                'label' => 'Departemen',
+                'type' => 'select',
+                'value' => old('department_id', $drive->department_id),
+                'error' => $errors->first('department_id'),
+                'placeholder' => '-- Umum (Semua Departemen) --',
+                'span' => 'half',
+                'options' => $departments->map(fn($department) => ['value' => $department->id, 'label' => $department->name])->values(),
+            ],
+            [
+                'name' => 'email',
+                'label' => 'Email Google',
+                'type' => 'email',
+                'required' => true,
+                'value' => old('email', $drive->email),
+                'error' => $errors->first('email'),
+                'span' => 'half',
+            ],
+            [
+                'name' => 'password',
+                'label' => 'Password',
+                'type' => 'text',
+                'required' => true,
+                'value' => old('password', $drive->password),
+                'error' => $errors->first('password'),
+            ],
+            [
+                'name' => 'drive_url',
+                'label' => 'URL Google Drive',
+                'type' => 'url',
+                'required' => true,
+                'value' => old('drive_url', $drive->drive_url),
+                'error' => $errors->first('drive_url'),
+            ],
+            [
+                'name' => 'is_active',
+                'label' => 'Aktif',
+                'type' => 'checkbox',
+                'value' => old('is_active', $drive->is_active),
+                'error' => $errors->first('is_active'),
+                'note' => 'Nonaktifkan bila akun Drive sudah tidak dipakai oleh pengurus.',
+                'span' => 'half',
+            ],
+        ],
+    ];
+@endphp
+
+<script id="svelte-entity-form-props" type="application/json">{!! str_replace('</', '<\/', json_encode($props, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
+<div id="svelte-entity-form-root"></div>
 @endsection

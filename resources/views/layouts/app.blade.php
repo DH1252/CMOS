@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="id" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
-        $appName = \App\Models\Setting::get('app_name', 'SAVANA');
+        $appName = \App\Models\Setting::get('app_name', 'CMOS');
+        $organizationName = \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
         $themeColor = \App\Models\Setting::get('theme_color', 'purple');
         $themeColors = [
             'purple' => ['primary' => '#7C3AED', 'hover' => '#6D28D9', 'soft' => '#A78BFA', 'light' => '#EDE9FE'],
@@ -22,332 +23,247 @@
             'slate' => ['primary' => '#64748B', 'hover' => '#475569', 'soft' => '#94A3B8', 'light' => '#F1F5F9'],
         ];
         $colors = $themeColors[$themeColor] ?? $themeColors['purple'];
+        $pageTitle = trim($__env->yieldContent('page-title')) ?: trim($__env->yieldContent('title')) ?: 'Dashboard';
+        $pageMeta = trim($__env->yieldContent('page-meta'));
+        $currentUser = auth()->user();
+        $navSections = [
+            [
+                'title' => 'Operasional',
+                'description' => 'Area kerja utama untuk aktivitas harian.',
+                'items' => [
+                    ['label' => 'Dashboard', 'icon' => 'fas fa-house', 'href' => route('dashboard'), 'active' => request()->routeIs('dashboard'), 'meta' => 'Ringkasan utama workspace'],
+                    ['label' => 'Task', 'icon' => 'fas fa-list-check', 'href' => route('tasks.index'), 'active' => request()->routeIs('tasks.*'), 'meta' => 'Tindak lanjut lintas tim'],
+                    ['label' => 'Timeline', 'icon' => 'fas fa-calendar-days', 'href' => route('timelines.calendar'), 'active' => request()->routeIs('timelines.*'), 'meta' => 'Agenda dan kalender kerja'],
+                    ['label' => 'Pesan', 'icon' => 'fas fa-comments', 'href' => route('messages.index'), 'active' => request()->routeIs('messages.*'), 'meta' => 'Percakapan dan unread'],
+                ],
+            ],
+            [
+                'title' => 'Koordinasi',
+                'description' => 'Publikasi, program, dan evaluasi kabinet.',
+                'items' => [
+                    ['label' => 'Pengumuman', 'icon' => 'fas fa-bullhorn', 'href' => route('announcements.index'), 'active' => request()->routeIs('announcements.*'), 'meta' => 'Feed internal kabinet'],
+                    ['label' => 'Informasi', 'icon' => 'fas fa-newspaper', 'href' => route('information-boards.index'), 'active' => request()->routeIs('information-boards.*'), 'meta' => 'Publikasi dan arsip resmi'],
+                    ['label' => 'Program kerja', 'icon' => 'fas fa-diagram-project', 'href' => $currentUser->hasRole(['admin', 'bph', 'kabinet']) ? route('programs.index') : route('programs.my'), 'active' => request()->routeIs('programs.*'), 'meta' => $currentUser->hasRole(['admin', 'bph', 'kabinet']) ? 'Daftar dan detail program' : 'Program yang sedang diikuti'],
+                ],
+            ],
+        ];
+
+        if ($currentUser->hasRole(['admin', 'bph'])) {
+            $managementItems = [];
+
+            if ($currentUser->isAdmin()) {
+                $managementItems[] = ['label' => 'Data User', 'icon' => 'fas fa-users', 'href' => route('users.index'), 'active' => request()->routeIs('users.index') || request()->routeIs('users.show') || request()->routeIs('users.create') || request()->routeIs('users.edit')];
+                $managementItems[] = ['label' => 'Import User CSV', 'icon' => 'fas fa-file-csv', 'href' => route('users.import'), 'active' => request()->routeIs('users.import*')];
+            }
+
+            $managementItems[] = ['label' => 'Departemen', 'icon' => 'fas fa-building', 'href' => route('departments.index'), 'active' => request()->routeIs('departments.*')];
+            $managementItems[] = ['label' => 'Kabinet', 'icon' => 'fas fa-landmark', 'href' => route('cabinets.index'), 'active' => request()->routeIs('cabinets.*')];
+
+            $navSections[] = [
+                'title' => 'Struktur',
+                'description' => 'Data kabinet, departemen, dan personel yang membentuk organisasi.',
+                'items' => array_map(function ($item) {
+                    $item['meta'] = match ($item['label']) {
+                        'Data User' => 'Akun dan detail personel',
+                        'Import User CSV' => 'Masukkan banyak user sekaligus',
+                        'Departemen' => 'Unit kerja dan penanggung jawab',
+                        'Kabinet' => 'Kabinet aktif dan riwayat struktur',
+                        default => null,
+                    };
+
+                    return $item;
+                }, $managementItems),
+            ];
+        }
+
+        if ($currentUser->hasRole(['admin', 'bph', 'kabinet'])) {
+            $evaluationItems = [
+                ['label' => 'Evaluasi Staff', 'icon' => 'fas fa-star', 'href' => route('evaluations.index'), 'active' => request()->routeIs('evaluations.*'), 'meta' => 'Hub departemen dan ranking'],
+            ];
+
+            if ($currentUser->hasRole(['admin', 'bph'])) {
+                $evaluationItems[] = ['label' => 'Laporan', 'icon' => 'fas fa-chart-column', 'href' => route('reports.index'), 'active' => request()->routeIs('reports.*'), 'meta' => 'Ringkasan performa organisasi'];
+            }
+
+            $navSections[] = [
+                'title' => 'Penilaian',
+                'description' => 'Area review untuk penilaian dan pelaporan lintas tim.',
+                'items' => $evaluationItems,
+            ];
+        }
+
+        if ($currentUser->isStaff()) {
+            $navSections[] = [
+                'title' => 'Penilaian',
+                'description' => 'Area review yang paling relevan untuk staf.',
+                'items' => [
+                    ['label' => 'Nilai Saya', 'icon' => 'fas fa-star', 'href' => route('evaluations.my'), 'active' => request()->routeIs('evaluations.my'), 'meta' => 'Riwayat evaluasi pribadi'],
+                ],
+            ];
+        }
+
+        $navSections[] = [
+            'title' => 'Referensi',
+            'description' => 'Akses cepat ke dokumen, link, dan referensi kerja bersama.',
+            'items' => array_values(array_filter([
+                ['label' => 'Google Drive', 'icon' => 'fab fa-google-drive', 'href' => route('drives.index'), 'active' => request()->routeIs('drives.*'), 'meta' => 'Folder dan dokumen bersama'],
+                ['label' => 'Kumpulan Link', 'icon' => 'fas fa-link', 'href' => route('links.index'), 'active' => request()->routeIs('links.*'), 'meta' => 'Tautan kerja yang sering dipakai'],
+                $currentUser->hasRole(['admin', 'bph', 'kabinet']) ? ['label' => 'Proker Saya', 'icon' => 'fas fa-folder-open', 'href' => route('programs.my'), 'active' => request()->routeIs('programs.my'), 'meta' => 'Program yang sedang saya tangani'] : null,
+            ])),
+        ];
+
+        if ($currentUser->isAdmin()) {
+            $navSections[] = [
+                'title' => 'Pengaturan',
+                'description' => 'Kontrol identitas aplikasi dan pengaturan dasar workspace.',
+                'items' => [
+                    ['label' => 'Pengaturan', 'icon' => 'fas fa-gear', 'href' => route('settings.index'), 'active' => request()->routeIs('settings.*'), 'meta' => 'Identitas, warna, dan cadence evaluasi'],
+                ],
+            ];
+        }
+
+        $quickChatUsers = \App\Models\User::query()
+            ->where('id', '!=', $currentUser->id)
+            ->where('status', 'active')
+            ->with(['role', 'department'])
+            ->orderBy('name')
+            ->get();
+
+        $quickChatConversations = \App\Models\Message::getConversations($currentUser->id);
+
+        $authProps = [
+            'appName' => $appName,
+            'organizationName' => $organizationName,
+            'pageTitle' => $pageTitle,
+            'pageMeta' => $pageMeta,
+            'themeColor' => $themeColor,
+            'palette' => $colors,
+            'csrfToken' => csrf_token(),
+            'user' => [
+                'name' => $currentUser->name,
+                'roleName' => $currentUser->role_name,
+                'avatarUrl' => $currentUser->avatar_url,
+            ],
+            'navSections' => $navSections,
+            'links' => [
+                'dashboard' => route('dashboard'),
+                'announcementsIndex' => route('announcements.index'),
+                'profile' => route('profile.edit'),
+                'settings' => $currentUser->isAdmin() ? route('settings.index') : null,
+                'notifications' => route('notifications.index'),
+                'messages' => route('messages.index'),
+                'logout' => route('logout'),
+            ],
+            'endpoints' => [
+                'notificationsRecent' => route('notifications.recent'),
+                'notificationsUnread' => route('notifications.unread-count'),
+                'notificationsMarkAll' => route('notifications.mark-all-read'),
+            ],
+            'quickChat' => [
+                'users' => $quickChatUsers->map(fn ($chatUser) => [
+                    'id' => $chatUser->id,
+                    'name' => $chatUser->name,
+                    'avatar' => $chatUser->avatar_url,
+                    'role' => $chatUser->role_name,
+                    'department' => $chatUser->department?->name ?? null,
+                ])->values(),
+                'conversations' => $quickChatConversations->values()->map(fn ($conversation) => [
+                    'id' => $conversation->id,
+                    'name' => $conversation->name,
+                    'avatar' => $conversation->avatar_url,
+                    'role' => $conversation->role_name,
+                    'department' => $conversation->department?->name ?? null,
+                    'lastMessage' => $conversation->last_message?->content ?? '',
+                    'lastMessageAt' => $conversation->last_message?->created_at?->toIso8601String(),
+                    'unreadCount' => (int) ($conversation->unread_count ?? 0),
+                ]),
+                'endpoints' => [
+                    'unread' => route('messages.unread'),
+                    'sidebarData' => route('messages.sidebar-data'),
+                    'conversationBase' => url('/messages/conversation'),
+                    'sendBase' => url('/messages/send'),
+                    'readBase' => url('/messages/read'),
+                ],
+                'link' => route('messages.index'),
+                'csrfToken' => csrf_token(),
+            ],
+        ];
     @endphp
     <title>@yield('title', 'Dashboard') - {{ $appName }}</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
-    
-    <!-- Fonts -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    
-    <!-- Dynamic Theme Colors -->
     <style>
         :root {
-            --primary: {{ $colors['primary'] }};
-            --primary-hover: {{ $colors['hover'] }};
-            --primary-soft: {{ $colors['soft'] }};
-            --primary-light: {{ $colors['light'] }};
-            --shadow-purple: 0 4px 24px {{ $colors['primary'] }}26;
+            --brand-primary: #f5c518;
+            --brand-hover: #d4a017;
+            --brand-soft: #4a3b12;
+            --brand-light: #2d2611;
+            --brand-secondary: #8b5cf6;
+            --brand-secondary-soft: #251d39;
         }
     </style>
-    
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
 <body>
-    <div class="app-wrapper">
-        <!-- Sidebar Overlay (Mobile) -->
-        <div class="sidebar-overlay"></div>
-        
-        <!-- Sidebar -->
-        @include('layouts.sidebar')
-        
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Header -->
-            <header class="main-header">
-                <div class="header-left">
-                    <button type="button" class="sidebar-toggle">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <h1 class="page-title">@yield('page-title', 'Dashboard')</h1>
-                </div>
-                <div class="header-right">
-                    <button type="button" class="header-btn theme-toggle" title="Toggle Dark Mode">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    
-                    <!-- Notification Dropdown -->
-                    <div class="dropdown notification-dropdown">
-                        <button type="button" class="header-btn notification-toggle" onclick="toggleNotificationDropdown()" title="Notifikasi">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
-                        </button>
-                        <div class="dropdown-menu notification-menu" id="notificationDropdown">
-                            <div class="dropdown-header">
-                                <span><i class="fas fa-bell"></i> Notifikasi</span>
-                                <button type="button" class="btn btn-sm btn-link" onclick="markAllNotificationsRead()">
-                                    Tandai Dibaca
-                                </button>
-                            </div>
-                            <div class="notification-list" id="notificationList">
-                                <div class="notification-loading">
-                                    <i class="fas fa-spinner fa-spin"></i> Memuat...
-                                </div>
-                            </div>
-                            <div class="dropdown-footer">
-                                <a href="{{ route('notifications.index') }}">Lihat Semua Notifikasi</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dropdown user-dropdown">
-                        <button type="button" class="header-btn dropdown-toggle" id="userDropdown" onclick="toggleUserDropdown()">
-                            <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="avatar-sm">
-                            <span class="user-name-header">{{ auth()->user()->name }}</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="dropdown-menu" id="userDropdownMenu">
-                            <div class="dropdown-header">
-                                <img src="{{ auth()->user()->avatar_url }}" alt="" class="dropdown-avatar">
-                                <div class="dropdown-user-info">
-                                    <div class="dropdown-user-name">{{ auth()->user()->name }}</div>
-                                    <div class="dropdown-user-role">{{ auth()->user()->role_name }}</div>
-                                </div>
-                            </div>
-                            <div class="dropdown-divider"></div>
-                            <a href="{{ route('profile.edit') }}" class="dropdown-item">
-                                <i class="fas fa-user-edit"></i>
-                                <span>Edit Profil</span>
-                            </a>
-                            @if(auth()->user()->isAdmin())
-                            <a href="{{ route('settings.index') }}" class="dropdown-item">
-                                <i class="fas fa-cog"></i>
-                                <span>Pengaturan</span>
-                            </a>
-                            @endif
-                            <div class="dropdown-divider"></div>
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="dropdown-item text-danger">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    <span>Logout</span>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </header>
-            
-            <!-- Page Content -->
-            <main class="page-content">
-                <!-- Flash Messages -->
-                @if(session('success'))
-                    <div class="alert alert-success animate-fadeIn">
-                        <i class="fas fa-check-circle"></i>
-                        <span>{{ session('success') }}</span>
-                    </div>
-                @endif
-                
-                @if(session('error'))
-                    <div class="alert alert-danger animate-fadeIn">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>{{ session('error') }}</span>
-                    </div>
-                @endif
-
-                @if(session('warning'))
-                    <div class="alert alert-warning animate-fadeIn">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>{{ session('warning') }}</span>
-                    </div>
-                @endif
-                
-                @if($errors->any())
-                    <div class="alert alert-danger animate-fadeIn">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <div>
-                            <strong>Terjadi kesalahan:</strong>
-                            <ul class="mb-0 mt-1">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    </div>
-                @endif
-                
-                @yield('content')
-            </main>
-        </div>
-    </div>
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="{{ asset('js/app.js') }}"></script>
-    
-    <!-- Flash message to SweetAlert -->
+    <script id="svelte-auth-props" type="application/json">{!! str_replace('</', '<\/', json_encode($authProps, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
     @if(session('swal'))
-        <script>
-            Swal.fire({
-                icon: '{{ session("swal.type", "success") }}',
-                title: '{{ session("swal.title") }}',
-                text: '{{ session("swal.text", "") }}',
-                confirmButtonColor: '{{ $colors["primary"] ?? "#7C3AED" }}'
-            });
-        </script>
+        <script id="session-swal-data" type="application/json">{!! str_replace('</', '<\/', json_encode([
+            'type' => session('swal.type', 'success'),
+            'title' => session('swal.title'),
+            'text' => session('swal.text', ''),
+            'confirmButtonColor' => '#f5c518',
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
     @endif
-    
+    <div id="svelte-auth-root"></div>
+
+    <div id="server-page-content" aria-hidden="true">
+        <main class="page-content">
+            @if(session('success'))
+                <div class="alert alert-success animate-fadeIn">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger animate-fadeIn">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="alert alert-warning animate-fadeIn">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>{{ session('warning') }}</span>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert alert-danger animate-fadeIn">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        <strong>Terjadi kesalahan:</strong>
+                        <ul class="mb-0 mt-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endif
+
+            @yield('content')
+        </main>
+    </div>
+
     @stack('scripts')
-    
-    <!-- Floating Chat -->
+
     @auth
-        @include('components.floating-chat')
     @endauth
-    
-    <script>
-    function toggleUserDropdown() {
-        const menu = document.getElementById('userDropdownMenu');
-        menu.classList.toggle('show');
-        // Close notification dropdown
-        document.getElementById('notificationDropdown')?.classList.remove('show');
-    }
-    
-    function toggleNotificationDropdown() {
-        const menu = document.getElementById('notificationDropdown');
-        const isOpening = !menu.classList.contains('show');
-        menu.classList.toggle('show');
-        // Close user dropdown
-        document.getElementById('userDropdownMenu')?.classList.remove('show');
-        
-        if (isOpening) {
-            loadNotifications();
-        }
-    }
-    
-    function loadNotifications() {
-        const list = document.getElementById('notificationList');
-        list.innerHTML = '<div class="notification-loading"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>';
-        
-        fetch('{{ route("notifications.recent") }}')
-            .then(res => res.json())
-            .then(data => {
-                updateNotificationBadge(data.unread_count);
-                
-                if (data.notifications.length === 0) {
-                    list.innerHTML = '<div class="notification-empty"><i class="fas fa-bell-slash"></i><p>Tidak ada notifikasi</p></div>';
-                    return;
-                }
-                
-                let html = '';
-                data.notifications.forEach(n => {
-                    const isUnread = !n.read_at;
-                    const icon = getNotificationIcon(n.type);
-                    const color = getNotificationColor(n.type);
-                    const timeAgo = formatTimeAgo(n.created_at);
-                    
-                    html += `
-                        <a href="#" class="notification-item ${isUnread ? 'unread' : ''}" onclick="markNotificationRead(${n.id}, event)">
-                            <div class="notification-icon ${color}"><i class="${icon}"></i></div>
-                            <div class="notification-content">
-                                <div class="notification-title">${n.title}</div>
-                                <div class="notification-message">${n.message || ''}</div>
-                                <div class="notification-time">${timeAgo}</div>
-                            </div>
-                        </a>
-                    `;
-                });
-                list.innerHTML = html;
-            })
-            .catch(() => {
-                list.innerHTML = '<div class="notification-empty"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat</p></div>';
-            });
-    }
-    
-    function markNotificationRead(id, event) {
-        event.preventDefault();
-        fetch(`/notifications/${id}/read`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
-        }).then(res => res.json()).then(data => {
-            if (data.success) window.location.href = getNotificationLink(id);
-        });
-    }
-    
-    function markAllNotificationsRead() {
-        fetch('{{ route("notifications.mark-all-read") }}', {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
-        }).then(res => res.json()).then(data => {
-            if (data.success) {
-                updateNotificationBadge(0);
-                document.querySelectorAll('.notification-item.unread').forEach(el => el.classList.remove('unread'));
-            }
-        });
-    }
-    
-    function updateNotificationBadge(count) {
-        const badge = document.getElementById('notificationBadge');
-        if (count > 0) {
-            badge.textContent = count > 9 ? '9+' : count;
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-    
-    function getNotificationIcon(type) {
-        return { task_assigned: 'fas fa-tasks', deadline_reminder: 'fas fa-clock', evaluation_new: 'fas fa-star', announcement: 'fas fa-bullhorn' }[type] || 'fas fa-bell';
-    }
-    
-    function getNotificationColor(type) {
-        return { task_assigned: 'primary', deadline_reminder: 'warning', evaluation_new: 'success', announcement: 'info' }[type] || 'secondary';
-    }
-    
-    function getNotificationLink(id) {
-        return `/notifications/${id}/read`;
-    }
-    
-    function formatTimeAgo(dateStr) {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diff = Math.floor((now - date) / 1000);
-        if (diff < 60) return 'Baru saja';
-        if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
-        if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
-        return Math.floor(diff / 86400) + ' hari lalu';
-    }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        const userDropdown = document.querySelector('.user-dropdown');
-        const notifDropdown = document.querySelector('.notification-dropdown');
-        const userMenu = document.getElementById('userDropdownMenu');
-        const notifMenu = document.getElementById('notificationDropdown');
-        
-        if (userDropdown && userMenu && !userDropdown.contains(e.target)) userMenu.classList.remove('show');
-        if (notifDropdown && notifMenu && !notifDropdown.contains(e.target)) notifMenu.classList.remove('show');
-    });
-    
-    // Check for unread count on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        fetch('{{ route("notifications.unread-count") }}')
-            .then(res => res.json())
-            .then(data => updateNotificationBadge(data.count))
-            .catch(() => {});
-    });
-    </script>
 </body>
 </html>
-

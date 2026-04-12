@@ -1,0 +1,434 @@
+<script>
+  import { Button } from '$lib/components/ui/button/index.js';
+  import * as Card from '$lib/components/ui/card/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
+  import MetricCard from '../components/MetricCard.svelte';
+  import PageHeader from '../components/PageHeader.svelte';
+  import StatusBadge from '../components/StatusBadge.svelte';
+
+  let {
+    title = 'Papan Informasi',
+    description = '',
+    icon = 'fas fa-newspaper',
+    primaryAction = null,
+    filters = {
+      action: '#',
+      query: '',
+      status: '',
+      category: '',
+      statusOptions: [],
+      categoryOptions: [],
+    },
+    stats = [],
+    articles = [],
+    pagination = null,
+    emptyState = {
+      title: 'Belum ada artikel',
+      text: 'Artikel informasi akan muncul di halaman ini setelah ditulis.',
+    },
+    csrfToken = '',
+  } = $props();
+
+  const fallbackImage = '/images/logokabinet.png';
+
+  const handleImageError = (event) => {
+    if (event.currentTarget.src.endsWith(fallbackImage)) {
+      return;
+    }
+
+    event.currentTarget.src = fallbackImage;
+  };
+
+  const formatDateTime = (value) => {
+    if (!value) {
+      return '-';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const confirmSubmission = async (event, article) => {
+    if (!article?.confirm) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const text = article.confirmText || `Lanjutkan tindakan untuk ${article.confirm}?`;
+
+    if (window.Swal) {
+      const result = await window.Swal.fire({
+        title: article.confirmTitle || 'Konfirmasi',
+        text,
+        icon: article.confirmIcon || 'warning',
+        showCancelButton: true,
+        confirmButtonText: article.confirmButtonText || 'Lanjutkan',
+        cancelButtonText: 'Batal',
+      });
+
+      if (result.isConfirmed) {
+        event.currentTarget.submit();
+      }
+
+      return;
+    }
+
+    if (window.confirm(text)) {
+      event.currentTarget.submit();
+    }
+  };
+</script>
+
+<Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Header class="board-intro-head border-b border-border/70 pb-4">
+    <div class="board-intro-copy-wrap">
+      <PageHeader {title} {description} {icon} />
+    </div>
+
+    {#if primaryAction}
+      <Button href={primaryAction.href}>
+        {#if primaryAction.icon}
+          <i class={primaryAction.icon}></i>
+        {/if}
+        <span>{primaryAction.label}</span>
+      </Button>
+    {/if}
+  </Card.Header>
+</Card.Root>
+
+{#if stats.length}
+  <div class="board-stat-grid">
+    {#each stats as stat, index (stat.label || index)}
+      <MetricCard label={stat.label} value={stat.value} icon={stat.icon} tone={stat.tone || 'primary'} />
+    {/each}
+  </div>
+{/if}
+
+<Card.Root class="mt-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Content class="board-filter-shell pt-5">
+    <form method="GET" action={filters.action} class="board-filter-form">
+      <Input
+        type="text"
+        name="q"
+        class="board-filter-input"
+        placeholder="Cari judul atau konten artikel..."
+        value={filters.query || ''}
+      />
+
+      <select name="status" class="board-filter-select">
+        <option value="">Semua Status</option>
+        {#each filters.statusOptions || [] as option, index (option.value || index)}
+          <option value={option.value} selected={String(filters.status || '') === String(option.value)}>{option.label}</option>
+        {/each}
+      </select>
+
+      <select name="category" class="board-filter-select">
+        <option value="">Semua Kategori</option>
+        {#each filters.categoryOptions || [] as option, index (option.value || index)}
+          <option value={option.value} selected={String(filters.category || '') === String(option.value)}>{option.label}</option>
+        {/each}
+      </select>
+
+      <Button type="submit" variant="secondary">
+        <i class="fas fa-filter"></i>
+        <span>Filter</span>
+      </Button>
+    </form>
+  </Card.Content>
+</Card.Root>
+
+{#if !articles.length}
+  <Card.Root class="mt-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Content class="pt-5">
+      <EmptyStatePanel title={emptyState.title} text={emptyState.text} icon="fas fa-newspaper" tone="primary" />
+    </Card.Content>
+  </Card.Root>
+{:else}
+  <div class="board-list">
+    {#each articles as article, index (article.showHref || index)}
+      <Card.Root class="board-row animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+        <div class="board-row-cover">
+          {#if article.coverImage}
+            <img src={article.coverImage} alt={article.title} onerror={handleImageError} />
+          {:else}
+            <div class="board-row-placeholder">
+              <i class="fas fa-newspaper"></i>
+            </div>
+          {/if}
+        </div>
+
+        <Card.Content class="board-row-copy pt-5">
+          <div class="board-row-meta">
+            <StatusBadge label={article.statusLabel} tone={article.statusTone || 'secondary'} />
+            {#each article.categories || [] as category, categoryIndex (category || categoryIndex)}
+              <StatusBadge label={category} tone="info" />
+            {/each}
+          </div>
+
+          <h4 class="board-row-title"><a href={article.showHref}>{article.title}</a></h4>
+          {#if article.excerpt}
+            <p class="board-row-excerpt">{article.excerpt}</p>
+          {/if}
+
+          <div class="board-row-footer">
+            <div class="board-row-byline">
+              <span><i class="fas fa-user"></i> {article.author}</span>
+              <span><i class="fas fa-calendar"></i> {formatDateTime(article.date)}</span>
+            </div>
+
+            <div class="board-row-actions">
+              <Button href={article.showHref} variant="secondary" size="sm">
+                <i class="fas fa-eye"></i>
+                <span>Lihat</span>
+              </Button>
+
+              {#if article.editHref}
+                <Button href={article.editHref} size="sm">
+                  <i class="fas fa-pen"></i>
+                  <span>Edit</span>
+                </Button>
+              {/if}
+
+              {#if article.deleteAction}
+                <form method="POST" action={article.deleteAction} onsubmit={(event) => confirmSubmission(event, article)}>
+                  <input type="hidden" name="_token" value={csrfToken} />
+                  <input type="hidden" name="_method" value="DELETE" />
+                  <Button type="submit" variant="destructive" size="sm">
+                    <i class="fas fa-trash"></i>
+                    <span>Hapus</span>
+                  </Button>
+                </form>
+              {/if}
+            </div>
+          </div>
+        </Card.Content>
+      </Card.Root>
+    {/each}
+  </div>
+{/if}
+
+{#if pagination && pagination.total > 0}
+  <Card.Root class="board-pagination-card animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Content class="board-pagination pt-5">
+      <p class="board-pagination-copy">
+        Menampilkan {pagination.from} - {pagination.to} dari {pagination.total} artikel
+      </p>
+
+      <div class="board-pagination-actions">
+        <StatusBadge label={`Halaman ${pagination.currentPage} / ${pagination.lastPage}`} tone="secondary" />
+        {#if pagination.prevUrl}
+          <Button href={pagination.prevUrl} variant="secondary" size="sm">
+            <i class="fas fa-arrow-left"></i>
+            <span>Sebelumnya</span>
+          </Button>
+        {/if}
+        {#if pagination.nextUrl}
+          <Button href={pagination.nextUrl} variant="secondary" size="sm">
+            <span>Selanjutnya</span>
+            <i class="fas fa-arrow-right"></i>
+          </Button>
+        {/if}
+      </div>
+    </Card.Content>
+  </Card.Root>
+{/if}
+
+<style>
+  .board-intro-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .board-intro-copy-wrap {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .board-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .board-filter-shell {
+    padding-block: 1rem;
+  }
+
+  .board-filter-form {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(180px, 1fr)) auto;
+    gap: 0.75rem;
+  }
+
+  :global(.board-filter-input) {
+    background: var(--background);
+  }
+
+  .board-filter-select {
+    width: 100%;
+    min-width: 0;
+    height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 0.5rem;
+    background: var(--background);
+    color: var(--text-strong);
+    outline: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .board-filter-select:focus {
+    border-color: color-mix(in srgb, var(--brand-primary) 32%, white);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 15%, transparent);
+  }
+
+  .board-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .board-row {
+    display: grid;
+    grid-template-columns: 230px minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .board-row-cover {
+    min-height: 100%;
+    background: color-mix(in srgb, var(--panel-muted) 60%, white);
+  }
+
+  .board-row-cover img,
+  .board-row-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+  }
+
+  .board-row-cover img {
+    display: block;
+    object-fit: cover;
+  }
+
+  .board-row-placeholder {
+    display: grid;
+    place-items: center;
+    background: var(--background);
+    color: var(--brand-primary);
+    font-size: 2rem;
+  }
+
+  .board-row-copy {
+    display: grid;
+    gap: 0.95rem;
+    padding: 1.25rem 1.35rem;
+  }
+
+  .board-row-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .board-row-title {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .board-row-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .board-row-excerpt {
+    margin: 0;
+    color: var(--text-soft);
+  }
+
+  .board-row-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-top: auto;
+  }
+
+  .board-row-byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+  }
+
+  .board-row-actions,
+  form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .board-pagination-card {
+    margin-top: 1.5rem;
+  }
+
+  .board-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .board-pagination-copy {
+    margin: 0;
+    color: var(--text-soft);
+  }
+
+  .board-pagination-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 1023px) {
+    .board-filter-form {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .board-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .board-row-cover img,
+    .board-row-placeholder {
+      min-height: 12rem;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .board-row-footer,
+    .board-pagination {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>

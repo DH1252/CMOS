@@ -12,25 +12,23 @@ use Illuminate\Http\Request;
 
 class TimelineController extends Controller
 {
-    public function __construct(private GoogleCalendarService $googleCalendarService)
-    {
-    }
+    public function __construct(private GoogleCalendarService $googleCalendarService) {}
 
     public function index()
     {
         $user = auth()->user();
-        
+
         $query = Timeline::with(['department', 'program']);
-        
+
         if ($user->isStaff() || $user->isKabinet()) {
             $query->where(function ($q) use ($user) {
                 $q->where('type', 'global')
                     ->orWhere('department_id', $user->department_id);
             });
         }
-        
-        $timelines = $query->orderBy('start_date')->get();
-        
+
+        $timelines = $query->orderBy('start_date')->orderBy('end_date')->get();
+
         return view('timelines.index', compact('timelines'));
     }
 
@@ -43,22 +41,22 @@ class TimelineController extends Controller
     {
         $user = auth()->user();
         $events = [];
-        
+
         // Get timelines
         $timelinesQuery = Timeline::with(['department', 'program']);
-        
+
         if ($user->isStaff() || $user->isKabinet()) {
             $timelinesQuery->where(function ($q) use ($user) {
                 $q->where('type', 'global')
                     ->orWhere('department_id', $user->department_id);
             });
         }
-        
+
         $timelines = $timelinesQuery->get();
-        
+
         foreach ($timelines as $timeline) {
             $events[] = [
-                'id' => 'timeline_' . $timeline->id,
+                'id' => 'timeline_'.$timeline->id,
                 'title' => $timeline->title,
                 'start' => $timeline->start_date->format('Y-m-d'),
                 'end' => $timeline->end_date->addDay()->format('Y-m-d'), // FullCalendar end is exclusive
@@ -72,22 +70,22 @@ class TimelineController extends Controller
                 ],
             ];
         }
-        
+
         // Get programs as events
         $programsQuery = Program::with('department');
-        
+
         if ($user->isKabinet() && $user->department_id) {
             $programsQuery->where('department_id', $user->department_id);
         } elseif ($user->isStaff()) {
-            $programsQuery->whereHas('members', fn($q) => $q->where('user_id', $user->id));
+            $programsQuery->whereHas('members', fn ($q) => $q->where('user_id', $user->id));
         }
-        
+
         $programs = $programsQuery->where('status', '!=', 'cancelled')->get();
-        
+
         foreach ($programs as $program) {
             $events[] = [
-                'id' => 'program_' . $program->id,
-                'title' => '📋 ' . $program->name,
+                'id' => 'program_'.$program->id,
+                'title' => '📋 '.$program->name,
                 'start' => $program->start_date->format('Y-m-d'),
                 'end' => $program->end_date->addDay()->format('Y-m-d'),
                 'color' => '#10B981', // Green for programs
@@ -99,22 +97,22 @@ class TimelineController extends Controller
                 ],
             ];
         }
-        
+
         // Get tasks with deadlines
         $tasksQuery = Task::with(['program', 'assignee']);
-        
+
         if ($user->isStaff()) {
             $tasksQuery->where('assigned_to', $user->id);
         } elseif ($user->isKabinet() && $user->department_id) {
-            $tasksQuery->whereHas('program', fn($q) => $q->where('department_id', $user->department_id));
+            $tasksQuery->whereHas('program', fn ($q) => $q->where('department_id', $user->department_id));
         }
-        
+
         $tasks = $tasksQuery->whereNotNull('deadline')->get();
-        
+
         foreach ($tasks as $task) {
             $events[] = [
-                'id' => 'task_' . $task->id,
-                'title' => '✅ ' . $task->title,
+                'id' => 'task_'.$task->id,
+                'title' => '✅ '.$task->title,
                 'start' => $task->deadline->format('Y-m-d'),
                 'color' => $this->getTaskColor($task),
                 'url' => route('tasks.show', $task),
@@ -126,13 +124,13 @@ class TimelineController extends Controller
                 ],
             ];
         }
-        
+
         return response()->json($events);
     }
 
     private function getTimelineColor($type): string
     {
-        return match($type) {
+        return match ($type) {
             'global' => '#7C3AED', // Purple
             'department' => '#3B82F6', // Blue
             'program' => '#10B981', // Green
@@ -148,7 +146,8 @@ class TimelineController extends Controller
         if ($task->is_overdue) {
             return '#EF4444'; // Red
         }
-        return match($task->priority) {
+
+        return match ($task->priority) {
             'high' => '#F59E0B', // Orange
             'medium' => '#3B82F6', // Blue
             default => '#9CA3AF', // Gray
@@ -158,44 +157,63 @@ class TimelineController extends Controller
     public function global()
     {
         $timelines = Timeline::where('type', 'global')
+            ->with(['department', 'program'])
             ->orderBy('start_date')
             ->get();
-        
+
         return view('timelines.global', compact('timelines'));
     }
 
-    public function department(Department $department = null)
+    public function department(?Department $department = null)
     {
         $user = auth()->user();
-        
-        if (!$department && $user->department_id) {
+
+        if (! $department && $user->department_id) {
             $department = Department::find($user->department_id);
         }
-        
-        $departments = Department::active()->get();
-        
-        $timelines = $department 
-            ? Timeline::where('department_id', $department->id)->orderBy('start_date')->get()
+
+        $departments = Department::active()->orderBy('name')->get();
+
+        $timelines = $department
+            ? Timeline::with(['program'])->where('department_id', $department->id)->orderBy('start_date')->get()
             : collect();
-        
+
         return view('timelines.department', compact('timelines', 'departments', 'department'));
     }
 
     public function program(Program $program)
     {
+        $program->loadMissing('department');
+
         $timelines = Timeline::where('program_id', $program->id)
+            ->with(['department'])
             ->orderBy('start_date')
             ->get();
-        
+
         return view('timelines.program', compact('timelines', 'program'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        $departments = Department::active()->get();
-        $programs = Program::where('status', '!=', 'cancelled')->get();
-        
-        return view('timelines.create', compact('departments', 'programs'));
+        $type = $request->get('type');
+        $departmentId = $request->get('department_id');
+        $programId = $request->get('program_id');
+
+        if (! $type && $departmentId) {
+            $type = 'department';
+        } elseif (! $type && $programId) {
+            $type = 'program';
+        }
+
+        $type = $type ?: 'global';
+
+        $departments = Department::active()->orderBy('name')->get();
+        $programs = Program::with('department')
+            ->where('status', '!=', 'cancelled')
+            ->orderBy('name')
+            ->get();
+
+        return view('timelines.create', compact('departments', 'programs', 'type', 'departmentId', 'programId'));
     }
 
     public function store(Request $request)
@@ -233,7 +251,7 @@ class TimelineController extends Controller
         } else {
             $googleSyncWarning = $this->formatGoogleSyncDisabledWarning();
         }
-        
+
         ActivityLog::log('created', "Created timeline: {$timeline->title}", $timeline);
 
         $redirect = redirect()->route('timelines.index')
@@ -254,9 +272,14 @@ class TimelineController extends Controller
 
     public function edit(Timeline $timeline)
     {
-        $departments = Department::active()->get();
-        $programs = Program::where('status', '!=', 'cancelled')->get();
-        
+        $timeline->loadMissing(['department', 'program']);
+
+        $departments = Department::active()->orderBy('name')->get();
+        $programs = Program::with('department')
+            ->where('status', '!=', 'cancelled')
+            ->orderBy('name')
+            ->get();
+
         return view('timelines.edit', compact('timeline', 'departments', 'programs'));
     }
 
@@ -291,12 +314,12 @@ class TimelineController extends Controller
             $googleSyncSuccess = $this->formatGoogleSyncSuccess('diupdate');
         } elseif ($googleEventId) {
             $googleSyncSuccess = $this->formatGoogleSyncSuccess('diupdate');
-        } elseif (!$googleEventId && $this->googleCalendarService->enabled()) {
+        } elseif (! $googleEventId && $this->googleCalendarService->enabled()) {
             $googleSyncError = $this->formatGoogleSyncError($this->googleCalendarService->getLastError(), 'mengupdate');
         } else {
             $googleSyncWarning = $this->formatGoogleSyncDisabledWarning();
         }
-        
+
         ActivityLog::log('updated', "Updated timeline: {$timeline->title}", $timeline);
 
         $redirect = redirect()->route('timelines.index')
@@ -319,20 +342,20 @@ class TimelineController extends Controller
     {
         $title = $timeline->title;
         $googleEventId = $timeline->google_event_id;
-        
+
         ActivityLog::log('deleted', "Deleted timeline: {$title}", $timeline);
-        
+
         $timeline->delete();
 
         $googleDeleteError = null;
         $googleDeleteWarning = null;
         $googleDeleteSuccess = null;
         $deleted = $this->googleCalendarService->deleteTimelineEvent($googleEventId, $timeline->id);
-        if ($googleEventId && !$deleted && $this->googleCalendarService->enabled()) {
+        if ($googleEventId && ! $deleted && $this->googleCalendarService->enabled()) {
             $googleDeleteError = $this->formatGoogleSyncError($this->googleCalendarService->getLastError(), 'menghapus');
         } elseif ($googleEventId && $deleted) {
             $googleDeleteSuccess = 'Event Google Calendar juga berhasil dihapus.';
-        } elseif (!$this->googleCalendarService->enabled()) {
+        } elseif (! $this->googleCalendarService->enabled()) {
             $googleDeleteWarning = $this->formatGoogleSyncDisabledWarning();
         }
 

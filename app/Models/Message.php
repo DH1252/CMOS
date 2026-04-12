@@ -56,27 +56,28 @@ class Message extends Model
     {
         $sentTo = self::where('sender_id', $userId)->pluck('receiver_id');
         $receivedFrom = self::where('receiver_id', $userId)->pluck('sender_id');
-        
+
         $userIds = $sentTo->merge($receivedFrom)->unique();
-        
+
         return User::whereIn('id', $userIds)
             ->where('id', '!=', $userId)
+            ->with(['role', 'department'])
             ->get()
             ->map(function ($user) use ($userId) {
                 $lastMessage = self::betweenUsers($userId, $user->id)
                     ->orderByDesc('created_at')
                     ->first();
-                
+
                 $unreadCount = self::where('sender_id', $user->id)
                     ->where('receiver_id', $userId)
                     ->where('is_read', false)
                     ->count();
-                
+
                 $user->last_message = $lastMessage;
                 $user->unread_count = $unreadCount;
-                
+
                 return $user;
             })
-            ->sortByDesc(fn($u) => $u->last_message?->created_at);
+            ->sortByDesc(fn ($u) => $u->last_message?->created_at);
     }
 }
