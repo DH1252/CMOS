@@ -59,10 +59,11 @@ RUN chmod +x /usr/local/bin/prepare-runtime /usr/local/bin/start-all /usr/local/
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction \
+RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache \
+    && composer install --no-dev --optimize-autoloader --no-interaction \
     && npm ci \
     && npm run build \
-    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8080
