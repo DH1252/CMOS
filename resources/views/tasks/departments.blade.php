@@ -7,13 +7,13 @@
 @php
     $props = [
         'title' => 'Task Management',
-        'description' => 'Pantau pekerjaan global dan masuk ke task board tiap departemen dari satu pintu.',
+        'description' => 'Pilih board global atau per departemen.',
         'icon' => 'fas fa-diagram-project',
         'cards' => array_merge([
             [
                 'href' => route('tasks.global'),
                 'title' => 'Global Tasks',
-                'description' => 'Tugas lintas departemen untuk koordinasi organisasi.',
+                'description' => 'Task lintas departemen.',
                 'icon' => 'fas fa-globe',
                 'tone' => 'primary',
                 'featured' => true,

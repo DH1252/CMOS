@@ -2,7 +2,7 @@
 
 @section('title', 'Kumpulan Link')
 @section('page-title', 'Kumpulan Link')
-@section('page-meta', 'Direktori tautan kerja dan referensi organisasi yang dikelompokkan per kebutuhan operasional.')
+@section('page-meta', 'Direktori tautan kerja organisasi.')
 
 @section('content')
 @php
@@ -55,7 +55,7 @@
 
     $props = [
         'title' => 'Link Berguna',
-        'description' => 'Ruang ini merangkum tautan kerja yang paling sering dipakai pengurus, dari template sampai arsip rujukan.',
+        'description' => 'Template, tracker, dan referensi kerja.',
         'icon' => 'fas fa-link',
         'csrfToken' => csrf_token(),
         'primaryAction' => $canManage ? [

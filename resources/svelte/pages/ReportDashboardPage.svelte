@@ -156,7 +156,7 @@
 <div class="report-chart-grid">
   <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
     <Card.Header class="border-b border-border/70 pb-4">
-      <PageHeader title="Distribusi Task" description="Pantau kepadatan backlog dan penyelesaian lintas tim." icon="fas fa-chart-pie" compact={true} headingTag="h3" />
+      <PageHeader title="Distribusi Task" icon="fas fa-chart-pie" compact={true} headingTag="h3" />
     </Card.Header>
 
     <Card.Content class="pt-5">
@@ -193,7 +193,7 @@
 
   <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
     <Card.Header class="border-b border-border/70 pb-4">
-      <PageHeader title="Status Program" description="Lihat fase proker yang paling dominan pada periode berjalan." icon="fas fa-chart-simple" compact={true} headingTag="h3" />
+      <PageHeader title="Status Program" icon="fas fa-chart-simple" compact={true} headingTag="h3" />
     </Card.Header>
 
     <Card.Content class="pt-5">
@@ -230,7 +230,7 @@
 <div class="report-detail-grid">
   <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
     <Card.Header class="border-b border-border/70 pb-4">
-      <PageHeader title="Ritme Departemen" description="Komparasi kapasitas anggota, program, dan progres task per departemen." icon="fas fa-building" compact={true} headingTag="h3" />
+      <PageHeader title="Ritme Departemen" icon="fas fa-building" compact={true} headingTag="h3" />
     </Card.Header>
 
     <Card.Content class="px-0 pb-0">
@@ -248,7 +248,7 @@
 
   <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
     <Card.Header class="border-b border-border/70 pb-4">
-      <PageHeader title="Top Staff" description="Performa tertinggi berdasarkan rerata evaluasi yang sudah masuk." icon="fas fa-trophy" compact={true} headingTag="h3" />
+      <PageHeader title="Top Staff" icon="fas fa-trophy" compact={true} headingTag="h3" />
     </Card.Header>
 
     <Card.Content class="pt-5">

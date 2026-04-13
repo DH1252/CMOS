@@ -2,7 +2,7 @@
 
 @section('title', 'Program Kerja')
 @section('page-title', 'Program Kerja')
-@section('page-meta', 'Pantau portofolio program kerja organisasi, progres pelaksanaan, dan konteks departemen pengampu.')
+@section('page-meta', 'Portofolio program kerja dan progresnya.')
 
 @section('content')
 @php
@@ -10,7 +10,7 @@
 
     $props = [
         'title' => 'Daftar Program Kerja',
-        'description' => 'Halaman ini menjadi peta utama untuk memeriksa progres tiap program dan konteks departemennya.',
+        'description' => 'Progres dan status tiap program kerja.',
         'icon' => 'fas fa-diagram-project',
         'csrfToken' => csrf_token(),
         'enableDataTable' => true,

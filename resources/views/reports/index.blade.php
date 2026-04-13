@@ -2,13 +2,13 @@
 
 @section('title', 'Laporan')
 @section('page-title', 'Laporan & Statistik')
-@section('page-meta', 'Pantau distribusi task, progres departemen, dan performa evaluasi dalam satu dashboard.')
+@section('page-meta', 'Distribusi task, progres departemen, dan evaluasi.')
 
 @section('content')
 @php
     $props = [
         'title' => 'Laporan & Statistik',
-        'description' => 'Pantau kapasitas anggota, distribusi task, dan kualitas eksekusi program lintas departemen.',
+        'description' => 'Ringkasan task, program, dan evaluasi.',
         'stats' => [
             ['label' => 'Total Anggota', 'value' => $stats['totalUsers'], 'icon' => 'fas fa-users', 'tone' => 'primary'],
             ['label' => 'Total Proker', 'value' => $stats['totalPrograms'], 'icon' => 'fas fa-diagram-project', 'tone' => 'info'],

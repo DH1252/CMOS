@@ -7,7 +7,7 @@
 @php
     $props = [
         'title' => 'Form Tambah Link',
-        'description' => 'Tambahkan tautan baru agar dokumen, template, dan rujukan penting lebih mudah dijangkau seluruh pengurus.',
+        'description' => 'Tambahkan tautan kerja baru.',
         'icon' => 'fas fa-link',
         'form' => [
             'action' => route('links.store'),

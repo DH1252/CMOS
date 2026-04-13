@@ -78,7 +78,7 @@
 
     <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
       <Card.Header class="border-b border-border/70 pb-4">
-        <PageHeader title="Grade" description="Rentang nilai untuk membaca hasil evaluasi." icon="fas fa-layer-group" compact={true} headingTag="h3" />
+        <PageHeader title="Grade" icon="fas fa-layer-group" compact={true} headingTag="h3" />
       </Card.Header>
 
       <Card.Content class="evaluation-grade-stack pt-5">

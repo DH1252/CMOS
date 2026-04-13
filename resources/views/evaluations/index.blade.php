@@ -2,7 +2,7 @@
 
 @section('title', 'Evaluasi Staff')
 @section('page-title', 'Evaluasi Staff')
-@section('page-meta', 'Gunakan halaman ini untuk melihat staf yang perlu ditinjau, membaca evaluasi terakhir, dan masuk ke form penilaian dengan konteks yang cukup.')
+@section('page-meta', 'Daftar staff, evaluasi terakhir, dan form penilaian.')
 
 @section('content')
 <div class="card animate-fadeIn mb-4">
@@ -11,7 +11,6 @@
             <div>
                 <div class="text-muted fs-sm">Ringkasan evaluasi</div>
                 <h3 class="mb-2">Tinjau staf yang perlu dinilai terlebih dahulu</h3>
-                <p class="mb-0 text-muted">Gunakan daftar ini untuk membaca kondisi evaluasi terbaru sebelum membuka form. Grade dan skor ditampilkan sebagai konteks, bukan sebagai tujuan akhir tanpa tindak lanjut.</p>
             </div>
 
             <div class="d-flex flex-wrap gap-2">
@@ -30,7 +29,6 @@
     <div class="card-header">
         <div>
             <h3 class="card-title mb-1">Daftar staff dan evaluasi terakhir</h3>
-            <p class="mb-0 text-muted fs-sm">Buka detail untuk membaca riwayat evaluasi, lalu beri penilaian baru jika memang diperlukan.</p>
         </div>
         <a href="{{ route('evaluations.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i>
