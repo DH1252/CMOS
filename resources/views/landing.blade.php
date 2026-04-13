@@ -12,6 +12,7 @@
             'title' => $item->title,
             'excerpt' => $item->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($item->content), 140),
             'publishedAt' => optional($item->published_at)->toIso8601String(),
+            'coverImage' => $item->cover_image_url,
             'category' => $item->categories->pluck('name')->implode(', ') ?: 'Papan Informasi',
             'url' => route('informasi.show', $item->slug),
         ])->values(),
@@ -28,7 +29,7 @@
     <link rel="icon" type="image/png" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     {!! $publicSsr['head'] !!}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
