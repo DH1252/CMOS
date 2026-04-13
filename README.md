@@ -7,9 +7,11 @@
 **Sistem Manajemen Program Kerja & Evaluasi Organisasi**
 
 [![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
-[![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
+[![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.4-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://mysql.com)
-[![Docker](https://img.shields.io/badge/Docker-Sail-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com)
+[![Svelte](https://img.shields.io/badge/Svelte-5-FF3E00?style=flat-square&logo=svelte&logoColor=white)](https://svelte.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Docker](https://img.shields.io/badge/Docker-Sail%20%2B%20Coolify-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com)
 
 </div>
 
@@ -19,13 +21,13 @@
 
 CMOS adalah aplikasi manajemen workflow modern yang dirancang untuk organisasi/komunitas dalam mengelola:
 
--   📊 **Program Kerja (Proker)** - Tracking progress program dengan timeline
--   ✅ **Task Management** - Penugasan dan monitoring task per anggota
--   📈 **Evaluasi Staff** - Penilaian performa anggota dengan parameter terkustomisasi
--   📢 **Pengumuman** - Social feed dengan komentar, reaksi, dan polling
--   💬 **Internal Chat** - Komunikasi real-time antar anggota
--   📅 **Timeline & Kalender** - Visualisasi jadwal kegiatan
--   🔗 **Resource Sharing** - Google Drive & link penting
+- 📊 **Program Kerja (Proker)** - Tracking progress program dengan timeline
+- ✅ **Task Management** - Penugasan dan monitoring task per anggota
+- 📈 **Evaluasi Staff** - Penilaian performa anggota dengan parameter terkustomisasi
+- 📢 **Pengumuman** - Social feed dengan komentar, reaksi, dan polling
+- 💬 **Internal Chat** - Komunikasi real-time antar anggota
+- 📅 **Timeline & Kalender** - Visualisasi jadwal kegiatan
+- 🔗 **Resource Sharing** - Google Drive & link penting
 
 ---
 
@@ -33,69 +35,73 @@ CMOS adalah aplikasi manajemen workflow modern yang dirancang untuk organisasi/k
 
 ### 🎯 Dashboard
 
--   Overview statistik program dan task
--   Quick actions untuk navigasi cepat
--   Top staff ranking berdasarkan evaluasi
+- Overview statistik program dan task
+- Quick actions untuk navigasi cepat
+- Top staff ranking berdasarkan evaluasi
 
 ### 👥 Manajemen User & Departemen
 
--   Role-based access (Admin, BPH, Kabinet, Staff)
--   Multi-departemen dengan kabinet terpisah
--   Avatar dan profil pengguna
+- Role-based access (Admin, BPH, Kabinet, Staff)
+- Multi-departemen dengan kabinet terpisah
+- Avatar dan profil pengguna
 
 ### 📊 Program Kerja
 
--   CRUD program dengan timeline
--   Assign member dan PIC (Person In Charge)
--   Progress tracking per program
+- CRUD program dengan timeline
+- Assign member dan PIC (Person In Charge)
+- Progress tracking per program
 
 ### ✅ Task Management
 
--   Penugasan task ke staff
--   Status tracking (Todo, In Progress, Done)
--   Deadline dan progress percentage
--   Komentar pada task
+- Penugasan task ke staff
+- Status tracking (Todo, In Progress, Done)
+- Deadline dan progress percentage
+- Komentar pada task
 
 ### 📈 Evaluasi & Penilaian
 
--   Parameter penilaian dinamis per departemen
--   Scoring dengan bobot
--   Grade otomatis (A, B, C, D, E)
--   Periode evaluasi configurable
+- Parameter penilaian dinamis per departemen
+- Scoring dengan bobot
+- Grade otomatis (A, B, C, D, E)
+- Periode evaluasi configurable
 
 ### 📢 Pengumuman (Social Feed)
 
--   Post pengumuman (semua user bisa post)
--   Komentar
--   Reaksi emoji (👍❤️😂😮😢😡)
--   Polling dengan duration
+- Post pengumuman (semua user bisa post)
+- Komentar
+- Reaksi emoji (👍❤️😂😮😢😡)
+- Polling dengan duration
 
 ### 💬 Internal Chat
 
--   Real-time messaging
--   Unread notification badge
--   Message preview di list
+- Real-time messaging
+- Unread notification badge
+- Message preview di list
 
 ### 🎨 Kustomisasi
 
--   12 pilihan warna tema
--   Nama aplikasi dinamis
--   Dark mode support
+- 12 pilihan warna tema
+- Nama aplikasi dinamis
+- Dark mode support
 
 ---
 
 ## 🛠 Tech Stack
 
-| Layer         | Technology                   |
-| ------------- | ---------------------------- |
-| **Framework** | Laravel 12.x                 |
-| **Language**  | PHP 8.5                      |
-| **Database**  | MySQL 8.4                    |
-| **Frontend**  | Blade + Vanilla CSS + jQuery |
-| **Charts**    | Chart.js                     |
-| **Icons**     | Font Awesome 6               |
-| **Fonts**     | Poppins (Google Fonts)       |
-| **Container** | Docker (Laravel Sail)        |
+| Layer          | Technology                                |
+| -------------- | ----------------------------------------- |
+| **Framework**  | Laravel 12.x                              |
+| **Language**   | PHP 8.4                                   |
+| **Database**   | MySQL 8.4                                 |
+| **Frontend**   | Blade shell + Svelte 5                    |
+| **Styling**    | Tailwind CSS 4                            |
+| **Build Tool** | Vite 7                                    |
+| **Realtime**   | Laravel Reverb + Laravel Echo + Pusher JS |
+| **UI Toolkit** | Bits UI + Svelte Sonner + Lucide Svelte   |
+| **Charts**     | Chart.js                                  |
+| **Icons**      | Font Awesome 6 + Lucide                   |
+| **Fonts**      | Public Sans (Google Fonts)                |
+| **Container**  | Docker (Laravel Sail) + Coolify           |
 
 ---
 
@@ -103,15 +109,13 @@ CMOS adalah aplikasi manajemen workflow modern yang dirancang untuk organisasi/k
 
 ### Prerequisites
 
--   Docker Desktop
--   Git
-
-
+- Docker Desktop
+- Git
 
 ### Access
 
--   🌐 **App**: http://localhost
--   🗄️ **phpMyAdmin**: http://localhost:8080
+- 🌐 **App**: http://localhost
+- 🗄️ **phpMyAdmin**: http://localhost:8080
 
 ### Default Login
 
