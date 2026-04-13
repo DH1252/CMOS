@@ -3,6 +3,22 @@ server {
     listen [::]:${PORT};
     server_name _;
 
+    set $forwarded_proto $http_x_forwarded_proto;
+    set $forwarded_host $http_x_forwarded_host;
+    set $forwarded_port $http_x_forwarded_port;
+
+    if ($forwarded_proto = "") {
+        set $forwarded_proto $scheme;
+    }
+
+    if ($forwarded_host = "") {
+        set $forwarded_host $http_host;
+    }
+
+    if ($forwarded_port = "") {
+        set $forwarded_port $server_port;
+    }
+
     access_log /dev/stdout;
     error_log /dev/stderr warn;
 
@@ -11,11 +27,13 @@ server {
     location ^~ /app {
         proxy_http_version 1.1;
         proxy_set_header Host $http_host;
-        proxy_set_header Scheme $scheme;
-        proxy_set_header SERVER_PORT $server_port;
+        proxy_set_header Scheme $forwarded_proto;
+        proxy_set_header SERVER_PORT $forwarded_port;
         proxy_set_header REMOTE_ADDR $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
+        proxy_set_header X-Forwarded-Host $forwarded_host;
+        proxy_set_header X-Forwarded-Port $forwarded_port;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
         proxy_pass http://${REVERB_SERVER_HOST}:${REVERB_SERVER_PORT};
@@ -24,11 +42,13 @@ server {
     location ^~ /apps {
         proxy_http_version 1.1;
         proxy_set_header Host $http_host;
-        proxy_set_header Scheme $scheme;
-        proxy_set_header SERVER_PORT $server_port;
+        proxy_set_header Scheme $forwarded_proto;
+        proxy_set_header SERVER_PORT $forwarded_port;
         proxy_set_header REMOTE_ADDR $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
+        proxy_set_header X-Forwarded-Host $forwarded_host;
+        proxy_set_header X-Forwarded-Port $forwarded_port;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
         proxy_pass http://${REVERB_SERVER_HOST}:${REVERB_SERVER_PORT};
@@ -38,9 +58,9 @@ server {
         proxy_http_version 1.1;
         proxy_set_header Host $http_host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $http_host;
-        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
+        proxy_set_header X-Forwarded-Host $forwarded_host;
+        proxy_set_header X-Forwarded-Port $forwarded_port;
         proxy_redirect off;
         proxy_pass http://${APP_SERVER_HOST}:${APP_SERVER_PORT};
     }
