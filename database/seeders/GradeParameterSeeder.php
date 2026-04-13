@@ -16,14 +16,14 @@ class GradeParameterSeeder extends Seeder
             ['min_score' => 1.50, 'max_score' => 2.49, 'grade' => 'D', 'label' => 'Kurang', 'color' => '#F97316'],
             ['min_score' => 1.00, 'max_score' => 1.49, 'grade' => 'E', 'label' => 'Sangat Kurang', 'color' => '#EF4444'],
         ];
-        
+
         foreach ($grades as $grade) {
             GradeParameter::updateOrCreate(
                 ['grade' => $grade['grade']],
                 $grade
             );
         }
-        
-        echo "✅ Grade parameters seeded!\n";
+
+        $this->command?->info('Grade parameters seeded.');
     }
 }

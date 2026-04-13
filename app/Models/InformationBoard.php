@@ -45,6 +45,11 @@ class InformationBoard extends Model
         return $this->belongsToMany(InformationCategory::class, 'information_board_category');
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', 'published')
@@ -56,11 +61,11 @@ class InformationBoard extends Model
 
     public function getCoverImageUrlAttribute(): ?string
     {
-        if (!$this->cover_image) {
+        if (! $this->cover_image) {
             return null;
         }
 
-        return asset('storage/' . $this->cover_image);
+        return asset('storage/'.$this->cover_image);
     }
 
     public function getSeoTitleAttribute(): string
@@ -89,9 +94,9 @@ class InformationBoard extends Model
 
         while (static::query()
             ->where('slug', $slug)
-            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
             ->exists()) {
-            $slug = $base . '-' . $counter;
+            $slug = $base.'-'.$counter;
             $counter++;
         }
 

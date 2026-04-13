@@ -159,16 +159,12 @@
 {:else}
   <div class="board-list">
     {#each articles as article, index (article.showHref || index)}
-      <Card.Root class="board-row animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
-        <div class="board-row-cover">
-          {#if article.coverImage}
+      <Card.Root class={`board-row ${article.coverImage ? 'board-row-with-cover' : 'board-row-no-cover'} animate-fadeIn rounded-[10px] border border-border bg-card shadow-none`}>
+        {#if article.coverImage}
+          <div class="board-row-cover">
             <img src={article.coverImage} alt={article.title} onerror={handleImageError} />
-          {:else}
-            <div class="board-row-placeholder">
-              <i class="fas fa-newspaper"></i>
-            </div>
-          {/if}
-        </div>
+          </div>
+        {/if}
 
         <Card.Content class="board-row-copy pt-5">
           <div class="board-row-meta">
@@ -268,6 +264,8 @@
 
   .board-filter-shell {
     padding-block: 1rem;
+    background: color-mix(in srgb, var(--brand-light) 18%, var(--card));
+    border-radius: 0.75rem;
   }
 
   .board-filter-form {
@@ -306,17 +304,29 @@
 
   .board-row {
     display: grid;
-    grid-template-columns: 230px minmax(0, 1fr);
     overflow: hidden;
+    transition: border-color 160ms ease, background 160ms ease;
+  }
+
+  .board-row:hover {
+    border-color: color-mix(in srgb, var(--brand-secondary) 20%, var(--border));
+    background: color-mix(in srgb, var(--brand-secondary-soft) 10%, var(--card));
+  }
+
+  .board-row-with-cover {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+
+  .board-row-no-cover {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .board-row-cover {
     min-height: 100%;
-    background: color-mix(in srgb, var(--panel-muted) 60%, white);
+    background: color-mix(in srgb, var(--brand-light) 30%, var(--panel-muted));
   }
 
-  .board-row-cover img,
-  .board-row-placeholder {
+  .board-row-cover img {
     width: 100%;
     height: 100%;
     min-height: 100%;
@@ -325,14 +335,6 @@
   .board-row-cover img {
     display: block;
     object-fit: cover;
-  }
-
-  .board-row-placeholder {
-    display: grid;
-    place-items: center;
-    background: var(--background);
-    color: var(--brand-primary);
-    font-size: 2rem;
   }
 
   .board-row-copy {
@@ -357,6 +359,10 @@
     text-decoration: none;
   }
 
+  .board-row-title a:hover {
+    color: var(--brand-secondary);
+  }
+
   .board-row-excerpt {
     margin: 0;
     color: var(--text-soft);
@@ -378,6 +384,10 @@
     font-size: 0.88rem;
   }
 
+  .board-row-byline i {
+    color: color-mix(in srgb, var(--brand-secondary) 56%, var(--text-muted));
+  }
+
   .board-row-actions,
   form {
     display: flex;
@@ -388,6 +398,7 @@
 
   .board-pagination-card {
     margin-top: 1.5rem;
+    background: color-mix(in srgb, var(--brand-secondary-soft) 10%, var(--card));
   }
 
   .board-pagination {
@@ -418,8 +429,7 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .board-row-cover img,
-    .board-row-placeholder {
+    .board-row-cover img {
       min-height: 12rem;
     }
   }

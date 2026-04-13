@@ -9,6 +9,8 @@
         'title' => 'Notifikasi',
         'description' => 'Kotak masuk untuk task baru, pengingat deadline, evaluasi, dan publikasi terbaru.',
         'csrfToken' => csrf_token(),
+        'refreshUrl' => route('notifications.index'),
+        'realtimeSnapshot' => route('realtime.snapshot'),
         'unreadCount' => $unreadCount,
         'notifications' => $notifications->getCollection()->map(function ($notification) {
             $href = match($notification->type) {

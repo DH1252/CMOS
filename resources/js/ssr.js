@@ -1,8 +1,16 @@
 import { fileURLToPath } from "node:url";
 import { render } from "svelte/server";
 import PublicApp from "../svelte/PublicApp.svelte";
+import InformationBoardShowPage from "../svelte/pages/InformationBoardShowPage.svelte";
 
 const renderers = {
+	informationBoardShowPage: (props = {}) => {
+		const { body = "", head = "" } = render(InformationBoardShowPage, {
+			props,
+		});
+
+		return { body, head };
+	},
 	publicApp: (props = {}) => {
 		const { body = "", head = "" } = render(PublicApp, { props });
 

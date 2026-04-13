@@ -2,7 +2,7 @@
 
 @section('title', 'Edit Artikel')
 @section('page-title', 'Edit Artikel Papan Informasi')
-@section('page-meta', 'Perbarui artikel informasi, kategori, dan waktu publikasinya tanpa keluar dari alur editorial.')
+@section('page-meta', '')
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/trix@2.1.3/dist/trix.css">
@@ -12,7 +12,7 @@
 @php
     $props = [
         'title' => "Edit Artikel: {$informationBoard->title}",
-        'description' => 'Perbarui isi artikel, kategori, dan metadata publikasinya dari satu halaman editor.',
+        'description' => '',
         'icon' => 'fas fa-edit',
         'form' => [
             'action' => route('information-boards.update', $informationBoard),
@@ -66,6 +66,4 @@
 <div id="svelte-information-board-editor-root"></div>
 @endsection
 
-@push('scripts')
 <script src="https://unpkg.com/trix@2.1.3/dist/trix.umd.min.js"></script>
-@endpush

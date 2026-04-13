@@ -3,21 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class NotificationController extends Controller
 {
-    /**
-     * List all notifications for current user
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $notifications = Notification::forUser(auth()->id())
+        $notifications = Notification::forUser($request->user()->id)
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        $unreadCount = Notification::forUser(auth()->id())
+        $unreadCount = Notification::forUser($request->user()->id)
             ->unread()
             ->count();
+
+        if ($request->expectsJson()) {
+            return response()->json($this->indexPayload($notifications, $unreadCount));
+        }
 
         return view('notifications.index', compact('notifications', 'unreadCount'));
     }
@@ -25,9 +29,9 @@ class NotificationController extends Controller
     /**
      * Get unread count (AJAX)
      */
-    public function unreadCount()
+    public function unreadCount(Request $request): JsonResponse
     {
-        $count = Notification::forUser(auth()->id())
+        $count = Notification::forUser($request->user()->id)
             ->unread()
             ->count();
 
@@ -37,14 +41,14 @@ class NotificationController extends Controller
     /**
      * Get recent notifications (AJAX for dropdown)
      */
-    public function recent()
+    public function recent(Request $request): JsonResponse
     {
-        $notifications = Notification::forUser(auth()->id())
+        $notifications = Notification::forUser($request->user()->id)
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();
 
-        $unreadCount = Notification::forUser(auth()->id())
+        $unreadCount = Notification::forUser($request->user()->id)
             ->unread()
             ->count();
 
@@ -57,7 +61,8 @@ class NotificationController extends Controller
     /**
      * Mark single notification as read
      */
-    public function markAsRead(Notification $notification)
+    public function markAsRead(Notification $notification): JsonResponse|
+    \Illuminate\Http\RedirectResponse
     {
         // Ensure user owns this notification
         if ($notification->user_id !== auth()->id()) {
@@ -85,9 +90,10 @@ class NotificationController extends Controller
     /**
      * Mark all as read
      */
-    public function markAllAsRead()
+    public function markAllAsRead(Request $request): JsonResponse|
+    \Illuminate\Http\RedirectResponse
     {
-        Notification::forUser(auth()->id())
+        Notification::forUser($request->user()->id)
             ->unread()
             ->update(['read_at' => now()]);
 
@@ -101,7 +107,8 @@ class NotificationController extends Controller
     /**
      * Delete notification
      */
-    public function destroy(Notification $notification)
+    public function destroy(Notification $notification): JsonResponse|
+    \Illuminate\Http\RedirectResponse
     {
         if ($notification->user_id !== auth()->id()) {
             abort(403);
@@ -114,5 +121,43 @@ class NotificationController extends Controller
         }
 
         return back()->with('success', 'Notifikasi dihapus');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function indexPayload(LengthAwarePaginator $notifications, int $unreadCount): array
+    {
+        return [
+            'unreadCount' => $unreadCount,
+            'notifications' => $notifications->getCollection()->map(function (Notification $notification) {
+                $href = match ($notification->type) {
+                    Notification::TYPE_TASK_ASSIGNED, Notification::TYPE_DEADLINE_REMINDER => ! empty($notification->data['task_id']) ? route('tasks.show', $notification->data['task_id']) : route('notifications.index'),
+                    Notification::TYPE_EVALUATION_NEW => route('evaluations.my'),
+                    Notification::TYPE_ANNOUNCEMENT => route('announcements.index'),
+                    default => route('notifications.index'),
+                };
+
+                return [
+                    'id' => $notification->id,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'icon' => $notification->icon,
+                    'tone' => $notification->color,
+                    'href' => $href,
+                    'readAt' => $notification->read_at?->toIso8601String(),
+                    'createdAt' => $notification->created_at->toIso8601String(),
+                    'readUrl' => route('notifications.read', $notification),
+                    'deleteUrl' => route('notifications.destroy', $notification),
+                ];
+            })->values(),
+            'pagination' => [
+                'currentPage' => $notifications->currentPage(),
+                'lastPage' => $notifications->lastPage(),
+                'previousUrl' => $notifications->previousPageUrl(),
+                'nextUrl' => $notifications->nextPageUrl(),
+                'markAllUrl' => route('notifications.mark-all-read'),
+            ],
+        ];
     }
 }

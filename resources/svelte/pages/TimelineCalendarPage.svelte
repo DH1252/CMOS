@@ -76,6 +76,12 @@
     b: Math.round(color.b + (255 - color.b) * amount),
   });
 
+  const blendWithBlack = (color, amount = 0.18) => ({
+    r: Math.round(color.r * (1 - amount)),
+    g: Math.round(color.g * (1 - amount)),
+    b: Math.round(color.b * (1 - amount)),
+  });
+
   const srgbLuminance = ({ r, g, b }) => {
     const convert = (channel) => {
       const c = channel / 255;
@@ -98,17 +104,25 @@
       return;
     }
 
+    const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+    const softened = isDarkTheme ? blendWithBlack(background, 0.22) : blendWithWhite(background, 0.72);
+    const border = isDarkTheme ? blendWithWhite(background, 0.12) : blendWithBlack(background, 0.08);
     const darkText = { r: 36, g: 30, b: 42 };
-    const softened = blendWithWhite(background);
-    const textColor = `rgb(${darkText.r}, ${darkText.g}, ${darkText.b})`;
+    const lightText = { r: 245, g: 242, b: 235 };
+    const darkContrast = contrastRatio(darkText, softened);
+    const lightContrast = contrastRatio(lightText, softened);
+    const text = darkContrast >= lightContrast ? darkText : lightText;
+    const textColor = `rgb(${text.r}, ${text.g}, ${text.b})`;
 
     eventElement.style.backgroundColor = `rgb(${softened.r}, ${softened.g}, ${softened.b})`;
-    eventElement.style.borderColor = `rgb(${background.r}, ${background.g}, ${background.b})`;
+    eventElement.style.borderColor = `rgb(${border.r}, ${border.g}, ${border.b})`;
     eventElement.style.color = textColor;
     eventElement.querySelectorAll('*').forEach((node) => {
       node.style.color = textColor;
     });
   };
+
+  const legendStyle = (color) => `--timeline-legend-color:${color};`;
 
   const buildEventDetail = (event) => {
     const props = event.extendedProps || {};
@@ -118,6 +132,7 @@
       range: formatRange(event.start, event.end),
       description: props.description || '',
       url: event.url || '',
+      accent: event.backgroundColor || event.borderColor || 'var(--brand-secondary)',
       detailRows:
         props.type === 'timeline'
           ? [
@@ -206,7 +221,7 @@
   <Card.Content class="pt-5">
     <div class="timeline-calendar-legend">
       {#each legend as item, index (item.label || index)}
-        <div class="timeline-calendar-legend-item">
+        <div class="timeline-calendar-legend-item" style={legendStyle(item.color)}>
           <span class="timeline-calendar-legend-dot" style={`background:${item.color};`}></span>
           <span>{item.label}</span>
         </div>
@@ -224,7 +239,7 @@
 {#if selectedEvent}
   <div class="timeline-modal-overlay">
     <button type="button" class="timeline-modal-backdrop" aria-label="Tutup detail event" onclick={closeEvent}></button>
-    <div class="timeline-modal" role="dialog" aria-modal="true" aria-labelledby="timeline-event-title">
+    <div class="timeline-modal" style={`--timeline-accent:${selectedEvent.accent};`} role="dialog" aria-modal="true" aria-labelledby="timeline-event-title">
       <div class="timeline-modal-head">
         <div class="timeline-modal-head-copy">
           <PageHeader title={selectedEvent.title} description={selectedEvent.range} icon="fas fa-calendar-check" compact={true} headingTag="h4" />
@@ -291,8 +306,12 @@
   .timeline-calendar-legend-item {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    color: var(--text-soft);
+    gap: 0.55rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--timeline-legend-color) 24%, var(--line-soft));
+    border-radius: 0.625rem;
+    background: color-mix(in srgb, var(--timeline-legend-color) 12%, var(--card));
+    color: color-mix(in srgb, var(--timeline-legend-color) 42%, var(--text-strong));
     font-size: 0.88rem;
   }
 
@@ -300,6 +319,7 @@
     width: 0.8rem;
     height: 0.8rem;
     border-radius: 999px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, black 10%, transparent);
   }
 
   .timeline-calendar-surface {
@@ -327,32 +347,72 @@
     box-shadow: none;
   }
 
+  :global(.fc .fc-button:hover) {
+    border-color: var(--line-strong);
+    background: color-mix(in srgb, var(--brand-light) 18%, var(--background));
+    color: var(--text-strong);
+  }
+
   :global(.fc .fc-button-primary:not(:disabled).fc-button-active),
   :global(.fc .fc-button-primary:not(:disabled):active) {
-    background: var(--muted);
-    color: var(--text-strong);
+    border-color: color-mix(in srgb, var(--brand-secondary) 42%, var(--line-soft));
+    background: color-mix(in srgb, var(--brand-secondary-soft) 86%, white);
+    color: var(--brand-secondary);
+  }
+
+  :global(.fc .fc-list-day-cushion) {
+    background: color-mix(in srgb, var(--brand-secondary-soft) 50%, white);
+    color: var(--brand-secondary);
   }
 
   :global(.fc .fc-button:focus) {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
   }
 
+  :global(.fc .fc-scrollgrid),
+  :global(.fc .fc-theme-standard td),
+  :global(.fc .fc-theme-standard th) {
+    border-color: color-mix(in srgb, var(--line-soft) 84%, transparent);
+  }
+
+  :global(.fc .fc-col-header-cell) {
+    background: color-mix(in srgb, var(--panel-bg) 92%, white);
+  }
+
+  :global(.fc .fc-daygrid-day-frame) {
+    padding: 0.2rem;
+  }
+
+  :global(.fc .fc-daygrid-day:hover) {
+    background: color-mix(in srgb, var(--brand-light) 12%, transparent);
+  }
+
   :global(.fc .fc-daygrid-day.fc-day-today) {
-    background: color-mix(in srgb, var(--brand-light) 26%, white);
+    background: color-mix(in srgb, var(--brand-light) 42%, white);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 34%, transparent);
   }
 
   :global(.fc .fc-event) {
     border: 1px solid var(--line-soft);
     border-radius: 0.5rem;
-    padding: 0.1rem 0.35rem;
+    padding: 0.2rem 0.45rem;
     font-size: 0.78rem;
     cursor: pointer;
     color: var(--text-strong) !important;
+    box-shadow: none;
+  }
+
+  :global(.fc .fc-event:hover) {
+    filter: saturate(1.05);
   }
 
   :global(.fc .fc-col-header-cell-cushion),
   :global(.fc .fc-daygrid-day-number) {
     color: var(--text-soft);
+  }
+
+  :global(.fc .fc-daygrid-day-number) {
+    font-weight: 600;
   }
 
   .timeline-modal-overlay {
@@ -392,6 +452,10 @@
     border-bottom: 1px solid var(--line-soft);
   }
 
+  .timeline-modal-head {
+    background: color-mix(in srgb, var(--timeline-accent) 10%, var(--card));
+  }
+
   .timeline-modal-head-copy {
     min-width: 0;
     flex: 1;
@@ -417,16 +481,27 @@
     gap: 1rem;
     padding: 0.75rem 0.85rem;
     border-radius: 0.5rem;
-    background: var(--background);
+    background: color-mix(in srgb, var(--timeline-accent) 8%, var(--background));
+    border: 1px solid color-mix(in srgb, var(--timeline-accent) 18%, var(--line-soft));
   }
 
   .timeline-modal-meta-item span {
     color: var(--text-muted);
   }
 
+  .timeline-modal-meta-item strong {
+    color: color-mix(in srgb, var(--timeline-accent) 50%, var(--text-strong));
+  }
+
   .timeline-modal-foot {
     border-bottom: none;
     border-top: 1px solid var(--line-soft);
+  }
+
+  .timeline-modal-foot :global([data-slot='button'].button-variant-default) {
+    background: var(--timeline-accent);
+    border-color: color-mix(in srgb, var(--timeline-accent) 72%, black);
+    color: var(--white-soft);
   }
 
   @media (max-width: 767px) {

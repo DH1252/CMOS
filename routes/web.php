@@ -15,6 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfilePasswordController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\PublicInformationController;
+use App\Http\Controllers\RealtimeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TaskController;
@@ -34,6 +35,7 @@ Route::get('/', function () {
     $latestInfo = collect();
     if (Schema::hasTable('information_boards')) {
         $latestInfo = \App\Models\InformationBoard::published()
+            ->with('categories')
             ->latest('published_at')
             ->take(5)
             ->get();
@@ -42,7 +44,7 @@ Route::get('/', function () {
     return view('landing', compact('latestInfo'));
 })->name('home');
 Route::get('/informasi', [PublicInformationController::class, 'index'])->name('informasi.index');
-Route::get('/informasi/{slug}', [PublicInformationController::class, 'show'])->name('informasi.show');
+Route::get('/informasi/{informationBoard:slug}', [PublicInformationController::class, 'show'])->name('informasi.show');
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -54,6 +56,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/realtime/snapshot', [RealtimeController::class, 'snapshot'])->name('realtime.snapshot');
 
     // Profile Routes - All authenticated users
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

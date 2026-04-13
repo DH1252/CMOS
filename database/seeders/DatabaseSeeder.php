@@ -5,136 +5,81 @@ namespace Database\Seeders;
 use App\Models\Cabinet;
 use App\Models\Department;
 use App\Models\Role;
-use App\Models\User;
+use App\Models\Setting;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create roles
-        $roles = [
-            ['name' => 'admin', 'description' => 'Administrator dengan akses penuh'],
-            ['name' => 'bph', 'description' => 'Badan Pengurus Harian'],
-            ['name' => 'kabinet', 'description' => 'Kepala Departemen'],
-            ['name' => 'staff', 'description' => 'Anggota Staff'],
-        ];
+        $cabinet = $this->seedCabinet();
 
-        foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role['name']], $role);
+        $this->seedRoles();
+        $this->seedDepartments($cabinet);
+        $this->seedSettings();
+
+        $this->call([
+            GradeParameterSeeder::class,
+            EvaluationCriteriaSeeder::class,
+        ]);
+
+        if (! app()->isProduction()) {
+            $this->call(DevelopmentSeeder::class);
+
+            $this->command?->info('Development dataset seeded.');
+            $this->command?->info('Admin: admin@savana.test / password');
+            $this->command?->info('BPH: bph@savana.test / password');
+            $this->command?->info('Kabinet: kabinet.psdm@savana.test / password');
+            $this->command?->info('Staff: staff1@savana.test / password');
         }
+    }
 
-        // Create cabinet
-        $cabinet = Cabinet::firstOrCreate(
+    private function seedCabinet(): Cabinet
+    {
+        return Cabinet::updateOrCreate(
             ['year' => '2025/2026'],
             [
                 'name' => 'Kabinet Harmoni',
                 'status' => 'active',
             ]
         );
+    }
 
-        // Create departments
-        $departments = [
+    private function seedRoles(): void
+    {
+        foreach ([
+            ['name' => 'admin', 'description' => 'Administrator dengan akses penuh'],
+            ['name' => 'bph', 'description' => 'Badan Pengurus Harian'],
+            ['name' => 'kabinet', 'description' => 'Kepala Departemen'],
+            ['name' => 'staff', 'description' => 'Anggota Staff'],
+        ] as $role) {
+            Role::updateOrCreate(['name' => $role['name']], $role);
+        }
+    }
+
+    private function seedDepartments(Cabinet $cabinet): void
+    {
+        foreach ([
             ['name' => 'PSDM', 'description' => 'Pengembangan Sumber Daya Manusia'],
             ['name' => 'Medinfo', 'description' => 'Media dan Informasi'],
             ['name' => 'Humas', 'description' => 'Hubungan Masyarakat'],
             ['name' => 'Ristek', 'description' => 'Riset dan Teknologi'],
             ['name' => 'Akademik', 'description' => 'Bidang Akademik'],
-        ];
-
-        foreach ($departments as $dept) {
-            Department::firstOrCreate(
-                ['name' => $dept['name']],
-                array_merge($dept, ['cabinet_id' => $cabinet->id, 'status' => 'active'])
+        ] as $department) {
+            Department::updateOrCreate(
+                ['cabinet_id' => $cabinet->id, 'name' => $department['name']],
+                [
+                    'description' => $department['description'],
+                    'status' => 'active',
+                ]
             );
         }
+    }
 
-        // Create sample users
-        $adminRole = Role::where('name', 'admin')->first();
-        $bphRole = Role::where('name', 'bph')->first();
-        $kabinetRole = Role::where('name', 'kabinet')->first();
-        $staffRole = Role::where('name', 'staff')->first();
-        $psdm = Department::where('name', 'PSDM')->first();
-        $medinfo = Department::where('name', 'Medinfo')->first();
-
-        // Admin user
-        User::firstOrCreate(
-            ['email' => 'admin@savana.test'],
-            [
-                'name' => 'Administrator',
-                'password' => Hash::make('password'),
-                'role_id' => $adminRole->id,
-                'department_id' => null,
-                'status' => 'active',
-            ]
-        );
-
-        // BPH user
-        User::firstOrCreate(
-            ['email' => 'bph@savana.test'],
-            [
-                'name' => 'Ketua Umum',
-                'password' => Hash::make('password'),
-                'role_id' => $bphRole->id,
-                'department_id' => null,
-                'status' => 'active',
-            ]
-        );
-
-        // Kabinet users
-        User::firstOrCreate(
-            ['email' => 'kabinet.psdm@savana.test'],
-            [
-                'name' => 'Kepala PSDM',
-                'password' => Hash::make('password'),
-                'role_id' => $kabinetRole->id,
-                'department_id' => $psdm->id,
-                'status' => 'active',
-            ]
-        );
-
-        User::firstOrCreate(
-            ['email' => 'kabinet.medinfo@savana.test'],
-            [
-                'name' => 'Kepala Medinfo',
-                'password' => Hash::make('password'),
-                'role_id' => $kabinetRole->id,
-                'department_id' => $medinfo->id,
-                'status' => 'active',
-            ]
-        );
-
-        // Staff users
-        User::firstOrCreate(
-            ['email' => 'staff1@savana.test'],
-            [
-                'name' => 'Staff PSDM 1',
-                'password' => Hash::make('password'),
-                'role_id' => $staffRole->id,
-                'department_id' => $psdm->id,
-                'status' => 'active',
-            ]
-        );
-
-        User::firstOrCreate(
-            ['email' => 'staff2@savana.test'],
-            [
-                'name' => 'Staff Medinfo 1',
-                'password' => Hash::make('password'),
-                'role_id' => $staffRole->id,
-                'department_id' => $medinfo->id,
-                'status' => 'active',
-            ]
-        );
-
-        // Seed grade parameters
-        $this->call(GradeParameterSeeder::class);
-        
-        $this->command->info('✅ Seeding completed!');
-        $this->command->info('📧 Admin: admin@savana.test / password');
-        $this->command->info('📧 BPH: bph@savana.test / password');
-        $this->command->info('📧 Kabinet: kabinet.psdm@savana.test / password');
-        $this->command->info('📧 Staff: staff1@savana.test / password');
+    private function seedSettings(): void
+    {
+        Setting::set('app_name', 'CMOS');
+        Setting::set('organization_name', 'HIMATEKKOM ITS');
+        Setting::set('theme_color', 'purple');
     }
 }

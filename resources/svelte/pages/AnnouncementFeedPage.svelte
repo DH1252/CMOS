@@ -1,4 +1,6 @@
 <script>
+  import { onDestroy, onMount } from 'svelte';
+  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
@@ -12,6 +14,8 @@
     title = 'Pengumuman',
     description = '',
     csrfToken = '',
+    refreshUrl = '',
+    realtimeSnapshot = '',
     createForm = {
       action: '#',
       avatar: '',
@@ -38,17 +42,36 @@
   let pollOpen = $state(false);
   let pollOptions = $state(['', '']);
   let postsState = $state([]);
+  let paginationState = $state(null);
   let initialized = $state(false);
+  let liveUpdatesCleanup = $state(null);
+
+  const decoratePosts = (nextPosts) => {
+    const postStateMap = new Map(
+      postsState.map((post) => [post.id, {
+        reactionsOpen: Boolean(post.reactionsOpen),
+        commentsOpen: Boolean(post.commentsOpen),
+      }]),
+    );
+
+    return nextPosts.map((post) => ({
+      ...post,
+      reactionsOpen: postStateMap.get(post.id)?.reactionsOpen ?? false,
+      commentsOpen: postStateMap.get(post.id)?.commentsOpen ?? false,
+    }));
+  };
+
+  $effect(() => {
+    if (!paginationState && pagination) {
+      paginationState = pagination;
+    }
+  });
 
   $effect(() => {
     if (!initialized) {
       pollOpen = Boolean(createForm.hasPoll);
       pollOptions = createForm.pollOptions?.length ? [...createForm.pollOptions] : ['', ''];
-      postsState = posts.map((post) => ({
-        ...post,
-        reactionsOpen: false,
-        commentsOpen: false,
-      }));
+      postsState = decoratePosts(posts);
       initialized = true;
     }
   });
@@ -249,6 +272,33 @@
     }
   };
 
+  const refreshFeed = async () => {
+    if (!refreshUrl) {
+      return;
+    }
+
+    try {
+      const response = await fetch(refreshUrl, {
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+
+      postsState = decoratePosts(Array.isArray(data.posts) ? data.posts : []);
+      paginationState = data.pagination || paginationState;
+    } catch (error) {
+      console.error('Failed to refresh announcement feed', error);
+    }
+  };
+
   const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
 
   const handleImageError = (event) => {
@@ -323,25 +373,39 @@
 
   const reactionTotal = (summary = []) =>
     summary.reduce((total, item) => total + Number(item.count || 0), 0);
+
+  onMount(() => {
+    liveUpdatesCleanup = subscribeToLiveUpdates(
+      realtimeSnapshot,
+      async ({ changed }) => {
+        if (!changed.includes('announcements')) {
+          return;
+        }
+
+        await refreshFeed();
+      },
+      { interval: 7000 },
+    );
+  });
+
+  onDestroy(() => {
+    liveUpdatesCleanup?.();
+  });
 </script>
 
 <Card.Root class="animate-fadeIn announcement-intro rounded-[10px] border border-border bg-card shadow-none">
   <Card.Header class="announcement-intro-head border-b border-border/70 pb-4">
-    <PageHeader {title} description="Gunakan halaman ini untuk menyampaikan pembaruan internal yang perlu dibaca kabinet. Fokus utama tetap pada isi pengumuman, bukan interaksi sosialnya." icon="fas fa-bullhorn" />
+    <PageHeader {title} description="Pengumuman internal dan polling kabinet." icon="fas fa-bullhorn" />
   </Card.Header>
   <Card.Content class="pt-5">
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <div class="rounded-[10px] border border-border bg-background px-4 py-4">
+      <div class="announcement-summary-card announcement-summary-primary rounded-[10px] border px-4 py-4">
         <div class="text-sm text-muted-foreground">Publikasi aktif</div>
-        <div class="mt-2 text-2xl font-semibold text-foreground">{pagination?.total || posts.length}</div>
+        <div class="mt-2 text-2xl font-semibold text-foreground">{paginationState?.total || postsState.length}</div>
       </div>
-      <div class="rounded-[10px] border border-border bg-background px-4 py-4">
+      <div class="announcement-summary-card announcement-summary-warning rounded-[10px] border px-4 py-4">
         <div class="text-sm text-muted-foreground">Polling terbuka</div>
-        <div class="mt-2 text-2xl font-semibold text-foreground">{posts.filter((post) => post.poll?.isActive).length}</div>
-      </div>
-      <div class="rounded-[10px] border border-border bg-background px-4 py-4 md:col-span-2 xl:col-span-1">
-        <div class="text-sm text-muted-foreground">Catatan</div>
-        <div class="mt-2 text-sm leading-7 text-foreground">Gunakan pengumuman untuk informasi yang perlu ditindaklanjuti bersama. Diskusi tetap tersedia, tetapi sengaja ditempatkan sebagai lapisan kedua.</div>
+        <div class="mt-2 text-2xl font-semibold text-foreground">{postsState.filter((post) => post.poll?.isActive).length}</div>
       </div>
     </div>
   </Card.Content>
@@ -588,20 +652,20 @@
   </div>
 {/if}
 
-{#if pagination && pagination.total > 0}
+{#if paginationState && paginationState.total > 0}
   <Card.Root class="announcement-pagination-card animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
     <Card.Content class="announcement-pagination pt-5">
-      <p class="announcement-pagination-copy">Menampilkan {pagination.from} - {pagination.to} dari {pagination.total} pengumuman</p>
+      <p class="announcement-pagination-copy">Menampilkan {paginationState.from} - {paginationState.to} dari {paginationState.total} pengumuman</p>
       <div class="announcement-pagination-actions">
-        <StatusBadge label={`Halaman ${pagination.currentPage} / ${pagination.lastPage}`} tone="secondary" />
-        {#if pagination.prevUrl}
-          <Button href={pagination.prevUrl} variant="secondary" size="sm">
+        <StatusBadge label={`Halaman ${paginationState.currentPage} / ${paginationState.lastPage}`} tone="secondary" />
+        {#if paginationState.prevUrl}
+          <Button href={paginationState.prevUrl} variant="secondary" size="sm">
             <i class="fas fa-arrow-left"></i>
             <span>Sebelumnya</span>
           </Button>
         {/if}
-        {#if pagination.nextUrl}
-          <Button href={pagination.nextUrl} variant="secondary" size="sm">
+        {#if paginationState.nextUrl}
+          <Button href={paginationState.nextUrl} variant="secondary" size="sm">
             <span>Selanjutnya</span>
             <i class="fas fa-arrow-right"></i>
           </Button>
@@ -616,6 +680,26 @@
   .announcement-feed,
   .announcement-pagination-card {
     margin-top: 1rem;
+  }
+
+  .announcement-summary-card {
+    border-color: var(--line-soft);
+    background: var(--background);
+  }
+
+  .announcement-summary-primary {
+    border-color: color-mix(in srgb, var(--brand-primary) 24%, var(--line-soft));
+    background: color-mix(in srgb, var(--brand-light) 20%, var(--background));
+  }
+
+  .announcement-summary-warning {
+    border-color: color-mix(in srgb, var(--signal-warning) 22%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-warning) 10%, var(--background));
+  }
+
+  .announcement-summary-info {
+    border-color: color-mix(in srgb, var(--signal-info) 20%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-info) 8%, var(--background));
   }
 
   .announcement-composer-row {
@@ -637,8 +721,8 @@
     margin-top: 1rem;
     padding: 1rem;
     border-radius: 0.625rem;
-    background: var(--background);
-    border: 1px solid var(--line-soft);
+    background: color-mix(in srgb, var(--brand-light) 14%, var(--background));
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, var(--line-soft));
   }
 
   .announcement-field {
@@ -785,12 +869,13 @@
 
   .announcement-poll-choice-selected {
     border-color: color-mix(in srgb, var(--brand-primary) 32%, var(--line-soft));
+    background: color-mix(in srgb, var(--brand-light) 12%, var(--background));
   }
 
   .announcement-poll-bar {
     position: absolute;
     inset: 0 auto 0 0;
-    background: color-mix(in srgb, var(--brand-light) 24%, transparent);
+    background: color-mix(in srgb, var(--brand-primary) 18%, transparent);
   }
 
   .announcement-poll-copy {
@@ -835,6 +920,7 @@
   .announcement-reaction-button-active {
     border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--line-soft));
     background: color-mix(in srgb, var(--brand-light) 20%, var(--background));
+    color: color-mix(in srgb, var(--brand-hover) 72%, black);
   }
 
   .announcement-post-actions {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use App\Models\User;
+use App\Support\RealtimeBroadcaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -76,10 +77,14 @@ class MessageController extends Controller
             ->get();
 
         // Mark as read
-        Message::where('sender_id', $user->id)
+        $updated = Message::where('sender_id', $user->id)
             ->where('receiver_id', $currentUser->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);
+
+        if ($updated > 0) {
+            app(RealtimeBroadcaster::class)->user($currentUser->id, ['messages']);
+        }
 
         return response()->json([
             'messages' => $messages->map(fn ($m) => [
@@ -124,10 +129,14 @@ class MessageController extends Controller
 
     public function markRead(Request $request, User $user)
     {
-        Message::where('sender_id', $user->id)
+        $updated = Message::where('sender_id', $user->id)
             ->where('receiver_id', $request->user()->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);
+
+        if ($updated > 0) {
+            app(RealtimeBroadcaster::class)->user($request->user()->id, ['messages']);
+        }
 
         return response()->json(['success' => true]);
     }

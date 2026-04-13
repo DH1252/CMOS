@@ -196,6 +196,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        (() => {
+            try {
+                const theme = localStorage.getItem('cmos-theme');
+
+                if (theme === 'light' || theme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', theme);
+                }
+            } catch (error) {
+                // ignore storage access failures
+            }
+        })();
+    </script>
     <style>
         :root {
             --brand-primary: {{ $colors['primary'] }};

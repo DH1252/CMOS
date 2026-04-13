@@ -11,6 +11,7 @@
         'recentTasks' => $recentTasks,
         'upcomingTimelines' => $upcomingTimelines,
         'links' => [
+            'timelinesIndex' => route('timelines.index'),
             'timelinesCalendar' => route('timelines.calendar'),
             'tasksIndex' => route('tasks.index'),
         ],

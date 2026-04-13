@@ -88,7 +88,6 @@
                     <option value={category.value} selected={isSelected(category.value)}>{category.label}</option>
                   {/each}
                 </select>
-                <small class="editor-help">Pilih satu atau beberapa kategori dengan Ctrl/Cmd + klik.</small>
                 {#if errors.category_ids}
                   <div class="editor-error" role="alert">{errors.category_ids}</div>
                 {/if}
@@ -202,6 +201,10 @@
     background: var(--background);
   }
 
+  .editor-side-card :global([data-slot='button']) {
+    width: 100%;
+  }
+
   .editor-required {
     color: var(--signal-danger);
   }
@@ -235,11 +238,6 @@
     padding-block: 0.75rem;
   }
 
-  .editor-help {
-    color: var(--text-muted);
-    font-size: 0.82rem;
-  }
-
   .editor-cover-preview {
     display: block;
     width: 100%;
@@ -252,6 +250,30 @@
   .editor-error {
     color: var(--signal-danger);
     font-size: 0.85rem;
+  }
+
+  .editor-side-card :global([data-slot='button'].button-variant-default) {
+    background: var(--brand-primary);
+    color: #241a0f;
+    border-color: color-mix(in srgb, var(--brand-primary) 60%, black);
+  }
+
+  .editor-side-card :global([data-slot='button'].button-variant-secondary) {
+    background: var(--background);
+    color: var(--foreground);
+    border-color: var(--line-soft);
+  }
+
+  .editor-side-card :global([data-slot='button'].button-variant-outline) {
+    background: var(--background);
+    color: var(--foreground);
+    border-color: var(--line-soft);
+  }
+
+  .editor-side-card :global([data-slot='button'].button-variant-destructive) {
+    background: color-mix(in srgb, var(--signal-danger) 12%, white);
+    color: color-mix(in srgb, var(--signal-danger) 80%, black);
+    border-color: color-mix(in srgb, var(--signal-danger) 24%, var(--line-soft));
   }
 
   :global(trix-toolbar [data-trix-button-group='file-tools']) {

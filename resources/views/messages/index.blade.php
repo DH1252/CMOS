@@ -2,7 +2,7 @@
 
 @section('title', 'Pesan')
 @section('page-title', 'Pesan Internal')
-@section('page-meta', 'Gunakan panel ini untuk melihat kontak aktif dan riwayat percakapan terbaru.')
+@section('page-meta', 'Kontak aktif dan riwayat percakapan.')
 
 @section('content')
 @php
@@ -10,7 +10,7 @@
 
     $props = [
         'title' => 'Pesan Internal',
-        'description' => 'Koordinasi cepat antar pengurus tanpa keluar dari ekosistem kerja organisasi.',
+        'description' => 'Percakapan internal antar pengurus.',
         'csrfToken' => csrf_token(),
         'initialUserId' => $initialUserId,
         'contacts' => $users->map(fn ($chatUser) => [
@@ -31,6 +31,8 @@
             'unreadCount' => (int) ($conversation->unread_count ?? 0),
         ]),
         'endpoints' => [
+            'realtimeSnapshot' => route('realtime.snapshot'),
+            'sidebarData' => route('messages.sidebar-data'),
             'conversationBase' => url('/messages/conversation'),
             'sendBase' => url('/messages/send'),
             'readBase' => url('/messages/read'),
