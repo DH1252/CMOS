@@ -2,6 +2,7 @@ const listeners = new Set();
 
 let booted = false;
 let currentUserId = null;
+let cleanupRealtimeChannels = null;
 
 const parseAuthProps = () => {
 	if (typeof document === "undefined") {
@@ -111,11 +112,13 @@ const boot = () => {
 		.private("organization")
 		.listen(".realtime.channels.updated", organizationCallback);
 
-	booted = true;
-	window.addEventListener("beforeunload", () => {
+	cleanupRealtimeChannels = () => {
 		echo.leave(`users.${currentUserId}`);
 		echo.leave("organization");
-	});
+	};
+
+	booted = true;
+	window.addEventListener("pagehide", cleanupRealtimeChannels, { once: true });
 };
 
 export const subscribeToLiveUpdates = (_unused, listener) => {
