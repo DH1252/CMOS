@@ -2,13 +2,13 @@
 
 @section('title', 'Papan Informasi')
 @section('page-title', 'Papan Informasi')
-@section('page-meta', 'Kelola artikel internal organisasi, status publikasinya, dan arsip kategori informasi dalam satu alur editorial.')
+@section('page-meta', 'Artikel internal, status publikasi, dan arsip.')
 
 @section('content')
 @php
     $props = [
         'title' => 'Manajemen Artikel Informasi',
-        'description' => 'Ruang editorial untuk menyusun, menyaring, dan mempublikasikan artikel informasi yang menjadi rujukan pengurus.',
+        'description' => 'Kelola artikel dan status publikasi.',
         'icon' => 'fas fa-newspaper',
         'csrfToken' => csrf_token(),
         'primaryAction' => [

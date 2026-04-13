@@ -40,7 +40,6 @@
     <Card.Header class="border-b border-border/70 pb-4">
       <PageHeader
         title="Upload Data"
-        description="Impor massal akun untuk anggota baru, kabinet, atau administrator."
         icon="fas fa-upload"
         compact={true}
         headingTag="h3"
@@ -80,7 +79,6 @@
     <Card.Header class="border-b border-border/70 pb-4">
       <PageHeader
         title="Panduan Format"
-        description="Pastikan setiap kolom terisi sesuai struktur template sebelum diunggah."
         icon="fas fa-circle-info"
         compact={true}
         headingTag="h3"
@@ -168,7 +166,6 @@ Admin User,admin@example.com,securepass,bph,</pre>
         <Card.Header class="border-b border-border/70 pb-4">
           <PageHeader
             title={`Berhasil (${results.success.length})`}
-            description="Baris berikut telah dibuat sebagai user baru."
             icon="fas fa-circle-check"
             compact={true}
             headingTag="h3"
@@ -194,7 +191,6 @@ Admin User,admin@example.com,securepass,bph,</pre>
         <Card.Header class="border-b border-border/70 pb-4">
           <PageHeader
             title={`Gagal (${results.errors.length})`}
-            description="Periksa baris berikut sebelum mencoba impor ulang."
             icon="fas fa-circle-xmark"
             compact={true}
             headingTag="h3"

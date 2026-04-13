@@ -232,7 +232,7 @@
   <section class="profile-side">
     <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
       <Card.Header class="border-b border-border/70 pb-4">
-        <PageHeader title="Informasi Akun" description="Identitas inti akun Anda pada sistem organisasi." icon="fas fa-id-card" compact={true} headingTag="h3" />
+        <PageHeader title="Informasi Akun" icon="fas fa-id-card" compact={true} headingTag="h3" />
       </Card.Header>
 
       <Card.Content class="profile-facts pt-5">
@@ -261,7 +261,7 @@
 
     <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
       <Card.Header class="border-b border-border/70 pb-4">
-        <PageHeader title="Ubah Password" description="Gunakan kombinasi baru yang tidak sama dengan sandi sebelumnya." icon="fas fa-key" compact={true} headingTag="h3" />
+        <PageHeader title="Ubah Password" icon="fas fa-key" compact={true} headingTag="h3" />
       </Card.Header>
 
       <Card.Content class="pt-5">

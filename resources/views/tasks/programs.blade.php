@@ -9,7 +9,7 @@
 
     $props = [
         'title' => $department->name,
-        'description' => 'Masuk ke task board tingkat departemen atau telusuri pekerjaan pada tiap program kerja.',
+        'description' => 'Pilih board departemen atau program kerja.',
         'icon' => 'fas fa-building',
         'breadcrumbs' => [
             ['label' => 'Tasks', 'href' => route('tasks.index')],
@@ -19,7 +19,7 @@
             [
                 'href' => route('tasks.department.tasks', $department),
                 'title' => 'Tugas Departemen',
-                'description' => "Pekerjaan khusus untuk {$department->name}.",
+                'description' => "Task untuk {$department->name}.",
                 'icon' => 'fas fa-folder-tree',
                 'tone' => 'primary',
                 'featured' => true,

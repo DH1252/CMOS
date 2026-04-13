@@ -2,7 +2,7 @@
 
 @section('title', 'Task Saya')
 @section('page-title', 'Task Saya')
-@section('page-meta', 'Pantau task yang perlu bergerak sekarang, lalu buka detail saat perlu mengubah isi atau meninjau progresnya.')
+@section('page-meta', 'Daftar task dan progres terbaru.')
 
 @section('content')
 @php
@@ -17,7 +17,6 @@
             <div>
                 <div class="text-muted fs-sm">Ringkasan kerja</div>
                 <h3 class="mb-2">Task yang sedang menjadi tanggung jawab Anda</h3>
-                <p class="mb-0 text-muted">Gunakan halaman ini untuk membaca status terkini sebelum masuk ke board atau membuka task tertentu. Fokus utamanya adalah tindak lanjut, bukan eksplorasi semua kontrol sekaligus.</p>
             </div>
 
             <div class="d-flex flex-wrap gap-3">
@@ -48,7 +47,6 @@
     <div class="card-header">
         <div>
             <h3 class="card-title mb-1">Daftar task</h3>
-            <p class="mb-0 text-muted fs-sm">Baca progres, deadline, dan penanggung jawab sebelum membuka detail task.</p>
         </div>
         @if(auth()->user()->hasRole(['admin', 'bph', 'kabinet']))
             <a href="{{ route('tasks.create') }}" class="btn btn-primary">
