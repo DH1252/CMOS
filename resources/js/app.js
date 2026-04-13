@@ -1,5 +1,22 @@
-import "./bootstrap";
 import { hydrate, mount } from "svelte";
+
+const shouldBootRealtime = () => {
+	return Boolean(
+		document.getElementById("svelte-auth-root") ||
+			document.getElementById("svelte-auth-props"),
+	);
+};
+
+if (shouldBootRealtime()) {
+	void import("./bootstrap")
+		.then(({ initRealtime }) => initRealtime())
+		.catch((error) => {
+			console.error(
+				"Failed to initialize authenticated bootstrap helpers",
+				error,
+			);
+		});
+}
 
 const createDialogFacade = () => ({
 	async fire(options = {}) {

@@ -320,6 +320,14 @@ a:hover {
     color: var(--brand-hover);
 }
 
+[data-theme='public'] a {
+    color: inherit;
+}
+
+[data-theme='public'] a:hover {
+    color: inherit;
+}
+
 h1,
 h2,
 h3,
