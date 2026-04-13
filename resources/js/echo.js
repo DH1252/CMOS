@@ -4,10 +4,29 @@ import Pusher from "pusher-js";
 
 window.Pusher = Pusher;
 
+const normalizeHost = (value) =>
+	String(value || "")
+		.replace(/^wss?:\/\//, "")
+		.replace(/^https?:\/\//, "")
+		.replace(/\/.*$/, "")
+		.trim();
+
+const currentScheme =
+	typeof window !== "undefined" && window.location.protocol === "https:"
+		? "https"
+		: "http";
+
 const reverbKey = import.meta.env.VITE_REVERB_APP_KEY || null;
-const reverbHost = import.meta.env.VITE_REVERB_HOST || window.location.hostname;
-const reverbPort = Number(import.meta.env.VITE_REVERB_PORT || 8080);
-const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || "http";
+const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || currentScheme;
+const reverbHost =
+	normalizeHost(import.meta.env.VITE_REVERB_HOST) ||
+	(typeof window !== "undefined" ? window.location.hostname : "localhost");
+const defaultPort = reverbScheme === "https" ? 443 : 80;
+const reverbPort = Number(
+	import.meta.env.VITE_REVERB_PORT ||
+		(typeof window !== "undefined" ? window.location.port : "") ||
+		defaultPort,
+);
 
 window.Echo = null;
 
