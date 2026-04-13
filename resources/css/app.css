@@ -133,7 +133,7 @@
 }
 
 [data-theme='public'] {
-    --font-display: 'Marcellus', serif;
+    --font-display: 'Public Sans', sans-serif;
     --font-body: 'Public Sans', sans-serif;
 
     --page-bg: oklch(0.97 0.015 85);
@@ -307,10 +307,7 @@ body {
 }
 
 [data-theme='public'] body {
-    background:
-        radial-gradient(circle at top left, color-mix(in srgb, var(--brand-secondary-soft) 70%, transparent) 0%, transparent 34%),
-        linear-gradient(180deg, color-mix(in srgb, var(--brand-light) 24%, transparent) 0%, transparent 28%),
-        var(--page-bg);
+    background: var(--page-bg);
     color: var(--text-strong);
 }
 
