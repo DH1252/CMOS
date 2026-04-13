@@ -77,7 +77,7 @@ server {
     }
 
     location / {
-        try_files $uri $uri/ @app_proxy;
+        try_files $uri @app_proxy;
     }
 
     location @app_proxy {
