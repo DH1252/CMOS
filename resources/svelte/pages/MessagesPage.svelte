@@ -1,5 +1,6 @@
 <script>
   import { onDestroy, onMount, tick } from 'svelte';
+  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
@@ -33,14 +34,19 @@
   let draft = $state('');
   let activeUserId = $state(null);
   let activeUser = $state(null);
+  let contactDirectory = $state([]);
   let messages = $state([]);
   let conversationSummaries = $state([]);
   let isLoadingConversation = $state(false);
   let isSending = $state(false);
-  let pollTimer = $state(null);
-  let isPollingActive = $state(false);
-  let visibilityHandler = $state(null);
+  let liveUpdatesCleanup = $state(null);
   let messageViewport = $state(null);
+
+  $effect(() => {
+    if (!contactDirectory.length && contacts.length) {
+      contactDirectory = contacts.map((item) => ({ ...item }));
+    }
+  });
 
   $effect(() => {
     if (!conversationSummaries.length && conversations.length) {
@@ -69,14 +75,14 @@
         return rightTime - leftTime;
       }
 
-      return left.name.localeCompare(right.name, 'id');
+      return (left.name || 'Kontak').localeCompare(right.name || 'Kontak', 'id');
     });
 
   const buildContacts = () => {
     const summaryMap = new Map((conversationSummaries || []).map((summary) => [Number(summary.id), summary]));
 
     return sortContacts(
-      contacts.map((contact) => {
+      contactDirectory.map((contact) => {
         const summary = summaryMap.get(Number(contact.id)) || {};
         return {
           ...contact,
@@ -167,14 +173,34 @@
     }
   };
 
+  $effect(() => {
+    const activeConversationId = activeUserId;
+    const viewport = messageViewport;
+    const totalMessages = messages.length;
+    const lastMessageKey = messages[totalMessages - 1]?.id || messages[totalMessages - 1]?.created_at || null;
+
+    if (!activeConversationId || !viewport) {
+      return;
+    }
+
+    void lastMessageKey;
+    void scrollToBottom();
+  });
+
   const syncSummary = (userId, payload) => {
     const lastMessage = payload[payload.length - 1] || null;
     const existing = conversationSummaries.find((item) => Number(item.id) === Number(userId));
+    const contact = contactDirectory.find((item) => Number(item.id) === Number(userId));
     const nextSummary = {
+      ...(contact || {}),
       ...(existing || {}),
       id: Number(userId),
+      name: existing?.name || contact?.name || activeUser?.name || 'Kontak',
+      avatar: existing?.avatar || contact?.avatar || activeUser?.avatar || null,
+      role: existing?.role || contact?.role || activeUser?.role || '',
+      department: existing?.department || contact?.department || activeUser?.department || null,
       lastMessage: lastMessage?.content || existing?.lastMessage || '',
-      lastMessageAt: lastMessage?.created_at || existing?.lastMessageAt || null,
+      lastMessageAt: lastMessage?.created_at_raw || lastMessage?.created_at || existing?.lastMessageAt || null,
       lastMessageLabel: lastMessage?.created_at || existing?.lastMessageLabel || '',
       unreadCount: 0,
     };
@@ -206,7 +232,7 @@
       const data = await response.json();
       activeUserId = Number(userId);
       activeUser = {
-        ...(contacts.find((contact) => Number(contact.id) === Number(userId)) || {}),
+        ...(contactDirectory.find((contact) => Number(contact.id) === Number(userId)) || {}),
         ...(data.user || {}),
       };
       messages = Array.isArray(data.messages) ? data.messages : [];
@@ -219,6 +245,37 @@
       console.error('Failed to load conversation', error);
     } finally {
       isLoadingConversation = false;
+    }
+  };
+
+  const loadSidebarData = async () => {
+    if (!endpoints.sidebarData) {
+      return;
+    }
+
+    try {
+      const response = await fetch(endpoints.sidebarData, {
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+
+      contactDirectory = Array.isArray(data.users)
+        ? data.users.map((item) => ({ ...item }))
+        : [];
+      conversationSummaries = Array.isArray(data.conversations)
+        ? sortContacts(data.conversations.map((item) => ({ ...item })))
+        : [];
+    } catch (error) {
+      console.error('Failed to refresh message sidebar', error);
     }
   };
 
@@ -255,45 +312,6 @@
     }
   };
 
-  const startPolling = () => {
-    if (pollTimer || isPollingActive) {
-      return;
-    }
-
-    isPollingActive = true;
-
-    const scheduleNext = () => {
-      if (!isPollingActive) {
-        return;
-      }
-
-      pollTimer = window.setTimeout(async () => {
-        if (!isPollingActive) {
-          return;
-        }
-
-        if (!document.hidden && activeUserId) {
-          await loadConversation(activeUserId, false);
-        }
-
-        scheduleNext();
-      }, 15000);
-    };
-
-    scheduleNext();
-  };
-
-  const stopPolling = () => {
-    isPollingActive = false;
-
-    if (!pollTimer) {
-      return;
-    }
-
-    window.clearTimeout(pollTimer);
-    pollTimer = null;
-  };
-
   onMount(async () => {
     if (!activeUserId && contacts[0]?.id) {
       activeUserId = contacts[0].id;
@@ -303,29 +321,25 @@
       await loadConversation(activeUserId);
     }
 
-    startPolling();
+    liveUpdatesCleanup = subscribeToLiveUpdates(
+      endpoints.realtimeSnapshot,
+      async ({ changed }) => {
+        if (!changed.includes('messages')) {
+          return;
+        }
 
-    visibilityHandler = () => {
-      if (document.hidden) {
-        stopPolling();
-        return;
-      }
+        await loadSidebarData();
 
-      if (activeUserId) {
-        loadConversation(activeUserId, false);
-      }
-
-      startPolling();
-    };
-
-    document.addEventListener('visibilitychange', visibilityHandler);
+        if (activeUserId) {
+          await loadConversation(activeUserId, false);
+        }
+      },
+      { interval: 7000 },
+    );
   });
 
   onDestroy(() => {
-    if (visibilityHandler) {
-      document.removeEventListener('visibilitychange', visibilityHandler);
-    }
-    stopPolling();
+    liveUpdatesCleanup?.();
   });
 </script>
 
@@ -340,7 +354,6 @@
     <Card.Header class="border-b border-border/70 pb-4">
       <PageHeader
         title="Kontak Organisasi"
-        description="Pilih kontak untuk membuka percakapan aktif atau memulai chat baru."
         icon="fas fa-user-group"
         compact={true}
         headingTag="h3"

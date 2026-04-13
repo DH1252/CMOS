@@ -1,4 +1,6 @@
 <script>
+  import { onDestroy, onMount } from 'svelte';
+  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
@@ -9,6 +11,8 @@
     title = 'Notifikasi',
     description = '',
     csrfToken = '',
+    refreshUrl = '',
+    realtimeSnapshot = '',
     notifications = $bindable([]),
     unreadCount = $bindable(0),
     pagination = null,
@@ -16,6 +20,14 @@
 
   let isMarkingAll = $state(false);
   let deletingId = $state(null);
+  let paginationState = $state(null);
+  let liveUpdatesCleanup = $state(null);
+
+  $effect(() => {
+    if (!paginationState && pagination) {
+      paginationState = pagination;
+    }
+  });
 
   const formatRelativeTime = (value) => {
     if (!value) {
@@ -85,15 +97,43 @@
     return response;
   };
 
+  const refreshNotifications = async () => {
+    if (!refreshUrl) {
+      return;
+    }
+
+    try {
+      const response = await fetch(refreshUrl, {
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+
+      notifications = Array.isArray(data.notifications) ? data.notifications : [];
+      unreadCount = Number(data.unreadCount || 0);
+      paginationState = data.pagination || paginationState;
+    } catch (error) {
+      console.error('Failed to refresh notifications inbox', error);
+    }
+  };
+
   const markAllRead = async () => {
-    if (!pagination?.markAllUrl || unreadCount < 1 || isMarkingAll) {
+    if (!paginationState?.markAllUrl || unreadCount < 1 || isMarkingAll) {
       return;
     }
 
     isMarkingAll = true;
 
     try {
-      await request(pagination.markAllUrl);
+      await request(paginationState.markAllUrl);
       notifications = notifications.map((item) => ({ ...item, readAt: item.readAt || new Date().toISOString() }));
       unreadCount = 0;
       toast('Notifikasi diperbarui', 'Semua notifikasi sudah ditandai dibaca.');
@@ -159,6 +199,24 @@
       deletingId = null;
     }
   };
+
+  onMount(() => {
+    liveUpdatesCleanup = subscribeToLiveUpdates(
+      realtimeSnapshot,
+      async ({ changed }) => {
+        if (!changed.includes('notifications')) {
+          return;
+        }
+
+        await refreshNotifications();
+      },
+      { interval: 7000 },
+    );
+  });
+
+  onDestroy(() => {
+    liveUpdatesCleanup?.();
+  });
 </script>
 
 <Card.Root class="animate-fadeIn notification-intro rounded-[10px] border border-border bg-card shadow-none">
@@ -237,16 +295,16 @@
   {/if}
 </section>
 
-{#if pagination && pagination.lastPage > 1}
+{#if paginationState && paginationState.lastPage > 1}
   <nav class="notification-pagination">
-    <Button href={pagination.previousUrl || undefined} variant="secondary" size="sm" disabled={!pagination.previousUrl}>
+    <Button href={paginationState.previousUrl || undefined} variant="secondary" size="sm" disabled={!paginationState.previousUrl}>
       <i class="fas fa-arrow-left"></i>
       <span>Sebelumnya</span>
     </Button>
 
-    <span>Halaman {pagination.currentPage} dari {pagination.lastPage}</span>
+    <span>Halaman {paginationState.currentPage} dari {paginationState.lastPage}</span>
 
-    <Button href={pagination.nextUrl || undefined} variant="secondary" size="sm" disabled={!pagination.nextUrl}>
+    <Button href={paginationState.nextUrl || undefined} variant="secondary" size="sm" disabled={!paginationState.nextUrl}>
       <span>Selanjutnya</span>
       <i class="fas fa-arrow-right"></i>
     </Button>
@@ -275,6 +333,10 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--brand-light) 34%, var(--line-soft));
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--brand-light) 18%, var(--card));
   }
 
   .notification-summary span {
@@ -288,6 +350,7 @@
     margin-top: 0.15rem;
     font-size: 1.6rem;
     line-height: 1;
+    color: color-mix(in srgb, var(--brand-hover) 72%, black);
   }
 
   .notification-list {
@@ -307,8 +370,8 @@
   }
 
   .notification-card-unread {
-    background: color-mix(in srgb, var(--brand-light) 18%, var(--card));
-    border-color: color-mix(in srgb, var(--brand-primary) 20%, var(--line-soft));
+    background: color-mix(in srgb, var(--brand-light) 20%, var(--card));
+    border-color: color-mix(in srgb, var(--brand-primary) 28%, var(--line-soft));
   }
 
   .notification-main {
@@ -335,8 +398,8 @@
   }
 
   .notification-icon.primary {
-    background: color-mix(in srgb, var(--brand-primary) 18%, transparent);
-    color: var(--brand-primary);
+    background: color-mix(in srgb, var(--brand-light) 70%, white);
+    color: color-mix(in srgb, var(--brand-hover) 78%, black);
   }
 
   .notification-icon.warning {
@@ -355,8 +418,8 @@
   }
 
   .notification-icon.secondary {
-    background: var(--muted);
-    color: var(--text-muted);
+    background: color-mix(in srgb, var(--brand-secondary-soft) 42%, white);
+    color: color-mix(in srgb, var(--brand-secondary) 48%, var(--text-strong));
   }
 
   .notification-content {
@@ -372,6 +435,7 @@
 
   .notification-content strong {
     font-weight: 600;
+    color: var(--text-strong);
   }
 
   .notification-content p {

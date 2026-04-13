@@ -178,6 +178,28 @@
     margin-top: 1.5rem;
   }
 
+  .article-actions :global([data-slot='button'].button-variant-default) {
+    background: var(--brand-primary);
+    color: #241a0f;
+    border-color: color-mix(in srgb, var(--brand-primary) 60%, black);
+  }
+
+  .article-actions :global([data-slot='button'].button-variant-secondary) {
+    background: var(--background);
+    color: var(--foreground);
+    border-color: var(--line-soft);
+  }
+
+  .article-actions :global([data-slot='button'].button-variant-destructive) {
+    background: color-mix(in srgb, var(--signal-danger) 12%, white);
+    color: color-mix(in srgb, var(--signal-danger) 80%, black);
+    border-color: color-mix(in srgb, var(--signal-danger) 24%, var(--line-soft));
+  }
+
+  .article-actions :global([data-slot='button']) {
+    min-width: 0;
+  }
+
   .latest-articles {
     display: grid;
     gap: 0.75rem;

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
+use App\Models\InformationBoard;
 use App\Models\Program;
 use App\Models\Task;
 use App\Models\Timeline;
@@ -18,6 +19,7 @@ class DashboardController extends Controller
             'user' => $user,
             'stats' => $this->getStats($user),
             'recentTasks' => $this->getRecentTasks($user),
+            'latestInformationBoards' => $this->getLatestInformationBoards(),
             'upcomingTimelines' => $this->getUpcomingTimelines($user),
             'tasksByStatus' => $this->getTasksByStatus($user),
         ];
@@ -88,6 +90,16 @@ class DashboardController extends Controller
         return $query->get();
     }
 
+    private function getLatestInformationBoards()
+    {
+        return InformationBoard::query()
+            ->with(['categories', 'user'])
+            ->latest('published_at')
+            ->latest('created_at')
+            ->limit(4)
+            ->get();
+    }
+
     private function getTasksByStatus($user): array
     {
         $query = Task::query();
@@ -155,17 +167,15 @@ class DashboardController extends Controller
         $endDate = now()->endOfMonth();
 
         $createdByMonth = Task::query()
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, COUNT(*) as total")
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('month_key')
-            ->pluck('total', 'month_key');
+            ->get(['created_at'])
+            ->countBy(fn (Task $task) => $task->created_at->format('Y-m'));
 
         $completedByMonth = Task::query()
-            ->selectRaw("DATE_FORMAT(updated_at, '%Y-%m') as month_key, COUNT(*) as total")
             ->where('status', 'done')
             ->whereBetween('updated_at', [$startDate, $endDate])
-            ->groupBy('month_key')
-            ->pluck('total', 'month_key');
+            ->get(['updated_at'])
+            ->countBy(fn (Task $task) => $task->updated_at->format('Y-m'));
 
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);

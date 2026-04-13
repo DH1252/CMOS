@@ -82,7 +82,7 @@
     --popover: color-mix(in srgb, var(--panel-bg) 94%, white);
     --popover-foreground: var(--text-strong);
     --primary: var(--brand-primary);
-    --primary-foreground: var(--white-soft);
+    --primary-foreground: #241a0f;
     --secondary: color-mix(in srgb, var(--panel-muted) 74%, white);
     --secondary-foreground: var(--text-strong);
     --muted: var(--panel-muted);

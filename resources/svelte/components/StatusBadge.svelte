@@ -61,38 +61,38 @@
   }
 
   .status-badge-primary {
-    border-color: color-mix(in srgb, var(--brand-primary) 32%, transparent);
-    background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
-    color: var(--brand-primary);
+    border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--line-soft));
+    background: color-mix(in srgb, var(--brand-light) 72%, white);
+    color: color-mix(in srgb, var(--brand-hover) 88%, black);
   }
 
   .status-badge-success {
-    border-color: color-mix(in srgb, var(--signal-success) 32%, transparent);
-    background: color-mix(in srgb, var(--signal-success) 14%, transparent);
-    color: var(--signal-success);
+    border-color: color-mix(in srgb, var(--signal-success) 30%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-success) 18%, white);
+    color: color-mix(in srgb, var(--signal-success) 82%, black);
   }
 
   .status-badge-warning {
-    border-color: color-mix(in srgb, var(--signal-warning) 32%, transparent);
-    background: color-mix(in srgb, var(--signal-warning) 14%, transparent);
-    color: var(--signal-warning);
+    border-color: color-mix(in srgb, var(--signal-warning) 30%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-warning) 18%, white);
+    color: color-mix(in srgb, var(--signal-warning) 82%, black);
   }
 
   .status-badge-danger {
-    border-color: color-mix(in srgb, var(--signal-danger) 32%, transparent);
-    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: var(--signal-danger);
+    border-color: color-mix(in srgb, var(--signal-danger) 30%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-danger) 16%, white);
+    color: color-mix(in srgb, var(--signal-danger) 84%, black);
   }
 
   .status-badge-info {
-    border-color: color-mix(in srgb, var(--signal-info) 32%, transparent);
-    background: color-mix(in srgb, var(--signal-info) 14%, transparent);
-    color: var(--signal-info);
+    border-color: color-mix(in srgb, var(--signal-info) 30%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-info) 14%, white);
+    color: color-mix(in srgb, var(--signal-info) 78%, black);
   }
 
   .status-badge-secondary {
-    border-color: var(--border);
-    background: var(--muted);
-    color: var(--text-muted);
+    border-color: color-mix(in srgb, var(--brand-secondary) 18%, var(--border));
+    background: color-mix(in srgb, var(--brand-secondary-soft) 44%, white);
+    color: color-mix(in srgb, var(--brand-secondary) 52%, var(--text-strong));
   }
 </style>

@@ -2,7 +2,7 @@
 
 @section('title', 'Pengumuman')
 @section('page-title', 'Pengumuman')
-@section('page-meta', 'Sampaikan pengumuman internal, polling cepat, dan diskusi singkat dalam satu feed organisasi.')
+@section('page-meta', 'Pengumuman internal dan polling cepat.')
 
 @section('content')
 @php
@@ -22,8 +22,10 @@
 
     $props = [
         'title' => 'Feed Pengumuman',
-        'description' => 'Ruang singkat untuk pengumuman internal, polling cepat, dan komentar langsung dari pengurus.',
+        'description' => 'Pengumuman internal, polling, dan komentar.',
         'csrfToken' => csrf_token(),
+        'refreshUrl' => route('announcements.index'),
+        'realtimeSnapshot' => route('realtime.snapshot'),
         'createForm' => [
             'action' => route('announcements.store'),
             'avatar' => auth()->user()->avatar_url,

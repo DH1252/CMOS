@@ -73,6 +73,14 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'reverb' => [
+            'driver' => 'daily',
+            'path' => env('REVERB_LOG_FILE', storage_path('logs/reverb.log')),
+            'level' => env('REVERB_LOG_LEVEL', 'debug'),
+            'days' => env('REVERB_LOG_DAILY_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

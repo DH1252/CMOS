@@ -56,7 +56,7 @@
     () =>
       [
         links?.tasksIndex ? { href: links.tasksIndex, label: 'Buka task' } : null,
-        links?.timelinesCalendar ? { href: links.timelinesCalendar, label: 'Buka kalender' } : null,
+        links?.timelinesIndex ? { href: links.timelinesIndex, label: 'Buka timeline' } : null,
       ].filter(Boolean),
   );
 
@@ -74,8 +74,8 @@
       value: nextTimeline ? formatShortDate(nextTimeline.start_date) : '-',
       detail: nextTimeline?.title || 'Belum ada agenda dekat.',
       tone: 'secondary',
-      href: links?.timelinesCalendar || null,
-      actionLabel: 'Buka kalender',
+      href: links?.timelinesIndex || null,
+      actionLabel: 'Buka timeline',
     },
     {
       label: 'Penyelesaian',
@@ -99,14 +99,6 @@
     }
 
     return `${String(links.tasksIndex).replace(/\/$/, '')}/${task.id}`;
-  };
-
-  const timelineDetailHref = (timeline) => {
-    if (!timeline?.id || !links?.timelinesCalendar) {
-      return null;
-    }
-
-    return `${String(links.timelinesCalendar).replace(/\/$/, '')}/${timeline.id}`;
   };
 
   const formatShortDate = (value) => {
@@ -332,8 +324,8 @@
       {:else}
         <div class="grid gap-3">
           {#each upcomingTimelines.slice(0, 4) as timeline, index (timeline.id || index)}
-            {#if timelineDetailHref(timeline)}
-              <a href={timelineDetailHref(timeline)} aria-label={`Buka detail agenda ${timeline.title}`} class="rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
+            {#if links?.timelinesCalendar}
+              <a href={links.timelinesCalendar} aria-label={`Buka kalender untuk ${timeline.title}`} class="rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
                 <strong class="block text-sm text-foreground">{timeline.title}</strong>
                 <div class="mt-2 text-sm text-muted-foreground">{formatLongDate(timeline.start_date)}</div>
               </a>

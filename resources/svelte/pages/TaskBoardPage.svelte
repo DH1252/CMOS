@@ -1,8 +1,10 @@
 <script>
   import { flip } from 'svelte/animate';
   import { useSpring } from '@humanspeak/svelte-motion';
+  import { onDestroy, onMount } from 'svelte';
   import { quintOut } from 'svelte/easing';
   import { crossfade, fade, scale } from 'svelte/transition';
+  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
   import { dragPreviewSpring, dragRotateSpring } from '$lib/motion.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
@@ -19,6 +21,8 @@
     title = 'Kanban',
     description = '',
     breadcrumbs = [],
+    refreshUrl = '',
+    realtimeSnapshot = '',
     context = {
       type: 'global',
       typeId: null,
@@ -74,6 +78,18 @@
     addOpen: false,
   });
 
+  const hydrateBoard = (nextColumns) => {
+    boardColumns = nextColumns.map((column) => {
+      const previous = boardColumns.find((item) => item.status === column.status);
+
+      return {
+        ...cloneColumn(column),
+        draft: previous?.draft ? { ...previous.draft } : baseDraft(),
+        addOpen: Boolean(previous?.addOpen),
+      };
+    });
+  };
+
   let boardColumns = $state([]);
   let draggedTaskId = $state(null);
   let draggedFromStatus = $state(null);
@@ -96,6 +112,8 @@
   let dragPreviewXValue = 0;
   let dragPreviewYValue = 0;
   let dragPreviewAngleValue = 0;
+  let pendingServerRefresh = $state(false);
+  let liveUpdatesCleanup = $state(null);
   const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
   const reduceMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const dragPreviewX = useSpring(0, dragPreviewSpring);
@@ -109,25 +127,20 @@
 
   $effect(() => {
     if (!boardColumns.length && columns.length) {
-      boardColumns = columns.map(cloneColumn);
+      hydrateBoard(columns);
+    }
+  });
+
+  $effect(() => {
+    if (pendingServerRefresh && !draggedTaskId && !editModalOpen && !savingEdit) {
+      pendingServerRefresh = false;
+      void refreshBoard();
     }
   });
 
   const totalTasks = $derived.by(() =>
     boardColumns.reduce((total, column) => total + column.tasks.length, 0),
   );
-
-  const contextSummary = $derived.by(() => {
-    if (context.type === 'department') {
-      return 'Board ini dipakai untuk memantau task pada satu departemen secara lebih fokus.';
-    }
-
-    if (context.type === 'program') {
-      return 'Board ini dipakai untuk memantau task yang terkait langsung dengan satu program kerja.';
-    }
-
-    return 'Board ini merangkum task lintas konteks agar prioritas, perpindahan status, dan tindak lanjut lebih mudah dipantau.';
-  });
 
   const toast = (text, tone = 'success') => {
     if (window.Swal) {
@@ -144,6 +157,34 @@
 
     if (tone === 'error') {
       window.alert(text);
+    }
+  };
+
+  const refreshBoard = async () => {
+    if (!refreshUrl) {
+      return;
+    }
+
+    try {
+      const response = await fetch(refreshUrl, {
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+
+      if (Array.isArray(data.columns)) {
+        hydrateBoard(data.columns);
+      }
+    } catch (error) {
+      console.error('Failed to refresh task board', error);
     }
   };
 
@@ -590,7 +631,6 @@
         ...findTask(taskId),
         ...data.task,
       });
-      toast('Status diupdate');
     } catch (error) {
       if (dragSnapshot) {
         boardColumns = cloneBoardColumns(dragSnapshot);
@@ -815,6 +855,29 @@
     event.currentTarget.src = nextSrc;
   };
 
+  onMount(() => {
+    liveUpdatesCleanup = subscribeToLiveUpdates(
+      realtimeSnapshot,
+      async ({ changed }) => {
+        if (!changed.includes('tasks')) {
+          return;
+        }
+
+        if (draggedTaskId || editModalOpen || savingEdit) {
+          pendingServerRefresh = true;
+          return;
+        }
+
+        await refreshBoard();
+      },
+      { interval: 7000 },
+    );
+  });
+
+  onDestroy(() => {
+    liveUpdatesCleanup?.();
+  });
+
   $effect(() => {
     const unsubscribeX = dragPreviewX.subscribe((value) => {
       dragPreviewXValue = Number(value);
@@ -851,7 +914,6 @@
   <Card.Header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-border/70 pb-4">
     <div class="min-w-0 flex-1">
       <PageHeader {title} {description} icon="fas fa-table-columns" />
-      <p class="mt-3 max-w-[58ch] text-sm leading-7 text-muted-foreground">{contextSummary}</p>
     </div>
 
     <div class="grid gap-3 min-w-[15rem]">

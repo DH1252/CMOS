@@ -2,11 +2,27 @@
 
 namespace App\Models;
 
+use App\Support\RealtimeBroadcaster;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Notification extends Model
 {
+    protected static function booted(): void
+    {
+        static::created(function (self $notification): void {
+            app(RealtimeBroadcaster::class)->user($notification->user_id, ['notifications']);
+        });
+
+        static::updated(function (self $notification): void {
+            app(RealtimeBroadcaster::class)->user($notification->user_id, ['notifications']);
+        });
+
+        static::deleted(function (self $notification): void {
+            app(RealtimeBroadcaster::class)->user($notification->user_id, ['notifications']);
+        });
+    }
+
     protected $fillable = [
         'user_id',
         'type',
@@ -23,8 +39,11 @@ class Notification extends Model
 
     // Types
     public const TYPE_TASK_ASSIGNED = 'task_assigned';
+
     public const TYPE_DEADLINE_REMINDER = 'deadline_reminder';
+
     public const TYPE_EVALUATION_NEW = 'evaluation_new';
+
     public const TYPE_ANNOUNCEMENT = 'announcement';
 
     // Relationships
@@ -57,14 +76,14 @@ class Notification extends Model
     // Helpers
     public function markAsRead(): void
     {
-        if (!$this->read_at) {
+        if (! $this->read_at) {
             $this->update(['read_at' => now()]);
         }
     }
 
     public function getIconAttribute(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             self::TYPE_TASK_ASSIGNED => 'fas fa-tasks',
             self::TYPE_DEADLINE_REMINDER => 'fas fa-clock',
             self::TYPE_EVALUATION_NEW => 'fas fa-star',
@@ -75,7 +94,7 @@ class Notification extends Model
 
     public function getColorAttribute(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             self::TYPE_TASK_ASSIGNED => 'primary',
             self::TYPE_DEADLINE_REMINDER => 'warning',
             self::TYPE_EVALUATION_NEW => 'success',
@@ -87,7 +106,9 @@ class Notification extends Model
     // Static creators
     public static function notifyTaskAssigned(Task $task): void
     {
-        if (!$task->assigned_to) return;
+        if (! $task->assigned_to) {
+            return;
+        }
 
         self::create([
             'user_id' => $task->assigned_to,
@@ -100,10 +121,12 @@ class Notification extends Model
 
     public static function notifyDeadlineReminder(Task $task): void
     {
-        if (!$task->assigned_to || !$task->deadline) return;
+        if (! $task->assigned_to || ! $task->deadline) {
+            return;
+        }
 
         $daysLeft = now()->diffInDays($task->deadline, false);
-        
+
         self::create([
             'user_id' => $task->assigned_to,
             'type' => self::TYPE_DEADLINE_REMINDER,
@@ -119,7 +142,7 @@ class Notification extends Model
             'user_id' => $evaluation->user_id,
             'type' => self::TYPE_EVALUATION_NEW,
             'title' => 'Evaluasi Baru',
-            'message' => "Kamu mendapat evaluasi dari " . ucfirst($evaluation->evaluator_type),
+            'message' => 'Kamu mendapat evaluasi dari '.ucfirst($evaluation->evaluator_type),
             'data' => ['evaluation_id' => $evaluation->id, 'period' => $evaluation->period],
         ]);
     }

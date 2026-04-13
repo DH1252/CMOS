@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\RealtimeBroadcaster;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Message extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::created(function (self $message): void {
+            app(RealtimeBroadcaster::class)->chatMessage($message);
+        });
+    }
 
     protected $fillable = [
         'sender_id',

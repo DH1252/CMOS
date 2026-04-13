@@ -29,7 +29,7 @@ class PublicInformationController extends Controller
         if ($categorySlug !== '') {
             $activeCategory = InformationCategory::where('slug', $categorySlug)->first();
             if ($activeCategory) {
-                $query->whereHas('categories', fn($q) => $q->where('information_categories.id', $activeCategory->id));
+                $query->whereHas('categories', fn ($q) => $q->where('information_categories.id', $activeCategory->id));
             }
         }
 
@@ -39,12 +39,11 @@ class PublicInformationController extends Controller
         return view('informasi.index', compact('articles', 'categories', 'search', 'activeCategory'));
     }
 
-    public function show(string $slug)
+    public function show(InformationBoard $informationBoard)
     {
-        $article = InformationBoard::with(['user', 'categories'])
-            ->published()
-            ->where('slug', $slug)
-            ->firstOrFail();
+        abort_unless($informationBoard->status === 'published' && (! $informationBoard->published_at || $informationBoard->published_at->lte(now())), 404);
+
+        $article = $informationBoard->load(['user', 'categories']);
 
         $latestArticles = InformationBoard::published()
             ->where('id', '!=', $article->id)

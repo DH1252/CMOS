@@ -6,10 +6,10 @@
 @section('content')
 @php
     $description = $type === 'global'
-        ? 'Task lintas departemen untuk sinkronisasi kerja organisasi.'
+        ? 'Task lintas departemen.'
         : ($type === 'department'
-            ? "Papan kerja khusus untuk {$department->name}."
-            : "Pantau seluruh task untuk program {$program->name}.");
+            ? "Board {$department->name}."
+            : "Task {$program->name}.");
 
     $breadcrumbs = [['label' => 'Tasks', 'href' => route('tasks.index')]];
 
@@ -33,6 +33,12 @@
     $props = [
         'title' => $title,
         'description' => $description,
+        'refreshUrl' => $type === 'global'
+            ? route('tasks.global')
+            : ($type === 'department'
+                ? route('tasks.department.tasks', $department)
+                : route('tasks.program', $program)),
+        'realtimeSnapshot' => route('realtime.snapshot'),
         'breadcrumbs' => $breadcrumbs,
         'context' => [
             'type' => $type,

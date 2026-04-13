@@ -131,26 +131,27 @@ class TimelineController extends Controller
     private function getTimelineColor($type): string
     {
         return match ($type) {
-            'global' => '#7C3AED', // Purple
-            'department' => '#3B82F6', // Blue
-            'program' => '#10B981', // Green
-            default => '#9CA3AF',
+            'global' => '#7751DE',
+            'department' => '#D4A017',
+            'program' => '#3F7A50',
+            default => '#786F62',
         };
     }
 
     private function getTaskColor($task): string
     {
         if ($task->status === 'done') {
-            return '#10B981'; // Green
+            return '#3F7A50';
         }
+
         if ($task->is_overdue) {
-            return '#EF4444'; // Red
+            return '#B44C40';
         }
 
         return match ($task->priority) {
-            'high' => '#F59E0B', // Orange
-            'medium' => '#3B82F6', // Blue
-            default => '#9CA3AF', // Gray
+            'high' => '#A96B12',
+            'medium' => '#7751DE',
+            default => '#786F62',
         };
     }
 

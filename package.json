@@ -26,8 +26,10 @@
     },
     "dependencies": {
         "@humanspeak/svelte-motion": "^0.2.0",
+        "laravel-echo": "^2.2.4",
         "lighthouse": "^13.1.0",
         "lucide-svelte": "^1.0.1",
-        "motion": "^12.38.0"
+        "motion": "^12.38.0",
+        "pusher-js": "^8.4.0-rc2"
     }
 }

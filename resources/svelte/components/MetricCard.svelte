@@ -11,22 +11,22 @@
 
   const toneClass = (value) => {
     if (value === 'success') {
-      return 'text-[var(--signal-success)]';
+      return 'metric-card-success';
     }
 
     if (value === 'warning') {
-      return 'text-[var(--signal-warning)]';
+      return 'metric-card-warning';
     }
 
     if (value === 'danger') {
-      return 'text-[var(--signal-danger)]';
+      return 'metric-card-danger';
     }
 
     if (value === 'info') {
-      return 'text-[var(--signal-info)]';
+      return 'metric-card-info';
     }
 
-    return 'text-brand-primary';
+    return 'metric-card-primary';
   };
 </script>
 
@@ -37,7 +37,7 @@
         <div class="text-sm text-muted-foreground">{label}</div>
         <div class="text-3xl font-semibold leading-none text-foreground">{value}</div>
       </div>
-      <div class={`inline-flex items-center gap-2 text-sm ${toneClass(tone)}`}>
+      <div class={`inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-sm ${toneClass(tone)}`}>
         <i class={icon}></i>
       </div>
     </div>
@@ -47,3 +47,30 @@
     {/if}
   </Card.Content>
 </Card.Root>
+
+<style>
+  .metric-card-primary {
+    background: color-mix(in srgb, var(--brand-light) 64%, white);
+    color: color-mix(in srgb, var(--brand-hover) 88%, black);
+  }
+
+  .metric-card-success {
+    background: color-mix(in srgb, var(--signal-success) 16%, white);
+    color: color-mix(in srgb, var(--signal-success) 82%, black);
+  }
+
+  .metric-card-warning {
+    background: color-mix(in srgb, var(--signal-warning) 18%, white);
+    color: color-mix(in srgb, var(--signal-warning) 82%, black);
+  }
+
+  .metric-card-danger {
+    background: color-mix(in srgb, var(--signal-danger) 16%, white);
+    color: color-mix(in srgb, var(--signal-danger) 84%, black);
+  }
+
+  .metric-card-info {
+    background: color-mix(in srgb, var(--signal-info) 14%, white);
+    color: color-mix(in srgb, var(--signal-info) 78%, black);
+  }
+</style>

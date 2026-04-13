@@ -27,10 +27,10 @@
         'eventsUrl' => route('timelines.calendar.data'),
         'locale' => 'id',
         'legend' => [
-            ['label' => 'Timeline Global', 'color' => '#7C3AED'],
-            ['label' => 'Timeline Departemen', 'color' => '#3B82F6'],
-            ['label' => 'Program Kerja', 'color' => '#10B981'],
-            ['label' => 'Deadline Task', 'color' => '#F59E0B'],
+            ['label' => 'Timeline Global', 'color' => '#7751DE'],
+            ['label' => 'Timeline Departemen', 'color' => '#D4A017'],
+            ['label' => 'Program Kerja', 'color' => '#3F7A50'],
+            ['label' => 'Deadline Task', 'color' => '#A96B12'],
         ],
     ];
 @endphp

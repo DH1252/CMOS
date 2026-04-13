@@ -8,15 +8,21 @@ use App\Models\AnnouncementComment;
 use App\Models\AnnouncementReaction;
 use App\Models\PollOption;
 use App\Models\PollVote;
+use App\Support\RealtimeBroadcaster;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AnnouncementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $announcements = Announcement::with(['user', 'comments.user', 'reactions', 'pollOptions'])
             ->latest()
             ->paginate(10);
+
+        if ($request->expectsJson()) {
+            return response()->json($this->indexPayload($announcements, $request));
+        }
 
         return view('announcements.index', compact('announcements'));
     }
@@ -37,15 +43,15 @@ class AnnouncementController extends Controller
             'content' => $validated['content'],
             'has_poll' => $request->boolean('has_poll'),
             'poll_question' => $validated['poll_question'] ?? null,
-            'poll_ends_at' => $request->boolean('has_poll') && !empty($validated['poll_duration']) 
-                ? now()->addHours((int) $validated['poll_duration']) 
+            'poll_ends_at' => $request->boolean('has_poll') && ! empty($validated['poll_duration'])
+                ? now()->addHours((int) $validated['poll_duration'])
                 : null,
         ]);
 
         // Create poll options if poll exists
-        if ($request->boolean('has_poll') && !empty($validated['poll_options'])) {
+        if ($request->boolean('has_poll') && ! empty($validated['poll_options'])) {
             foreach ($validated['poll_options'] as $optionText) {
-                if (!empty(trim($optionText))) {
+                if (! empty(trim($optionText))) {
                     PollOption::create([
                         'announcement_id' => $announcement->id,
                         'option_text' => trim($optionText),
@@ -55,6 +61,7 @@ class AnnouncementController extends Controller
         }
 
         ActivityLog::log('created', 'Created announcement', $announcement);
+        app(RealtimeBroadcaster::class)->organization(['announcements']);
 
         return redirect()->route('announcements.index')
             ->with('success', 'Pengumuman berhasil diposting!');
@@ -63,12 +70,13 @@ class AnnouncementController extends Controller
     public function destroy(Announcement $announcement)
     {
         // Only creator can delete
-        if ($announcement->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+        if ($announcement->user_id !== auth()->id() && ! auth()->user()->isAdmin()) {
             return back()->with('error', 'Anda tidak memiliki izin untuk menghapus ini.');
         }
 
         ActivityLog::log('deleted', 'Deleted announcement', $announcement);
         $announcement->delete();
+        app(RealtimeBroadcaster::class)->organization(['announcements']);
 
         return back()->with('success', 'Pengumuman berhasil dihapus!');
     }
@@ -84,6 +92,8 @@ class AnnouncementController extends Controller
             'user_id' => auth()->id(),
             'content' => $validated['content'],
         ]);
+
+        app(RealtimeBroadcaster::class)->organization(['announcements']);
 
         return back()->with('success', 'Komentar ditambahkan!');
     }
@@ -102,10 +112,16 @@ class AnnouncementController extends Controller
             if ($existing->type === $validated['type']) {
                 // Remove reaction
                 $existing->delete();
+
+                app(RealtimeBroadcaster::class)->organization(['announcements']);
+
                 return response()->json(['removed' => true]);
             } else {
                 // Change reaction
                 $existing->update(['type' => $validated['type']]);
+
+                app(RealtimeBroadcaster::class)->organization(['announcements']);
+
                 return response()->json(['changed' => true, 'type' => $validated['type']]);
             }
         }
@@ -116,12 +132,14 @@ class AnnouncementController extends Controller
             'type' => $validated['type'],
         ]);
 
+        app(RealtimeBroadcaster::class)->organization(['announcements']);
+
         return response()->json(['added' => true, 'type' => $validated['type']]);
     }
 
     public function vote(Request $request, Announcement $announcement)
     {
-        if (!$announcement->has_poll || !$announcement->isPollActive()) {
+        if (! $announcement->has_poll || ! $announcement->isPollActive()) {
             return response()->json(['error' => 'Poll tidak aktif'], 400);
         }
 
@@ -146,10 +164,11 @@ class AnnouncementController extends Controller
         ]);
 
         $option->increment('votes_count');
+        app(RealtimeBroadcaster::class)->organization(['announcements']);
 
         // Return updated poll data
         $announcement->refresh();
-        $pollData = $announcement->pollOptions->map(fn($o) => [
+        $pollData = $announcement->pollOptions->map(fn ($o) => [
             'id' => $o->id,
             'text' => $o->option_text,
             'votes' => $o->votes_count,
@@ -161,5 +180,87 @@ class AnnouncementController extends Controller
             'total_votes' => $announcement->total_votes,
             'options' => $pollData,
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function indexPayload(LengthAwarePaginator $announcements, Request $request): array
+    {
+        $reactionEmoji = [
+            'like' => '👍',
+            'love' => '❤️',
+            'haha' => '😂',
+            'wow' => '😮',
+            'sad' => '😢',
+            'angry' => '😡',
+        ];
+
+        return [
+            'posts' => $announcements->getCollection()->map(function (Announcement $post) use ($reactionEmoji, $request) {
+                $userId = $request->user()->getAuthIdentifier();
+                $hasVoted = $post->hasUserVoted($userId);
+                $userVoteId = $post->getUserVoteOptionId($userId);
+                $userReaction = $post->getUserReaction($userId);
+
+                return [
+                    'id' => $post->id,
+                    'author' => [
+                        'name' => $post->user->name,
+                        'avatar' => $post->user->avatar_url,
+                    ],
+                    'createdAt' => $post->created_at->toIso8601String(),
+                    'content' => $post->content,
+                    'canDelete' => $post->user_id === $userId || $request->user()->isAdmin(),
+                    'deleteAction' => route('announcements.destroy', $post),
+                    'deletePayload' => [
+                        'confirm' => 'pengumuman ini',
+                        'confirmText' => 'Hapus pengumuman ini?',
+                    ],
+                    'reactUrl' => route('announcements.react', $post),
+                    'voteUrl' => route('announcements.vote', $post),
+                    'commentAction' => route('announcements.comment', $post),
+                    'userReaction' => $userReaction,
+                    'reactionSummary' => collect($post->reaction_counts)
+                        ->map(fn ($count, $type) => [
+                            'type' => $type,
+                            'emoji' => $reactionEmoji[$type] ?? '👍',
+                            'count' => $count,
+                        ])
+                        ->values(),
+                    'comments' => $post->comments->take(5)->map(fn ($comment) => [
+                        'user' => [
+                            'name' => $comment->user->name,
+                            'avatar' => $comment->user->avatar_url,
+                        ],
+                        'content' => $comment->content,
+                        'createdAt' => $comment->created_at->toIso8601String(),
+                    ])->values(),
+                    'poll' => $post->has_poll ? [
+                        'question' => $post->poll_question,
+                        'hasVoted' => $hasVoted,
+                        'userVoteOptionId' => $userVoteId,
+                        'isActive' => $post->isPollActive(),
+                        'totalVotes' => $post->total_votes,
+                        'pollEndsAt' => $post->poll_ends_at?->toIso8601String(),
+                        'options' => $post->pollOptions->map(fn ($option) => [
+                            'id' => $option->id,
+                            'text' => $option->option_text,
+                            'votes' => $option->votes_count,
+                            'percentage' => $hasVoted ? $option->percentage : 0,
+                        ])->values(),
+                    ] : null,
+                ];
+            })->values(),
+            'pagination' => [
+                'currentPage' => $announcements->currentPage(),
+                'lastPage' => $announcements->lastPage(),
+                'prevUrl' => $announcements->previousPageUrl(),
+                'nextUrl' => $announcements->nextPageUrl(),
+                'from' => $announcements->firstItem() ?? 0,
+                'to' => $announcements->lastItem() ?? 0,
+                'total' => $announcements->total(),
+            ],
+        ];
     }
 }

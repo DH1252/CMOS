@@ -41,7 +41,7 @@ class TaskController extends Controller
     /**
      * Global tasks kanban board
      */
-    public function global()
+    public function global(Request $request)
     {
         $tasks = Task::global()
             ->with(['assignee', 'creator'])
@@ -51,6 +51,24 @@ class TaskController extends Controller
             ->groupBy('status');
 
         $users = User::active()->with('role')->orderBy('name')->get();
+
+        $payload = $this->boardPayload(
+            title: 'Global Tasks',
+            description: 'Task lintas departemen untuk sinkronisasi kerja organisasi.',
+            type: 'global',
+            typeId: null,
+            users: $users,
+            tasks: $tasks,
+            breadcrumbs: [
+                ['label' => 'Tasks', 'href' => route('tasks.index')],
+                ['label' => 'Global Tasks'],
+            ],
+            refreshUrl: route('tasks.global'),
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json($payload);
+        }
 
         return view('tasks.kanban', [
             'tasks' => $tasks,
@@ -91,7 +109,7 @@ class TaskController extends Controller
      * Department tasks kanban board
      * Kabinet/Staff can only access their own department
      */
-    public function departmentTasks(Department $department)
+    public function departmentTasks(Request $request, Department $department)
     {
         $tasks = Task::forDepartment($department->id)
             ->with(['assignee', 'creator'])
@@ -101,6 +119,25 @@ class TaskController extends Controller
             ->groupBy('status');
 
         $users = User::active()->with('role')->orderBy('name')->get();
+
+        $payload = $this->boardPayload(
+            title: "Tugas {$department->name}",
+            description: "Papan kerja khusus untuk {$department->name}.",
+            type: 'department',
+            typeId: $department->id,
+            users: $users,
+            tasks: $tasks,
+            breadcrumbs: [
+                ['label' => 'Tasks', 'href' => route('tasks.index')],
+                ['label' => $department->name, 'href' => route('tasks.department', $department)],
+                ['label' => 'Tugas Departemen'],
+            ],
+            refreshUrl: route('tasks.department.tasks', $department),
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json($payload);
+        }
 
         return view('tasks.kanban', [
             'tasks' => $tasks,
@@ -117,7 +154,7 @@ class TaskController extends Controller
     /**
      * Program tasks kanban board
      */
-    public function program(Program $program)
+    public function program(Request $request, Program $program)
     {
         $tasks = Task::forProgram($program->id)
             ->with(['assignee', 'creator'])
@@ -127,6 +164,25 @@ class TaskController extends Controller
             ->groupBy('status');
 
         $users = User::active()->with('role')->orderBy('name')->get();
+
+        $payload = $this->boardPayload(
+            title: $program->name,
+            description: "Pantau seluruh task untuk program {$program->name}.",
+            type: 'program',
+            typeId: $program->id,
+            users: $users,
+            tasks: $tasks,
+            breadcrumbs: [
+                ['label' => 'Tasks', 'href' => route('tasks.index')],
+                ['label' => $program->department->name, 'href' => route('tasks.department', $program->department)],
+                ['label' => $program->name],
+            ],
+            refreshUrl: route('tasks.program', $program),
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json($payload);
+        }
 
         return view('tasks.kanban', [
             'tasks' => $tasks,
@@ -498,5 +554,57 @@ class TaskController extends Controller
         }
 
         return $query->where('department_id', $task->department_id)->whereNull('program_id');
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, User>  $users
+     * @param  \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, Task>>  $tasks
+     * @param  array<int, array<string, string>>  $breadcrumbs
+     * @return array<string, mixed>
+     */
+    private function boardPayload(
+        string $title,
+        string $description,
+        string $type,
+        ?int $typeId,
+        $users,
+        $tasks,
+        array $breadcrumbs,
+        string $refreshUrl,
+    ): array {
+        $statusLabels = [
+            'todo' => 'To Do',
+            'in_progress' => 'In Progress',
+            'pending' => 'Pending',
+            'done' => 'Done',
+        ];
+
+        return [
+            'title' => $title,
+            'description' => $description,
+            'breadcrumbs' => $breadcrumbs,
+            'refreshUrl' => $refreshUrl,
+            'context' => [
+                'type' => $type,
+                'typeId' => $typeId,
+            ],
+            'endpoints' => [
+                'storeInline' => route('tasks.inline.store'),
+                'taskBase' => url('/tasks'),
+            ],
+            'columns' => collect(Task::STATUSES)->map(function (string $status) use ($statusLabels, $tasks) {
+                return [
+                    'status' => $status,
+                    'label' => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)),
+                    'tasks' => collect($tasks->get($status, collect()))
+                        ->map(fn (Task $task) => $this->formatTask($task))
+                        ->values(),
+                ];
+            })->values(),
+            'users' => $users->map(fn (User $user) => [
+                'value' => $user->id,
+                'label' => $user->name.' ('.ucfirst($user->role?->name ?? 'user').')',
+            ])->values(),
+        ];
     }
 }

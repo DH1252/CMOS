@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\RealtimeBroadcaster;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -31,15 +32,22 @@ class Task extends Model
 
     public const STATUSES = ['todo', 'in_progress', 'pending', 'done'];
 
-    protected static function boot()
+    protected static function booted(): void
     {
-        parent::boot();
-
-        // Notify assignee when task is created
-        static::created(function ($task) {
+        static::created(function (self $task): void {
             if ($task->assigned_to) {
                 Notification::notifyTaskAssigned($task);
             }
+
+            app(RealtimeBroadcaster::class)->organization(['tasks']);
+        });
+
+        static::updated(function (): void {
+            app(RealtimeBroadcaster::class)->organization(['tasks']);
+        });
+
+        static::deleted(function (): void {
+            app(RealtimeBroadcaster::class)->organization(['tasks']);
         });
     }
 
