@@ -562,28 +562,30 @@
 
   .floating-chat-list-shell {
     display: grid;
+    grid-template-rows: auto 1fr auto;
     gap: 0.85rem;
     padding: 1rem;
     min-height: 0;
+    align-content: start;
+    justify-items: center;
   }
 
   .floating-chat-search {
-    position: relative;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+    max-width: 20rem;
   }
 
   .floating-chat-search-icon {
-    position: absolute;
-    left: 0.68rem;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
+    flex: 0 0 auto;
     color: var(--text-muted);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
   }
 
   :global(.floating-chat-search-input) {
-    width: 100%;
+    flex: 1;
     height: 2rem;
     min-height: 2rem;
     border: 1px solid var(--line-soft);
@@ -591,7 +593,7 @@
     background: var(--background);
     color: var(--text-strong);
     box-shadow: none;
-    padding: 0 0.7rem 0 1.9rem;
+    padding: 0 0.7rem;
     font-size: 0.8rem;
   }
 
@@ -607,6 +609,9 @@
     align-content: start;
     overflow-y: auto;
     min-height: 0;
+    width: 100%;
+    max-width: 20rem;
+    margin: 0 auto;
   }
 
   .floating-chat-user {
@@ -725,6 +730,7 @@
 
   :global(.floating-chat-link-button) {
     width: 100%;
+    max-width: 20rem;
     box-shadow: none;
   }
 
