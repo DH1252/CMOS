@@ -365,7 +365,6 @@
           {:else}
             <div>
               <strong>Pesan cepat</strong>
-              <span>Koordinasi singkat tanpa pindah halaman.</span>
             </div>
           {/if}
 
@@ -570,12 +569,13 @@
   .floating-chat-search {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.8rem 0.9rem;
+    gap: 0.5rem;
+    padding: 0.55rem 0.7rem;
     border-radius: 0.5rem;
     background: var(--background);
     border: 1px solid var(--line-soft);
     color: var(--text-muted);
+    font-size: 0.84rem;
   }
 
   :global(.floating-chat-search-input) {
@@ -584,6 +584,9 @@
     background: transparent;
     color: var(--text-strong);
     box-shadow: none;
+    min-height: 1.5rem;
+    padding: 0;
+    font-size: 0.84rem;
   }
 
   :global(.floating-chat-search-input:focus) {
