@@ -3,6 +3,7 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
+  import optimizedFallbackImage from '../../images/logokabinet.png?enhanced&w=80;160';
   import FormActions from '../components/FormActions.svelte';
   import PageHeader from '../components/PageHeader.svelte';
 
@@ -36,7 +37,8 @@
   } = $props();
 
   const isSelected = (value) => article.categoryIds?.map(String).includes(String(value));
-  const fallbackImage = '/images/logokabinet.png';
+  const fallbackImage =
+	optimizedFallbackImage?.src || optimizedFallbackImage?.default || optimizedFallbackImage || '/images/logokabinet.png';
 
   const handleImageError = (event) => {
     if (event.currentTarget.src.endsWith(fallbackImage)) {

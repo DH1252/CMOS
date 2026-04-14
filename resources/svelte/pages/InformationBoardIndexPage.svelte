@@ -2,6 +2,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
+  import optimizedFallbackImage from '../../images/logokabinet.png?enhanced&w=80;160';
   import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
   import MetricCard from '../components/MetricCard.svelte';
   import PageHeader from '../components/PageHeader.svelte';
@@ -30,7 +31,8 @@
     csrfToken = '',
   } = $props();
 
-  const fallbackImage = '/images/logokabinet.png';
+  const fallbackImage =
+	optimizedFallbackImage?.src || optimizedFallbackImage?.default || optimizedFallbackImage || '/images/logokabinet.png';
 
   const handleImageError = (event) => {
     if (event.currentTarget.src.endsWith(fallbackImage)) {
