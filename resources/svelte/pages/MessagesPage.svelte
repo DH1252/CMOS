@@ -492,12 +492,13 @@
   .messages-search {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.85rem 1rem;
+    gap: 0.5rem;
+    padding: 0.55rem 0.7rem;
     border-radius: 0.5rem;
     background: var(--background);
     border: 1px solid var(--line-soft);
     color: var(--text-muted);
+    font-size: 0.84rem;
   }
 
   :global(.messages-search-input) {
@@ -505,6 +506,9 @@
     border: none;
     background: transparent;
     box-shadow: none;
+    min-height: 1.5rem;
+    padding: 0;
+    font-size: 0.84rem;
   }
 
   :global(.messages-search-input:focus) {

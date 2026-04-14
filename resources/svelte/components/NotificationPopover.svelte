@@ -41,7 +41,6 @@
     <div class="shell-popover-header">
       <div>
         <strong>Notifikasi</strong>
-        <p>Pembaruan terbaru untuk akun Anda.</p>
       </div>
       <form method="POST" action={endpoints.notificationsMarkAll || '#'} onsubmit={() => (open = false)}>
         <input type="hidden" name="_token" value={csrfToken} />
@@ -132,13 +131,6 @@
     display: block;
     font-size: 0.95rem;
   }
-
-  .shell-popover-header p {
-    margin: 0.2rem 0 0;
-    font-size: 0.84rem;
-    color: var(--text-muted);
-  }
-
   .shell-text-btn {
     border: none;
     background: transparent;
