@@ -34,10 +34,13 @@
         ],
         'articles' => $informationBoards->getCollection()->map(function ($article) {
             $canManage = auth()->user()->isAdmin() || $article->user_id === auth()->id();
+            $previewSource = html_entity_decode($article->excerpt ?: $article->content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $previewSource = str_replace("\u{00A0}", ' ', $previewSource);
+            $previewText = \Illuminate\Support\Str::squish(strip_tags($previewSource));
 
             return [
                 'title' => $article->title,
-                'excerpt' => \Illuminate\Support\Str::limit(strip_tags($article->excerpt ?: $article->content), 180),
+                'excerpt' => \Illuminate\Support\Str::limit($previewText, 180),
                 'coverImage' => $article->cover_image_url,
                 'coverThumb' => $article->cover_image_url,
                 'categories' => $article->categories->pluck('name')->values(),

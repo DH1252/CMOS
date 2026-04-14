@@ -410,7 +410,7 @@
         {:else}
           <div class="floating-chat-list-shell">
             <label class="floating-chat-search">
-              <i class="fas fa-magnifying-glass"></i>
+              <i class="fas fa-magnifying-glass floating-chat-search-icon"></i>
               <Input type="search" class="floating-chat-search-input" placeholder="Cari user..." bind:value={search} />
             </label>
 
@@ -568,30 +568,37 @@
   }
 
   .floating-chat-search {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.55rem 0.7rem;
-    border-radius: 0.5rem;
-    background: var(--background);
-    border: 1px solid var(--line-soft);
+    position: relative;
+    display: block;
+  }
+
+  .floating-chat-search-icon {
+    position: absolute;
+    left: 0.68rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
     color: var(--text-muted);
-    font-size: 0.84rem;
+    font-size: 0.72rem;
   }
 
   :global(.floating-chat-search-input) {
-    flex: 1;
-    border: none;
-    background: transparent;
+    width: 100%;
+    height: 2rem;
+    min-height: 2rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 0.5rem;
+    background: var(--background);
     color: var(--text-strong);
     box-shadow: none;
-    min-height: 1.5rem;
-    padding: 0;
-    font-size: 0.84rem;
+    padding: 0 0.7rem 0 1.9rem;
+    font-size: 0.8rem;
   }
 
-  :global(.floating-chat-search-input:focus) {
-    box-shadow: none;
+  :global(.floating-chat-search-input:focus),
+  :global(.floating-chat-search-input:focus-visible) {
+    border-color: color-mix(in srgb, var(--brand-primary) 24%, var(--line-soft));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 14%, transparent);
   }
 
   .floating-chat-user-list {
