@@ -263,9 +263,7 @@
             <h1 class="max-w-[14ch] text-4xl leading-tight text-foreground md:text-5xl lg:text-[3.5rem]">
               Website resmi HIMATEKKOM ITS 2026 untuk informasi publik dan kerja kabinet.
             </h1>
-            <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)] md:text-lg">
-              Halaman ini merangkum arah kerja Kabinet Sentra Sinergi, memuat pembaruan organisasi, dan menghubungkan pengunjung ke kanal resmi HIMATEKKOM ITS. Untuk pengurus internal, {appName} tetap menjadi ruang kerja operasional harian.
-            </p>
+            <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)] md:text-lg">Ringkasan publik, pembaruan organisasi, dan kanal resmi HIMATEKKOM ITS.</p>
 
             <div class="flex flex-col gap-3 sm:flex-row">
               <a href="#informasi" class="inline-flex items-center justify-center gap-2 rounded-[8px] bg-brand-primary px-4 py-2.5 text-sm font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-brand-hover">
@@ -281,15 +279,15 @@
             <div class="grid gap-4 border-t border-border pt-5 md:grid-cols-3">
               <div>
                 <div class="text-sm font-semibold text-foreground">Kabinet</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">Sentra Sinergi menempatkan tata kelola, kolaborasi, dan keterbukaan informasi sebagai prioritas periode 2026.</p>
+                <p class="mt-2 text-sm leading-7 text-muted-foreground">Tata kelola dan kolaborasi.</p>
               </div>
               <div>
                 <div class="text-sm font-semibold text-foreground">Arsip publik</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">Pengumuman, dokumentasi kegiatan, dan publikasi resmi dikumpulkan dalam satu tempat yang mudah ditelusuri ulang.</p>
+                <p class="mt-2 text-sm leading-7 text-muted-foreground">Arsip publik terpusat.</p>
               </div>
               <div>
                 <div class="text-sm font-semibold text-foreground">Sistem internal</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">CMOS dipakai pengurus untuk task, timeline, evaluasi, laporan, dan pemantauan kerja lintas bidang.</p>
+                <p class="mt-2 text-sm leading-7 text-muted-foreground">CMOS untuk kerja internal.</p>
               </div>
             </div>
           </div>
@@ -323,9 +321,7 @@
         <div class="mx-auto grid max-w-[1180px] gap-10 px-5 py-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8 lg:py-18">
           <div class="space-y-5">
             <h2 class="text-3xl leading-tight text-foreground md:text-4xl">Tentang HIMATEKKOM ITS 2026</h2>
-            <p class="max-w-[60ch] text-base leading-8 text-[var(--text-soft)]">
-              Website ini dikembangkan untuk mendukung transparansi, dokumentasi, dan kolaborasi seluruh elemen organisasi. Halaman publik dibuat sederhana agar pengunjung bisa langsung memahami arah kabinet, membaca pembaruan, dan menuju kanal resmi yang dibutuhkan.
-            </p>
+            <p class="max-w-[60ch] text-base leading-8 text-[var(--text-soft)]">Halaman publik ini merangkum arah kabinet, pembaruan, dan kanal resmi.</p>
             <div class="border-t border-border pt-4">
               <div class="text-sm font-semibold text-foreground">Visi organisasi</div>
               <p class="mt-3 text-sm leading-8 text-muted-foreground">{vision}</p>
@@ -347,9 +343,7 @@
         <div class="mx-auto max-w-[1180px] px-5 py-14 lg:px-8 lg:py-18">
           <div class="max-w-[64ch] space-y-4">
             <h2 class="text-3xl leading-tight text-foreground md:text-4xl">Rangkaian program kerja kabinet</h2>
-            <p class="text-base leading-8 text-[var(--text-soft)]">
-              Fokus kerja kabinet dibagi ke dalam tiga rumpun besar: optimalisasi, kolaborasi, dan ekspansi. Susunan ini memudahkan publik membaca arah program tanpa harus masuk ke detail internal organisasi terlebih dahulu.
-            </p>
+            <p class="text-base leading-8 text-[var(--text-soft)]">Program kerja dibagi ke dalam tiga rumpun utama: optimalisasi, kolaborasi, dan ekspansi.</p>
           </div>
 
           <div class="mt-8 grid gap-6 lg:grid-cols-3">
@@ -379,9 +373,7 @@
             <div class="space-y-6">
               <div class="space-y-4">
                 <h2 class="text-3xl leading-tight text-foreground md:text-4xl">Informasi terbaru dan kanal publik resmi</h2>
-                <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)]">
-                  Papan informasi menampung berita kegiatan, pengumuman, dan dokumentasi resmi HIMATEKKOM ITS 2026. Kanal pendukung seperti dokumen organisasi, materi presentasi, dan Instagram kabinet juga diletakkan di halaman ini agar tidak tersebar di banyak tempat.
-                </p>
+                <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)]">Papan informasi memuat berita, pengumuman, dan dokumentasi resmi.</p>
               </div>
 
               {#if latestArticles.length}
@@ -418,9 +410,7 @@
                     <Newspaper size={16} />
                     Arsip publik sedang disiapkan
                   </div>
-                  <p class="mt-3 max-w-[60ch] text-sm leading-8 text-muted-foreground">
-                    Ketika pengumuman dan dokumentasi kegiatan diterbitkan, semuanya akan muncul di halaman ini agar pembaruan organisasi mudah dicari kembali.
-                  </p>
+                  <p class="mt-3 max-w-[60ch] text-sm leading-8 text-muted-foreground">Publikasi baru akan muncul di sini.</p>
                 </div>
               {/if}
 

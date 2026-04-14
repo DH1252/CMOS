@@ -57,7 +57,6 @@
   </nav>
 
   <header class="max-w-[70ch] space-y-5 border-b border-border pb-8">
-    <p class="text-sm font-medium text-brand-secondary">Publikasi resmi kabinet</p>
     <h1 class="text-4xl leading-tight text-foreground md:text-5xl">{article.title}</h1>
 
     <div class="flex flex-wrap gap-3 text-sm text-muted-foreground">
@@ -89,10 +88,8 @@
 
     <aside class="grid gap-6 lg:sticky lg:top-24">
       <div class="rounded-[10px] border border-border bg-card px-5 py-5">
-        <div class="text-sm font-semibold text-foreground">Tentang arsip ini</div>
-        <p class="mt-3 text-sm leading-7 text-muted-foreground">
-          Seluruh artikel di halaman ini merupakan bagian dari arsip publik kabinet 2026 agar pengumuman dan dokumentasi resmi lebih mudah ditelusuri ulang.
-        </p>
+        <div class="text-sm font-semibold text-foreground">Arsip publik</div>
+        <p class="mt-3 text-sm leading-7 text-muted-foreground">Pengumuman dan dokumentasi resmi ada di sini.</p>
         <a href={infoUrl} class="mt-5 inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-brand-secondary">
           Kembali ke arsip
           <ArrowRight size={16} />
@@ -103,7 +100,7 @@
         <h2 class="text-lg text-foreground">Artikel lainnya</h2>
 
         {#if !latestArticles.length}
-          <p class="mt-3 text-sm leading-7 text-muted-foreground">Belum ada artikel lain yang tampil di arsip saat ini.</p>
+          <p class="mt-3 text-sm leading-7 text-muted-foreground">Belum ada artikel lain.</p>
         {:else}
           <div class="mt-4 grid gap-4">
             {#each latestArticles as latest (latest.href)}
