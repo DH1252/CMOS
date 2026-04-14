@@ -1,5 +1,7 @@
 <script>
   import brandLogo from '../images/logokabinet.png?enhanced&w=80;160';
+  import fallbackLogo from '../images/logokabinet.png?enhanced&w=80;160';
+  import himatekkomBanner from '../images/himatekkom.jpg?enhanced&w=480;960;1440';
   import PublicInformationIndexPage from './public/PublicInformationIndexPage.svelte';
   import PublicInformationShowPage from './public/PublicInformationShowPage.svelte';
   import {
@@ -30,7 +32,7 @@
   const isInfoIndex = $derived(page === 'info-index');
   const isInfoShow = $derived(page === 'info-show');
   const latestArticles = $derived(latestInfo.slice(0, 3));
-  const fallbackImage = $derived(logoUrl || '/images/logokabinet.png');
+  const fallbackImage = $derived(logoUrl || fallbackLogo?.src || fallbackLogo?.default || fallbackLogo || '/images/logokabinet.png');
 
   const navigation = [
     { href: '#profil', label: 'Profil Organisasi' },
@@ -293,7 +295,14 @@
           </div>
 
           <aside class="overflow-hidden rounded-[8px] border border-border bg-card">
-            <img src="/images/himatekkom.jpg" alt="Kabinet Sentra Sinergi" class="h-56 w-full border-b border-border object-cover" />
+            <enhanced:img
+              src={himatekkomBanner}
+              alt="Kabinet Sentra Sinergi"
+              class="h-56 w-full border-b border-border object-cover"
+              loading="eager"
+              fetchpriority="high"
+              sizes="(min-width: 1024px) 24rem, 100vw"
+            />
             <div class="grid gap-4 px-5 py-5">
               <div>
                 <div class="text-lg font-semibold text-foreground">Kabinet Sentra Sinergi</div>

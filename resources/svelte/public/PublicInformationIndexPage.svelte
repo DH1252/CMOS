@@ -1,5 +1,6 @@
 <script>
   import { ArrowRight } from 'lucide-svelte';
+  import fallbackLogo from '../../images/logokabinet.png?enhanced&w=80;160';
 
   let {
     homeUrl = '/',
@@ -19,7 +20,7 @@
   } = $props();
 
   const hasActiveFilters = $derived(Boolean(filters.query || filters.category));
-  const fallbackImage = '/images/logokabinet.png';
+  const fallbackImage = fallbackLogo?.src || fallbackLogo?.default || fallbackLogo || '/images/logokabinet.png';
   const archiveSummary = $derived.by(() => {
     if (!stats.length) {
       return '';
