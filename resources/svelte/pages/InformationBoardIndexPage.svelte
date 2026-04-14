@@ -160,25 +160,29 @@
 {:else}
   <div class="board-list">
     {#each articles as article, index (article.showHref || index)}
-      <Card.Root class={`board-row ${article.coverImage ? 'board-row-with-cover' : 'board-row-no-cover'} animate-fadeIn rounded-[10px] border border-border bg-card shadow-none`}>
-        {#if article.coverThumb || article.coverImage}
-          <div class="board-row-cover">
-            <img src={article.coverThumb || article.coverImage} alt={article.title} loading="lazy" decoding="async" onerror={handleImageError} />
-          </div>
-        {/if}
-
+      <Card.Root class="board-row animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
         <Card.Content class="board-row-copy pt-5">
-          <div class="board-row-meta">
-            <StatusBadge label={article.statusLabel} tone={article.statusTone || 'secondary'} />
-            {#each article.categories || [] as category, categoryIndex (category || categoryIndex)}
-              <StatusBadge label={category} tone="info" />
-            {/each}
-          </div>
+          <div class="board-row-top">
+            {#if article.coverThumb || article.coverImage}
+              <div class="board-row-thumb" aria-hidden="true">
+                <img src={article.coverThumb || article.coverImage} alt={article.title} loading="lazy" decoding="async" onerror={handleImageError} />
+              </div>
+            {/if}
 
-          <h4 class="board-row-title"><a href={article.showHref}>{article.title}</a></h4>
-          {#if article.excerpt}
-            <p class="board-row-excerpt">{article.excerpt}</p>
-          {/if}
+            <div class="board-row-main">
+              <div class="board-row-meta">
+                <StatusBadge label={article.statusLabel} tone={article.statusTone || 'secondary'} />
+                {#each article.categories || [] as category, categoryIndex (category || categoryIndex)}
+                  <StatusBadge label={category} tone="info" />
+                {/each}
+              </div>
+
+              <h4 class="board-row-title"><a href={article.showHref}>{article.title}</a></h4>
+              {#if article.excerpt}
+                <p class="board-row-excerpt">{article.excerpt}</p>
+              {/if}
+            </div>
+          </div>
 
           <div class="board-row-footer">
             <div class="board-row-byline">
@@ -304,7 +308,7 @@
   }
 
   .board-row {
-    display: grid;
+    display: block;
     overflow: hidden;
     transition: border-color 160ms ease, background 160ms ease;
   }
@@ -314,26 +318,29 @@
     background: color-mix(in srgb, var(--brand-secondary-soft) 10%, var(--card));
   }
 
-  .board-row-with-cover {
-    grid-template-columns: 156px minmax(0, 1fr);
-    align-items: stretch;
+  .board-row-copy {
+    display: grid;
+    gap: 0.95rem;
+    padding: 1rem 1.25rem;
   }
 
-  .board-row-no-cover {
-    grid-template-columns: minmax(0, 1fr);
+  .board-row-top {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
   }
 
-  .board-row-cover {
-    width: 100%;
-    min-height: 116px;
-    height: 100%;
+  .board-row-thumb {
+    width: 94px;
+    height: 72px;
     overflow: hidden;
-    border-right: 1px solid var(--line-soft);
-    border-radius: 0;
-    background: color-mix(in srgb, var(--brand-light) 30%, var(--panel-muted));
+    border: 1px solid var(--line-soft);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--brand-light) 28%, var(--panel-muted));
   }
 
-  .board-row-cover img {
+  .board-row-thumb img {
     width: 100%;
     height: 100%;
     display: block;
@@ -341,10 +348,10 @@
     object-position: center;
   }
 
-  .board-row-copy {
+  .board-row-main {
+    min-width: 0;
     display: grid;
     gap: 0.95rem;
-    padding: 1rem 1.25rem;
   }
 
   .board-row-meta {
@@ -428,25 +435,16 @@
     .board-filter-form {
       grid-template-columns: minmax(0, 1fr);
     }
-
-    .board-row-with-cover {
-      grid-template-columns: 128px minmax(0, 1fr);
-    }
-
-    .board-row-cover {
-      min-height: 104px;
-    }
   }
 
   @media (max-width: 767px) {
-    .board-row-with-cover {
+    .board-row-top {
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .board-row-cover {
-      min-height: 168px;
-      border-right: 0;
-      border-bottom: 1px solid var(--line-soft);
+    .board-row-thumb {
+      width: 100%;
+      height: 148px;
     }
 
     .board-row-footer,
