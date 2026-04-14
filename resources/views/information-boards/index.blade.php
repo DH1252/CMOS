@@ -39,6 +39,7 @@
                 'title' => $article->title,
                 'excerpt' => \Illuminate\Support\Str::limit(strip_tags($article->excerpt ?: $article->content), 180),
                 'coverImage' => $article->cover_image_url,
+                'coverThumb' => $article->cover_image_url,
                 'categories' => $article->categories->pluck('name')->values(),
                 'statusLabel' => ucfirst($article->status),
                 'statusTone' => $article->status === 'published' ? 'success' : 'secondary',

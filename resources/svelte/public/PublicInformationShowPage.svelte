@@ -1,6 +1,5 @@
 <script>
   import { ArrowRight } from 'lucide-svelte';
-  import fallbackLogo from '../../images/logokabinet.png?enhanced&w=80;160';
 
   let {
     homeUrl = '/',
@@ -16,7 +15,7 @@
     latestArticles = [],
   } = $props();
 
-  const fallbackImage = fallbackLogo?.src || fallbackLogo?.default || fallbackLogo || '/images/logokabinet.png';
+  const fallbackImage = '/images/logokabinet.png';
 
   const handleImageError = (event) => {
     if (event.currentTarget.src.endsWith(fallbackImage)) {
@@ -38,6 +37,7 @@
     }
 
     return date.toLocaleString('id-ID', {
+      timeZone: 'Asia/Jakarta',
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -75,7 +75,7 @@
 
   {#if article.coverImage}
     <div class="overflow-hidden rounded-[10px] border border-border bg-card">
-      <img src={article.coverImage} alt={article.title} class="max-h-[34rem] w-full object-cover" decoding="async" fetchpriority="high" sizes="(min-width: 1280px) 72rem, 100vw" onerror={handleImageError} />
+      <img src={article.coverImage} alt={article.title} class="max-h-[34rem] w-full object-cover" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1280px) 72rem, 100vw" onerror={handleImageError} />
     </div>
   {/if}
 
@@ -89,7 +89,7 @@
     <aside class="grid gap-6 lg:sticky lg:top-24">
       <div class="rounded-[10px] border border-border bg-card px-5 py-5">
         <div class="text-sm font-semibold text-foreground">Arsip publik</div>
-        <p class="mt-3 text-sm leading-7 text-muted-foreground">Pengumuman dan dokumentasi resmi ada di sini.</p>
+        <p class="mt-3 text-sm leading-7 text-muted-foreground">Pengumuman dan dokumentasi resmi.</p>
         <a href={infoUrl} class="mt-5 inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-brand-secondary">
           Kembali ke arsip
           <ArrowRight size={16} />

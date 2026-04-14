@@ -38,7 +38,7 @@
                 'coverImage' => $featuredArticle->cover_image_url,
                 'categories' => $featuredArticle->categories->pluck('name')->values(),
                 'author' => $featuredArticle->user?->name ?? '-',
-                'date' => optional($featuredArticle->published_at)?->toIso8601String(),
+                'date' => optional($featuredArticle->publishedAtLocal)?->toIso8601String(),
                 'href' => route('informasi.show', $featuredArticle->slug),
             ] : null,
             'articles' => $remainingArticles->map(fn($article) => [
@@ -47,7 +47,7 @@
                 'coverImage' => $article->cover_image_url,
                 'categories' => $article->categories->pluck('name')->values(),
                 'author' => $article->user?->name ?? '-',
-                'date' => optional($article->published_at)?->toIso8601String(),
+                'date' => optional($article->publishedAtLocal)?->toIso8601String(),
                 'href' => route('informasi.show', $article->slug),
             ])->values(),
             'pagination' => [

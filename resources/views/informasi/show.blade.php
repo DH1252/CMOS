@@ -43,7 +43,7 @@
                     <h1 class="text-4xl leading-tight text-foreground md:text-5xl">{{ $article->title }}</h1>
 
                     <div class="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                        <span>{{ optional($article->published_at)->format('d M Y H:i') ?? '-' }}</span>
+                        <span>{{ optional($article->publishedAtLocal)->format('d M Y H:i') ?? '-' }}</span>
                         <span>{{ $article->user?->name ?? '-' }}</span>
                     </div>
 
@@ -69,8 +69,8 @@
 
             <aside class="grid gap-6 lg:sticky lg:top-24">
                 <div class="rounded-[10px] border border-border bg-card px-5 py-5">
-                    <div class="text-sm font-semibold text-foreground">Tentang arsip ini</div>
-                    <p class="mt-3 text-sm leading-7 text-muted-foreground">Arsip publik kabinet 2026.</p>
+                    <div class="text-sm font-semibold text-foreground">Arsip publik</div>
+                    <p class="mt-3 text-sm leading-7 text-muted-foreground">Pengumuman dan dokumentasi resmi.</p>
                     <a href="{{ route('informasi.index') }}" class="mt-5 inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-brand-secondary">
                         Kembali ke arsip
                     </a>
@@ -80,13 +80,13 @@
                     <h2 class="text-lg text-foreground">Artikel lainnya</h2>
 
                     @if ($latestArticles->isEmpty())
-                        <p class="mt-3 text-sm leading-7 text-muted-foreground">Belum ada artikel lain yang tampil di arsip saat ini.</p>
+                        <p class="mt-3 text-sm leading-7 text-muted-foreground">Belum ada artikel lain.</p>
                     @else
                         <div class="mt-4 grid gap-4">
                             @foreach ($latestArticles as $latest)
                                 <a href="{{ route('informasi.show', $latest->slug) }}" class="border-t border-border pt-4 text-inherit no-underline transition-colors hover:text-brand-secondary first:border-t-0 first:pt-0">
                                     <strong class="block text-base leading-7 text-foreground">{{ $latest->title }}</strong>
-                                    <span class="mt-1 block text-sm text-muted-foreground">{{ optional($latest->published_at)->format('d M Y H:i') }}</span>
+                                    <span class="mt-1 block text-sm text-muted-foreground">{{ optional($latest->publishedAtLocal)->format('d M Y H:i') }}</span>
                                 </a>
                             @endforeach
                         </div>

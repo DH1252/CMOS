@@ -17,6 +17,26 @@
 
   let previousOpen = open;
 
+  const formatNotificationTime = (value) => {
+    if (!value) {
+      return '';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   $effect(() => {
     if (open !== previousOpen) {
       previousOpen = open;
@@ -62,7 +82,7 @@
             <span class="shell-notification-copy">
               <strong>{notification.title}</strong>
               <span>{notification.message}</span>
-              <small>{formatTime(notification.created_at)}</small>
+              <small>{formatNotificationTime(notification.created_at)}</small>
             </span>
           </a>
         {/each}

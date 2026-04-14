@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
 class User extends Authenticatable
 {
@@ -136,6 +137,11 @@ class User extends Authenticatable
         }
 
         return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&background=251d39&color=f5c518&bold=true';
+    }
+
+    public function getCreatedAtLocalAttribute(): ?Carbon
+    {
+        return $this->created_at?->copy()->setTimezone(config('app.client_timezone', 'Asia/Jakarta'));
     }
 
     public function getRoleNameAttribute(): string

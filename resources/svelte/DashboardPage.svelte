@@ -112,7 +112,7 @@
       return '-';
     }
 
-    return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+    return date.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short' });
   };
 
   const formatLongDate = (value) => {
@@ -126,13 +126,13 @@
       return '-';
     }
 
-    return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric' });
   };
 
-  const formatWeekday = (value) => value.toLocaleDateString('id-ID', { weekday: 'long' });
-  const formatMonthYear = (value) => value.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-  const formatClock = (value) => value.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-  const formatDayNumber = (value) => value.toLocaleDateString('id-ID', { day: '2-digit' });
+  const formatWeekday = (value) => value.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long' });
+  const formatMonthYear = (value) => value.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', month: 'long', year: 'numeric' });
+  const formatClock = (value) => value.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
+  const formatDayNumber = (value) => value.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit' });
   const progressValue = (value) => Math.max(0, Math.min(100, Number(value) || 0));
 
   const toneValueClass = (tone) => {

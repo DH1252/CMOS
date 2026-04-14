@@ -44,6 +44,18 @@
 		children,
 		...restProps
 	} = $props();
+
+	const resolveHref = (value) => {
+		if (typeof value === 'string') {
+			return value;
+		}
+
+		if (value && typeof value === 'object') {
+			return value.href || value.url || value.path || value.src || value.default || undefined;
+		}
+
+		return undefined;
+	};
 </script>
 
 {#if href}
@@ -51,7 +63,7 @@
 		bind:this={ref}
 		data-slot="button"
 		class={cn(buttonVariants({ variant, size }), className)}
-		href={disabled ? undefined : href}
+		href={disabled ? undefined : resolveHref(href)}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
 		tabindex={disabled ? -1 : undefined}

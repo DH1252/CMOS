@@ -102,6 +102,7 @@
     }
 
     return date.toLocaleDateString('id-ID', {
+      timeZone: 'Asia/Jakarta',
       day: '2-digit',
       month: 'short',
       year: 'numeric',

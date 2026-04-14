@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class InformationBoard extends Model
@@ -65,7 +67,16 @@ class InformationBoard extends Model
             return null;
         }
 
+        if (! Storage::disk('public')->exists($this->cover_image)) {
+            return null;
+        }
+
         return asset('storage/'.$this->cover_image);
+    }
+
+    public function getPublishedAtLocalAttribute(): ?Carbon
+    {
+        return $this->published_at?->copy()->setTimezone(config('app.client_timezone', 'Asia/Jakarta'));
     }
 
     public function getSeoTitleAttribute(): string
