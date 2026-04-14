@@ -1,5 +1,6 @@
 <script>
   import { ArrowRight } from 'lucide-svelte';
+  import fallbackLogo from '../../images/logokabinet.png?enhanced&w=80;160';
 
   let {
     homeUrl = '/',
@@ -15,7 +16,7 @@
     latestArticles = [],
   } = $props();
 
-  const fallbackImage = '/images/logokabinet.png';
+  const fallbackImage = fallbackLogo?.src || fallbackLogo?.default || fallbackLogo || '/images/logokabinet.png';
 
   const handleImageError = (event) => {
     if (event.currentTarget.src.endsWith(fallbackImage)) {
