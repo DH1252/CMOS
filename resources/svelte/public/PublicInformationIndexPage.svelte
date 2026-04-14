@@ -26,10 +26,14 @@
       return '';
     }
 
-    const articleCount = stats.find((stat) => stat.label === 'Artikel Terbit')?.value;
-    const categoryCount = stats.find((stat) => stat.label === 'Kategori')?.value;
+    const articleCount = Number(stats.find((stat) => stat.label === 'Artikel Terbit')?.value || 0);
+    const categoryCount = Number(stats.find((stat) => stat.label === 'Kategori')?.value || 0);
 
-    if (!articleCount && !categoryCount) {
+    if (articleCount <= 0) {
+      return '';
+    }
+
+    if (!categoryCount) {
       return '';
     }
 
@@ -37,7 +41,7 @@
       return `${articleCount} publikasi tercatat dalam ${categoryCount} kategori arsip.`;
     }
 
-    return `${articleCount || categoryCount} data arsip tercatat saat ini.`;
+    return `${articleCount} data arsip tercatat saat ini.`;
   });
 
   const handleImageError = (event) => {
@@ -116,10 +120,10 @@
 
     <div class="mt-4 flex flex-col gap-3 border-t border-border pt-4 text-sm leading-7 text-muted-foreground md:flex-row md:items-center md:justify-between">
       {#if hasActiveFilters}
-        <p>Menampilkan hasil yang paling sesuai dengan pencarian dan kategori yang sedang aktif.</p>
+        <p>Menampilkan hasil sesuai filter aktif.</p>
         <a href={filters.action} class="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-brand-secondary">Hapus filter</a>
       {:else}
-        <p>Gunakan pencarian atau kategori untuk menelusuri pengumuman, dokumentasi kegiatan, dan pembaruan organisasi.</p>
+        <p>Gunakan pencarian atau kategori untuk menelusuri arsip.</p>
       {/if}
     </div>
   </section>
@@ -131,9 +135,7 @@
           <img src={featured.coverImage} alt={featured.title} class="h-full min-h-72 w-full object-cover" decoding="async" fetchpriority="high" sizes="(min-width: 1024px) 38rem, 100vw" onerror={handleImageError} />
         </a>
       {:else}
-        <div class="flex min-h-72 items-center justify-center rounded-[10px] border border-border bg-card px-6 text-sm text-muted-foreground">
-          Sampul publikasi akan tampil di sini jika tersedia.
-        </div>
+        <div class="flex min-h-72 items-center justify-center rounded-[10px] border border-border bg-card px-6 text-sm text-muted-foreground">Tanpa sampul</div>
       {/if}
 
       <div class="space-y-4">
@@ -161,16 +163,14 @@
     <section class="grid gap-8 rounded-[10px] border border-border bg-card px-6 py-8 lg:grid-cols-[minmax(0,1.1fr)_18rem] lg:items-start">
       <div class="space-y-4">
         <h2 class="max-w-[18ch] text-3xl leading-tight text-foreground md:text-4xl">Arsip publik belum terisi, tetapi strukturnya sudah siap digunakan.</h2>
-        <p class="max-w-[58ch] text-sm leading-8 text-muted-foreground">
-          Ketika pengumuman, dokumentasi, atau rilis organisasi diterbitkan, semuanya akan muncul di halaman ini. Tujuannya agar publikasi resmi tidak tercecer di banyak kanal sekaligus.
-        </p>
+        <p class="max-w-[58ch] text-sm leading-8 text-muted-foreground">Publikasi baru akan tampil di halaman ini.</p>
       </div>
 
       <div class="border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
         <div class="text-sm font-semibold text-foreground">Sementara itu</div>
         <div class="mt-3 grid gap-3 text-sm leading-7 text-muted-foreground">
-          <div>Buka beranda untuk memahami arah kabinet.</div>
-          <div>Kembali lagi ke arsip ini untuk melihat publikasi resmi berikutnya.</div>
+          <div>Buka beranda untuk melihat konteks kabinet.</div>
+          <div>Kembali nanti untuk publikasi berikutnya.</div>
         </div>
         <a href={homeUrl} class="mt-5 inline-flex items-center gap-2 rounded-[10px] border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">
           Kembali ke beranda
