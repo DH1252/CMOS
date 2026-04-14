@@ -1,6 +1,5 @@
 <script>
   import brandLogo from '../images/logokabinet.png?enhanced&w=80;160';
-  import fallbackLogo from '../images/logokabinet.png?enhanced&w=80;160';
   import himatekkomBanner from '../images/himatekkom.jpg?enhanced&w=480;960;1440';
   import PublicInformationIndexPage from './public/PublicInformationIndexPage.svelte';
   import PublicInformationShowPage from './public/PublicInformationShowPage.svelte';
@@ -32,7 +31,7 @@
   const isInfoIndex = $derived(page === 'info-index');
   const isInfoShow = $derived(page === 'info-show');
   const latestArticles = $derived(latestInfo.slice(0, 3));
-  const fallbackImage = $derived(logoUrl || fallbackLogo?.src || fallbackLogo?.default || fallbackLogo || '/images/logokabinet.png');
+  const fallbackImage = $derived(logoUrl || '/images/logokabinet.png');
 
   const navigation = [
     { href: '#profil', label: 'Profil Organisasi' },
@@ -195,6 +194,7 @@
     }
 
     return date.toLocaleDateString('id-ID', {
+      timeZone: 'Asia/Jakarta',
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -263,7 +263,7 @@
             <h1 class="max-w-[14ch] text-4xl leading-tight text-foreground md:text-5xl lg:text-[3.5rem]">
               Website resmi HIMATEKKOM ITS 2026 untuk informasi publik dan kerja kabinet.
             </h1>
-            <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)] md:text-lg">Ringkasan publik, pembaruan organisasi, dan kanal resmi HIMATEKKOM ITS.</p>
+            <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)] md:text-lg">Ringkasan publik dan kanal resmi HIMATEKKOM ITS.</p>
 
             <div class="flex flex-col gap-3 sm:flex-row">
               <a href="#informasi" class="inline-flex items-center justify-center gap-2 rounded-[8px] bg-brand-primary px-4 py-2.5 text-sm font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-brand-hover">
@@ -279,15 +279,15 @@
             <div class="grid gap-4 border-t border-border pt-5 md:grid-cols-3">
               <div>
                 <div class="text-sm font-semibold text-foreground">Kabinet</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">Tata kelola dan kolaborasi.</p>
+                <p class="mt-2 text-sm leading-7 text-muted-foreground">Tata kelola.</p>
               </div>
               <div>
                 <div class="text-sm font-semibold text-foreground">Arsip publik</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">Arsip publik terpusat.</p>
+                <p class="mt-2 text-sm leading-7 text-muted-foreground">Arsip publik.</p>
               </div>
               <div>
                 <div class="text-sm font-semibold text-foreground">Sistem internal</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">CMOS untuk kerja internal.</p>
+                <p class="mt-2 text-sm leading-7 text-muted-foreground">Sistem internal kabinet.</p>
               </div>
             </div>
           </div>
@@ -321,7 +321,7 @@
         <div class="mx-auto grid max-w-[1180px] gap-10 px-5 py-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8 lg:py-18">
           <div class="space-y-5">
             <h2 class="text-3xl leading-tight text-foreground md:text-4xl">Tentang HIMATEKKOM ITS 2026</h2>
-            <p class="max-w-[60ch] text-base leading-8 text-[var(--text-soft)]">Halaman publik ini merangkum arah kabinet, pembaruan, dan kanal resmi.</p>
+            <p class="max-w-[60ch] text-base leading-8 text-[var(--text-soft)]">Akses internal kabinet.</p>
             <div class="border-t border-border pt-4">
               <div class="text-sm font-semibold text-foreground">Visi organisasi</div>
               <p class="mt-3 text-sm leading-8 text-muted-foreground">{vision}</p>
@@ -343,7 +343,7 @@
         <div class="mx-auto max-w-[1180px] px-5 py-14 lg:px-8 lg:py-18">
           <div class="max-w-[64ch] space-y-4">
             <h2 class="text-3xl leading-tight text-foreground md:text-4xl">Rangkaian program kerja kabinet</h2>
-            <p class="text-base leading-8 text-[var(--text-soft)]">Program kerja dibagi ke dalam tiga rumpun utama: optimalisasi, kolaborasi, dan ekspansi.</p>
+            <p class="text-base leading-8 text-[var(--text-soft)]">Tiga rumpun kerja utama.</p>
           </div>
 
           <div class="mt-8 grid gap-6 lg:grid-cols-3">
@@ -373,7 +373,7 @@
             <div class="space-y-6">
               <div class="space-y-4">
                 <h2 class="text-3xl leading-tight text-foreground md:text-4xl">Informasi terbaru dan kanal publik resmi</h2>
-                <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)]">Papan informasi memuat berita, pengumuman, dan dokumentasi resmi.</p>
+                <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)]">Berita, pengumuman, dan dokumentasi.</p>
               </div>
 
               {#if latestArticles.length}
@@ -384,10 +384,10 @@
                         <img
                           src={article.coverImage}
                           alt={article.title}
-                          class="h-44 w-full border-b border-border object-cover"
+                          class="h-28 w-full border-b border-border object-cover"
                           loading="lazy"
                           decoding="async"
-                          sizes="(min-width: 1280px) 20rem, (min-width: 768px) 50vw, 100vw"
+                          sizes="(min-width: 1280px) 18rem, (min-width: 768px) 40vw, 100vw"
                           onerror={handleImageError}
                         />
                       {:else}
@@ -408,7 +408,7 @@
                 <div class="rounded-[8px] border border-border bg-card px-6 py-6">
                   <div class="flex items-center gap-2 text-sm font-medium text-foreground">
                     <Newspaper size={16} />
-                    Arsip publik sedang disiapkan
+                    Arsip publik
                   </div>
                   <p class="mt-3 max-w-[60ch] text-sm leading-8 text-muted-foreground">Publikasi baru akan muncul di sini.</p>
                 </div>
@@ -466,9 +466,7 @@
       <div class="mx-auto grid max-w-[1180px] gap-8 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.55fr)_minmax(0,0.55fr)] lg:px-8">
         <div class="space-y-3">
           <div class="text-lg font-semibold text-foreground">{organizationName}</div>
-          <p class="max-w-[60ch] text-sm leading-7 text-muted-foreground">
-            Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember. Halaman publik ini menghubungkan pengunjung ke arsip informasi, dokumen, dan sistem kerja resmi kabinet.
-          </p>
+            <p class="max-w-[60ch] text-sm leading-7 text-muted-foreground">Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember.</p>
           <p class="text-sm leading-7 text-muted-foreground">Gedung Teknik Komputer, Kampus ITS Sukolilo, Surabaya.</p>
         </div>
 

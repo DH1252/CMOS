@@ -1,6 +1,5 @@
 <script>
   import { ArrowRight } from 'lucide-svelte';
-  import fallbackLogo from '../../images/logokabinet.png?enhanced&w=80;160';
 
   let {
     homeUrl = '/',
@@ -20,7 +19,7 @@
   } = $props();
 
   const hasActiveFilters = $derived(Boolean(filters.query || filters.category));
-  const fallbackImage = fallbackLogo?.src || fallbackLogo?.default || fallbackLogo || '/images/logokabinet.png';
+  const fallbackImage = '/images/logokabinet.png';
   const archiveSummary = $derived.by(() => {
     if (!stats.length) {
       return '';
@@ -64,6 +63,7 @@
     }
 
     return date.toLocaleString('id-ID', {
+      timeZone: 'Asia/Jakarta',
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -120,10 +120,10 @@
 
     <div class="mt-4 flex flex-col gap-3 border-t border-border pt-4 text-sm leading-7 text-muted-foreground md:flex-row md:items-center md:justify-between">
       {#if hasActiveFilters}
-        <p>Menampilkan hasil sesuai filter aktif.</p>
+        <p>Hasil filter aktif.</p>
         <a href={filters.action} class="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-brand-secondary">Hapus filter</a>
       {:else}
-        <p>Gunakan pencarian atau kategori untuk menelusuri arsip.</p>
+        <p>Gunakan pencarian atau kategori.</p>
       {/if}
     </div>
   </section>
@@ -132,7 +132,7 @@
     <section class="grid gap-6 border-b border-border pb-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
       {#if featured.coverImage}
         <a href={featured.href} class="block overflow-hidden rounded-[10px] border border-border bg-card">
-          <img src={featured.coverImage} alt={featured.title} class="h-full min-h-72 w-full object-cover" decoding="async" fetchpriority="high" sizes="(min-width: 1024px) 38rem, 100vw" onerror={handleImageError} />
+          <img src={featured.coverImage} alt={featured.title} class="h-full min-h-56 w-full object-cover" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1024px) 12rem, 100vw" onerror={handleImageError} />
         </a>
       {:else}
         <div class="flex min-h-72 items-center justify-center rounded-[10px] border border-border bg-card px-6 text-sm text-muted-foreground">Tanpa sampul</div>
@@ -162,14 +162,14 @@
   {#if !featured && !articles.length}
     <section class="grid gap-8 rounded-[10px] border border-border bg-card px-6 py-8 lg:grid-cols-[minmax(0,1.1fr)_18rem] lg:items-start">
       <div class="space-y-4">
-        <h2 class="max-w-[18ch] text-3xl leading-tight text-foreground md:text-4xl">Arsip publik belum terisi, tetapi strukturnya sudah siap digunakan.</h2>
-        <p class="max-w-[58ch] text-sm leading-8 text-muted-foreground">Publikasi baru akan tampil di halaman ini.</p>
+        <h2 class="max-w-[18ch] text-3xl leading-tight text-foreground md:text-4xl">Arsip publik belum terisi.</h2>
+        <p class="max-w-[58ch] text-sm leading-8 text-muted-foreground">Publikasi baru akan tampil di sini.</p>
       </div>
 
       <div class="border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
         <div class="text-sm font-semibold text-foreground">Sementara itu</div>
         <div class="mt-3 grid gap-3 text-sm leading-7 text-muted-foreground">
-          <div>Buka beranda untuk melihat konteks kabinet.</div>
+          <div>Buka beranda untuk konteks kabinet.</div>
           <div>Kembali nanti untuk publikasi berikutnya.</div>
         </div>
         <a href={homeUrl} class="mt-5 inline-flex items-center gap-2 rounded-[10px] border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">
@@ -183,7 +183,7 @@
       {#each articles as article (article.href)}
         <a href={article.href} class="grid gap-4 border-t border-border pt-5 text-inherit no-underline transition-colors hover:text-brand-secondary md:grid-cols-[12rem_minmax(0,1fr)] first:border-t-0 first:pt-0">
           {#if article.coverImage}
-            <img src={article.coverImage} alt={article.title} class="h-40 w-full rounded-[10px] border border-border object-cover" loading="lazy" decoding="async" sizes="12rem" onerror={handleImageError} />
+            <img src={article.coverImage} alt={article.title} class="h-24 w-24 rounded-[10px] border border-border object-cover" loading="lazy" decoding="async" sizes="96px" onerror={handleImageError} />
           {:else}
             <div class="flex h-40 items-center justify-center rounded-[10px] border border-border bg-card px-5 text-sm text-muted-foreground">
               Tanpa sampul

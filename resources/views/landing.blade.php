@@ -11,7 +11,7 @@
         'latestInfo' => $latestInfo->map(fn($item) => [
             'title' => $item->title,
             'excerpt' => $item->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($item->content), 140),
-            'publishedAt' => optional($item->published_at)->toIso8601String(),
+            'publishedAt' => optional($item->publishedAtLocal)->toIso8601String(),
             'coverImage' => $item->cover_image_url,
             'category' => $item->categories->pluck('name')->implode(', ') ?: 'Papan Informasi',
             'url' => route('informasi.show', $item->slug),

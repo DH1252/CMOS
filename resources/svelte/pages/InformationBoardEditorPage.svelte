@@ -3,7 +3,6 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
-  import optimizedFallbackImage from '../../images/logokabinet.png?enhanced&w=80;160';
   import FormActions from '../components/FormActions.svelte';
   import PageHeader from '../components/PageHeader.svelte';
 
@@ -23,6 +22,7 @@
       excerpt: '',
       content: '',
       status: 'draft',
+      publishMode: 'immediately',
       publishedAt: '',
       metaTitle: '',
       metaDescription: '',
@@ -37,8 +37,22 @@
   } = $props();
 
   const isSelected = (value) => article.categoryIds?.map(String).includes(String(value));
-  const fallbackImage =
-	optimizedFallbackImage?.src || optimizedFallbackImage?.default || optimizedFallbackImage || '/images/logokabinet.png';
+  const fallbackImage = '/images/logokabinet.png';
+  let formStateInitialized = $state(false);
+  let statusValue = $state('draft');
+  let publishModeValue = $state('immediately');
+  const isPublished = $derived(statusValue === 'published');
+  const isScheduled = $derived(isPublished && publishModeValue === 'scheduled');
+
+  $effect(() => {
+    if (formStateInitialized) {
+      return;
+    }
+
+    statusValue = article.status || 'draft';
+    publishModeValue = article.publishMode || 'immediately';
+    formStateInitialized = true;
+  });
 
   const handleImageError = (event) => {
     if (event.currentTarget.src.endsWith(fallbackImage)) {
@@ -119,18 +133,54 @@
                     Status
                     <span class="editor-required">*</span>
                   </Label>
-                  <select id="article-status" name="status" class="editor-select" aria-invalid={Boolean(errors.status)} required>
-                    <option value="draft" selected={article.status === 'draft'}>Draft</option>
-                    <option value="published" selected={article.status === 'published'}>Published</option>
+                  <select id="article-status" name="status" bind:value={statusValue} class="editor-select" aria-invalid={Boolean(errors.status)} required>
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
                   </select>
                   {#if errors.status}
                     <div class="editor-error" role="alert">{errors.status}</div>
                   {/if}
                 </div>
 
-                <div class="editor-field">
+                {#if isPublished}
+                  <div class="editor-field">
+                    <span class="editor-label">Waktu Publikasi</span>
+                    <div class="editor-choice-grid" role="radiogroup" aria-label="Waktu publikasi">
+                      <label class={`editor-choice ${publishModeValue === 'immediately' ? 'editor-choice-active' : ''}`}>
+                        <input
+                          class="sr-only"
+                          type="radio"
+                          name="publish_mode"
+                          value="immediately"
+                          checked={publishModeValue === 'immediately'}
+                          onchange={() => (publishModeValue = 'immediately')}
+                        />
+                        <span class="editor-choice-title">Posting sekarang</span>
+                        <span class="editor-choice-copy">Tayang saat artikel disimpan.</span>
+                      </label>
+
+                      <label class={`editor-choice ${publishModeValue === 'scheduled' ? 'editor-choice-active' : ''}`}>
+                        <input
+                          class="sr-only"
+                          type="radio"
+                          name="publish_mode"
+                          value="scheduled"
+                          checked={publishModeValue === 'scheduled'}
+                          onchange={() => (publishModeValue = 'scheduled')}
+                        />
+                        <span class="editor-choice-title">Jadwalkan</span>
+                        <span class="editor-choice-copy">Tayang pada waktu yang ditentukan.</span>
+                      </label>
+                    </div>
+                    {#if errors.publish_mode}
+                      <div class="editor-error" role="alert">{errors.publish_mode}</div>
+                    {/if}
+                  </div>
+                {/if}
+
+                <div class={`editor-field ${isScheduled ? '' : 'editor-field-hidden'}`}>
                   <Label for="article-published-at">Tanggal Publish</Label>
-                  <Input id="article-published-at" type="datetime-local" name="published_at" class="editor-input" aria-invalid={Boolean(errors.published_at)} value={article.publishedAt || ''} />
+                  <Input id="article-published-at" type="datetime-local" name="published_at" class="editor-input" aria-invalid={Boolean(errors.published_at)} value={article.publishedAt || ''} disabled={!isScheduled} />
                   {#if errors.published_at}
                     <div class="editor-error" role="alert">{errors.published_at}</div>
                   {/if}
@@ -159,7 +209,7 @@
               <div class="editor-side-card">
                 <PageHeader title="Cover" icon="fas fa-image" compact={true} headingTag="h4" />
                 {#if article.coverImage}
-                  <img src={article.coverImage} alt="Cover artikel" class="editor-cover-preview" onerror={handleImageError} />
+                  <img src={article.coverImage} alt="Cover artikel" class="editor-cover-preview" loading="lazy" decoding="async" onerror={handleImageError} />
                 {/if}
                 <div class="editor-field">
                   <Label for="article-cover-image">Gambar Cover</Label>
@@ -194,6 +244,53 @@
   .editor-field {
     display: grid;
     gap: 0.45rem;
+  }
+
+  .editor-field-hidden {
+    display: none;
+  }
+
+  .editor-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-strong);
+  }
+
+  .editor-choice-grid {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .editor-choice {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 0.5rem;
+    background: var(--background);
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease;
+  }
+
+  .editor-choice:hover {
+    background: color-mix(in srgb, var(--background) 90%, white);
+  }
+
+  .editor-choice-active {
+    border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--line-soft));
+    background: color-mix(in srgb, var(--brand-light) 35%, var(--background));
+  }
+
+  .editor-choice-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  .editor-choice-copy {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.5;
   }
 
   .editor-side-card {

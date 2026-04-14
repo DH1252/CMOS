@@ -12,6 +12,10 @@ mkdir -p \
 
 chmod -R 775 storage bootstrap/cache
 
+if [ -e public/storage ] && [ ! -L public/storage ]; then
+	rm -rf public/storage
+fi
+
 if [ ! -e public/storage ]; then
 	php artisan storage:link >/dev/null 2>&1 || true
 fi

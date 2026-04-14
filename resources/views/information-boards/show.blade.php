@@ -85,7 +85,7 @@
             <h1 class="text-4xl leading-tight text-foreground md:text-5xl">{{ $informationBoard->title }}</h1>
 
             <div class="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                <span>{{ optional($informationBoard->published_at)->format('d M Y H:i') ?? $informationBoard->created_at->format('d M Y H:i') }}</span>
+                <span>{{ optional($informationBoard->publishedAtLocal)->format('d M Y H:i') ?? $informationBoard->created_at->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->format('d M Y H:i') }}</span>
                 <span>{{ $informationBoard->user?->name ?? '-' }}</span>
             </div>
 
@@ -104,9 +104,9 @@
             </div>
         </header>
 
-        @if ($informationBoard->cover_image_url)
+                @if ($informationBoard->cover_image_url)
             <div class="overflow-hidden rounded-[10px] border border-border bg-card">
-                <img src="{{ $informationBoard->cover_image_url }}" alt="{{ $informationBoard->title }}" class="max-h-[34rem] w-full object-cover" loading="lazy" decoding="async" data-fallback-image="{{ asset('images/logokabinet.png') }}" onerror="this.onerror=null;this.src=this.dataset.fallbackImage">
+                <img src="{{ $informationBoard->cover_image_url }}" alt="{{ $informationBoard->title }}" class="max-h-[34rem] w-full object-cover" loading="lazy" decoding="async">
             </div>
         @endif
 
@@ -120,13 +120,13 @@
             <h2 class="text-lg text-foreground">Artikel terbaru</h2>
 
             @if ($latestArticles->isEmpty())
-                <p class="mt-3 text-sm leading-7 text-muted-foreground">Belum ada artikel lain yang tampil di arsip saat ini.</p>
+                <p class="mt-3 text-sm leading-7 text-muted-foreground">Belum ada artikel lain.</p>
             @else
                 <div class="mt-4 grid gap-4">
                     @foreach ($latestArticles as $latest)
                         <a href="{{ route('information-boards.show', $latest) }}" class="border-t border-border pt-4 text-inherit no-underline transition-colors hover:text-brand-secondary first:border-t-0 first:pt-0">
                             <strong class="block text-base leading-7 text-foreground">{{ $latest->title }}</strong>
-                            <span class="mt-1 block text-sm text-muted-foreground">{{ optional($latest->published_at)->format('d M Y H:i') ?? $latest->created_at->format('d M Y H:i') }}</span>
+                            <span class="mt-1 block text-sm text-muted-foreground">{{ optional($latest->publishedAtLocal)->format('d M Y H:i') ?? $latest->created_at->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->format('d M Y H:i') }}</span>
                         </a>
                     @endforeach
                 </div>

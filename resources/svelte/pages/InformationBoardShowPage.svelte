@@ -1,7 +1,6 @@
 <script>
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
-  import optimizedFallbackImage from '../../images/logokabinet.png?enhanced&w=80;160';
   import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
@@ -20,16 +19,7 @@
   } = $props();
 
   const actionVariant = (action) => (action === article.editAction ? 'default' : 'secondary');
-  const fallbackImage =
-	optimizedFallbackImage?.src || optimizedFallbackImage?.default || optimizedFallbackImage || '/images/logokabinet.png';
-
-  const handleImageError = (event) => {
-    if (event.currentTarget.src.endsWith(fallbackImage)) {
-      return;
-    }
-
-    event.currentTarget.src = fallbackImage;
-  };
+  const fallbackImage = '/images/logokabinet.png';
 
   const formatDateTime = (value) => {
     if (!value) {
@@ -43,6 +33,7 @@
     }
 
     return date.toLocaleString('id-ID', {
+      timeZone: 'Asia/Jakarta',
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -56,7 +47,7 @@
   <div class="col-12 col-lg-8">
     <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
       {#if article.coverImage}
-        <img src={article.coverImage} alt={article.title} class="article-cover" onerror={handleImageError} />
+        <img src={article.coverImage} alt={article.title} class="article-cover" loading="lazy" decoding="async" onerror={handleImageError} />
       {/if}
 
       <Card.Content class="article-body pt-5">
@@ -138,7 +129,7 @@
   .article-cover {
     display: block;
     width: 100%;
-    max-height: 22rem;
+    max-height: 16rem;
     object-fit: cover;
   }
 

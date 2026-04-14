@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\InformationBoard;
 use App\Models\InformationCategory;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class InformationBoardController extends Controller
 {
@@ -67,17 +70,34 @@ class InformationBoardController extends Controller
             'content' => 'required|string',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'status' => 'required|in:draft,published',
-            'published_at' => 'nullable|date',
+            'publish_mode' => 'nullable|in:immediately,scheduled',
+            'published_at' => [
+                'nullable',
+                'date',
+                Rule::requiredIf(fn () => $request->string('status')->value() === 'published'
+                    && $request->string('publish_mode')->value() === 'scheduled'),
+            ],
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:320',
             'category_ids' => 'nullable|array',
             'category_ids.*' => 'exists:information_categories,id',
         ]);
 
-        $validated['user_id'] = auth()->id();
+        $user = $request->user();
+
+        if (! $user instanceof User) {
+            abort(403);
+        }
+
+        $validated['user_id'] = $user->id;
         $validated['slug'] = InformationBoard::generateUniqueSlug($validated['title']);
         $validated['content'] = $this->sanitizeHtml($validated['content']);
-        $validated['published_at'] = $this->resolvePublishedAt($validated['status'], $validated['published_at'] ?? null);
+        $validated['published_at'] = $this->resolvePublishedAt(
+            $validated['status'],
+            $validated['publish_mode'] ?? 'immediately',
+            $validated['published_at'] ?? null,
+        );
+        unset($validated['publish_mode']);
 
         if ($request->hasFile('cover_image')) {
             $validated['cover_image'] = $request->file('cover_image')->store('information-boards', 'public');
@@ -106,7 +126,7 @@ class InformationBoardController extends Controller
 
     public function edit(InformationBoard $informationBoard)
     {
-        $this->authorizeEdit($informationBoard);
+        $this->authorizeEdit($informationBoard, request()->user());
         $categories = InformationCategory::orderBy('name')->get();
 
         return view('information-boards.edit', compact('informationBoard', 'categories'));
@@ -114,7 +134,7 @@ class InformationBoardController extends Controller
 
     public function update(Request $request, InformationBoard $informationBoard)
     {
-        $this->authorizeEdit($informationBoard);
+        $this->authorizeEdit($informationBoard, $request->user());
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -122,7 +142,13 @@ class InformationBoardController extends Controller
             'content' => 'required|string',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'status' => 'required|in:draft,published',
-            'published_at' => 'nullable|date',
+            'publish_mode' => 'nullable|in:immediately,scheduled',
+            'published_at' => [
+                'nullable',
+                'date',
+                Rule::requiredIf(fn () => $request->string('status')->value() === 'published'
+                    && $request->string('publish_mode')->value() === 'scheduled'),
+            ],
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:320',
             'category_ids' => 'nullable|array',
@@ -131,12 +157,16 @@ class InformationBoardController extends Controller
 
         $validated['slug'] = InformationBoard::generateUniqueSlug($validated['title'], $informationBoard->id);
         $validated['content'] = $this->sanitizeHtml($validated['content']);
-        $validated['published_at'] = $this->resolvePublishedAt($validated['status'], $validated['published_at'] ?? null);
+        $validated['published_at'] = $this->resolvePublishedAt(
+            $validated['status'],
+            $validated['publish_mode'] ?? 'immediately',
+            $validated['published_at'] ?? null,
+        );
+        unset($validated['publish_mode']);
 
         if ($request->hasFile('cover_image')) {
-            if ($informationBoard->cover_image && Storage::disk('public')->exists($informationBoard->cover_image)) {
-                Storage::disk('public')->delete($informationBoard->cover_image);
-            }
+            $this->deleteCoverImage($informationBoard->cover_image);
+
             $validated['cover_image'] = $request->file('cover_image')->store('information-boards', 'public');
         }
 
@@ -151,11 +181,9 @@ class InformationBoardController extends Controller
 
     public function destroy(InformationBoard $informationBoard)
     {
-        $this->authorizeEdit($informationBoard);
+        $this->authorizeEdit($informationBoard, request()->user());
 
-        if ($informationBoard->cover_image && Storage::disk('public')->exists($informationBoard->cover_image)) {
-            Storage::disk('public')->delete($informationBoard->cover_image);
-        }
+        $this->deleteCoverImage($informationBoard->cover_image);
 
         $title = $informationBoard->title;
         ActivityLog::log('deleted', "Deleted information article: {$title}", $informationBoard);
@@ -165,22 +193,29 @@ class InformationBoardController extends Controller
             ->with('success', "Artikel {$title} berhasil dihapus.");
     }
 
-    private function authorizeEdit(InformationBoard $informationBoard): void
+    private function authorizeEdit(InformationBoard $informationBoard, ?User $user): void
     {
-        $user = auth()->user();
+        if (! $user instanceof User) {
+            abort(403);
+        }
 
         if (! $user->isAdmin() && $informationBoard->user_id !== $user->id) {
             abort(403, 'Anda tidak memiliki izin untuk mengelola artikel ini.');
         }
     }
 
-    private function resolvePublishedAt(string $status, mixed $publishedAt): mixed
+    private function resolvePublishedAt(string $status, string $publishMode, mixed $publishedAt): mixed
     {
         if ($status === 'draft') {
             return null;
         }
 
-        return $publishedAt ?: now();
+        if ($publishMode !== 'scheduled' || ! $publishedAt) {
+            return now('UTC');
+        }
+
+        return Carbon::parse($publishedAt, config('app.client_timezone', 'Asia/Jakarta'))
+            ->setTimezone('UTC');
     }
 
     private function sanitizeHtml(string $content): string
@@ -188,5 +223,22 @@ class InformationBoardController extends Controller
         $clean = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $content) ?? '';
 
         return strip_tags($clean, '<p><br><strong><b><em><i><u><ul><ol><li><a><h1><h2><h3><h4><blockquote>');
+    }
+
+    private function deleteCoverImage(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
+
+        $legacyPublicPath = public_path('storage/'.$path);
+
+        if (is_file($legacyPublicPath)) {
+            @unlink($legacyPublicPath);
+        }
     }
 }
