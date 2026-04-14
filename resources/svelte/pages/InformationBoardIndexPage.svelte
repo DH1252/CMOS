@@ -2,7 +2,6 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import optimizedFallbackImage from '../../images/logokabinet.png?enhanced&w=80;160';
   import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
   import MetricCard from '../components/MetricCard.svelte';
   import PageHeader from '../components/PageHeader.svelte';
@@ -31,16 +30,7 @@
     csrfToken = '',
   } = $props();
 
-  const fallbackImage =
-	optimizedFallbackImage?.src || optimizedFallbackImage?.default || optimizedFallbackImage || '/images/logokabinet.png';
-
-  const handleImageError = (event) => {
-    if (event.currentTarget.src.endsWith(fallbackImage)) {
-      return;
-    }
-
-    event.currentTarget.src = fallbackImage;
-  };
+  const fallbackImage = '/images/logokabinet.png';
 
   const formatDateTime = (value) => {
     if (!value) {
@@ -54,12 +44,21 @@
     }
 
     return date.toLocaleString('id-ID', {
+      timeZone: 'Asia/Jakarta',
       day: '2-digit',
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const handleImageError = (event) => {
+    if (event.currentTarget.src.endsWith(fallbackImage)) {
+      return;
+    }
+
+    event.currentTarget.src = fallbackImage;
   };
 
   const confirmSubmission = async (event, article) => {
@@ -162,9 +161,9 @@
   <div class="board-list">
     {#each articles as article, index (article.showHref || index)}
       <Card.Root class={`board-row ${article.coverImage ? 'board-row-with-cover' : 'board-row-no-cover'} animate-fadeIn rounded-[10px] border border-border bg-card shadow-none`}>
-        {#if article.coverImage}
+        {#if article.coverThumb || article.coverImage}
           <div class="board-row-cover">
-            <img src={article.coverImage} alt={article.title} onerror={handleImageError} />
+            <img src={article.coverThumb || article.coverImage} alt={article.title} loading="lazy" decoding="async" onerror={handleImageError} />
           </div>
         {/if}
 
@@ -316,7 +315,8 @@
   }
 
   .board-row-with-cover {
-    grid-template-columns: 230px minmax(0, 1fr);
+    grid-template-columns: 156px minmax(0, 1fr);
+    align-items: stretch;
   }
 
   .board-row-no-cover {
@@ -324,25 +324,27 @@
   }
 
   .board-row-cover {
-    min-height: 100%;
+    width: 100%;
+    min-height: 116px;
+    height: 100%;
+    overflow: hidden;
+    border-right: 1px solid var(--line-soft);
+    border-radius: 0;
     background: color-mix(in srgb, var(--brand-light) 30%, var(--panel-muted));
   }
 
   .board-row-cover img {
     width: 100%;
     height: 100%;
-    min-height: 100%;
-  }
-
-  .board-row-cover img {
     display: block;
     object-fit: cover;
+    object-position: center;
   }
 
   .board-row-copy {
     display: grid;
     gap: 0.95rem;
-    padding: 1.25rem 1.35rem;
+    padding: 1rem 1.25rem;
   }
 
   .board-row-meta {
@@ -427,16 +429,26 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
-    .board-row {
-      grid-template-columns: minmax(0, 1fr);
+    .board-row-with-cover {
+      grid-template-columns: 128px minmax(0, 1fr);
     }
 
-    .board-row-cover img {
-      min-height: 12rem;
+    .board-row-cover {
+      min-height: 104px;
     }
   }
 
   @media (max-width: 767px) {
+    .board-row-with-cover {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .board-row-cover {
+      min-height: 168px;
+      border-right: 0;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
     .board-row-footer,
     .board-pagination {
       align-items: flex-start;
