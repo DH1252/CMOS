@@ -16,23 +16,30 @@ const currentScheme =
 		? "https"
 		: "http";
 
-const reverbKey = import.meta.env.VITE_REVERB_APP_KEY || null;
-const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || currentScheme;
-const reverbHost =
-	normalizeHost(import.meta.env.VITE_REVERB_HOST) ||
-	(typeof window !== "undefined" ? window.location.hostname : "localhost");
-const defaultPort = reverbScheme === "https" ? 443 : 80;
-const reverbPort = Number(
-	import.meta.env.VITE_REVERB_PORT ||
-		(typeof window !== "undefined" ? window.location.port : "") ||
-		defaultPort,
-);
+export const initEcho = () => {
+	if (typeof window === "undefined") {
+		return null;
+	}
 
-window.Echo = null;
+	if (window.Echo) {
+		return window.Echo;
+	}
 
-if (!reverbKey) {
-	console.warn("Realtime disabled: missing VITE_REVERB_APP_KEY");
-} else {
+	const reverbKey = import.meta.env.VITE_REVERB_APP_KEY || null;
+	const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || currentScheme;
+	const reverbHost =
+		normalizeHost(import.meta.env.VITE_REVERB_HOST) || window.location.hostname;
+	const defaultPort = reverbScheme === "https" ? 443 : 80;
+	const reverbPort = Number(
+		import.meta.env.VITE_REVERB_PORT || window.location.port || defaultPort,
+	);
+
+	if (!reverbKey) {
+		console.warn("Realtime disabled: missing VITE_REVERB_APP_KEY");
+		window.Echo = null;
+		return null;
+	}
+
 	try {
 		window.Echo = new Echo({
 			broadcaster: "reverb",
@@ -47,4 +54,6 @@ if (!reverbKey) {
 		console.error("Failed to initialize realtime connection", error);
 		window.Echo = null;
 	}
-}
+
+	return window.Echo;
+};

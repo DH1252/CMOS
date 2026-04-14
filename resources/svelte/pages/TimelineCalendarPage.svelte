@@ -355,9 +355,9 @@
 
   :global(.fc .fc-button-primary:not(:disabled).fc-button-active),
   :global(.fc .fc-button-primary:not(:disabled):active) {
-    border-color: color-mix(in srgb, var(--brand-secondary) 42%, var(--line-soft));
-    background: color-mix(in srgb, var(--brand-secondary-soft) 86%, white);
-    color: var(--brand-secondary);
+	border-color: color-mix(in srgb, var(--brand-secondary) 56%, var(--line-strong));
+	background: color-mix(in srgb, var(--brand-secondary) 68%, black 32%);
+	color: var(--white-soft);
   }
 
   :global(.fc .fc-list-day-cushion) {
@@ -388,8 +388,8 @@
   }
 
   :global(.fc .fc-daygrid-day.fc-day-today) {
-    background: color-mix(in srgb, var(--brand-light) 42%, white);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 34%, transparent);
+	background: color-mix(in srgb, var(--brand-light) 20%, var(--panel-bg-strong));
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 42%, transparent);
   }
 
   :global(.fc .fc-event) {
@@ -412,7 +412,11 @@
   }
 
   :global(.fc .fc-daygrid-day-number) {
-    font-weight: 600;
+	font-weight: 600;
+  }
+
+  :global(.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number) {
+	color: var(--text-strong);
   }
 
   .timeline-modal-overlay {

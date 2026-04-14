@@ -334,7 +334,6 @@
           await loadConversation(activeUserId, false);
         }
       },
-      { interval: 7000 },
     );
   });
 

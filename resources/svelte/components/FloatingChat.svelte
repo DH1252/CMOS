@@ -1,5 +1,5 @@
 <script>
-  import { onDestroy, onMount, tick } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { subscribeToLiveUpdates } from '$lib/live-updates.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
@@ -22,7 +22,6 @@
   let hasLoadedDirectory = $state(false);
   let isLoadingDirectory = $state(false);
   let directoryError = $state('');
-  let liveUpdatesCleanup = $state(null);
   let isSending = $state(false);
   let messageViewport = $state(null);
   const fallbackAvatar = (name = 'User') => {
@@ -304,32 +303,39 @@
     messages = [];
   };
 
+  const handleRealtimeUpdate = async ({ changed }) => {
+    if (!changed.includes('messages')) {
+      return;
+    }
+
+    await syncUnreadBadge();
+
+    if (hasLoadedDirectory || isOpen) {
+      await ensureDirectoryData(true);
+    }
+
+    if (isOpen && activeUserId) {
+      await loadConversation(activeUserId, false);
+    }
+  };
+
   onMount(() => {
     syncUnreadBadge();
-
-    liveUpdatesCleanup = subscribeToLiveUpdates(
-      quickChat?.endpoints?.realtimeSnapshot,
-      async ({ changed }) => {
-        if (!changed.includes('messages')) {
-          return;
-        }
-
-        await syncUnreadBadge();
-
-        if (hasLoadedDirectory || isOpen) {
-          await ensureDirectoryData(true);
-        }
-
-        if (isOpen && activeUserId) {
-          await loadConversation(activeUserId, false);
-        }
-      },
-      { interval: 7000 },
-    );
   });
 
-  onDestroy(() => {
-    liveUpdatesCleanup?.();
+  $effect(() => {
+    if (!quickChat?.endpoints?.realtimeSnapshot) {
+      return;
+    }
+
+    const cleanup = subscribeToLiveUpdates(
+      quickChat.endpoints.realtimeSnapshot,
+      handleRealtimeUpdate,
+    );
+
+    return () => {
+      cleanup?.();
+    };
   });
 </script>
 
@@ -371,7 +377,7 @@
         {#if activeUser}
           <div bind:this={messageViewport} class="floating-chat-messages">
             {#if messages.length}
-              {#each messages as message}
+              {#each messages as message, index (message.id || `${message.created_at || 'message'}-${index}`)}
                 <article class={`floating-chat-bubble ${message.is_mine ? 'floating-chat-bubble-mine' : 'floating-chat-bubble-theirs'}`}>
                   <p>{message.content}</p>
                   <span>{formatTime(message.created_at)}</span>
@@ -420,7 +426,7 @@
                   <p>{directoryError}</p>
                 </div>
               {:else if visibleUsers.length}
-                {#each visibleUsers as user}
+                {#each visibleUsers as user, index (user.id || `${user.name || 'user'}-${index}`)}
                   <button type="button" class="floating-chat-user" onclick={() => loadConversation(user.id)}>
                     <img src={user.avatar || fallbackAvatar(user.name)} alt={user.name} class="avatar-sm" onerror={handleImageError} />
                     <div class="floating-chat-user-copy">
