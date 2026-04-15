@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Cabinet;
 use App\Models\Department;
+use App\Models\InformationCategory;
 use App\Models\Role;
 use App\Models\Setting;
 use Illuminate\Database\Seeder;
@@ -16,6 +17,7 @@ class DatabaseSeeder extends Seeder
 
         $this->seedRoles();
         $this->seedDepartments($cabinet);
+        $this->seedInformationCategories();
         $this->seedSettings();
 
         $this->call([
@@ -23,7 +25,7 @@ class DatabaseSeeder extends Seeder
             EvaluationCriteriaSeeder::class,
         ]);
 
-        if (! app()->isProduction()) {
+        if ($this->shouldSeedDevelopmentData()) {
             $this->call(DevelopmentSeeder::class);
 
             $this->command?->info('Development dataset seeded.');
@@ -32,6 +34,29 @@ class DatabaseSeeder extends Seeder
             $this->command?->info('Kabinet: kabinet.psdm@savana.test / password');
             $this->command?->info('Staff: staff1@savana.test / password');
         }
+    }
+
+    private function shouldSeedDevelopmentData(): bool
+    {
+        $configured = config('app.seed_development_data');
+
+        if (is_bool($configured)) {
+            return $configured;
+        }
+
+        if (is_string($configured)) {
+            $normalized = strtolower(trim($configured));
+
+            if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+                return true;
+            }
+
+            if (in_array($normalized, ['0', 'false', 'no', 'off'], true)) {
+                return false;
+            }
+        }
+
+        return ! app()->isProduction();
     }
 
     private function seedCabinet(): Cabinet
@@ -76,10 +101,26 @@ class DatabaseSeeder extends Seeder
         }
     }
 
+    private function seedInformationCategories(): void
+    {
+        foreach ([
+            ['name' => 'Pengumuman', 'slug' => 'pengumuman'],
+            ['name' => 'Kegiatan', 'slug' => 'kegiatan'],
+            ['name' => 'Kolaborasi', 'slug' => 'kolaborasi'],
+            ['name' => 'Dokumentasi', 'slug' => 'dokumentasi'],
+        ] as $category) {
+            InformationCategory::updateOrCreate(
+                ['slug' => $category['slug']],
+                ['name' => $category['name']]
+            );
+        }
+    }
+
     private function seedSettings(): void
     {
         Setting::set('app_name', 'CMOS');
         Setting::set('organization_name', 'HIMATEKKOM ITS');
         Setting::set('theme_color', 'purple');
+        Setting::set('evaluation_period', 'quarterly');
     }
 }

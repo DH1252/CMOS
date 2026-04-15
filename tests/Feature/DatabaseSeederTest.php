@@ -7,6 +7,7 @@ use App\Models\Announcement;
 use App\Models\DriveAccount;
 use App\Models\Evaluation;
 use App\Models\InformationBoard;
+use App\Models\InformationCategory;
 use App\Models\Message;
 use App\Models\Notification;
 use App\Models\Program;
@@ -27,9 +28,10 @@ class DatabaseSeederTest extends TestCase
 
         $this->assertDatabaseCount('roles', 4);
         $this->assertDatabaseCount('departments', 5);
-        $this->assertDatabaseCount('settings', 3);
+        $this->assertDatabaseCount('settings', 4);
         $this->assertDatabaseCount('grade_parameters', 5);
         $this->assertDatabaseCount('evaluation_criteria', 6);
+        $this->assertDatabaseCount('information_categories', 4);
 
         $this->assertSame(18, User::query()->count());
         $this->assertSame(5, Program::query()->count());
@@ -38,7 +40,7 @@ class DatabaseSeederTest extends TestCase
         $this->assertSame(5, DriveAccount::query()->count());
         $this->assertSame(6, UsefulLink::query()->count());
         $this->assertSame(2, Announcement::query()->count());
-        $this->assertSame(6, Message::query()->count());
+        $this->assertSame(8, Message::query()->count());
         $this->assertSame(40, Evaluation::query()->count());
         $this->assertSame(3, InformationBoard::query()->count());
         $this->assertSame(4, ActivityLog::query()->count());
@@ -64,9 +66,25 @@ class DatabaseSeederTest extends TestCase
             'has_poll' => true,
         ]);
 
+        $this->assertSame(4, InformationCategory::query()->count());
+
         $this->assertDatabaseHas('settings', [
             'key' => 'theme_color',
             'value' => 'purple',
+        ]);
+
+        $this->assertDatabaseHas('settings', [
+            'key' => 'evaluation_period',
+            'value' => 'quarterly',
+        ]);
+
+        $this->assertDatabaseHas('messages', [
+            'content' => 'Pastikan notifikasi evaluasi terbaru sudah dibaca sebelum standup.',
+        ]);
+
+        $this->assertDatabaseHas('notifications', [
+            'type' => Notification::TYPE_ANNOUNCEMENT,
+            'title' => 'Pengumuman Baru',
         ]);
 
         $this->assertGreaterThan(0, Notification::query()->count());
