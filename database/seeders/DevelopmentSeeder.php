@@ -42,6 +42,7 @@ class DevelopmentSeeder extends Seeder
         $this->seedMessages($users);
         $this->seedEvaluations($users);
         $this->seedInformationBoards($users);
+        $this->seedOperationalNotifications($users, $programs);
         $this->seedActivityLogs($users, $programs);
     }
 
@@ -692,6 +693,8 @@ class DevelopmentSeeder extends Seeder
             [$users['ristek_staff_1']->id, $users['medinfo_staff_2']->id, 'Boleh, kirim link figma dan daftar issue yang perlu dibereskan.'],
             [$users['humas_staff_1']->id, $users['bph']->id, 'Untuk kunjungan mitra, apakah perlu surat pengantar resmi minggu ini?'],
             [$users['bph']->id, $users['humas_staff_1']->id, 'Iya, siapkan draftnya dulu. Aku approve sebelum Jumat siang.'],
+            [$users['humas_head']->id, $users['humas_staff_2']->id, 'Cek notifikasi deadline task untuk follow-up proposal mitra hari ini.'],
+            [$users['ristek_head']->id, $users['ristek_staff_2']->id, 'Pastikan notifikasi evaluasi terbaru sudah dibaca sebelum standup.'],
         ] as [$senderId, $receiverId, $content]) {
             Message::firstOrCreate([
                 'sender_id' => $senderId,
@@ -700,6 +703,61 @@ class DevelopmentSeeder extends Seeder
             ], [
                 'is_read' => true,
             ]);
+        }
+    }
+
+    /**
+     * @param  array<string, User>  $users
+     * @param  array<string, Program>  $programs
+     */
+    private function seedOperationalNotifications(array $users, array $programs): void
+    {
+        foreach ([
+            [
+                'user_id' => $users['medinfo_staff_2']->id,
+                'type' => Notification::TYPE_TASK_ASSIGNED,
+                'title' => 'Task Baru',
+                'message' => 'Kamu ditugaskan untuk: Audit inventaris desain publikasi',
+                'data' => ['program_id' => $programs['medinfo_campaign']->id, 'source' => 'seed'],
+                'read_at' => null,
+            ],
+            [
+                'user_id' => $users['ristek_staff_1']->id,
+                'type' => Notification::TYPE_DEADLINE_REMINDER,
+                'title' => 'Deadline Mendekat',
+                'message' => 'Task \'Optimasi landing page publikasi\' jatuh tempo dalam 7 hari',
+                'data' => ['program_id' => $programs['ristek_dashboard']->id, 'source' => 'seed'],
+                'read_at' => null,
+            ],
+            [
+                'user_id' => $users['psdm_staff_1']->id,
+                'type' => Notification::TYPE_EVALUATION_NEW,
+                'title' => 'Evaluasi Baru',
+                'message' => 'Kamu mendapat evaluasi dari Kabinet.',
+                'data' => ['period' => now()->format('Y-m'), 'source' => 'seed'],
+                'read_at' => now()->subDay(),
+            ],
+            [
+                'user_id' => $users['humas_staff_1']->id,
+                'type' => Notification::TYPE_ANNOUNCEMENT,
+                'title' => 'Pengumuman Baru',
+                'message' => 'Ada pengumuman rapat besar kabinet.',
+                'data' => ['source' => 'seed'],
+                'read_at' => null,
+            ],
+        ] as $notification) {
+            Notification::updateOrCreate(
+                [
+                    'user_id' => $notification['user_id'],
+                    'type' => $notification['type'],
+                    'title' => $notification['title'],
+                ],
+                [
+                    'message' => $notification['message'],
+                    'data' => $notification['data'],
+                    'read_at' => $notification['read_at'],
+                ]
+            );
         }
     }
 
