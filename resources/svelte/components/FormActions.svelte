@@ -12,7 +12,9 @@
 	} = $props();
 
 	const confirmSubmission = async (event, action) => {
-		if (shouldSkipFormConfirmation(event.currentTarget)) {
+		const form = event.currentTarget;
+
+		if (shouldSkipFormConfirmation(form)) {
 			return;
 		}
 
@@ -35,14 +37,14 @@
 			});
 
 			if (result.isConfirmed) {
-				submitConfirmedForm(event.currentTarget);
+				submitConfirmedForm(form);
 			}
 
 			return;
 		}
 
 		if (window.confirm(text)) {
-			submitConfirmedForm(event.currentTarget);
+			submitConfirmedForm(form);
 		}
 	};
 
