@@ -30,10 +30,13 @@
         <title>{{ $fallbackTitle }}</title>
         <meta name="description" content="{{ $fallbackDescription }}">
     @endif
-    <link rel="icon" type="image/png" href="{{ asset('images/logokabinet.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    </noscript>
     {!! $publicSsr['head'] !!}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>

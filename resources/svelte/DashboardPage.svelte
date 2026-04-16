@@ -199,7 +199,7 @@
               <div class="text-sm text-muted-foreground">{item.label}</div>
               <div class={`mt-2 text-2xl font-semibold leading-none ${toneValueClass(item.tone)}`}>{item.value}</div>
               <p class="mt-2 text-sm leading-6 text-muted-foreground">{item.detail}</p>
-              <div class="mt-3 text-sm font-medium text-[color:var(--brand-hover)]">{item.actionLabel}</div>
+              <div class="dashboard-link-action mt-3 text-sm font-medium">{item.actionLabel}</div>
             </a>
           {:else}
             <section class="rounded-[10px] border border-border bg-background px-4 py-4">
@@ -239,7 +239,7 @@
             <a href={item.href} aria-label={`Buka ${item.label} task`} class="block rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
               <div class="text-sm text-muted-foreground">{item.label}</div>
               <div class="mt-2 text-2xl font-semibold text-foreground">{item.value}</div>
-              <div class="mt-3 text-sm font-medium text-[color:var(--brand-hover)]">Buka daftar task</div>
+              <div class="dashboard-link-action mt-3 text-sm font-medium">Buka daftar task</div>
             </a>
           {:else}
             <div class="rounded-[10px] border border-border bg-background px-4 py-4">
@@ -462,6 +462,10 @@
     color: var(--text-muted);
   }
 
+  .dashboard-link-action {
+    color: var(--text-strong);
+  }
+
   .dashboard-stat-card {
     display: grid;
     gap: 0.85rem;
@@ -551,22 +555,22 @@
 
   .dashboard-pill-secondary {
     background: var(--muted);
-    color: var(--text-muted);
+    color: var(--text-soft);
   }
 
   .dashboard-pill-warning {
     background: color-mix(in srgb, var(--signal-warning) 14%, transparent);
-    color: var(--signal-warning);
+    color: color-mix(in srgb, var(--signal-warning) 60%, black 40%);
   }
 
   .dashboard-pill-success {
     background: color-mix(in srgb, var(--signal-success) 14%, transparent);
-    color: var(--signal-success);
+    color: color-mix(in srgb, var(--signal-success) 68%, black 32%);
   }
 
   .dashboard-pill-danger {
     background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: var(--signal-danger);
+    color: color-mix(in srgb, var(--signal-danger) 72%, black 28%);
   }
 
   @media (min-width: 768px) {
