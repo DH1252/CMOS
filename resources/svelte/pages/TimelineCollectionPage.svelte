@@ -1,5 +1,6 @@
 <script>
   import { Button } from '$lib/components/ui/button/index.js';
+  import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import Breadcrumbs from '../components/Breadcrumbs.svelte';
   import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
@@ -55,6 +56,42 @@
   };
 
   const buttonClass = (action) => `timeline-card-action-button ${action?.iconOnly ? 'timeline-card-action-button-icon' : ''}`.trim();
+
+  const confirmSubmission = async (event, action) => {
+    if (shouldSkipFormConfirmation(event.currentTarget)) {
+      return;
+    }
+
+    if (!action?.confirm) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const title = action.confirmTitle || 'Konfirmasi';
+    const text = action.confirmText || `Lanjutkan tindakan untuk ${action.confirm}?`;
+
+    if (window.Swal) {
+      const result = await window.Swal.fire({
+        title,
+        text,
+        icon: action.confirmIcon || 'warning',
+        showCancelButton: true,
+        confirmButtonText: action.confirmButtonText || 'Lanjutkan',
+        cancelButtonText: action.cancelButtonText || 'Batal',
+      });
+
+      if (result.isConfirmed) {
+        submitConfirmedForm(event.currentTarget);
+      }
+
+      return;
+    }
+
+    if (window.confirm(text)) {
+      submitConfirmedForm(event.currentTarget);
+    }
+  };
 </script>
 
 <Breadcrumbs items={breadcrumbs} />
@@ -144,7 +181,7 @@
                       <div class="timeline-card-actions">
                         {#each item.actions as action, actionIndex (action.href || action.label || actionIndex)}
                           {#if action.method}
-                            <form method="POST" action={action.href} class="d-inline-flex">
+                            <form method="POST" action={action.href} class="d-inline-flex" onsubmit={(event) => confirmSubmission(event, action)}>
                               {#if action.csrfToken}
                                 <input type="hidden" name="_token" value={action.csrfToken} />
                               {/if}
@@ -152,13 +189,12 @@
                                 <input type="hidden" name="_method" value={action.spoofMethod} />
                               {/if}
                               <Button
-                                type={action.confirm ? 'button' : 'submit'}
+                                type="submit"
                                 variant={buttonVariant(action)}
                                 size={buttonSize(action)}
                                 class={buttonClass(action)}
                                 aria-label={action.label}
                                 title={action.label}
-                                data-confirm-delete={action.confirm || undefined}
                               >
                                 <i class={action.icon}></i>
                                 {#if !action.iconOnly}

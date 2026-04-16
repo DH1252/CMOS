@@ -20,7 +20,6 @@
             'title' => old('title'),
             'description' => old('description'),
             'type' => $selectedType,
-            'color' => old('color', '#7C3AED'),
             'department_id' => old('department_id', $selectedType === 'department' ? $departmentId : null),
             'program_id' => old('program_id', $selectedType === 'program' ? $programId : null),
             'start_date' => old('start_date'),

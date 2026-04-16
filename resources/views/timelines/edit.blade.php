@@ -7,7 +7,7 @@
 @php
     $props = [
         'title' => 'Edit Timeline',
-        'description' => 'Perbarui judul, konteks, warna, dan rentang agenda agar timeline tetap akurat.',
+        'description' => 'Perbarui judul, konteks, dan rentang agenda agar timeline tetap akurat.',
         'form' => [
             'action' => route('timelines.update', $timeline),
             'method' => 'POST',
@@ -19,7 +19,6 @@
             'title' => old('title', $timeline->title),
             'description' => old('description', $timeline->description),
             'type' => old('type', $timeline->type),
-            'color' => old('color', $timeline->color ?? '#7C3AED'),
             'department_id' => old('department_id', $timeline->department_id),
             'program_id' => old('program_id', $timeline->program_id),
             'start_date' => old('start_date', $timeline->start_date->format('Y-m-d')),
