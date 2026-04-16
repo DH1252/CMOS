@@ -1,6 +1,8 @@
 @php
     $appName = \App\Models\Setting::get('app_name', 'CMOS');
     $organizationName = \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
+    $fallbackTitle = "Papan Informasi - {$organizationName}";
+    $fallbackDescription = "Portal informasi resmi {$organizationName}. Artikel, pembaruan kegiatan, dan publikasi organisasi.";
     $articleItems = $articles->getCollection()->values();
     $featuredArticle = $articleItems->first();
     $remainingArticles = $articleItems->slice($featuredArticle ? 1 : 0)->values();
@@ -68,8 +70,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Papan Informasi - {{ $organizationName }}</title>
-    <meta name="description" content="Portal informasi resmi {{ $organizationName }}. Artikel, pembaruan kegiatan, dan publikasi organisasi.">
+    @if (trim($publicSsr['head']) === '')
+        <title>{{ $fallbackTitle }}</title>
+        <meta name="description" content="{{ $fallbackDescription }}">
+    @endif
     <link rel="icon" type="image/png" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -31,7 +31,14 @@ class DashboardController extends Controller
             $data['monthlyTrends'] = $this->getMonthlyTrends();
         }
 
-        return view('dashboard.index', $data);
+        return $this->renderInertiaPage(
+            'DashboardPage',
+            pageTitle: 'Dashboard',
+            pageMeta: 'Ringkasan utama workspace.',
+            view: 'dashboard.index',
+            scriptId: 'svelte-dashboard-props',
+            viewData: $data,
+        );
     }
 
     private function getStats($user): array

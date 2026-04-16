@@ -1,5 +1,7 @@
 <script>
+  import { onMount } from 'svelte';
   import * as Card from '$lib/components/ui/card/index.js';
+  import { loadExternalScript, loadExternalStylesheet } from '$lib/external-assets.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
@@ -38,9 +40,13 @@
 
   const isSelected = (value) => article.categoryIds?.map(String).includes(String(value));
   const fallbackImage = '/images/logokabinet.png';
+  const trixCssUrl = 'https://unpkg.com/trix@2.1.3/dist/trix.css';
+  const trixScriptUrl = 'https://unpkg.com/trix@2.1.3/dist/trix.umd.min.js';
   let formStateInitialized = $state(false);
   let statusValue = $state('draft');
   let publishModeValue = $state('immediately');
+  let editorReady = $state(typeof window !== 'undefined' && Boolean(window.Trix));
+  let editorError = $state('');
   const isPublished = $derived(statusValue === 'published');
   const isScheduled = $derived(isPublished && publishModeValue === 'scheduled');
 
@@ -61,6 +67,38 @@
 
     event.currentTarget.src = fallbackImage;
   };
+
+  onMount(() => {
+    let active = true;
+
+    const loadEditorAssets = async () => {
+      try {
+        await Promise.all([
+          loadExternalStylesheet(trixCssUrl),
+          loadExternalScript(trixScriptUrl, 'Trix'),
+        ]);
+
+        if (active) {
+          editorReady = true;
+          editorError = '';
+        }
+      } catch (error) {
+        console.error('Failed to load Trix assets.', error);
+
+        if (active) {
+          editorError = 'Editor artikel tidak dapat dimuat. Gunakan textarea sementara di bawah ini.';
+        }
+      }
+    };
+
+    if (!editorReady) {
+      void loadEditorAssets();
+    }
+
+    return () => {
+      active = false;
+    };
+  });
 </script>
 
 <div class="mx-auto max-w-6xl">
@@ -117,8 +155,30 @@
                   Konten Artikel
                   <span class="editor-required">*</span>
                 </Label>
-                <input id={editorId} type="hidden" name="content" value={article.content || ''} />
-                <trix-editor input={editorId} class={errors.content ? 'is-invalid' : ''}></trix-editor>
+                <div class="editor-rich-frame">
+                  {#if editorReady}
+                    <input id={editorId} type="hidden" name="content" value={article.content || ''} />
+                    <trix-editor input={editorId} class={errors.content ? 'is-invalid' : ''}></trix-editor>
+                  {:else}
+                    <div class="editor-toolbar-placeholder" aria-hidden="true"></div>
+                    <Textarea
+                      id={`${editorId}-fallback`}
+                      name="content"
+                      rows="12"
+                      class="editor-textarea editor-textarea-editor"
+                      aria-invalid={Boolean(errors.content || editorError)}
+                      value={article.content || ''}
+                      disabled={!editorError}
+                    />
+
+                    {#if editorError}
+                      <div class="editor-error" role="alert">{editorError}</div>
+                    {:else}
+                      <div class="editor-helper">Memuat editor artikel...</div>
+                    {/if}
+                  {/if}
+                </div>
+
                 {#if errors.content}
                   <div class="editor-error" role="alert">{errors.content}</div>
                 {/if}
@@ -248,6 +308,29 @@
 
   .editor-field-hidden {
     display: none;
+  }
+
+  .editor-helper {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .editor-rich-frame {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .editor-toolbar-placeholder {
+    height: 2.5rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 0.625rem;
+    background: color-mix(in srgb, var(--muted) 58%, transparent);
+  }
+
+  .editor-textarea-editor {
+    min-height: 18rem;
+    height: 22rem;
+    resize: vertical;
   }
 
   .editor-label {
@@ -381,10 +464,12 @@
 
   :global(trix-editor) {
     min-height: 18rem;
+    height: 22rem;
     border: 1px solid var(--line-soft);
     border-radius: 0.625rem;
     background: var(--background);
     color: var(--text-strong);
+    overflow-y: auto;
   }
 
   :global(trix-editor:focus) {

@@ -1,6 +1,10 @@
+import { createInertiaApp } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
+import AuthLayout from "../svelte/layouts/AuthLayout.svelte";
+import { loadExternalScript } from "../svelte/lib/external-assets.js";
 
 const createDialogFacade = () => ({
+	__externalAssetFallback: true,
 	async fire(options = {}) {
 		const title = options.title || "";
 		const text = options.text || "";
@@ -22,249 +26,231 @@ const createDialogFacade = () => ({
 
 if (typeof window !== "undefined" && !window.Swal) {
 	window.Swal = createDialogFacade();
+
+	void loadExternalScript(
+		"https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js",
+		"Swal",
+	).catch((error) => {
+		console.warn("SweetAlert2 failed to load, using fallback dialogs.", error);
+	});
 }
 
+const pages = {
+	...import.meta.glob("../svelte/*Page.svelte"),
+	...import.meta.glob("../svelte/pages/**/*.svelte"),
+	...import.meta.glob("../svelte/PublicApp.svelte"),
+};
+const isLoginPath =
+	typeof window !== "undefined" && window.location.pathname === "/login";
+const inertiaRoot =
+	typeof document !== "undefined" ? document.getElementById("app") : null;
+const inertiaPagePayload = inertiaRoot?.dataset?.page || "";
+const inertiaScriptPagePayload =
+	typeof document !== "undefined"
+		? document.querySelector('script[data-page="app"][type="application/json"]')
+				?.textContent || ""
+		: "";
+const publicRoot =
+	typeof document !== "undefined"
+		? document.getElementById("svelte-public-root")
+		: null;
+const legacyLoginRoot =
+	typeof document !== "undefined"
+		? document.getElementById("svelte-login-root")
+		: null;
+
 const parseJson = (id) => {
+	if (typeof document === "undefined") {
+		return null;
+	}
+
 	const node = document.getElementById(id);
 
 	if (!node?.textContent) {
-		return {};
+		return null;
 	}
 
 	try {
 		return JSON.parse(node.textContent);
 	} catch (error) {
 		console.error(`Failed to parse JSON from #${id}`, error);
-		return {};
+
+		return null;
 	}
 };
 
-const loaders = {
-	authApp: () => import("../svelte/AuthApp.svelte"),
-	publicApp: () => import("../svelte/PublicApp.svelte"),
-	dashboardPage: () => import("../svelte/DashboardPage.svelte"),
-	loginPage: () => import("../svelte/LoginPage.svelte"),
-	crudTablePage: () => import("../svelte/pages/CrudTablePage.svelte"),
-	entityFormPage: () => import("../svelte/pages/EntityFormPage.svelte"),
-	entityDetailPage: () => import("../svelte/pages/EntityDetailPage.svelte"),
-	programDetailPage: () => import("../svelte/pages/ProgramDetailPage.svelte"),
-	linkDirectoryPage: () => import("../svelte/pages/LinkDirectoryPage.svelte"),
-	driveDirectoryPage: () => import("../svelte/pages/DriveDirectoryPage.svelte"),
-	informationBoardIndexPage: () =>
-		import("../svelte/pages/InformationBoardIndexPage.svelte"),
-	informationBoardEditorPage: () =>
-		import("../svelte/pages/InformationBoardEditorPage.svelte"),
-	informationBoardShowPage: () =>
-		import("../svelte/pages/InformationBoardShowPage.svelte"),
-	announcementFeedPage: () =>
-		import("../svelte/pages/AnnouncementFeedPage.svelte"),
-	taskHubPage: () => import("../svelte/pages/TaskHubPage.svelte"),
-	taskFormPage: () => import("../svelte/pages/TaskFormPage.svelte"),
-	taskDetailPage: () => import("../svelte/pages/TaskDetailPage.svelte"),
-	taskBoardPage: () => import("../svelte/pages/TaskBoardPage.svelte"),
-	evaluationHubPage: () => import("../svelte/pages/EvaluationHubPage.svelte"),
-	evaluationStaffPage: () =>
-		import("../svelte/pages/EvaluationStaffPage.svelte"),
-	evaluationFormPage: () => import("../svelte/pages/EvaluationFormPage.svelte"),
-	evaluationHistoryPage: () =>
-		import("../svelte/pages/EvaluationHistoryPage.svelte"),
-	timelineCollectionPage: () =>
-		import("../svelte/pages/TimelineCollectionPage.svelte"),
-	timelineFormPage: () => import("../svelte/pages/TimelineFormPage.svelte"),
-	timelineCalendarPage: () =>
-		import("../svelte/pages/TimelineCalendarPage.svelte"),
-	reportDashboardPage: () =>
-		import("../svelte/pages/ReportDashboardPage.svelte"),
-	settingsPage: () => import("../svelte/pages/SettingsPage.svelte"),
-	notificationInboxPage: () =>
-		import("../svelte/pages/NotificationInboxPage.svelte"),
-	profileSettingsPage: () =>
-		import("../svelte/pages/ProfileSettingsPage.svelte"),
-	userImportPage: () => import("../svelte/pages/UserImportPage.svelte"),
-	messagesPage: () => import("../svelte/pages/MessagesPage.svelte"),
+const resolveInitialPage = (payload) => {
+	if (!payload || payload === "null") {
+		return null;
+	}
+
+	try {
+		const initialPage = JSON.parse(payload);
+
+		return initialPage && typeof initialPage.component === "string"
+			? initialPage
+			: null;
+	} catch (error) {
+		console.error("Failed to parse the initial Inertia page payload.", error);
+
+		return null;
+	}
 };
 
-const mountIfPresent = (mountId, loadComponent, propsFactory = () => ({})) => {
-	const mountPoint = document.getElementById(mountId);
+const isPublicPage = (name) =>
+	name === "PublicApp" || name.startsWith("public/");
+const isGuestPage = (name) => name === "LoginPage";
 
-	if (!mountPoint) {
+let loginFallbackMounted = false;
+
+const resolveLoginTarget = () => {
+	if (legacyLoginRoot) {
+		return legacyLoginRoot;
+	}
+
+	if (inertiaRoot) {
+		return inertiaRoot;
+	}
+
+	if (typeof document === "undefined") {
+		return null;
+	}
+
+	const existing = document.getElementById("svelte-login-fallback-root");
+
+	if (existing) {
+		return existing;
+	}
+
+	const fallbackTarget = document.createElement("div");
+	fallbackTarget.id = "svelte-login-fallback-root";
+	document.body.append(fallbackTarget);
+
+	return fallbackTarget;
+};
+
+const legacyLoginProps = () => ({
+	appName: legacyLoginRoot?.dataset.appName || "CMOS",
+	loginUrl: legacyLoginRoot?.dataset.loginUrl || "/login",
+	homeUrl: legacyLoginRoot?.dataset.homeUrl || "/",
+	csrfToken:
+		legacyLoginRoot?.dataset.csrfToken ||
+		document
+			.querySelector('meta[name="csrf-token"]')
+			?.getAttribute("content") ||
+		"",
+	email: legacyLoginRoot?.dataset.email || "",
+	alertMessage: legacyLoginRoot?.dataset.alertMessage || "",
+	alertType: legacyLoginRoot?.dataset.alertType || "",
+	emailError: legacyLoginRoot?.dataset.emailError || "",
+	passwordError: legacyLoginRoot?.dataset.passwordError || "",
+	remember: legacyLoginRoot?.dataset.remember === "1",
+});
+
+const mountLoginFallback = async (sourceProps = {}) => {
+	if (!isLoginPath || loginFallbackMounted) {
 		return;
 	}
 
-	void loadComponent()
-		.then(({ default: Component }) => {
-			const shouldHydrate = mountPoint.dataset.ssr === "true";
-			const bootComponent = shouldHydrate ? hydrate : mount;
+	const target = resolveLoginTarget();
 
-			bootComponent(Component, {
-				target: mountPoint,
-				props: propsFactory(mountPoint),
+	if (!target) {
+		return;
+	}
+
+	const props = {
+		...legacyLoginProps(),
+		...sourceProps,
+	};
+
+	const { default: LoginPage } = await import("../svelte/LoginPage.svelte");
+
+	mount(LoginPage, {
+		target,
+		props,
+	});
+
+	loginFallbackMounted = true;
+};
+
+const initialInertiaPage =
+	resolveInitialPage(inertiaPagePayload) ||
+	resolveInitialPage(inertiaScriptPagePayload);
+
+const shouldBootStandaloneLogin =
+	isLoginPath && initialInertiaPage?.component === "LoginPage";
+
+if (shouldBootStandaloneLogin) {
+	void mountLoginFallback(initialInertiaPage?.props || {});
+}
+
+if (inertiaRoot && initialInertiaPage && !shouldBootStandaloneLogin) {
+	void createInertiaApp({
+		page: initialInertiaPage,
+		resolve: async (name) => {
+			const importer = pages[`../svelte/${name}.svelte`];
+
+			if (!importer) {
+				throw new Error(`Unknown Inertia page: ${name}`);
+			}
+
+			const page = await importer();
+
+			return page;
+		},
+		layout: (name, page) => {
+			if (isPublicPage(name) || isGuestPage(name)) {
+				return undefined;
+			}
+
+			return [
+				AuthLayout,
+				{
+					shell: page.props.shell,
+					flash: page.props.flash,
+					errors: page.props.errors,
+					pageTitle: page.props.pageTitle,
+					pageMeta: page.props.pageMeta,
+					title: page.props.title,
+					description: page.props.description,
+				},
+			];
+		},
+		setup({ el, App, props }) {
+			mount(App, { target: el, props });
+		},
+	}).catch((error) => {
+		console.error("Failed to boot Inertia app.", error);
+
+		void mountLoginFallback(initialInertiaPage?.props || {});
+	});
+}
+
+if (inertiaRoot && !initialInertiaPage) {
+	console.error(
+		"Inertia root was found but no valid initial page payload could be resolved.",
+	);
+
+	void mountLoginFallback();
+}
+
+if (publicRoot) {
+	const publicPageProps = parseJson("svelte-public-props") || {};
+
+	void import("../svelte/PublicApp.svelte")
+		.then(({ default: PublicApp }) => {
+			const bootComponent = publicRoot.dataset.ssr === "true" ? hydrate : mount;
+
+			bootComponent(PublicApp, {
+				target: publicRoot,
+				props: publicPageProps,
 			});
 		})
 		.catch((error) => {
-			console.error(`Failed to load Svelte component for #${mountId}`, error);
+			console.error("Failed to boot the public Svelte app.", error);
 		});
-};
-
-mountIfPresent("svelte-login-root", loaders.loginPage, (mountPoint) => ({
-	appName: mountPoint.dataset.appName || "CMOS",
-	loginUrl: mountPoint.dataset.loginUrl || "/login",
-	homeUrl: mountPoint.dataset.homeUrl || "/",
-	csrfToken: mountPoint.dataset.csrfToken || "",
-	email: mountPoint.dataset.email || "",
-	alertMessage: mountPoint.dataset.alertMessage || "",
-	alertType: mountPoint.dataset.alertType || "",
-	emailError: mountPoint.dataset.emailError || "",
-	passwordError: mountPoint.dataset.passwordError || "",
-	remember: mountPoint.dataset.remember === "1",
-}));
-
-[
-	["svelte-public-root", loaders.publicApp, "svelte-public-props"],
-	["svelte-auth-root", loaders.authApp, "svelte-auth-props"],
-	["svelte-dashboard-root", loaders.dashboardPage, "svelte-dashboard-props"],
-	["svelte-crud-table-root", loaders.crudTablePage, "svelte-crud-table-props"],
-	[
-		"svelte-entity-form-root",
-		loaders.entityFormPage,
-		"svelte-entity-form-props",
-	],
-	[
-		"svelte-entity-detail-root",
-		loaders.entityDetailPage,
-		"svelte-entity-detail-props",
-	],
-	[
-		"svelte-program-detail-root",
-		loaders.programDetailPage,
-		"svelte-program-detail-props",
-	],
-	[
-		"svelte-link-directory-root",
-		loaders.linkDirectoryPage,
-		"svelte-link-directory-props",
-	],
-	[
-		"svelte-drive-directory-root",
-		loaders.driveDirectoryPage,
-		"svelte-drive-directory-props",
-	],
-	[
-		"svelte-information-board-index-root",
-		loaders.informationBoardIndexPage,
-		"svelte-information-board-index-props",
-	],
-	[
-		"svelte-information-board-editor-root",
-		loaders.informationBoardEditorPage,
-		"svelte-information-board-editor-props",
-	],
-	[
-		"svelte-information-board-show-root",
-		loaders.informationBoardShowPage,
-		"svelte-information-board-show-props",
-	],
-	[
-		"svelte-announcement-feed-root",
-		loaders.announcementFeedPage,
-		"svelte-announcement-feed-props",
-	],
-	["svelte-task-hub-root", loaders.taskHubPage, "svelte-task-hub-props"],
-	["svelte-task-form-root", loaders.taskFormPage, "svelte-task-form-props"],
-	[
-		"svelte-task-detail-root",
-		loaders.taskDetailPage,
-		"svelte-task-detail-props",
-	],
-	["svelte-task-board-root", loaders.taskBoardPage, "svelte-task-board-props"],
-	[
-		"svelte-evaluation-hub-root",
-		loaders.evaluationHubPage,
-		"svelte-evaluation-hub-props",
-	],
-	[
-		"svelte-evaluation-staff-root",
-		loaders.evaluationStaffPage,
-		"svelte-evaluation-staff-props",
-	],
-	[
-		"svelte-evaluation-form-root",
-		loaders.evaluationFormPage,
-		"svelte-evaluation-form-props",
-	],
-	[
-		"svelte-evaluation-history-root",
-		loaders.evaluationHistoryPage,
-		"svelte-evaluation-history-props",
-	],
-	[
-		"svelte-timeline-collection-root",
-		loaders.timelineCollectionPage,
-		"svelte-timeline-collection-props",
-	],
-	[
-		"svelte-timeline-form-root",
-		loaders.timelineFormPage,
-		"svelte-timeline-form-props",
-	],
-	[
-		"svelte-timeline-calendar-root",
-		loaders.timelineCalendarPage,
-		"svelte-timeline-calendar-props",
-	],
-	[
-		"svelte-report-dashboard-root",
-		loaders.reportDashboardPage,
-		"svelte-report-dashboard-props",
-	],
-	["svelte-settings-root", loaders.settingsPage, "svelte-settings-props"],
-	[
-		"svelte-notification-inbox-root",
-		loaders.notificationInboxPage,
-		"svelte-notification-inbox-props",
-	],
-	[
-		"svelte-profile-settings-root",
-		loaders.profileSettingsPage,
-		"svelte-profile-settings-props",
-	],
-	[
-		"svelte-user-import-root",
-		loaders.userImportPage,
-		"svelte-user-import-props",
-	],
-	["svelte-messages-root", loaders.messagesPage, "svelte-messages-props"],
-].forEach(([mountId, loader, propsId]) => {
-	mountIfPresent(mountId, loader, () => parseJson(propsId));
-});
-
-let legacyHelpersPromise = null;
-
-const needsLegacyHelpers = () => {
-	return Boolean(
-		document.querySelector("table.datatable") ||
-			document.querySelector("[data-confirm-delete], [data-confirm]") ||
-			document.getElementById("session-swal-data"),
-	);
-};
-
-const bootLegacyHelpers = async () => {
-	if (!needsLegacyHelpers()) {
-		return;
-	}
-
-	legacyHelpersPromise ??= import("./legacy-helpers");
-
-	const { bootLegacyHelpers: runLegacyHelpers } = await legacyHelpersPromise;
-	await runLegacyHelpers(parseJson);
-};
-
-if (document.readyState === "loading") {
-	document.addEventListener("DOMContentLoaded", bootLegacyHelpers, {
-		once: true,
-	});
-} else {
-	bootLegacyHelpers();
 }
 
-document.addEventListener("cmos:content-mounted", bootLegacyHelpers);
+if (legacyLoginRoot && !initialInertiaPage) {
+	void mountLoginFallback();
+}

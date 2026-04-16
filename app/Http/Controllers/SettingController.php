@@ -10,8 +10,13 @@ class SettingController extends Controller
     public function index()
     {
         $settings = Setting::all()->keyBy('key');
-        
-        return view('settings.index', compact('settings'));
+
+        return $this->renderInertiaPage(
+            'pages/SettingsPage',
+            view: 'settings.index',
+            scriptId: 'svelte-settings-props',
+            viewData: compact('settings'),
+        );
     }
 
     public function update(Request $request)
@@ -19,7 +24,7 @@ class SettingController extends Controller
         foreach ($request->except('_token', '_method') as $key => $value) {
             Setting::set($key, $value);
         }
-        
+
         return redirect()->route('settings.index')
             ->with('success', 'Pengaturan berhasil disimpan!');
     }

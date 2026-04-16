@@ -12,24 +12,34 @@ class DriveController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         // All users can see drives
         $drives = DriveAccount::with('department')
             ->active()
             ->orderBy('name')
             ->get();
-        
+
         // Group by department for display
-        $drivesByDept = $drives->groupBy(fn($d) => $d->department?->name ?? 'Umum');
-        
-        return view('drives.index', compact('drives', 'drivesByDept'));
+        $drivesByDept = $drives->groupBy(fn ($d) => $d->department?->name ?? 'Umum');
+
+        return $this->renderInertiaPage(
+            'pages/DriveDirectoryPage',
+            view: 'drives.index',
+            scriptId: 'svelte-drive-directory-props',
+            viewData: compact('drives', 'drivesByDept'),
+        );
     }
 
     public function create()
     {
         $departments = Department::active()->get();
-        
-        return view('drives.create', compact('departments'));
+
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'drives.create',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('departments'),
+        );
     }
 
     public function store(Request $request)
@@ -43,7 +53,7 @@ class DriveController extends Controller
         ]);
 
         $drive = DriveAccount::create($validated);
-        
+
         ActivityLog::log('created', "Created drive account: {$drive->name}", $drive);
 
         return redirect()->route('drives.index')
@@ -53,8 +63,13 @@ class DriveController extends Controller
     public function edit(DriveAccount $drive)
     {
         $departments = Department::active()->get();
-        
-        return view('drives.edit', compact('drive', 'departments'));
+
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'drives.edit',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('drive', 'departments'),
+        );
     }
 
     public function update(Request $request, DriveAccount $drive)
@@ -69,7 +84,7 @@ class DriveController extends Controller
         ]);
 
         $drive->update($validated);
-        
+
         ActivityLog::log('updated', "Updated drive account: {$drive->name}", $drive);
 
         return redirect()->route('drives.index')
@@ -79,9 +94,9 @@ class DriveController extends Controller
     public function destroy(DriveAccount $drive)
     {
         $name = $drive->name;
-        
+
         ActivityLog::log('deleted', "Deleted drive account: {$name}", $drive);
-        
+
         $drive->delete();
 
         return redirect()->route('drives.index')

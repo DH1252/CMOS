@@ -66,7 +66,7 @@
             <i class="fas fa-upload"></i>
             <span>Import Users</span>
           </Button>
-          <Button href={form.templateUrl} variant="secondary">
+          <Button href={form.templateUrl} variant="secondary" data-native="true">
             <i class="fas fa-download"></i>
             <span>Download Template</span>
           </Button>

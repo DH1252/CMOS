@@ -31,15 +31,22 @@
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   };
 
-  $effect(() => {
-    if (hasLoadedDirectory || users.length || !quickChat) {
+  const hydrateBootstrapDirectory = () => {
+    if (!quickChat || users.length > 0) {
       return;
     }
 
-    users = initialUsers();
-    summaries = initialSummaries();
-    hasLoadedDirectory = users.length > 0;
-  });
+    const nextUsers = initialUsers();
+    const nextSummaries = initialSummaries();
+
+    if (nextUsers.length === 0 && nextSummaries.length === 0) {
+      return;
+    }
+
+    users = nextUsers;
+    summaries = nextSummaries;
+    hasLoadedDirectory = nextUsers.length > 0;
+  };
 
   const endpointFor = (base, id) => `${String(base || '').replace(/\/$/, '')}/${id}`;
 
@@ -56,7 +63,7 @@
         return rightTime - leftTime;
       }
 
-      return (left.name || 'Kontak').localeCompare(right.name || 'Kontak', 'id');
+      return String(left.name || 'Kontak').localeCompare(String(right.name || 'Kontak'), 'id');
     });
 
   const buildUsers = () => {
@@ -247,7 +254,7 @@
       };
       messages = Array.isArray(data.messages) ? data.messages : [];
       syncSummary(userId, messages);
-      unreadCount = Math.max(unreadCount - 1, 0);
+      unreadCount = Number(data.unreadCount ?? unreadCount);
 
       if (shouldScroll) {
         await scrollToBottom();
@@ -321,6 +328,7 @@
   };
 
   onMount(() => {
+    hydrateBootstrapDirectory();
     syncUnreadBadge();
   });
 

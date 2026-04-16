@@ -13,38 +13,48 @@ class ProgramController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         $query = Program::with(['department', 'creator', 'members'])
             ->withCount('tasks');
-        
+
         // Filter by department for kabinet
         if ($user->isKabinet() && $user->department_id) {
             $query->where('department_id', $user->department_id);
         }
-        
+
         // Staff only sees their programs
         if ($user->isStaff()) {
-            $query->whereHas('members', fn($q) => $q->where('user_id', $user->id));
+            $query->whereHas('members', fn ($q) => $q->where('user_id', $user->id));
         }
-        
+
         $programs = $query->orderByDesc('created_at')->get();
-        
-        return view('programs.index', compact('programs'));
+
+        return $this->renderInertiaPage(
+            'pages/CrudTablePage',
+            view: 'programs.index',
+            scriptId: 'svelte-crud-table-props',
+            viewData: compact('programs'),
+        );
     }
 
     public function create()
     {
         $user = auth()->user();
-        
+
         if ($user->isKabinet()) {
             $departments = Department::where('id', $user->department_id)->get();
         } else {
             $departments = Department::active()->get();
         }
-        
+
         $users = User::active()->get();
-        
-        return view('programs.create', compact('departments', 'users'));
+
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'programs.create',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('departments', 'users'),
+        );
     }
 
     public function store(Request $request)
@@ -61,14 +71,14 @@ class ProgramController extends Controller
         ]);
 
         $validated['created_by'] = auth()->id();
-        
+
         $program = Program::create($validated);
-        
+
         // Add members
-        if (!empty($request->members)) {
+        if (! empty($request->members)) {
             $program->members()->attach($request->members, ['role' => 'member']);
         }
-        
+
         ActivityLog::log('created', "Created program: {$program->name}", $program);
 
         return redirect()->route('programs.index')
@@ -78,23 +88,33 @@ class ProgramController extends Controller
     public function show(Program $program)
     {
         $program->load(['department', 'creator', 'members', 'tasks.assignee', 'timelines']);
-        
-        return view('programs.show', compact('program'));
+
+        return $this->renderInertiaPage(
+            'pages/ProgramDetailPage',
+            view: 'programs.show',
+            scriptId: 'svelte-program-detail-props',
+            viewData: compact('program'),
+        );
     }
 
     public function edit(Program $program)
     {
         $user = auth()->user();
-        
+
         if ($user->isKabinet()) {
             $departments = Department::where('id', $user->department_id)->get();
         } else {
             $departments = Department::active()->get();
         }
-        
+
         $users = User::active()->get();
-        
-        return view('programs.edit', compact('program', 'departments', 'users'));
+
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'programs.edit',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('program', 'departments', 'users'),
+        );
     }
 
     public function update(Request $request, Program $program)
@@ -109,7 +129,7 @@ class ProgramController extends Controller
         ]);
 
         $program->update($validated);
-        
+
         ActivityLog::log('updated', "Updated program: {$program->name}", $program);
 
         return redirect()->route('programs.show', $program)
@@ -119,9 +139,9 @@ class ProgramController extends Controller
     public function destroy(Program $program)
     {
         $name = $program->name;
-        
+
         ActivityLog::log('deleted', "Deleted program: {$name}", $program);
-        
+
         $program->delete();
 
         return redirect()->route('programs.index')
@@ -141,7 +161,7 @@ class ProgramController extends Controller
         }
 
         $program->members()->attach($request->user_id, ['role' => $request->role]);
-        
+
         $user = User::find($request->user_id);
         ActivityLog::log('updated', "Added {$user->name} to program: {$program->name}", $program);
 
@@ -151,7 +171,7 @@ class ProgramController extends Controller
     public function removeMember(Program $program, User $user)
     {
         $program->members()->detach($user->id);
-        
+
         ActivityLog::log('updated', "Removed {$user->name} from program: {$program->name}", $program);
 
         return back()->with('success', 'Anggota berhasil dihapus dari program!');
@@ -169,7 +189,7 @@ class ProgramController extends Controller
         }
 
         $program->pics()->attach($request->user_id);
-        
+
         $user = User::find($request->user_id);
         ActivityLog::log('updated', "Added {$user->name} as PIC for: {$program->name}", $program);
 
@@ -179,7 +199,7 @@ class ProgramController extends Controller
     public function removePic(Program $program, User $user)
     {
         $program->pics()->detach($user->id);
-        
+
         ActivityLog::log('updated', "Removed {$user->name} as PIC from: {$program->name}", $program);
 
         return back()->with('success', 'PIC berhasil dihapus dari program!');
@@ -188,13 +208,18 @@ class ProgramController extends Controller
     public function myPrograms()
     {
         $user = auth()->user();
-        
+
         $programs = Program::forUser($user->id)
             ->with(['department', 'pics', 'members'])
             ->withCount('tasks')
             ->orderByDesc('created_at')
             ->get();
-        
-        return view('programs.my', compact('programs'));
+
+        return $this->renderInertiaPage(
+            'pages/CrudTablePage',
+            view: 'programs.my',
+            scriptId: 'svelte-crud-table-props',
+            viewData: compact('programs'),
+        );
     }
 }

@@ -29,12 +29,21 @@ class TimelineController extends Controller
 
         $timelines = $query->orderBy('start_date')->orderBy('end_date')->get();
 
-        return view('timelines.index', compact('timelines'));
+        return $this->renderInertiaPage(
+            'pages/TimelineCollectionPage',
+            view: 'timelines.index',
+            scriptId: 'svelte-timeline-collection-props',
+            viewData: compact('timelines'),
+        );
     }
 
     public function calendar()
     {
-        return view('timelines.calendar');
+        return $this->renderInertiaPage(
+            'pages/TimelineCalendarPage',
+            view: 'timelines.calendar',
+            scriptId: 'svelte-timeline-calendar-props',
+        );
     }
 
     public function calendarData()
@@ -162,7 +171,12 @@ class TimelineController extends Controller
             ->orderBy('start_date')
             ->get();
 
-        return view('timelines.global', compact('timelines'));
+        return $this->renderInertiaPage(
+            'pages/TimelineCollectionPage',
+            view: 'timelines.global',
+            scriptId: 'svelte-timeline-collection-props',
+            viewData: compact('timelines'),
+        );
     }
 
     public function department(?Department $department = null)
@@ -179,7 +193,12 @@ class TimelineController extends Controller
             ? Timeline::with(['program'])->where('department_id', $department->id)->orderBy('start_date')->get()
             : collect();
 
-        return view('timelines.department', compact('timelines', 'departments', 'department'));
+        return $this->renderInertiaPage(
+            'pages/TimelineCollectionPage',
+            view: 'timelines.department',
+            scriptId: 'svelte-timeline-collection-props',
+            viewData: compact('timelines', 'departments', 'department'),
+        );
     }
 
     public function program(Program $program)
@@ -191,7 +210,12 @@ class TimelineController extends Controller
             ->orderBy('start_date')
             ->get();
 
-        return view('timelines.program', compact('timelines', 'program'));
+        return $this->renderInertiaPage(
+            'pages/TimelineCollectionPage',
+            view: 'timelines.program',
+            scriptId: 'svelte-timeline-collection-props',
+            viewData: compact('timelines', 'program'),
+        );
     }
 
     public function create(Request $request)
@@ -214,7 +238,12 @@ class TimelineController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('timelines.create', compact('departments', 'programs', 'type', 'departmentId', 'programId'));
+        return $this->renderInertiaPage(
+            'pages/TimelineFormPage',
+            view: 'timelines.create',
+            scriptId: 'svelte-timeline-form-props',
+            viewData: compact('departments', 'programs', 'type', 'departmentId', 'programId'),
+        );
     }
 
     public function store(Request $request)
@@ -281,7 +310,12 @@ class TimelineController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('timelines.edit', compact('timeline', 'departments', 'programs'));
+        return $this->renderInertiaPage(
+            'pages/TimelineFormPage',
+            view: 'timelines.edit',
+            scriptId: 'svelte-timeline-form-props',
+            viewData: compact('timeline', 'departments', 'programs'),
+        );
     }
 
     public function update(Request $request, Timeline $timeline)

@@ -13,6 +13,7 @@
     toneForNotification = () => '',
     iconForNotification = () => 'fas fa-bell',
     onOpenChange = () => {},
+    onMarkAllAsRead = async () => {},
   } = $props();
 
   let previousOpen = open;
@@ -43,6 +44,24 @@
       onOpenChange(open);
     }
   });
+
+  const navigate = (href) => {
+    if (!href) {
+      return;
+    }
+
+    open = false;
+    window.location.href = href;
+  };
+
+  const markAllAsRead = async () => {
+    if (!endpoints.notificationsMarkAll) {
+      return;
+    }
+
+    open = false;
+    await onMarkAllAsRead();
+  };
 </script>
 
 <Popover.Root bind:open>
@@ -62,10 +81,7 @@
       <div>
         <strong>Notifikasi</strong>
       </div>
-      <form method="POST" action={endpoints.notificationsMarkAll || '#'} onsubmit={() => (open = false)}>
-        <input type="hidden" name="_token" value={csrfToken} />
-        <button type="submit" class="shell-text-btn">Tandai dibaca</button>
-      </form>
+      <button type="button" class="shell-text-btn" onclick={markAllAsRead}>Tandai dibaca</button>
     </div>
 
     {#if isLoading}
@@ -75,7 +91,7 @@
     {:else}
       <div class="shell-notification-list">
         {#each notifications as notification (notification.id || `${notification.type}-${notification.created_at}-${notification.title}`)}
-          <a href={links.notifications || '#'} class="shell-notification-item" onclick={() => (open = false)}>
+          <button type="button" class="shell-notification-item" onclick={() => navigate(notification.href || links.notifications || '#')}>
             <span class={`shell-notification-icon ${toneForNotification(notification.type)}`}>
               <i class={iconForNotification(notification.type)}></i>
             </span>
@@ -84,14 +100,14 @@
               <span>{notification.message}</span>
               <small>{formatNotificationTime(notification.created_at)}</small>
             </span>
-          </a>
+          </button>
         {/each}
       </div>
     {/if}
 
-    <a href={links.notifications || '#'} class="shell-popover-footer" onclick={() => (open = false)}>
+    <button type="button" class="shell-popover-footer" onclick={() => navigate(links.notifications || '#')}>
       Lihat semua notifikasi
-    </a>
+    </button>
   </Popover.Content>
 </Popover.Root>
 
@@ -175,8 +191,11 @@
     grid-template-columns: auto 1fr;
     gap: 0.8rem;
     padding: 0.9rem 1rem;
+    width: 100%;
+    border: 0;
+    background: transparent;
     color: inherit;
-    text-decoration: none;
+    text-align: left;
     border-bottom: 1px solid var(--border);
   }
 
@@ -213,9 +232,12 @@
 
   .shell-popover-footer {
     display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
     padding: 0.9rem 1rem;
     color: var(--brand-hover);
-    text-decoration: none;
+    text-align: left;
     font-size: 0.84rem;
     font-weight: 600;
   }

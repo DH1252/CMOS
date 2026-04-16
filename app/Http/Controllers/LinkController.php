@@ -15,18 +15,28 @@ class LinkController extends Controller
             ->orderBy('category')
             ->orderBy('sort_order')
             ->get();
-        
+
         $linksByCategory = $links->groupBy('category');
         $categories = UsefulLink::getCategories();
-        
-        return view('links.index', compact('links', 'linksByCategory', 'categories'));
+
+        return $this->renderInertiaPage(
+            'pages/LinkDirectoryPage',
+            view: 'links.index',
+            scriptId: 'svelte-link-directory-props',
+            viewData: compact('links', 'linksByCategory', 'categories'),
+        );
     }
 
     public function create()
     {
         $categories = UsefulLink::getCategories();
-        
-        return view('links.create', compact('categories'));
+
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'links.create',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('categories'),
+        );
     }
 
     public function store(Request $request)
@@ -44,7 +54,7 @@ class LinkController extends Controller
         $validated['icon'] = $validated['icon'] ?? 'fas fa-link';
 
         $link = UsefulLink::create($validated);
-        
+
         ActivityLog::log('created', "Created link: {$link->title}", $link);
 
         return redirect()->route('links.index')
@@ -54,8 +64,13 @@ class LinkController extends Controller
     public function edit(UsefulLink $link)
     {
         $categories = UsefulLink::getCategories();
-        
-        return view('links.edit', compact('link', 'categories'));
+
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'links.edit',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('link', 'categories'),
+        );
     }
 
     public function update(Request $request, UsefulLink $link)
@@ -71,7 +86,7 @@ class LinkController extends Controller
         ]);
 
         $link->update($validated);
-        
+
         ActivityLog::log('updated', "Updated link: {$link->title}", $link);
 
         return redirect()->route('links.index')
@@ -81,9 +96,9 @@ class LinkController extends Controller
     public function destroy(UsefulLink $link)
     {
         $title = $link->title;
-        
+
         ActivityLog::log('deleted', "Deleted link: {$title}", $link);
-        
+
         $link->delete();
 
         return redirect()->route('links.index')

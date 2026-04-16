@@ -18,7 +18,12 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('users.index', compact('users'));
+        return $this->renderInertiaPage(
+            'pages/CrudTablePage',
+            view: 'users.index',
+            scriptId: 'svelte-crud-table-props',
+            viewData: compact('users'),
+        );
     }
 
     public function create()
@@ -26,7 +31,12 @@ class UserController extends Controller
         $roles = Role::all();
         $departments = Department::active()->get();
 
-        return view('users.create', compact('roles', 'departments'));
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'users.create',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('roles', 'departments'),
+        );
     }
 
     public function store(Request $request)
@@ -54,7 +64,12 @@ class UserController extends Controller
     {
         $user->load(['role', 'department', 'tasks', 'evaluations', 'programs']);
 
-        return view('users.show', compact('user'));
+        return $this->renderInertiaPage(
+            'pages/EntityDetailPage',
+            view: 'users.show',
+            scriptId: 'svelte-entity-detail-props',
+            viewData: compact('user'),
+        );
     }
 
     public function edit(User $user)
@@ -62,7 +77,12 @@ class UserController extends Controller
         $roles = Role::all();
         $departments = Department::active()->get();
 
-        return view('users.edit', compact('user', 'roles', 'departments'));
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'users.edit',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('user', 'roles', 'departments'),
+        );
     }
 
     public function update(Request $request, User $user)
@@ -114,7 +134,12 @@ class UserController extends Controller
         $departments = Department::active()->get();
         $roles = Role::all();
 
-        return view('users.import', compact('departments', 'roles'));
+        return $this->renderInertiaPage(
+            'pages/UserImportPage',
+            view: 'users.import',
+            scriptId: 'svelte-user-import-props',
+            viewData: compact('departments', 'roles'),
+        );
     }
 
     /**

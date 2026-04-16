@@ -1,5 +1,6 @@
 <script>
   import { Button } from '$lib/components/ui/button/index.js';
+  import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
   import PageHeader from '../components/PageHeader.svelte';
@@ -19,6 +20,10 @@
   } = $props();
 
   const confirmSubmission = async (event, action) => {
+    if (shouldSkipFormConfirmation(event.currentTarget)) {
+      return;
+    }
+
     if (!action?.confirm) {
       return;
     }
@@ -38,14 +43,14 @@
       });
 
       if (result.isConfirmed) {
-        event.currentTarget.submit();
+        submitConfirmedForm(event.currentTarget);
       }
 
       return;
     }
 
     if (window.confirm(text)) {
-      event.currentTarget.submit();
+      submitConfirmedForm(event.currentTarget);
     }
   };
 </script>

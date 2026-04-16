@@ -2,14 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Services\SvelteSsrRenderer;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class PublicPageSsrTest extends TestCase
 {
-    public function test_landing_page_includes_server_rendered_public_app_markup(): void
+    public function test_landing_page_returns_public_inertia_page_payload(): void
     {
         $this->withoutVite();
         Schema::create('settings', function (Blueprint $table): void {
@@ -20,27 +19,28 @@ class PublicPageSsrTest extends TestCase
             $table->timestamps();
         });
 
-        $this->app->instance(SvelteSsrRenderer::class, new class extends SvelteSsrRenderer
-        {
-            /**
-             * @param  array<string, mixed>  $props
-             * @return array{html: string, head: string, rendered: bool}
-             */
-            public function render(string $component, array $props = []): array
-            {
-                return [
-                    'html' => '<main data-test-ssr="public-app">SSR landing shell</main>',
-                    'head' => '<meta name="ssr-test" content="landing">',
-                    'rendered' => true,
-                ];
-            }
-        });
-
         $response = $this->get(route('home'));
 
         $response->assertOk();
-        $response->assertSee('<meta name="ssr-test" content="landing">', false);
-        $response->assertSee('<main data-test-ssr="public-app">SSR landing shell</main>', false);
-        $response->assertSee('data-ssr="true"', false);
+        $response->assertSee('id="app"', false);
+        $response->assertSee('data-page=', false);
+        $response->assertDontSee('id="svelte-public-root"', false);
+
+        $page = $this->inertiaPage($response->getContent());
+
+        $this->assertSame('PublicApp', $page['component']);
+        $this->assertSame('landing', $page['props']['page']);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function inertiaPage(string $html): array
+    {
+        preg_match('/data-page="([^"]+)"/', $html, $matches);
+
+        $this->assertNotEmpty($matches[1] ?? null);
+
+        return json_decode(html_entity_decode($matches[1], ENT_QUOTES), true, 512, JSON_THROW_ON_ERROR);
     }
 }

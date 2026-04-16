@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Assert;
 use Tests\TestCase;
 
 class DashboardControllerTest extends TestCase
@@ -108,14 +109,31 @@ class DashboardControllerTest extends TestCase
         $response = $this->actingAs($admin)->get(route('dashboard'));
 
         $response->assertOk();
-        $response->assertSee('Artikel dashboard terbaru');
-        $response->assertViewHas('departmentProgress', function (array $departmentProgress): bool {
-            return collect($departmentProgress)->contains(function (array $department): bool {
-                return ($department['name'] ?? null) === 'Ristek'
-                    && (int) ($department['total'] ?? 0) === 2
-                    && (int) ($department['done'] ?? 0) === 1
-                    && (int) ($department['percentage'] ?? 0) === 50;
-            });
-        });
+        $page = $this->inertiaPage($response->getContent());
+
+        $this->assertSame('DashboardPage', $page['component']);
+        $this->assertSame('Artikel dashboard terbaru', $page['props']['latestInformationBoards'][0]['title']);
+        $this->assertArrayHasKey('quickChat', $page['props']['shell']);
+        $this->assertArrayNotHasKey('users', $page['props']['shell']['quickChat']);
+        $this->assertArrayNotHasKey('conversations', $page['props']['shell']['quickChat']);
+        $this->assertSame(route('messages.sidebar-data'), $page['props']['shell']['quickChat']['endpoints']['sidebarData']);
+        Assert::assertTrue(collect($page['props']['departmentProgress'])->contains(function (array $department): bool {
+            return ($department['name'] ?? null) === 'Ristek'
+                && (int) ($department['total'] ?? 0) === 2
+                && (int) ($department['done'] ?? 0) === 1
+                && (int) ($department['percentage'] ?? 0) === 50;
+        }));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function inertiaPage(string $html): array
+    {
+        preg_match('/data-page="([^"]+)"/', $html, $matches);
+
+        $this->assertNotEmpty($matches[1] ?? null);
+
+        return json_decode(html_entity_decode($matches[1], ENT_QUOTES), true, 512, JSON_THROW_ON_ERROR);
     }
 }

@@ -1,24 +1,8 @@
 @php
-    $appName = \App\Models\Setting::get('app_name', 'CMOS');
-    $organizationName = \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
-    $fallbackTitle = 'Website Resmi HIMATEKKOM ITS 2026 | Kabinet Sentra Sinergi';
-    $fallbackDescription = 'Platform resmi HIMATEKKOM ITS untuk informasi publik dan kerja operasional kabinet.';
-    $publicProps = [
-        'page' => 'landing',
-        'appName' => $appName,
-        'organizationName' => $organizationName,
-        'loginUrl' => route('login'),
-        'infoUrl' => route('informasi.index'),
-        'logoUrl' => asset('images/logokabinet.png'),
-        'latestInfo' => $latestInfo->map(fn($item) => [
-            'title' => $item->title,
-            'excerpt' => $item->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($item->content), 140),
-            'publishedAt' => optional($item->publishedAtLocal)->toIso8601String(),
-            'coverImage' => $item->cover_image_url,
-            'category' => $item->categories->pluck('name')->implode(', ') ?: 'Papan Informasi',
-            'url' => route('informasi.show', $item->slug),
-        ])->values(),
-    ];
+    $article = $publicProps['infoShow']['article'] ?? [];
+    $organizationName = $publicProps['organizationName'] ?? 'HIMATEKKOM ITS';
+    $fallbackTitle = ($article['seoTitle'] ?? $article['title'] ?? 'Papan Informasi') . " - {$organizationName}";
+    $fallbackDescription = $article['excerpt'] ?? "Publikasi resmi {$organizationName}.";
     $publicSsr = app(\App\Services\SvelteSsrRenderer::class)->render('publicApp', $publicProps);
 @endphp
 <!DOCTYPE html>

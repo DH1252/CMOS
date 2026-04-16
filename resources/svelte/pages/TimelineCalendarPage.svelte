@@ -1,7 +1,8 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
+  import { loadExternalScript } from '$lib/external-assets.js';
   import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
   import PageHeader from '../components/PageHeader.svelte';
 
@@ -19,6 +20,8 @@
   let calendarInstance;
   let selectedEvent = $state(null);
   let initError = $state('');
+  let isLoadingCalendar = $state(true);
+  const fullCalendarScriptUrl = 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js';
 
   const formatDate = (value) => {
     if (!value) {
@@ -155,40 +158,74 @@
   };
 
   onMount(() => {
-    const FullCalendar = window.FullCalendar;
+    let active = true;
 
-    if (!FullCalendar?.Calendar) {
-      initError = 'Kalender tidak dapat dimuat saat ini.';
-      return undefined;
-    }
+    const initializeCalendar = async () => {
+      try {
+        await loadExternalScript(fullCalendarScriptUrl, 'FullCalendar');
 
-    calendarInstance = new FullCalendar.Calendar(calendarElement, {
-      initialView: 'dayGridMonth',
-      locale,
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,listMonth',
-      },
-      buttonText: {
-        today: 'Hari Ini',
-        month: 'Bulan',
-        week: 'Minggu',
-        list: 'Daftar',
-      },
-      events: eventsUrl,
-      eventDidMount: (info) => {
-        ensureEventContrast(info.el);
-      },
-      eventClick: (info) => {
-        info.jsEvent.preventDefault();
-        selectedEvent = buildEventDetail(info.event);
-      },
-    });
+        if (!active) {
+          return;
+        }
 
-    calendarInstance.render();
+        const FullCalendar = window.FullCalendar;
+
+        if (!FullCalendar?.Calendar) {
+          initError = 'Kalender tidak dapat dimuat saat ini.';
+          isLoadingCalendar = false;
+          return;
+        }
+
+        isLoadingCalendar = false;
+        await tick();
+
+        if (!active || !calendarElement) {
+          initError = 'Kalender tidak dapat dimuat saat ini.';
+          return;
+        }
+
+        calendarInstance = new FullCalendar.Calendar(calendarElement, {
+          initialView: 'dayGridMonth',
+          locale,
+          headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listMonth',
+          },
+          buttonText: {
+            today: 'Hari Ini',
+            month: 'Bulan',
+            week: 'Minggu',
+            list: 'Daftar',
+          },
+          events: eventsUrl,
+          eventDidMount: (info) => {
+            ensureEventContrast(info.el);
+          },
+          eventClick: (info) => {
+            info.jsEvent.preventDefault();
+            selectedEvent = buildEventDetail(info.event);
+          },
+        });
+
+        calendarInstance.render();
+      } catch (error) {
+        console.error('Failed to load FullCalendar assets.', error);
+
+        if (active) {
+          initError = 'Kalender tidak dapat dimuat saat ini.';
+        }
+      } finally {
+        if (active && initError) {
+          isLoadingCalendar = false;
+        }
+      }
+    };
+
+    void initializeCalendar();
 
     return () => {
+      active = false;
       calendarInstance?.destroy();
       calendarInstance = null;
     };
@@ -231,7 +268,11 @@
     {#if initError}
       <EmptyStatePanel title="Kalender gagal dimuat" text={initError} icon="fas fa-calendar-xmark" tone="secondary" compact={true} />
     {:else}
-      <div class="timeline-calendar-surface" bind:this={calendarElement}></div>
+      {#if isLoadingCalendar}
+        <EmptyStatePanel title="Memuat kalender" text="Aset kalender sedang disiapkan untuk tampilan ini." icon="fas fa-spinner fa-spin" tone="secondary" compact={true} />
+      {/if}
+
+      <div class={`timeline-calendar-surface ${isLoadingCalendar ? 'timeline-calendar-surface-hidden' : ''}`} bind:this={calendarElement}></div>
     {/if}
   </Card.Content>
 </Card.Root>
@@ -324,6 +365,10 @@
 
   .timeline-calendar-surface {
     min-height: 42rem;
+  }
+
+  .timeline-calendar-surface-hidden {
+    display: none;
   }
 
   :global(.fc) {

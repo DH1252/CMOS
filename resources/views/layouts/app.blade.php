@@ -26,6 +26,7 @@
         $pageTitle = trim($__env->yieldContent('page-title')) ?: trim($__env->yieldContent('title')) ?: 'Dashboard';
         $pageMeta = trim($__env->yieldContent('page-meta'));
         $currentUser = auth()->user();
+        $isSveltePropExtraction = (bool) ($__svelteExtractingProps ?? false);
         $navSections = [
             [
                 'title' => 'Operasional',
@@ -122,14 +123,19 @@
             ];
         }
 
-        $quickChatUsers = \App\Models\User::query()
-            ->where('id', '!=', $currentUser->id)
-            ->where('status', 'active')
-            ->with(['role', 'department'])
-            ->orderBy('name')
-            ->get();
+        if ($isSveltePropExtraction) {
+            $quickChatUsers = collect();
+            $quickChatConversations = collect();
+        } else {
+            $quickChatUsers = \App\Models\User::query()
+                ->where('id', '!=', $currentUser->id)
+                ->where('status', 'active')
+                ->with(['role', 'department'])
+                ->orderBy('name')
+                ->get();
 
-        $quickChatConversations = \App\Models\Message::getConversations($currentUser->id);
+            $quickChatConversations = \App\Models\Message::getConversations($currentUser->id);
+        }
 
         $authProps = [
             'appName' => $appName,

@@ -9,9 +9,16 @@ class ProfileController extends Controller
 {
     public function edit()
     {
-        return view('profile.edit', [
-            'user' => auth()->user()->loadMissing(['role', 'department']),
-        ]);
+        $user = auth()->user()->loadMissing(['role', 'department']);
+
+        return $this->renderInertiaPage(
+            'pages/ProfileSettingsPage',
+            view: 'profile.edit',
+            scriptId: 'svelte-profile-settings-props',
+            viewData: [
+                'user' => $user,
+            ],
+        );
     }
 
     public function update(Request $request)

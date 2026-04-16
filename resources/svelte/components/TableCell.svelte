@@ -1,6 +1,7 @@
 <script>
   import { Button } from '$lib/components/ui/button/index.js';
   import { Progress } from '$lib/components/ui/progress/index.js';
+  import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
   import StatusBadge from './StatusBadge.svelte';
 
   let {
@@ -48,6 +49,10 @@
   };
 
   const confirmSubmission = async (event, item) => {
+    if (shouldSkipFormConfirmation(event.currentTarget)) {
+      return;
+    }
+
     if (!item?.confirm) {
       return;
     }
@@ -68,13 +73,13 @@
       });
 
       if (result.isConfirmed) {
-        event.currentTarget.submit();
+        submitConfirmedForm(event.currentTarget);
       }
       return;
     }
 
     if (window.confirm(text)) {
-      event.currentTarget.submit();
+      submitConfirmedForm(event.currentTarget);
     }
   };
 </script>

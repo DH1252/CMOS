@@ -1,7 +1,6 @@
 <script>
   import { onDestroy, onMount } from 'svelte';
   import * as Card from '$lib/components/ui/card/index.js';
-  import DataTable from './components/DataTable.svelte';
   import EmptyStatePanel from './components/EmptyStatePanel.svelte';
   import PageHeader from './components/PageHeader.svelte';
 
@@ -10,6 +9,10 @@
     tasksByStatus = {},
     recentTasks = [],
     upcomingTimelines = [],
+    latestInformationBoards = [],
+    departmentProgress = [],
+    staffRanking = [],
+    monthlyTrends = [],
     links = {},
     now = {},
   } = $props();
@@ -175,45 +178,6 @@
     return 'secondary';
   };
 
-  const recentTaskColumns = [
-    { label: 'Task' },
-    { label: 'Status' },
-    { label: 'Progress' },
-    { label: 'Batas waktu' },
-  ];
-
-  const recentTaskRows = $derived.by(() =>
-    (recentTasks || []).slice(0, 5).map((task) => ({
-      id: task.id,
-      cells: [
-        {
-          type: 'stack',
-          lines: [
-            {
-              text: (task.title || '').length > 36 ? `${task.title.slice(0, 36)}...` : task.title || '-',
-              href: taskDetailHref(task),
-            },
-            { text: task.program?.name || '-', muted: true },
-          ],
-        },
-        {
-          type: 'badge',
-          label: statusLabel(task.status),
-          tone: statusTone(task.status_badge, task.status),
-        },
-        {
-          type: 'progress',
-          value: progressValue(task.progress),
-          label: `${progressValue(task.progress)}%`,
-          tone: progressValue(task.progress) >= 100 ? 'success' : 'primary',
-        },
-        {
-          text: task.is_overdue ? `Terlambat - ${formatShortDate(task.deadline)}` : formatShortDate(task.deadline),
-          muted: !task.is_overdue,
-        },
-      ],
-    })),
-  );
 </script>
 
 <section class="grid gap-4">
@@ -286,16 +250,26 @@
         {/each}
       </div>
 
-      <div class="overflow-hidden rounded-[10px] border border-border/70 bg-background/70">
-        <DataTable
-          columns={recentTaskColumns}
-          rows={recentTaskRows}
-          emptyState={{
-            title: 'Tidak ada task',
-            text: 'Perubahan task akan tampil di sini setelah ada aktivitas baru.',
-            icon: 'fas fa-list-check',
-          }}
-        />
+      <div class="dashboard-list-surface">
+        {#if recentTasks.length === 0}
+          <EmptyStatePanel title="Tidak ada task" text="Perubahan task akan tampil di sini setelah ada aktivitas baru." icon="fas fa-list-check" compact={true} />
+        {:else}
+          <div class="dashboard-list">
+            {#each recentTasks.slice(0, 5) as task, index (`task-${task.id || task.title || index}-${index}`)}
+              <a href={taskDetailHref(task) || links?.tasksIndex || '#'} class="dashboard-list-item">
+                <div class="dashboard-list-main">
+                  <strong class="dashboard-list-title">{(task.title || '').length > 42 ? `${task.title.slice(0, 42)}...` : task.title || '-'}</strong>
+                  <span class="dashboard-list-meta">{task.program?.name || '-'}</span>
+                </div>
+                <div class="dashboard-list-side">
+                  <span class={`dashboard-pill dashboard-pill-${statusTone(task.status_badge, task.status)}`}>{statusLabel(task.status)}</span>
+                  <span class="dashboard-list-progress">{progressValue(task.progress)}%</span>
+                  <span class={`dashboard-list-meta ${task.is_overdue ? 'text-[var(--signal-danger)]' : ''}`}>{task.is_overdue ? `Terlambat - ${formatShortDate(task.deadline)}` : formatShortDate(task.deadline)}</span>
+                </div>
+              </a>
+            {/each}
+          </div>
+        {/if}
       </div>
     </Card.Content>
   </Card.Root>
@@ -323,7 +297,7 @@
         <EmptyStatePanel title="Tidak ada agenda" text="Belum ada agenda mendatang yang terjadwal." icon="fas fa-calendar-xmark" compact={true} />
       {:else}
         <div class="grid gap-3">
-          {#each upcomingTimelines.slice(0, 4) as timeline, index (timeline.id || index)}
+          {#each upcomingTimelines.slice(0, 4) as timeline, index (`timeline-${timeline.id || timeline.title || index}-${index}`)}
             {#if links?.timelinesCalendar}
               <a href={links.timelinesCalendar} aria-label={`Buka kalender untuk ${timeline.title}`} class="rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
                 <strong class="block text-sm text-foreground">{timeline.title}</strong>
@@ -340,4 +314,270 @@
       {/if}
     </Card.Content>
   </Card.Root>
+
+  {#if latestInformationBoards.length > 0}
+    <Card.Root class="rounded-[10px] border border-border bg-card shadow-none">
+      <Card.Header class="border-b border-border pb-4">
+        <PageHeader
+          title="Artikel terbaru"
+          description="Pembaruan informasi internal yang baru dipublikasikan."
+          compact={true}
+          headingTag="h3"
+        />
+      </Card.Header>
+      <Card.Content class="grid gap-3 pt-5 md:grid-cols-2">
+        {#each latestInformationBoards.slice(0, 4) as article, index (`latest-${article.href || article.title || index}-${index}`)}
+          <a href={article.href} class="dashboard-link-card" aria-label={`Buka artikel ${article.title}`}>
+            <strong class="dashboard-link-card-title">{article.title}</strong>
+            <p class="dashboard-link-card-copy">{article.excerpt || 'Buka artikel untuk melihat detail lengkap.'}</p>
+            <span class="dashboard-link-card-meta">{formatLongDate(article.publishedAt)}</span>
+          </a>
+        {/each}
+      </Card.Content>
+    </Card.Root>
+  {/if}
+
+  {#if departmentProgress.length > 0 || staffRanking.length > 0}
+    <div class="grid gap-4 xl:grid-cols-2">
+      {#if departmentProgress.length > 0}
+        <Card.Root class="rounded-[10px] border border-border bg-card shadow-none">
+          <Card.Header class="border-b border-border pb-4">
+            <PageHeader
+              title="Progress departemen"
+              description="Ringkasan penyelesaian task lintas departemen."
+              compact={true}
+              headingTag="h3"
+            />
+          </Card.Header>
+          <Card.Content class="dashboard-list-surface pt-5">
+            <div class="dashboard-list">
+              {#each departmentProgress as department, index (`dept-${department.name || index}-${index}`)}
+                <section class="dashboard-list-item dashboard-list-item-static">
+                  <div class="dashboard-list-main">
+                    <strong class="dashboard-list-title">{department.name || '-'}</strong>
+                    <span class="dashboard-list-meta">{Number(department.total || 0)} task tercatat</span>
+                  </div>
+                  <div class="dashboard-list-side">
+                    <span class="dashboard-list-progress">{Number(department.percentage || 0)}%</span>
+                    <span class="dashboard-list-meta">{Number(department.done || 0)} / {Number(department.total || 0)} selesai</span>
+                  </div>
+                </section>
+              {/each}
+            </div>
+          </Card.Content>
+        </Card.Root>
+      {/if}
+
+      {#if staffRanking.length > 0}
+        <Card.Root class="rounded-[10px] border border-border bg-card shadow-none">
+          <Card.Header class="border-b border-border pb-4">
+            <PageHeader
+              title="Peringkat staff"
+              description="Rata-rata evaluasi terbaru untuk staff aktif."
+              compact={true}
+              headingTag="h3"
+            />
+          </Card.Header>
+          <Card.Content class="dashboard-list-surface pt-5">
+            <div class="dashboard-list">
+              {#each staffRanking as staff, index (`staff-${staff.name || index}-${index}`)}
+                <section class="dashboard-list-item dashboard-list-item-static">
+                  <div class="dashboard-list-main">
+                    <strong class="dashboard-list-title">{staff.name || '-'}</strong>
+                    <span class="dashboard-list-meta">{staff.department || 'Tanpa departemen'}</span>
+                  </div>
+                  <div class="dashboard-list-side">
+                    <span class="dashboard-list-progress">{Number(staff.score || 0).toLocaleString('id-ID', { maximumFractionDigits: 1 })}</span>
+                  </div>
+                </section>
+              {/each}
+            </div>
+          </Card.Content>
+        </Card.Root>
+      {/if}
+    </div>
+  {/if}
+
+  {#if monthlyTrends.length > 0}
+    <Card.Root class="rounded-[10px] border border-border bg-card shadow-none">
+      <Card.Header class="border-b border-border pb-4">
+        <PageHeader
+          title="Tren bulanan"
+          description="Perbandingan task dibuat dan diselesaikan dalam enam bulan terakhir."
+          compact={true}
+          headingTag="h3"
+        />
+      </Card.Header>
+      <Card.Content class="grid gap-3 pt-5 md:grid-cols-2 xl:grid-cols-3">
+        {#each monthlyTrends as trend, index (`trend-${trend.month || index}-${index}`)}
+          <section class="dashboard-stat-card">
+            <div class="dashboard-stat-card-label">{trend.month}</div>
+            <div class="dashboard-stat-card-grid">
+              <div>
+                <div class="dashboard-stat-card-value">{Number(trend.created || 0).toLocaleString('id-ID')}</div>
+                <div class="dashboard-stat-card-copy">Task dibuat</div>
+              </div>
+              <div>
+                <div class="dashboard-stat-card-value text-[var(--signal-success)]">{Number(trend.completed || 0).toLocaleString('id-ID')}</div>
+                <div class="dashboard-stat-card-copy">Task selesai</div>
+              </div>
+            </div>
+          </section>
+        {/each}
+      </Card.Content>
+    </Card.Root>
+  {/if}
 </section>
+
+<style>
+  .dashboard-link-card {
+    display: grid;
+    gap: 0.45rem;
+    padding: 1rem 1.05rem;
+    border: 1px solid var(--border);
+    border-radius: 0.625rem;
+    background: var(--background);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 160ms ease, background 160ms ease;
+  }
+
+  .dashboard-link-card:hover {
+    border-color: var(--brand-primary);
+    background: color-mix(in srgb, var(--muted) 80%, transparent);
+  }
+
+  .dashboard-link-card-title {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--text-strong);
+  }
+
+  .dashboard-link-card-copy,
+  .dashboard-link-card-meta,
+  .dashboard-stat-card-copy,
+  .dashboard-stat-card-label {
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .dashboard-stat-card {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem 1.05rem;
+    border: 1px solid var(--border);
+    border-radius: 0.625rem;
+    background: var(--background);
+  }
+
+  .dashboard-stat-card-grid {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-stat-card-value {
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-strong);
+  }
+
+  .dashboard-list-surface {
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    border-radius: 0.625rem;
+    background: color-mix(in srgb, var(--background) 70%, transparent);
+  }
+
+  .dashboard-list {
+    display: grid;
+  }
+
+  .dashboard-list-item {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem 1.05rem;
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  }
+
+  .dashboard-list-item:last-child {
+    border-bottom: none;
+  }
+
+  .dashboard-list-item:hover {
+    background: color-mix(in srgb, var(--muted) 70%, transparent);
+  }
+
+  .dashboard-list-item-static:hover {
+    background: transparent;
+  }
+
+  .dashboard-list-main,
+  .dashboard-list-side {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .dashboard-list-title {
+    font-size: 0.94rem;
+    color: var(--text-strong);
+  }
+
+  .dashboard-list-meta {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .dashboard-list-progress {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .dashboard-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .dashboard-pill-secondary {
+    background: var(--muted);
+    color: var(--text-muted);
+  }
+
+  .dashboard-pill-warning {
+    background: color-mix(in srgb, var(--signal-warning) 14%, transparent);
+    color: var(--signal-warning);
+  }
+
+  .dashboard-pill-success {
+    background: color-mix(in srgb, var(--signal-success) 14%, transparent);
+    color: var(--signal-success);
+  }
+
+  .dashboard-pill-danger {
+    background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
+    color: var(--signal-danger);
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-list-item {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .dashboard-list-side {
+      justify-items: end;
+      text-align: right;
+    }
+  }
+</style>

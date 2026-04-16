@@ -23,6 +23,8 @@ use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,7 +43,22 @@ Route::get('/', function () {
             ->get();
     }
 
-    return view('landing', compact('latestInfo'));
+    return Inertia::render('PublicApp', [
+        'page' => 'landing',
+        'appName' => \App\Models\Setting::get('app_name', 'CMOS'),
+        'organizationName' => \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS'),
+        'loginUrl' => route('login'),
+        'infoUrl' => route('informasi.index'),
+        'logoUrl' => asset('images/logokabinet.png'),
+        'latestInfo' => $latestInfo->map(fn ($item) => [
+            'title' => $item->title,
+            'excerpt' => $item->excerpt ?: Str::limit(strip_tags($item->content), 140),
+            'publishedAt' => optional($item->publishedAtLocal)->toIso8601String(),
+            'coverImage' => $item->cover_image_url,
+            'category' => $item->categories->pluck('name')->implode(', ') ?: 'Papan Informasi',
+            'url' => route('informasi.show', $item->slug),
+        ])->values(),
+    ]);
 })->name('home');
 Route::get('/informasi', [PublicInformationController::class, 'index'])->name('informasi.index');
 Route::get('/informasi/{informationBoard:slug}', [PublicInformationController::class, 'show'])->name('informasi.show');

@@ -23,7 +23,12 @@ class NotificationController extends Controller
             return response()->json($this->indexPayload($notifications, $unreadCount));
         }
 
-        return view('notifications.index', compact('notifications', 'unreadCount'));
+        return $this->renderInertiaPage(
+            'pages/NotificationInboxPage',
+            view: 'notifications.index',
+            scriptId: 'svelte-notification-inbox-props',
+            viewData: compact('notifications', 'unreadCount'),
+        );
     }
 
     /**

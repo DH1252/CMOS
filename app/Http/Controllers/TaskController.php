@@ -35,7 +35,12 @@ class TaskController extends Controller
         $globalTasksCount = Task::global()->count();
         $globalPendingCount = Task::global()->where('status', '!=', 'done')->count();
 
-        return view('tasks.departments', compact('departments', 'globalTasksCount', 'globalPendingCount'));
+        return $this->renderInertiaPage(
+            'pages/TaskHubPage',
+            view: 'tasks.departments',
+            scriptId: 'svelte-task-hub-props',
+            viewData: compact('departments', 'globalTasksCount', 'globalPendingCount'),
+        );
     }
 
     /**
@@ -70,15 +75,20 @@ class TaskController extends Controller
             return response()->json($payload);
         }
 
-        return view('tasks.kanban', [
-            'tasks' => $tasks,
-            'users' => $users,
-            'title' => 'Global Tasks',
-            'backUrl' => route('tasks.index'),
-            'createUrl' => route('tasks.create', ['type' => 'global']),
-            'type' => 'global',
-            'typeId' => null,
-        ]);
+        return $this->renderInertiaPage(
+            'pages/TaskBoardPage',
+            view: 'tasks.kanban',
+            scriptId: 'svelte-task-board-props',
+            viewData: [
+                'tasks' => $tasks,
+                'users' => $users,
+                'title' => 'Global Tasks',
+                'backUrl' => route('tasks.index'),
+                'createUrl' => route('tasks.create', ['type' => 'global']),
+                'type' => 'global',
+                'typeId' => null,
+            ],
+        );
     }
 
     /**
@@ -102,7 +112,12 @@ class TaskController extends Controller
         $deptPendingCount = (clone $departmentTasks)->where('status', '!=', 'done')->count();
         $deptDoneCount = (clone $departmentTasks)->done()->count();
 
-        return view('tasks.programs', compact('department', 'programs', 'deptTasksCount', 'deptPendingCount', 'deptDoneCount'));
+        return $this->renderInertiaPage(
+            'pages/TaskHubPage',
+            view: 'tasks.programs',
+            scriptId: 'svelte-task-hub-props',
+            viewData: compact('department', 'programs', 'deptTasksCount', 'deptPendingCount', 'deptDoneCount'),
+        );
     }
 
     /**
@@ -139,16 +154,21 @@ class TaskController extends Controller
             return response()->json($payload);
         }
 
-        return view('tasks.kanban', [
-            'tasks' => $tasks,
-            'users' => $users,
-            'title' => "Tugas {$department->name}",
-            'backUrl' => route('tasks.department', $department),
-            'createUrl' => route('tasks.create', ['type' => 'department', 'id' => $department->id]),
-            'type' => 'department',
-            'typeId' => $department->id,
-            'department' => $department,
-        ]);
+        return $this->renderInertiaPage(
+            'pages/TaskBoardPage',
+            view: 'tasks.kanban',
+            scriptId: 'svelte-task-board-props',
+            viewData: [
+                'tasks' => $tasks,
+                'users' => $users,
+                'title' => "Tugas {$department->name}",
+                'backUrl' => route('tasks.department', $department),
+                'createUrl' => route('tasks.create', ['type' => 'department', 'id' => $department->id]),
+                'type' => 'department',
+                'typeId' => $department->id,
+                'department' => $department,
+            ],
+        );
     }
 
     /**
@@ -184,16 +204,21 @@ class TaskController extends Controller
             return response()->json($payload);
         }
 
-        return view('tasks.kanban', [
-            'tasks' => $tasks,
-            'users' => $users,
-            'title' => $program->name,
-            'backUrl' => route('tasks.department', $program->department),
-            'createUrl' => route('tasks.create', ['type' => 'program', 'id' => $program->id]),
-            'type' => 'program',
-            'typeId' => $program->id,
-            'program' => $program,
-        ]);
+        return $this->renderInertiaPage(
+            'pages/TaskBoardPage',
+            view: 'tasks.kanban',
+            scriptId: 'svelte-task-board-props',
+            viewData: [
+                'tasks' => $tasks,
+                'users' => $users,
+                'title' => $program->name,
+                'backUrl' => route('tasks.department', $program->department),
+                'createUrl' => route('tasks.create', ['type' => 'program', 'id' => $program->id]),
+                'type' => 'program',
+                'typeId' => $program->id,
+                'program' => $program,
+            ],
+        );
     }
 
     /**
@@ -218,7 +243,12 @@ class TaskController extends Controller
         $programs = Program::with('department')->orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
 
-        return view('tasks.create', compact('type', 'typeId', 'users', 'programs', 'departments'));
+        return $this->renderInertiaPage(
+            'pages/TaskFormPage',
+            view: 'tasks.create',
+            scriptId: 'svelte-task-form-props',
+            viewData: compact('type', 'typeId', 'users', 'programs', 'departments'),
+        );
     }
 
     /**
@@ -271,7 +301,12 @@ class TaskController extends Controller
     {
         $task->load(['program.department', 'department', 'assignee.role', 'creator']);
 
-        return view('tasks.show', compact('task'));
+        return $this->renderInertiaPage(
+            'pages/TaskDetailPage',
+            view: 'tasks.show',
+            scriptId: 'svelte-task-detail-props',
+            viewData: compact('task'),
+        );
     }
 
     /**

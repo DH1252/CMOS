@@ -1,5 +1,6 @@
 <script>
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
 
 	let {
 		formId = '',
@@ -11,6 +12,10 @@
 	} = $props();
 
 	const confirmSubmission = async (event, action) => {
+		if (shouldSkipFormConfirmation(event.currentTarget)) {
+			return;
+		}
+
 		if (!action?.confirm) {
 			return;
 		}
@@ -30,14 +35,14 @@
 			});
 
 			if (result.isConfirmed) {
-				event.currentTarget.submit();
+				submitConfirmedForm(event.currentTarget);
 			}
 
 			return;
 		}
 
 		if (window.confirm(text)) {
-			event.currentTarget.submit();
+			submitConfirmedForm(event.currentTarget);
 		}
 	};
 

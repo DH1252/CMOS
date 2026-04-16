@@ -43,23 +43,33 @@ class InformationBoardController extends Controller
         $publishedCount = InformationBoard::where('status', 'published')->count();
         $draftCount = InformationBoard::where('status', 'draft')->count();
 
-        return view('information-boards.index', compact(
-            'informationBoards',
-            'categories',
-            'search',
-            'status',
-            'category',
-            'totalCount',
-            'publishedCount',
-            'draftCount'
-        ));
+        return $this->renderInertiaPage(
+            'pages/InformationBoardIndexPage',
+            view: 'information-boards.index',
+            scriptId: 'svelte-information-board-index-props',
+            viewData: compact(
+                'informationBoards',
+                'categories',
+                'search',
+                'status',
+                'category',
+                'totalCount',
+                'publishedCount',
+                'draftCount'
+            ),
+        );
     }
 
     public function create()
     {
         $categories = InformationCategory::orderBy('name')->get();
 
-        return view('information-boards.create', compact('categories'));
+        return $this->renderInertiaPage(
+            'pages/InformationBoardEditorPage',
+            view: 'information-boards.create',
+            scriptId: 'svelte-information-board-editor-props',
+            viewData: compact('categories'),
+        );
     }
 
     public function store(Request $request)
@@ -121,7 +131,57 @@ class InformationBoardController extends Controller
             ->take(6)
             ->get();
 
-        return view('information-boards.show', compact('informationBoard', 'latestArticles'));
+        $canManage = request()->user()?->isAdmin() || $informationBoard->user_id === auth()->id();
+
+        return $this->renderInertiaPage(
+            'pages/InformationBoardShowPage',
+            props: [
+                'article' => [
+                    'title' => $informationBoard->title,
+                    'coverImage' => $informationBoard->cover_image_url,
+                    'badges' => [
+                        [
+                            'label' => ucfirst($informationBoard->status),
+                            'tone' => $informationBoard->status === 'published' ? 'success' : 'secondary',
+                        ],
+                        ...$informationBoard->categories->map(fn ($category) => [
+                            'label' => $category->name,
+                            'tone' => 'info',
+                        ])->values()->all(),
+                    ],
+                    'metadata' => [
+                        [
+                            'icon' => 'fas fa-calendar',
+                            'label' => optional($informationBoard->publishedAtLocal)->toIso8601String()
+                                ?? $informationBoard->created_at->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->toIso8601String(),
+                        ],
+                        [
+                            'icon' => 'fas fa-user',
+                            'label' => $informationBoard->user?->name ?? '-',
+                        ],
+                    ],
+                    'contentHtml' => $informationBoard->content,
+                    'backAction' => [
+                        'href' => route('information-boards.index'),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                    'editAction' => $canManage ? [
+                        'href' => route('information-boards.edit', $informationBoard),
+                        'label' => 'Edit Artikel',
+                        'icon' => 'fas fa-edit',
+                    ] : null,
+                ],
+                'latestArticles' => $latestArticles->map(fn ($latest) => [
+                    'title' => $latest->title,
+                    'date' => optional($latest->publishedAtLocal)->toIso8601String()
+                        ?? $latest->created_at->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->toIso8601String(),
+                    'href' => route('information-boards.show', $latest),
+                ])->values(),
+            ],
+            pageTitle: 'Papan Informasi',
+            pageMeta: '',
+        );
     }
 
     public function edit(InformationBoard $informationBoard)
@@ -129,7 +189,12 @@ class InformationBoardController extends Controller
         $this->authorizeEdit($informationBoard, request()->user());
         $categories = InformationCategory::orderBy('name')->get();
 
-        return view('information-boards.edit', compact('informationBoard', 'categories'));
+        return $this->renderInertiaPage(
+            'pages/InformationBoardEditorPage',
+            view: 'information-boards.edit',
+            scriptId: 'svelte-information-board-editor-props',
+            viewData: compact('informationBoard', 'categories'),
+        );
     }
 
     public function update(Request $request, InformationBoard $informationBoard)

@@ -15,14 +15,23 @@ class InformationBoardRoutesTest extends TestCase
     public function test_public_article_route_resolves_by_slug(): void
     {
         $this->seed();
+        $this->withoutVite();
 
         $article = InformationBoard::query()->published()->firstOrFail();
 
         $response = $this->get(route('informasi.show', $article));
 
         $response->assertOk();
-        $response->assertSee($article->title);
-        $response->assertSee($article->content, false);
+        $response->assertSee('id="app"', false);
+        $response->assertSee('data-page=', false);
+        $response->assertSee($article->title, false);
+        $page = $this->inertiaPage($response->getContent());
+
+        $this->assertSame('PublicApp', $page['component']);
+        $this->assertSame('info-show', $page['props']['page']);
+        $this->assertSame($article->title, $page['props']['infoShow']['article']['title']);
+        $this->assertSame($article->seo_title, $page['props']['infoShow']['article']['seoTitle']);
+        $this->assertSame($article->content, $page['props']['infoShow']['article']['contentHtml']);
     }
 
     public function test_internal_article_route_resolves_by_slug_for_authenticated_user(): void
@@ -36,7 +45,22 @@ class InformationBoardRoutesTest extends TestCase
         $response = $this->actingAs($user)->get(route('information-boards.show', $article));
 
         $response->assertOk();
-        $response->assertSee($article->title);
-        $response->assertSee($article->content, false);
+        $page = $this->inertiaPage($response->getContent());
+
+        $this->assertSame('pages/InformationBoardShowPage', $page['component']);
+        $this->assertSame($article->title, $page['props']['article']['title']);
+        $this->assertSame($article->content, $page['props']['article']['contentHtml']);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function inertiaPage(string $html): array
+    {
+        preg_match('/data-page="([^"]+)"/', $html, $matches);
+
+        $this->assertNotEmpty($matches[1] ?? null);
+
+        return json_decode(html_entity_decode($matches[1], ENT_QUOTES), true, 512, JSON_THROW_ON_ERROR);
     }
 }
