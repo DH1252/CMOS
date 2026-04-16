@@ -255,21 +255,23 @@
     await moveServerContent();
     await syncUnreadCount();
 
-    liveUpdatesCleanup = subscribeToLiveUpdates(
-      endpoints.realtimeSnapshot,
-      async ({ changed, payload }) => {
-        if (!changed.includes('notifications')) {
-          return;
-        }
+    if (endpoints.realtimeSnapshot) {
+      liveUpdatesCleanup = subscribeToLiveUpdates(
+        endpoints.realtimeSnapshot,
+        async ({ changed, payload }) => {
+          if (!changed.includes('notifications')) {
+            return;
+          }
 
-        unreadCount = Number(payload.notifications?.unreadCount || 0);
+          unreadCount = Number(payload.notifications?.unreadCount || 0);
 
-        if (isNotificationsOpen) {
-          await loadNotifications();
-        }
-      },
-      { interval: 7000 },
-    );
+          if (isNotificationsOpen) {
+            await loadNotifications();
+          }
+        },
+        { interval: 7000 },
+      );
+    }
 
     window.addEventListener('resize', handleResize);
   });

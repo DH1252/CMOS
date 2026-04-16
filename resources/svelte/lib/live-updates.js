@@ -196,8 +196,12 @@ const boot = async () => {
 	return bootPromise;
 };
 
-export const subscribeToLiveUpdates = (_endpoint, listener) => {
-	if (typeof window === "undefined" || typeof listener !== "function") {
+export const subscribeToLiveUpdates = (endpoint, listener) => {
+	if (
+		typeof window === "undefined" ||
+		typeof listener !== "function" ||
+		!endpoint
+	) {
 		return () => {};
 	}
 
