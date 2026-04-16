@@ -86,9 +86,7 @@
           <strong>{user.name}</strong>
           <small>{user.roleName}</small>
         </span>
-        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m6 9 6 6 6-6"></path>
-        </svg>
+        <i class="fas fa-chevron-down" aria-hidden="true"></i>
       </button>
     {/snippet}
   </DropdownMenu.Trigger>
