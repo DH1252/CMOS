@@ -144,6 +144,7 @@ class InformationBoardController extends Controller
                         'method' => 'POST',
                         'csrfToken' => csrf_token(),
                         'enctype' => 'multipart/form-data',
+                        'attachmentUploadUrl' => route('information-boards.attachments.upload'),
                         'submitLabel' => 'Simpan',
                     ],
                     'article' => [
@@ -235,6 +236,24 @@ class InformationBoardController extends Controller
             ->with('success', 'Artikel papan informasi berhasil ditambahkan.');
     }
 
+    public function uploadAttachment(Request $request)
+    {
+        $validated = $request->validate([
+            'attachment' => 'required|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,rar',
+        ]);
+
+        $path = $validated['attachment']->store('information-boards/attachments', 'public');
+
+        return response()->json([
+            'url' => asset('storage/'.$path),
+            'href' => asset('storage/'.$path),
+            'path' => $path,
+            'filename' => $validated['attachment']->getClientOriginalName(),
+            'filesize' => $validated['attachment']->getSize(),
+            'contentType' => $validated['attachment']->getClientMimeType(),
+        ], 201);
+    }
+
     public function show(InformationBoard $informationBoard)
     {
         $informationBoard->load(['user', 'categories']);
@@ -317,6 +336,7 @@ class InformationBoardController extends Controller
                         'method' => 'PUT',
                         'csrfToken' => csrf_token(),
                         'enctype' => 'multipart/form-data',
+                        'attachmentUploadUrl' => route('information-boards.attachments.upload'),
                         'submitLabel' => 'Update',
                     ],
                     'article' => [
@@ -456,7 +476,7 @@ class InformationBoardController extends Controller
     {
         $clean = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $content) ?? '';
 
-        return strip_tags($clean, '<p><br><strong><b><em><i><u><ul><ol><li><a><h1><h2><h3><h4><blockquote>');
+        return strip_tags($clean, '<p><br><strong><b><em><i><u><ul><ol><li><a><h1><h2><h3><h4><blockquote><figure><figcaption><img><action-text-attachment>');
     }
 
     private function deleteCoverImage(?string $path): void

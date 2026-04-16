@@ -184,6 +184,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/announcements/{announcement}/vote', [AnnouncementController::class, 'vote'])->name('announcements.vote');
 
     // Information Boards - all authenticated roles can write
+    Route::post('/information-boards/attachments/upload', [InformationBoardController::class, 'uploadAttachment'])
+        ->name('information-boards.attachments.upload');
     Route::resource('information-boards', InformationBoardController::class);
 
     // Messages - All users

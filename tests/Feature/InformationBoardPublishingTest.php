@@ -6,6 +6,8 @@ use App\Models\InformationBoard;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class InformationBoardPublishingTest extends TestCase
@@ -80,6 +82,32 @@ class InformationBoardPublishingTest extends TestCase
 
         $response->assertRedirect(route('information-boards.create'));
         $response->assertSessionHasErrors('published_at');
+    }
+
+    public function test_article_attachment_upload_returns_trix_payload(): void
+    {
+        $this->seed();
+
+        Storage::fake('public');
+        $user = $this->adminUser();
+
+        $response = $this->actingAs($user)->postJson(route('information-boards.attachments.upload'), [
+            'attachment' => UploadedFile::fake()->image('lampiran.jpg', 1200, 800),
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonStructure([
+                'url',
+                'href',
+                'path',
+                'filename',
+                'filesize',
+                'contentType',
+            ]);
+
+        $path = $response->json('path');
+        $this->assertIsString($path);
+        $this->assertTrue(Storage::disk('public')->exists($path));
     }
 
     private function adminUser(): User
