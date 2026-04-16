@@ -411,9 +411,7 @@
                   class="inline-flex h-11 w-11 items-center justify-center rounded-[10px] border border-border bg-card text-foreground transition-colors hover:bg-muted lg:hidden"
                   aria-label="Buka navigasi"
                 >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round">
-                    <path d="M4 7h16M4 12h16M4 17h16"></path>
-                  </svg>
+                  <i class="fas fa-bars" aria-hidden="true"></i>
                 </button>
               {/snippet}
             </Sheet.Trigger>
@@ -449,16 +447,7 @@
             aria-label={themeMode === 'dark' ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'}
             aria-pressed={themeMode === 'light'}
           >
-            {#if themeMode === 'dark'}
-              <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="4.5"></circle>
-                <path d="M12 2.5v2.2M12 19.3v2.2M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"></path>
-              </svg>
-            {:else}
-              <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.8A8.8 8.8 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>
-              </svg>
-            {/if}
+            <i class={`fas ${themeMode === 'dark' ? 'fa-sun' : 'fa-moon'}`} aria-hidden="true"></i>
           </button>
 
           {#if NotificationPopoverComponent}
@@ -483,10 +472,7 @@
               onclick={() => void openNotifications()}
               aria-label="Notifikasi"
             >
-              <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M15 18H9"></path>
-                <path d="M18 16.5H6l1.2-1.4c.6-.7.8-1.6.8-2.5V10a4 4 0 1 1 8 0v2.6c0 .9.3 1.8.8 2.5L18 16.5z"></path>
-              </svg>
+              <i class="fas fa-bell" aria-hidden="true"></i>
               {#if unreadCount > 0}
                 <span class="absolute -right-[0.2rem] -top-[0.2rem] inline-grid h-[1.1rem] min-w-[1.1rem] place-items-center rounded-full bg-[var(--signal-danger)] px-[0.2rem] text-[0.66rem] font-bold text-[var(--white-soft)]">{unreadCount}</span>
               {/if}
@@ -508,53 +494,35 @@
       <div class="grid gap-4">
         {#if flash.success}
           <div class="alert alert-success animate-fadeIn">
-            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 7 10 17l-5-5"></path>
-            </svg>
+            <i class="fas fa-check-circle" aria-hidden="true"></i>
             <span>{flash.success}</span>
           </div>
         {/if}
 
         {#if flash.error}
           <div class="alert alert-danger animate-fadeIn">
-            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"></circle>
-              <path d="M12 8v5"></path>
-              <path d="M12 16h.01"></path>
-            </svg>
+            <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
             <span>{flash.error}</span>
           </div>
         {/if}
 
         {#if flash.warning}
           <div class="alert alert-warning animate-fadeIn">
-            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 4 3.5 19h17L12 4z"></path>
-              <path d="M12 9v4"></path>
-              <path d="M12 16h.01"></path>
-            </svg>
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
             <span>{flash.warning}</span>
           </div>
         {/if}
 
         {#if flash.info}
           <div class="alert alert-info animate-fadeIn">
-            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"></circle>
-              <path d="M12 10.5v4"></path>
-              <path d="M12 8h.01"></path>
-            </svg>
+            <i class="fas fa-circle-info" aria-hidden="true"></i>
             <span>{flash.info}</span>
           </div>
         {/if}
 
         {#if errorMessages.length}
           <div class="alert alert-danger animate-fadeIn">
-            <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"></circle>
-              <path d="M12 8v5"></path>
-              <path d="M12 16h.01"></path>
-            </svg>
+            <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
             <div>
               <strong>Terjadi kesalahan:</strong>
               <ul class="mb-0 mt-1">
@@ -575,18 +543,15 @@
   {#if FloatingChatComponent}
     <FloatingChatComponent quickChat={shellQuickChat} initiallyOpen={floatingChatInitiallyOpen} />
   {:else if shellQuickChat}
-        <div class="fixed bottom-4 right-4 z-40 md:bottom-6 md:right-6">
-          <button
-            type="button"
-            class="relative inline-grid h-14 w-14 place-items-center rounded-full bg-[var(--brand-primary)] text-[var(--primary-foreground)] shadow-lg transition-transform hover:scale-[1.02]"
-            onclick={() => void openFloatingChat()}
-            aria-label="Pesan cepat"
-          >
-        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 10h10M7 14h6"></path>
-          <path d="M5 18.5V6.8A2.8 2.8 0 0 1 7.8 4h8.4A2.8 2.8 0 0 1 19 6.8v5.9a2.8 2.8 0 0 1-2.8 2.8H10l-5 3z"></path>
-        </svg>
-          </button>
-        </div>
+    <div class="fixed bottom-4 right-4 z-40 md:bottom-6 md:right-6">
+      <button
+        type="button"
+        class="relative inline-grid h-14 w-14 place-items-center rounded-full bg-[var(--brand-primary)] text-[var(--primary-foreground)] shadow-lg transition-transform hover:scale-[1.02]"
+        onclick={() => void openFloatingChat()}
+        aria-label="Pesan cepat"
+      >
+        <i class="fas fa-comments text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
   {/if}
 </div>
