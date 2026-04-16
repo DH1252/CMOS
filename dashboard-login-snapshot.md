@@ -1,0 +1,30 @@
+- generic [ref=e2]:
+  - link "Lewati ke konten utama" [ref=e1] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - link "Kembali ke beranda" [ref=e7] [cursor=pointer]:
+        - /url: http://localhost:8000
+        - generic [ref=e8]: 
+        - generic [ref=e9]: Kembali ke beranda
+      - generic [ref=e10]:
+        - paragraph [ref=e11]: Akses internal organisasi
+        - heading "Masuk ke CMOS." [level=1] [ref=e12]
+        - paragraph [ref=e13]: Gunakan akun organisasi untuk melanjutkan task, timeline, evaluasi, dan arsip kerja kabinet.
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - heading "Masuk" [level=2] [ref=e16]
+        - paragraph [ref=e17]: Gunakan email organisasi dan password akun yang masih berlaku.
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]: Email organisasi
+          - textbox "Email organisasi" [active] [ref=e21]:
+            - /placeholder: nama@organisasi.com
+        - generic [ref=e22]:
+          - generic [ref=e23]: Password
+          - textbox "Password" [ref=e24]:
+            - /placeholder: Masukkan password
+        - generic [ref=e25]:
+          - checkbox "Simpan sesi di perangkat ini" [ref=e26]
+          - generic [ref=e27]: Simpan sesi di perangkat ini
+        - button "Masuk ke CMOS" [ref=e28]
