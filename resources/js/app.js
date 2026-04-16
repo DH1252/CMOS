@@ -3,36 +3,73 @@ import { hydrate, mount } from "svelte";
 import AuthLayout from "../svelte/layouts/AuthLayout.svelte";
 import { loadExternalScript } from "../svelte/lib/external-assets.js";
 
-const createDialogFacade = () => ({
-	__externalAssetFallback: true,
-	async fire(options = {}) {
-		const title = options.title || "";
-		const text = options.text || "";
-		const message = [title, text].filter(Boolean).join("\n\n").trim();
+const sweetAlertUrl =
+	"https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js";
 
-		if (options.showCancelButton) {
+let sweetAlertLoadPromise = null;
+
+const ensureDialogLibrary = async () => {
+	if (typeof window === "undefined") {
+		return null;
+	}
+
+	if (window.Swal && !window.Swal.__externalAssetFallback) {
+		return window.Swal;
+	}
+
+	if (!sweetAlertLoadPromise) {
+		sweetAlertLoadPromise = loadExternalScript(sweetAlertUrl, "Swal")
+			.then(() =>
+				window.Swal && !window.Swal.__externalAssetFallback
+					? window.Swal
+					: null,
+			)
+			.catch((error) => {
+				console.warn(
+					"SweetAlert2 failed to load, using fallback dialogs.",
+					error,
+				);
+
+				return null;
+			});
+	}
+
+	return sweetAlertLoadPromise;
+};
+
+const createDialogFacade = () => {
+	const facade = {
+		__externalAssetFallback: true,
+		async fire(options = {}) {
+			const dialogLibrary = await ensureDialogLibrary();
+
+			if (dialogLibrary && dialogLibrary !== facade) {
+				return dialogLibrary.fire(options);
+			}
+
+			const title = options.title || "";
+			const text = options.text || "";
+			const message = [title, text].filter(Boolean).join("\n\n").trim();
+
+			if (options.showCancelButton) {
+				return {
+					isConfirmed: window.confirm(message || "Lanjutkan tindakan ini?"),
+				};
+			}
+
+			window.alert(message || title || "Notifikasi");
+
 			return {
-				isConfirmed: window.confirm(message || "Lanjutkan tindakan ini?"),
+				isConfirmed: true,
 			};
-		}
+		},
+	};
 
-		window.alert(message || title || "Notifikasi");
-
-		return {
-			isConfirmed: true,
-		};
-	},
-});
+	return facade;
+};
 
 if (typeof window !== "undefined" && !window.Swal) {
 	window.Swal = createDialogFacade();
-
-	void loadExternalScript(
-		"https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js",
-		"Swal",
-	).catch((error) => {
-		console.warn("SweetAlert2 failed to load, using fallback dialogs.", error);
-	});
 }
 
 const pages = {

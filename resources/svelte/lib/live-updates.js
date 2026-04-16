@@ -5,6 +5,8 @@ let cleanupRealtimeChannels = null;
 let currentUserId = null;
 let lifecycleListenersBound = false;
 let pageIsActive = true;
+let scheduledBootHandle = null;
+let scheduledBootType = null;
 
 const parseAuthProps = () => {
 	if (typeof window === "undefined") {
@@ -34,7 +36,26 @@ const discardEcho = (echo = null) => {
 	}
 };
 
+const cancelScheduledBoot = () => {
+	if (scheduledBootHandle === null || typeof window === "undefined") {
+		return;
+	}
+
+	if (
+		scheduledBootType === "idle" &&
+		typeof window.cancelIdleCallback === "function"
+	) {
+		window.cancelIdleCallback(scheduledBootHandle);
+	} else {
+		window.clearTimeout(scheduledBootHandle);
+	}
+
+	scheduledBootHandle = null;
+	scheduledBootType = null;
+};
+
 const teardownConnection = () => {
+	cancelScheduledBoot();
 	cleanupRealtimeChannels?.();
 	cleanupRealtimeChannels = null;
 	currentUserId = null;
@@ -43,6 +64,37 @@ const teardownConnection = () => {
 	if (typeof window !== "undefined") {
 		discardEcho();
 	}
+};
+
+const scheduleBoot = () => {
+	if (
+		typeof window === "undefined" ||
+		listeners.size === 0 ||
+		cleanupRealtimeChannels ||
+		bootPromise ||
+		scheduledBootHandle !== null ||
+		!pageIsActive
+	) {
+		return;
+	}
+
+	const run = () => {
+		scheduledBootHandle = null;
+		scheduledBootType = null;
+
+		if (listeners.size > 0) {
+			void boot();
+		}
+	};
+
+	if (typeof window.requestIdleCallback === "function") {
+		scheduledBootType = "idle";
+		scheduledBootHandle = window.requestIdleCallback(run, { timeout: 1500 });
+		return;
+	}
+
+	scheduledBootType = "timeout";
+	scheduledBootHandle = window.setTimeout(run, 1000);
 };
 
 const bindLifecycleListeners = () => {
@@ -63,7 +115,7 @@ const bindLifecycleListeners = () => {
 		pageIsActive = true;
 
 		if (listeners.size > 0) {
-			void boot();
+			scheduleBoot();
 		}
 	});
 
@@ -196,7 +248,7 @@ export const subscribeToLiveUpdates = (endpoint, listener) => {
 
 	bindLifecycleListeners();
 	listeners.add(listener);
-	void boot();
+	scheduleBoot();
 
 	return () => {
 		listeners.delete(listener);

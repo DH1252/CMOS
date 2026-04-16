@@ -5,7 +5,7 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import StatusBadge from './StatusBadge.svelte';
 
-  let { quickChat = null } = $props();
+  let { quickChat = null, initiallyOpen = false } = $props();
 
   const initialUsers = () => quickChat?.users?.map((item) => ({ ...item })) || [];
   const initialSummaries = () => quickChat?.conversations?.map((item) => ({ ...item })) || [];
@@ -24,6 +24,24 @@
   let directoryError = $state('');
   let isSending = $state(false);
   let messageViewport = $state(null);
+
+  const scheduleAfterPaint = (callback, timeout = 1200) => {
+    if (typeof window === 'undefined') {
+      callback();
+      return () => {};
+    }
+
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(() => callback(), { timeout });
+
+      return () => window.cancelIdleCallback?.(handle);
+    }
+
+    const handle = window.setTimeout(callback, timeout);
+
+    return () => window.clearTimeout(handle);
+  };
+
   const fallbackAvatar = (name = 'User') => {
     const initial = (name || 'User').trim().charAt(0).toUpperCase() || 'U';
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="#251d39"/><text x="50%" y="50%" dy=".35em" fill="#f5c518" font-family="Public Sans, Arial, sans-serif" font-size="28" font-weight="700" text-anchor="middle">${initial}</text></svg>`;
@@ -141,13 +159,49 @@
     }
 
     const date = new Date(value);
+    const now = new Date();
 
     if (Number.isNaN(date.getTime())) {
       return value;
     }
 
-    return date.toLocaleTimeString('id-ID', {
+    const dayKey = (input) =>
+      new Intl.DateTimeFormat('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(input);
+
+    const yearKey = (input) =>
+      new Intl.DateTimeFormat('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+      }).format(input);
+
+    if (dayKey(date) === dayKey(now)) {
+      return date.toLocaleTimeString('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+
+    if (yearKey(date) === yearKey(now)) {
+      return date.toLocaleString('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+
+    return date.toLocaleString('id-ID', {
       timeZone: 'Asia/Jakarta',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -329,7 +383,14 @@
 
   onMount(() => {
     hydrateBootstrapDirectory();
-    syncUnreadBadge();
+
+    if (initiallyOpen) {
+      isOpen = true;
+    }
+
+    return scheduleAfterPaint(() => {
+      void syncUnreadBadge();
+    });
   });
 
   $effect(() => {

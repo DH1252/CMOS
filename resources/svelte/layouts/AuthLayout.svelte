@@ -5,8 +5,6 @@
   import { inertiaEnhance } from '$lib/inertia-enhance.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
   import { Toaster } from '$lib/components/ui/sonner/index.js';
-  import FloatingChat from '../components/FloatingChat.svelte';
-  import NotificationPopover from '../components/NotificationPopover.svelte';
   import SidebarNav from '../components/SidebarNav.svelte';
   import UserMenuDropdown from '../components/UserMenuDropdown.svelte';
 
@@ -29,6 +27,15 @@
   let isLoadingNotifications = $state(false);
   let themeMode = $state('dark');
   let liveUpdatesCleanup = $state(null);
+  let deferredShellBootCleanup = $state(null);
+  let deferredShellComponentsCleanup = $state(null);
+  let NotificationPopoverComponent = $state(null);
+  let FloatingChatComponent = $state(null);
+  let shellComponentLoads = $state({
+    notifications: null,
+    floatingChat: null,
+  });
+  let floatingChatInitiallyOpen = $state(false);
 
   const toneMap = {
     primary: 'tone-primary',
@@ -83,6 +90,70 @@
     if (window.innerWidth >= 1024) {
       isSidebarOpen = false;
     }
+  };
+
+  const scheduleAfterPaint = (callback, timeout = 1200) => {
+    if (typeof window === 'undefined') {
+      callback();
+      return () => {};
+    }
+
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(() => callback(), { timeout });
+
+      return () => window.cancelIdleCallback?.(handle);
+    }
+
+    const handle = window.setTimeout(callback, timeout);
+
+    return () => window.clearTimeout(handle);
+  };
+
+  const ensureNotificationPopoverLoaded = async () => {
+    if (NotificationPopoverComponent) {
+      return NotificationPopoverComponent;
+    }
+
+    if (!shellComponentLoads.notifications) {
+      shellComponentLoads = {
+        ...shellComponentLoads,
+        notifications: import('../components/NotificationPopover.svelte').then((module) => {
+          NotificationPopoverComponent = module.default;
+          return module.default;
+        }),
+      };
+    }
+
+    return shellComponentLoads.notifications;
+  };
+
+  const ensureFloatingChatLoaded = async () => {
+    if (FloatingChatComponent) {
+      return FloatingChatComponent;
+    }
+
+    if (!shellComponentLoads.floatingChat) {
+      shellComponentLoads = {
+        ...shellComponentLoads,
+        floatingChat: import('../components/FloatingChat.svelte').then((module) => {
+          FloatingChatComponent = module.default;
+          return module.default;
+        }),
+      };
+    }
+
+    return shellComponentLoads.floatingChat;
+  };
+
+  const openNotifications = async () => {
+    await ensureNotificationPopoverLoaded();
+    isNotificationsOpen = true;
+    isUserMenuOpen = false;
+  };
+
+  const openFloatingChat = async () => {
+    floatingChatInitiallyOpen = true;
+    await ensureFloatingChatLoaded();
   };
 
   const syncUnreadCount = async () => {
@@ -241,31 +312,43 @@
 
     applyThemeMode(savedTheme);
     window.__CMOS_AUTH_PROPS__ = shell;
-    await syncUnreadCount();
+    deferredShellBootCleanup = scheduleAfterPaint(async () => {
+      await syncUnreadCount();
 
-    if (shellEndpoints.realtimeSnapshot) {
-      liveUpdatesCleanup = subscribeToLiveUpdates(
-        shellEndpoints.realtimeSnapshot,
-        async ({ changed, payload }) => {
-          if (!changed.includes('notifications')) {
-            return;
-          }
+      if (shellEndpoints.realtimeSnapshot) {
+        liveUpdatesCleanup = subscribeToLiveUpdates(
+          shellEndpoints.realtimeSnapshot,
+          async ({ changed, payload }) => {
+            if (!changed.includes('notifications')) {
+              return;
+            }
 
-          unreadCount = Number(payload.notifications?.unreadCount || 0);
+            unreadCount = Number(payload.notifications?.unreadCount || 0);
 
-          if (isNotificationsOpen) {
-            await loadNotifications();
-          }
-        },
-        { interval: 7000 },
-      );
-    }
+            if (isNotificationsOpen) {
+              await loadNotifications();
+            }
+          },
+          { interval: 7000 },
+        );
+      }
+    });
+
+    deferredShellComponentsCleanup = scheduleAfterPaint(() => {
+      void ensureNotificationPopoverLoaded();
+
+      if (shellQuickChat) {
+        void ensureFloatingChatLoaded();
+      }
+    }, 800);
 
     window.addEventListener('resize', handleResize);
   });
 
   onDestroy(() => {
     window.removeEventListener('resize', handleResize);
+    deferredShellBootCleanup?.();
+    deferredShellComponentsCleanup?.();
     liveUpdatesCleanup?.();
 
     if (window.__CMOS_AUTH_PROPS__ === shell) {
@@ -338,20 +421,34 @@
             <i class={`fas ${themeMode === 'dark' ? 'fa-sun' : 'fa-moon'}`} aria-hidden="true"></i>
           </button>
 
-          <NotificationPopover
-            open={isNotificationsOpen}
-            {unreadCount}
-            {notifications}
-            isLoading={isLoadingNotifications}
-            csrfToken={shellCsrfToken}
-            links={shellLinks}
-            endpoints={shellEndpoints}
-          {formatTime}
-          {toneForNotification}
-          {iconForNotification}
-          onOpenChange={handleNotificationsOpenChange}
-          onMarkAllAsRead={markAllNotificationsAsRead}
-        />
+          {#if NotificationPopoverComponent}
+            <NotificationPopoverComponent
+              open={isNotificationsOpen}
+              {unreadCount}
+              {notifications}
+              isLoading={isLoadingNotifications}
+              csrfToken={shellCsrfToken}
+              links={shellLinks}
+              endpoints={shellEndpoints}
+              {formatTime}
+              {toneForNotification}
+              {iconForNotification}
+              onOpenChange={handleNotificationsOpenChange}
+              onMarkAllAsRead={markAllNotificationsAsRead}
+            />
+          {:else}
+            <button
+              type="button"
+              class="relative inline-grid h-11 w-11 place-items-center rounded-[10px] border border-border bg-card text-foreground transition-colors hover:bg-muted"
+              onclick={() => void openNotifications()}
+              aria-label="Notifikasi"
+            >
+              <i class="fas fa-bell" aria-hidden="true"></i>
+              {#if unreadCount > 0}
+                <span class="absolute -right-[0.2rem] -top-[0.2rem] inline-grid h-[1.1rem] min-w-[1.1rem] place-items-center rounded-full bg-[var(--signal-danger)] px-[0.2rem] text-[0.66rem] font-bold text-[var(--white-soft)]">{unreadCount}</span>
+              {/if}
+            </button>
+          {/if}
 
           <UserMenuDropdown
             open={isUserMenuOpen}
@@ -414,5 +511,18 @@
   </div>
 
   <Toaster position="top-right" richColors />
-  <FloatingChat quickChat={shellQuickChat} />
+  {#if FloatingChatComponent}
+    <FloatingChatComponent quickChat={shellQuickChat} initiallyOpen={floatingChatInitiallyOpen} />
+  {:else if shellQuickChat}
+    <div class="fixed bottom-4 right-4 z-40 md:bottom-6 md:right-6">
+      <button
+        type="button"
+        class="relative inline-grid h-14 w-14 place-items-center rounded-full bg-[var(--brand-primary)] text-[var(--primary-foreground)] shadow-lg transition-transform hover:scale-[1.02]"
+        onclick={() => void openFloatingChat()}
+        aria-label="Pesan cepat"
+      >
+        <i class="fas fa-comments text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+  {/if}
 </div>
