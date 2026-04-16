@@ -18,11 +18,77 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/CrudTablePage',
-            view: 'users.index',
-            scriptId: 'svelte-crud-table-props',
-            viewData: compact('users'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => 'Daftar User',
+                    'description' => 'Akun organisasi dikelola di sini untuk kebutuhan akses, departemen, dan peran kerja.',
+                    'icon' => 'fas fa-users',
+                    'csrfToken' => csrf_token(),
+                    'enableDataTable' => true,
+                    'primaryAction' => [
+                        'label' => 'Tambah User',
+                        'href' => route('users.create'),
+                        'icon' => 'fas fa-plus',
+                    ],
+                    'columns' => [
+                        ['label' => 'Nama'],
+                        ['label' => 'Email'],
+                        ['label' => 'Role'],
+                        ['label' => 'Departemen'],
+                        ['label' => 'Status'],
+                        ['label' => 'Aksi', 'width' => '120px'],
+                    ],
+                    'rows' => $users->map(function ($user) {
+                        $roleTone = match ($user->role?->name) {
+                            'admin' => 'danger',
+                            'bph' => 'warning',
+                            'kabinet' => 'info',
+                            default => 'secondary',
+                        };
+
+                        return [
+                            'cells' => [
+                                [
+                                    'type' => 'avatar',
+                                    'image' => $user->avatar_url,
+                                    'title' => $user->name,
+                                    'href' => route('users.show', $user),
+                                ],
+                                ['type' => 'text', 'text' => $user->email],
+                                ['type' => 'badge', 'label' => ucfirst($user->role?->name ?? '-'), 'tone' => $roleTone],
+                                ['type' => 'text', 'text' => $user->department?->name ?? '-', 'muted' => ! $user->department],
+                                ['type' => 'badge', 'label' => ucfirst($user->status), 'tone' => $user->status === 'active' ? 'success' : 'secondary'],
+                                [
+                                    'type' => 'actions',
+                                    'items' => array_values(array_filter([
+                                        ['href' => route('users.show', $user), 'label' => 'Detail', 'icon' => 'fas fa-eye', 'tone' => 'secondary'],
+                                        ['href' => route('users.edit', $user), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'],
+                                        $user->id !== auth()->id() ? [
+                                            'action' => route('users.destroy', $user),
+                                            'method' => 'DELETE',
+                                            'label' => 'Hapus',
+                                            'icon' => 'fas fa-trash',
+                                            'tone' => 'danger',
+                                            'confirm' => $user->name,
+                                            'confirmText' => "Hapus akun {$user->name}?",
+                                        ] : null,
+                                    ])),
+                                ],
+                            ],
+                        ];
+                    })->values(),
+                    'emptyState' => [
+                        'title' => 'Belum ada user',
+                        'text' => 'Tambahkan akun baru untuk mulai mengelola organisasi di dalam sistem.',
+                    ],
+                ];
+
+                return $props;
+            })(compact('users')),
         );
     }
 
@@ -31,11 +97,70 @@ class UserController extends Controller
         $roles = Role::all();
         $departments = Department::active()->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EntityFormPage',
-            view: 'users.create',
-            scriptId: 'svelte-entity-form-props',
-            viewData: compact('roles', 'departments'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => 'Form Tambah User',
+                    'description' => 'Buat akun baru dan tetapkan peran organisasi serta departemen yang relevan.',
+                    'icon' => 'fas fa-user-plus',
+                    'form' => [
+                        'action' => route('users.store'),
+                        'method' => 'POST',
+                        'csrfToken' => csrf_token(),
+                        'submitLabel' => 'Simpan',
+                        'submitIcon' => 'fas fa-save',
+                    ],
+                    'cancelAction' => [
+                        'href' => route('users.index'),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                    'fields' => [
+                        ['name' => 'name', 'label' => 'Nama Lengkap', 'type' => 'text', 'required' => true, 'value' => old('name'), 'error' => session('errors')?->first('name'), 'span' => 'half'],
+                        ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true, 'value' => old('email'), 'error' => session('errors')?->first('email'), 'span' => 'half'],
+                        ['name' => 'password', 'label' => 'Password', 'type' => 'password', 'required' => true, 'value' => '', 'error' => session('errors')?->first('password'), 'note' => 'Minimal 8 karakter.', 'span' => 'half'],
+                        ['name' => 'password_confirmation', 'label' => 'Konfirmasi Password', 'type' => 'password', 'required' => true, 'value' => '', 'span' => 'half'],
+                        [
+                            'name' => 'role_id',
+                            'label' => 'Role',
+                            'type' => 'select',
+                            'required' => true,
+                            'value' => old('role_id'),
+                            'error' => session('errors')?->first('role_id'),
+                            'placeholder' => '-- Pilih Role --',
+                            'span' => 'half',
+                            'options' => $roles->map(fn ($role) => ['value' => $role->id, 'label' => ucfirst($role->name)])->values(),
+                        ],
+                        [
+                            'name' => 'department_id',
+                            'label' => 'Departemen',
+                            'type' => 'select',
+                            'value' => old('department_id'),
+                            'error' => session('errors')?->first('department_id'),
+                            'placeholder' => '-- Pilih Departemen --',
+                            'span' => 'half',
+                            'options' => $departments->map(fn ($department) => ['value' => $department->id, 'label' => $department->name])->values(),
+                        ],
+                        [
+                            'name' => 'status',
+                            'label' => 'Status',
+                            'type' => 'select',
+                            'required' => true,
+                            'value' => old('status', 'active'),
+                            'error' => session('errors')?->first('status'),
+                            'options' => [
+                                ['value' => 'active', 'label' => 'Active'],
+                                ['value' => 'inactive', 'label' => 'Inactive'],
+                            ],
+                        ],
+                    ],
+                ];
+
+                return $props;
+            })(compact('roles', 'departments')),
         );
     }
 
@@ -64,11 +189,95 @@ class UserController extends Controller
     {
         $user->load(['role', 'department', 'tasks', 'evaluations', 'programs']);
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EntityDetailPage',
-            view: 'users.show',
-            scriptId: 'svelte-entity-detail-props',
-            viewData: compact('user'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $user->loadMissing(['tasks.program', 'evaluations.evaluator']);
+
+                $props = [
+                    'csrfToken' => csrf_token(),
+                    'summary' => [
+                        'image' => $user->avatar_url,
+                        'title' => $user->name,
+                        'subtitle' => $user->email,
+                        'badges' => [
+                            [
+                                'label' => ucfirst($user->role?->name ?? 'No Role'),
+                                'tone' => match ($user->role?->name) {
+                                    'admin' => 'danger',
+                                    'bph' => 'warning',
+                                    'kabinet' => 'info',
+                                    default => 'secondary',
+                                },
+                            ],
+                            [
+                                'label' => ucfirst($user->status),
+                                'tone' => $user->status === 'active' ? 'success' : 'secondary',
+                            ],
+                        ],
+                        'facts' => [
+                            ['label' => 'Departemen', 'value' => $user->department?->name ?? '-'],
+                            ['label' => 'Bergabung', 'value' => $user->created_at->format('d M Y')],
+                        ],
+                        'actions' => [
+                            ['href' => route('users.edit', $user), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'],
+                            ['href' => route('users.index'), 'label' => 'Kembali', 'icon' => 'fas fa-arrow-left', 'tone' => 'secondary'],
+                        ],
+                    ],
+                    'stats' => [
+                        ['label' => 'Total Task', 'value' => $user->task_stats['total'], 'icon' => 'fas fa-clipboard-list', 'tone' => 'info'],
+                        ['label' => 'In Progress', 'value' => $user->task_stats['in_progress'], 'icon' => 'fas fa-spinner', 'tone' => 'warning'],
+                        ['label' => 'Selesai', 'value' => $user->task_stats['done'], 'icon' => 'fas fa-check', 'tone' => 'success'],
+                    ],
+                    'sections' => [
+                        [
+                            'kind' => 'table',
+                            'title' => 'Task Terbaru',
+                            'icon' => 'fas fa-list-check',
+                            'columns' => [
+                                ['label' => 'Task'],
+                                ['label' => 'Program'],
+                                ['label' => 'Status'],
+                                ['label' => 'Progress'],
+                            ],
+                            'rows' => $user->tasks->take(5)->map(fn ($task) => [
+                                'cells' => [
+                                    ['type' => 'text', 'text' => $task->title, 'className' => 'fw-semibold'],
+                                    ['type' => 'text', 'text' => $task->program?->name ?? '-', 'muted' => ! $task->program],
+                                    ['type' => 'badge', 'label' => ucfirst(str_replace('_', ' ', $task->status)), 'tone' => $task->status_badge],
+                                    ['type' => 'progress', 'value' => $task->progress, 'label' => "{$task->progress}%"],
+                                ],
+                            ])->values(),
+                            'emptyText' => 'Tidak ada task.',
+                        ],
+                        [
+                            'kind' => 'table',
+                            'title' => 'Riwayat Evaluasi',
+                            'icon' => 'fas fa-star',
+                            'columns' => [
+                                ['label' => 'Periode'],
+                                ['label' => 'Evaluator'],
+                                ['label' => 'Tipe'],
+                                ['label' => 'Total'],
+                            ],
+                            'rows' => $user->evaluations->take(5)->map(fn ($evaluation) => [
+                                'cells' => [
+                                    ['type' => 'text', 'text' => $evaluation->period ?? '-', 'className' => 'fw-semibold'],
+                                    ['type' => 'text', 'text' => $evaluation->evaluator?->name ?? '-', 'muted' => ! $evaluation->evaluator],
+                                    ['type' => 'badge', 'label' => strtoupper($evaluation->evaluator_type), 'tone' => $evaluation->evaluator_type === 'bph' ? 'warning' : 'info'],
+                                    ['type' => 'badge', 'label' => number_format($evaluation->total_score, 2), 'tone' => $evaluation->total_score >= 4.5 ? 'success' : ($evaluation->total_score >= 3 ? 'warning' : 'danger')],
+                                ],
+                            ])->values(),
+                            'emptyText' => 'Belum ada data evaluasi.',
+                            'spacingClass' => 'mb-0',
+                        ],
+                    ],
+                ];
+
+                return $props;
+            })(compact('user')),
         );
     }
 
@@ -77,11 +286,69 @@ class UserController extends Controller
         $roles = Role::all();
         $departments = Department::active()->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EntityFormPage',
-            view: 'users.edit',
-            scriptId: 'svelte-entity-form-props',
-            viewData: compact('user', 'roles', 'departments'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => "Edit User: {$user->name}",
+                    'description' => 'Perbarui identitas, peran, atau status akun tanpa meninggalkan konteks kerja.',
+                    'icon' => 'fas fa-user-pen',
+                    'form' => [
+                        'action' => route('users.update', $user),
+                        'method' => 'PUT',
+                        'csrfToken' => csrf_token(),
+                        'submitLabel' => 'Update',
+                        'submitIcon' => 'fas fa-save',
+                    ],
+                    'cancelAction' => [
+                        'href' => route('users.index'),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                    'fields' => [
+                        ['name' => 'name', 'label' => 'Nama Lengkap', 'type' => 'text', 'required' => true, 'value' => old('name', $user->name), 'error' => session('errors')?->first('name'), 'span' => 'half'],
+                        ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true, 'value' => old('email', $user->email), 'error' => session('errors')?->first('email'), 'span' => 'half'],
+                        ['name' => 'password', 'label' => 'Password Baru', 'type' => 'password', 'value' => '', 'error' => session('errors')?->first('password'), 'note' => 'Kosongkan jika tidak diubah.', 'span' => 'half'],
+                        ['name' => 'password_confirmation', 'label' => 'Konfirmasi Password', 'type' => 'password', 'value' => '', 'span' => 'half'],
+                        [
+                            'name' => 'role_id',
+                            'label' => 'Role',
+                            'type' => 'select',
+                            'required' => true,
+                            'value' => old('role_id', $user->role_id),
+                            'error' => session('errors')?->first('role_id'),
+                            'span' => 'half',
+                            'options' => $roles->map(fn ($role) => ['value' => $role->id, 'label' => ucfirst($role->name)])->values(),
+                        ],
+                        [
+                            'name' => 'department_id',
+                            'label' => 'Departemen',
+                            'type' => 'select',
+                            'value' => old('department_id', $user->department_id),
+                            'error' => session('errors')?->first('department_id'),
+                            'placeholder' => '-- Pilih Departemen --',
+                            'span' => 'half',
+                            'options' => $departments->map(fn ($department) => ['value' => $department->id, 'label' => $department->name])->values(),
+                        ],
+                        [
+                            'name' => 'status',
+                            'label' => 'Status',
+                            'type' => 'select',
+                            'required' => true,
+                            'value' => old('status', $user->status),
+                            'error' => session('errors')?->first('status'),
+                            'options' => [
+                                ['value' => 'active', 'label' => 'Active'],
+                                ['value' => 'inactive', 'label' => 'Inactive'],
+                            ],
+                        ],
+                    ],
+                ];
+
+                return $props;
+            })(compact('user', 'roles', 'departments')),
         );
     }
 
@@ -134,11 +401,32 @@ class UserController extends Controller
         $departments = Department::active()->get();
         $roles = Role::all();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/UserImportPage',
-            view: 'users.import',
-            scriptId: 'svelte-user-import-props',
-            viewData: compact('departments', 'roles'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $results = session('import_results', ['success' => [], 'errors' => []]);
+
+                $props = [
+                    'title' => 'Import User dari CSV',
+                    'description' => 'Unggah data anggota secara massal menggunakan template resmi dan tinjau hasil impor langsung dari halaman ini.',
+                    'form' => [
+                        'action' => route('users.import.process'),
+                        'csrfToken' => csrf_token(),
+                        'templateUrl' => route('users.import.template'),
+                    ],
+                    'roles' => $roles->pluck('name')->values(),
+                    'departments' => $departments->pluck('name')->values(),
+                    'errors' => collect(session('errors')?->messages() ?? [])->map(fn ($messages) => $messages[0])->all(),
+                    'results' => [
+                        'success' => array_values($results['success'] ?? []),
+                        'errors' => array_values($results['errors'] ?? []),
+                    ],
+                ];
+
+                return $props;
+            })(compact('departments', 'roles')),
         );
     }
 

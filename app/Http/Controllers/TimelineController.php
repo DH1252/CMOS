@@ -29,20 +29,134 @@ class TimelineController extends Controller
 
         $timelines = $query->orderBy('start_date')->orderBy('end_date')->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TimelineCollectionPage',
-            view: 'timelines.index',
-            scriptId: 'svelte-timeline-collection-props',
-            viewData: compact('timelines'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $today = now()->toDateString();
+                $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+
+                $statusFor = function ($timeline) use ($today) {
+                    if ($timeline->end_date->toDateString() < $today) {
+                        return ['label' => 'Selesai', 'tone' => 'secondary'];
+                    }
+
+                    if ($timeline->start_date->toDateString() > $today) {
+                        return ['label' => 'Akan Datang', 'tone' => 'info'];
+                    }
+
+                    return ['label' => 'Berlangsung', 'tone' => 'success'];
+                };
+
+                $props = [
+                    'title' => 'Semua Timeline',
+                    'description' => 'Pantau agenda global, departemen, dan program kerja dalam satu daftar yang rapi.',
+                    'icon' => 'fas fa-calendar-alt',
+                    'actions' => array_values(array_filter([
+                        ['href' => route('timelines.calendar'), 'label' => 'Kalender', 'icon' => 'fas fa-calendar-days', 'tone' => 'secondary'],
+                        $canManage ? ['href' => route('timelines.create'), 'label' => 'Tambah Timeline', 'icon' => 'fas fa-plus', 'tone' => 'primary'] : null,
+                    ])),
+                    'summary' => [
+                        ['label' => 'Total', 'value' => $timelines->count()],
+                        ['label' => 'Berlangsung', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'success')->count()],
+                        ['label' => 'Akan Datang', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'info')->count()],
+                    ],
+                    'items' => $timelines->map(function ($timeline) use ($statusFor, $canManage) {
+                        $scope = match ($timeline->type) {
+                            'global' => ['label' => 'Global', 'tone' => 'primary'],
+                            'department' => ['label' => 'Departemen', 'tone' => 'info'],
+                            default => ['label' => 'Program', 'tone' => 'secondary'],
+                        };
+
+                        $meta = [];
+
+                        if ($timeline->department) {
+                            $meta[] = ['icon' => 'fas fa-building', 'label' => $timeline->department->name];
+                        }
+
+                        if ($timeline->program) {
+                            $meta[] = ['icon' => 'fas fa-diagram-project', 'label' => $timeline->program->name];
+                        }
+
+                        return [
+                            'title' => $timeline->title,
+                            'description' => $timeline->description ?: 'Tidak ada deskripsi tambahan untuk timeline ini.',
+                            'color' => $timeline->color ?? '#7C3AED',
+                            'range' => $timeline->start_date->format('d M Y').' - '.$timeline->end_date->format('d M Y'),
+                            'scope' => $scope,
+                            'status' => $statusFor($timeline),
+                            'meta' => $meta,
+                            'actions' => $canManage ? [
+                                [
+                                    'href' => route('timelines.edit', $timeline),
+                                    'label' => 'Edit timeline',
+                                    'icon' => 'fas fa-pen',
+                                    'tone' => 'secondary',
+                                    'iconOnly' => true,
+                                ],
+                                [
+                                    'href' => route('timelines.destroy', $timeline),
+                                    'label' => 'Hapus timeline',
+                                    'icon' => 'fas fa-trash',
+                                    'tone' => 'danger',
+                                    'method' => 'POST',
+                                    'spoofMethod' => 'DELETE',
+                                    'csrfToken' => csrf_token(),
+                                    'confirm' => $timeline->title,
+                                    'iconOnly' => true,
+                                ],
+                            ] : [],
+                        ];
+                    })->values(),
+                    'emptyState' => [
+                        'title' => 'Belum ada timeline',
+                        'text' => 'Timeline organisasi akan tampil di sini setelah dibuat.',
+                        'action' => $canManage ? [
+                            'href' => route('timelines.create'),
+                            'label' => 'Tambah Timeline',
+                            'icon' => 'fas fa-plus',
+                        ] : null,
+                    ],
+                ];
+
+                return $props;
+            })(compact('timelines')),
         );
     }
 
     public function calendar()
     {
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TimelineCalendarPage',
-            view: 'timelines.calendar',
-            scriptId: 'svelte-timeline-calendar-props',
+            (static function (): array {
+                $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+
+                $props = [
+                    'title' => 'Kalender Timeline',
+                    'description' => 'Pantau timeline, program kerja, dan deadline task dalam satu kalender interaktif.',
+                    'listAction' => [
+                        'href' => route('timelines.index'),
+                        'label' => 'List View',
+                        'icon' => 'fas fa-list',
+                    ],
+                    'createAction' => $canManage ? [
+                        'href' => route('timelines.create'),
+                        'label' => 'Tambah Timeline',
+                        'icon' => 'fas fa-plus',
+                    ] : null,
+                    'eventsUrl' => route('timelines.calendar.data'),
+                    'locale' => 'id',
+                    'legend' => [
+                        ['label' => 'Timeline Global', 'color' => '#7751DE'],
+                        ['label' => 'Timeline Departemen', 'color' => '#D4A017'],
+                        ['label' => 'Program Kerja', 'color' => '#3F7A50'],
+                        ['label' => 'Deadline Task', 'color' => '#A96B12'],
+                    ],
+                ];
+
+                return $props;
+            })(),
         );
     }
 
@@ -171,11 +285,65 @@ class TimelineController extends Controller
             ->orderBy('start_date')
             ->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TimelineCollectionPage',
-            view: 'timelines.global',
-            scriptId: 'svelte-timeline-collection-props',
-            viewData: compact('timelines'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $today = now()->toDateString();
+                $canCreate = auth()->user()->hasRole(['admin', 'bph']);
+
+                $statusFor = function ($timeline) use ($today) {
+                    if ($timeline->end_date->toDateString() < $today) {
+                        return ['label' => 'Selesai', 'tone' => 'secondary'];
+                    }
+
+                    if ($timeline->start_date->toDateString() > $today) {
+                        return ['label' => 'Akan Datang', 'tone' => 'info'];
+                    }
+
+                    return ['label' => 'Berlangsung', 'tone' => 'success'];
+                };
+
+                $props = [
+                    'title' => 'Timeline Global',
+                    'description' => 'Agenda strategis organisasi yang jadi acuan lintas departemen.',
+                    'icon' => 'fas fa-globe',
+                    'breadcrumbs' => [
+                        ['label' => 'Timeline', 'href' => route('timelines.index')],
+                        ['label' => 'Global'],
+                    ],
+                    'actions' => array_values(array_filter([
+                        ['href' => route('timelines.calendar'), 'label' => 'Kalender', 'icon' => 'fas fa-calendar-days', 'tone' => 'secondary'],
+                        $canCreate ? ['href' => route('timelines.create', ['type' => 'global']), 'label' => 'Tambah Timeline', 'icon' => 'fas fa-plus', 'tone' => 'primary'] : null,
+                    ])),
+                    'summary' => [
+                        ['label' => 'Total Global', 'value' => $timelines->count()],
+                        ['label' => 'Berlangsung', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'success')->count()],
+                        ['label' => 'Akan Datang', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'info')->count()],
+                    ],
+                    'items' => $timelines->map(fn ($timeline) => [
+                        'title' => $timeline->title,
+                        'description' => $timeline->description ?: 'Agenda global tanpa deskripsi tambahan.',
+                        'color' => $timeline->color ?? '#7C3AED',
+                        'range' => $timeline->start_date->format('d M Y').' - '.$timeline->end_date->format('d M Y'),
+                        'scope' => ['label' => 'Global', 'tone' => 'primary'],
+                        'status' => $statusFor($timeline),
+                        'meta' => [],
+                    ])->values(),
+                    'emptyState' => [
+                        'title' => 'Belum ada timeline global',
+                        'text' => 'Agenda global organisasi belum ditambahkan.',
+                        'action' => $canCreate ? [
+                            'href' => route('timelines.create', ['type' => 'global']),
+                            'label' => 'Tambah Timeline',
+                            'icon' => 'fas fa-plus',
+                        ] : null,
+                    ],
+                ];
+
+                return $props;
+            })(compact('timelines')),
         );
     }
 
@@ -193,11 +361,96 @@ class TimelineController extends Controller
             ? Timeline::with(['program'])->where('department_id', $department->id)->orderBy('start_date')->get()
             : collect();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TimelineCollectionPage',
-            view: 'timelines.department',
-            scriptId: 'svelte-timeline-collection-props',
-            viewData: compact('timelines', 'departments', 'department'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $today = now()->toDateString();
+                $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+
+                $statusFor = function ($timeline) use ($today) {
+                    if ($timeline->end_date->toDateString() < $today) {
+                        return ['label' => 'Selesai', 'tone' => 'secondary'];
+                    }
+
+                    if ($timeline->start_date->toDateString() > $today) {
+                        return ['label' => 'Akan Datang', 'tone' => 'info'];
+                    }
+
+                    return ['label' => 'Berlangsung', 'tone' => 'success'];
+                };
+
+                $props = [
+                    'title' => $department ? 'Agenda '.$department->name : 'Agenda Departemen',
+                    'description' => $department
+                        ? 'Lihat agenda departemen terpilih beserta timeline yang terkait dengan program kerjanya.'
+                        : 'Pilih departemen untuk melihat agenda yang relevan.',
+                    'icon' => 'fas fa-building',
+                    'breadcrumbs' => [
+                        ['label' => 'Timeline', 'href' => route('timelines.index')],
+                        ['label' => 'Departemen'],
+                        $department ? ['label' => $department->name] : null,
+                    ],
+                    'actions' => array_values(array_filter([
+                        ['href' => route('timelines.calendar'), 'label' => 'Kalender', 'icon' => 'fas fa-calendar-days', 'tone' => 'secondary'],
+                        $canManage ? [
+                            'href' => $department
+                                ? route('timelines.create', ['type' => 'department', 'department_id' => $department->id])
+                                : route('timelines.create', ['type' => 'department']),
+                            'label' => 'Tambah Timeline',
+                            'icon' => 'fas fa-plus',
+                            'tone' => 'primary',
+                        ] : null,
+                    ])),
+                    'summary' => $department ? [
+                        ['label' => 'Total', 'value' => $timelines->count()],
+                        ['label' => 'Berlangsung', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'success')->count()],
+                        ['label' => 'Akan Datang', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'info')->count()],
+                    ] : [],
+                    'sidebar' => [
+                        'title' => 'Pilih Departemen',
+                        'icon' => 'fas fa-building',
+                        'description' => 'Buka agenda berdasarkan departemen yang ingin ditinjau.',
+                        'items' => $departments->map(fn ($dept) => [
+                            'href' => route('timelines.department', $dept),
+                            'label' => $dept->name,
+                            'active' => $department?->id === $dept->id,
+                        ])->values(),
+                    ],
+                    'items' => $department ? $timelines->map(fn ($timeline) => [
+                        'title' => $timeline->title,
+                        'description' => $timeline->description ?: 'Belum ada deskripsi tambahan untuk agenda ini.',
+                        'color' => $timeline->color ?? '#3B82F6',
+                        'range' => $timeline->start_date->format('d M Y').' - '.$timeline->end_date->format('d M Y'),
+                        'scope' => ['label' => 'Departemen', 'tone' => 'info'],
+                        'status' => $statusFor($timeline),
+                        'meta' => array_values(array_filter([
+                            ['icon' => 'fas fa-building', 'label' => $department->name],
+                            $timeline->program ? ['icon' => 'fas fa-diagram-project', 'label' => $timeline->program->name] : null,
+                        ])),
+                    ])->values() : [],
+                    'emptyState' => $department
+                        ? [
+                            'title' => 'Belum ada timeline departemen',
+                            'text' => 'Belum ada agenda yang terdaftar untuk departemen ini.',
+                            'action' => $canManage ? [
+                                'href' => route('timelines.create', ['type' => 'department', 'department_id' => $department->id]),
+                                'label' => 'Tambah Timeline',
+                                'icon' => 'fas fa-plus',
+                            ] : null,
+                        ]
+                        : [
+                            'title' => 'Pilih departemen terlebih dahulu',
+                            'text' => 'Setelah departemen dipilih, agenda yang relevan akan tampil di panel utama.',
+                            'action' => null,
+                        ],
+                ];
+
+                $props['breadcrumbs'] = array_values(array_filter($props['breadcrumbs']));
+
+                return $props;
+            })(compact('timelines', 'departments', 'department')),
         );
     }
 
@@ -210,11 +463,62 @@ class TimelineController extends Controller
             ->orderBy('start_date')
             ->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TimelineCollectionPage',
-            view: 'timelines.program',
-            scriptId: 'svelte-timeline-collection-props',
-            viewData: compact('timelines', 'program'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $today = now()->toDateString();
+
+                $statusFor = function ($timeline) use ($today) {
+                    if ($timeline->end_date->toDateString() < $today) {
+                        return ['label' => 'Selesai', 'tone' => 'secondary'];
+                    }
+
+                    if ($timeline->start_date->toDateString() > $today) {
+                        return ['label' => 'Akan Datang', 'tone' => 'info'];
+                    }
+
+                    return ['label' => 'Berlangsung', 'tone' => 'success'];
+                };
+
+                $props = [
+                    'title' => 'Agenda Program',
+                    'description' => 'Rangkaian agenda untuk program '.$program->name.($program->department ? ' di departemen '.$program->department->name : '').'.',
+                    'icon' => 'fas fa-diagram-project',
+                    'breadcrumbs' => [
+                        ['label' => 'Timeline', 'href' => route('timelines.index')],
+                        ['label' => $program->name],
+                    ],
+                    'actions' => [
+                        ['href' => route('programs.show', $program), 'label' => 'Kembali ke Program', 'icon' => 'fas fa-arrow-left', 'tone' => 'secondary'],
+                    ],
+                    'summary' => [
+                        ['label' => 'Total', 'value' => $timelines->count()],
+                        ['label' => 'Berlangsung', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'success')->count()],
+                        ['label' => 'Akan Datang', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'info')->count()],
+                    ],
+                    'items' => $timelines->map(fn ($timeline) => [
+                        'title' => $timeline->title,
+                        'description' => $timeline->description ?: 'Belum ada deskripsi tambahan untuk agenda program ini.',
+                        'color' => $timeline->color ?? '#10B981',
+                        'range' => $timeline->start_date->format('d M Y').' - '.$timeline->end_date->format('d M Y'),
+                        'scope' => ['label' => 'Program', 'tone' => 'secondary'],
+                        'status' => $statusFor($timeline),
+                        'meta' => array_values(array_filter([
+                            $program->department ? ['icon' => 'fas fa-building', 'label' => $program->department->name] : null,
+                            ['icon' => 'fas fa-diagram-project', 'label' => $program->name],
+                        ])),
+                    ])->values(),
+                    'emptyState' => [
+                        'title' => 'Belum ada timeline program',
+                        'text' => 'Timeline untuk program ini belum ditambahkan.',
+                        'action' => null,
+                    ],
+                ];
+
+                return $props;
+            })(compact('timelines', 'program')),
         );
     }
 
@@ -238,11 +542,49 @@ class TimelineController extends Controller
             ->orderBy('name')
             ->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TimelineFormPage',
-            view: 'timelines.create',
-            scriptId: 'svelte-timeline-form-props',
-            viewData: compact('departments', 'programs', 'type', 'departmentId', 'programId'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $selectedType = old('type', $type ?? 'global');
+
+                $props = [
+                    'title' => 'Form Tambah Timeline',
+                    'description' => 'Susun agenda baru untuk organisasi, departemen, atau program kerja dengan rentang waktu yang jelas.',
+                    'form' => [
+                        'action' => route('timelines.store'),
+                        'method' => 'POST',
+                        'csrfToken' => csrf_token(),
+                    ],
+                    'submitLabel' => 'Simpan Timeline',
+                    'values' => [
+                        'title' => old('title'),
+                        'description' => old('description'),
+                        'type' => $selectedType,
+                        'department_id' => old('department_id', $selectedType === 'department' ? $departmentId : null),
+                        'program_id' => old('program_id', $selectedType === 'program' ? $programId : null),
+                        'start_date' => old('start_date'),
+                        'end_date' => old('end_date'),
+                    ],
+                    'departments' => $departments->map(fn ($department) => [
+                        'value' => $department->id,
+                        'label' => $department->name,
+                    ])->values(),
+                    'programs' => $programs->map(fn ($program) => [
+                        'value' => $program->id,
+                        'label' => $program->name.($program->department ? ' ('.$program->department->name.')' : ''),
+                    ])->values(),
+                    'errors' => collect(session('errors')?->messages() ?? [])->map(fn ($messages) => $messages[0])->all(),
+                    'cancelAction' => [
+                        'href' => route('timelines.index'),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                ];
+
+                return $props;
+            })(compact('departments', 'programs', 'type', 'departmentId', 'programId')),
         );
     }
 
@@ -311,11 +653,48 @@ class TimelineController extends Controller
             ->orderBy('name')
             ->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TimelineFormPage',
-            view: 'timelines.edit',
-            scriptId: 'svelte-timeline-form-props',
-            viewData: compact('timeline', 'departments', 'programs'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => 'Edit Timeline',
+                    'description' => 'Perbarui judul, konteks, dan rentang agenda agar timeline tetap akurat.',
+                    'form' => [
+                        'action' => route('timelines.update', $timeline),
+                        'method' => 'POST',
+                        'spoofMethod' => 'PUT',
+                        'csrfToken' => csrf_token(),
+                    ],
+                    'submitLabel' => 'Update Timeline',
+                    'values' => [
+                        'title' => old('title', $timeline->title),
+                        'description' => old('description', $timeline->description),
+                        'type' => old('type', $timeline->type),
+                        'department_id' => old('department_id', $timeline->department_id),
+                        'program_id' => old('program_id', $timeline->program_id),
+                        'start_date' => old('start_date', $timeline->start_date->format('Y-m-d')),
+                        'end_date' => old('end_date', $timeline->end_date->format('Y-m-d')),
+                    ],
+                    'departments' => $departments->map(fn ($department) => [
+                        'value' => $department->id,
+                        'label' => $department->name,
+                    ])->values(),
+                    'programs' => $programs->map(fn ($program) => [
+                        'value' => $program->id,
+                        'label' => $program->name.($program->department ? ' ('.$program->department->name.')' : ''),
+                    ])->values(),
+                    'errors' => collect(session('errors')?->messages() ?? [])->map(fn ($messages) => $messages[0])->all(),
+                    'cancelAction' => [
+                        'href' => route('timelines.index'),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                ];
+
+                return $props;
+            })(compact('timeline', 'departments', 'programs')),
         );
     }
 

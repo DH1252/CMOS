@@ -55,11 +55,58 @@ class EvaluationController extends Controller
         $ranking = Evaluation::getMonthlyRanking($month);
         $availableMonths = Evaluation::getAvailableMonths();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EvaluationHubPage',
-            view: 'evaluations.departments',
-            scriptId: 'svelte-evaluation-hub-props',
-            viewData: compact('departments', 'ranking', 'month', 'availableMonths'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $monthLabel = $availableMonths[$month] ?? \App\Models\Evaluation::getMonthLabel($month);
+
+                $props = [
+                    'title' => 'Evaluasi Staff',
+                    'description' => 'Pilih departemen untuk melakukan review staff dan pantau peringkat performa terbaik pada periode yang sama.',
+                    'month' => [
+                        'value' => $month,
+                        'label' => $monthLabel,
+                    ],
+                    'months' => collect($availableMonths)->map(fn ($label, $value) => [
+                        'value' => $value,
+                        'label' => $label,
+                    ])->values(),
+                    'monthAction' => route('evaluations.index'),
+                    'ranking' => collect($ranking)->map(function ($staff) {
+                        $grade = data_get($staff, 'evaluation_data.grade');
+
+                        return [
+                            'name' => $staff['name'],
+                            'avatar' => $staff['avatar_url'] ?? ('https://ui-avatars.com/api/?name='.urlencode($staff['name'])),
+                            'department' => data_get($staff, 'department.name', '-'),
+                            'score' => number_format($staff['evaluation_score'], 1),
+                            'grade' => $grade ? [
+                                'label' => $grade['grade'],
+                                'color' => $grade['color'],
+                            ] : null,
+                        ];
+                    })->values(),
+                    'departments' => $departments->map(fn ($department) => [
+                        'href' => route('evaluations.department', ['department' => $department, 'month' => $month]),
+                        'name' => $department->name,
+                        'description' => ($department->evaluated_count ?? 0).' dari '.($department->users_count ?? 0).' staff selesai dinilai',
+                        'totalStaff' => $department->users_count ?? 0,
+                        'evaluatedStaff' => $department->evaluated_count ?? 0,
+                    ])->values(),
+                    'emptyRanking' => [
+                        'title' => 'Belum ada ranking',
+                        'text' => 'Data peringkat akan muncul setelah evaluasi staff tersedia pada periode ini.',
+                    ],
+                    'emptyDepartments' => [
+                        'title' => 'Belum ada departemen',
+                        'text' => 'Departemen akan muncul di sini setelah struktur organisasi tersedia.',
+                    ],
+                ];
+
+                return $props;
+            })(compact('departments', 'ranking', 'month', 'availableMonths')),
         );
     }
 
@@ -99,11 +146,71 @@ class EvaluationController extends Controller
 
         $availableMonths = Evaluation::getAvailableMonths();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EvaluationStaffPage',
-            view: 'evaluations.staff-list',
-            scriptId: 'svelte-evaluation-staff-props',
-            viewData: compact('department', 'staffMembers', 'month', 'availableMonths'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $monthLabel = $availableMonths[$month] ?? \App\Models\Evaluation::getMonthLabel($month);
+
+                $props = [
+                    'title' => 'Staff '.$department->name,
+                    'description' => 'Lacak status penilaian per staff, lihat detail histori, atau langsung isi evaluasi untuk periode '.$monthLabel.'.',
+                    'breadcrumbs' => [
+                        ['label' => 'Evaluasi', 'href' => route('evaluations.index')],
+                        ['label' => $department->name],
+                    ],
+                    'month' => [
+                        'value' => $month,
+                        'label' => $monthLabel,
+                    ],
+                    'months' => collect($availableMonths)->map(fn ($label, $value) => [
+                        'value' => $value,
+                        'label' => $label,
+                    ])->values(),
+                    'monthAction' => route('evaluations.department', $department),
+                    'staff' => $staffMembers->map(function ($staff) use ($month) {
+                        return [
+                            'name' => $staff->name,
+                            'email' => $staff->email,
+                            'avatar' => $staff->avatar_url,
+                            'hasEvaluated' => $staff->has_evaluated,
+                            'statusLabel' => $staff->has_evaluated ? 'Dinilai' : 'Belum dinilai',
+                            'statusTone' => $staff->has_evaluated ? 'success' : 'warning',
+                            'evaluation' => $staff->evaluation_data ? [
+                                'hasKabinet' => $staff->evaluation_data['has_kabinet'],
+                                'kabinetScore' => number_format($staff->evaluation_data['kabinet_score'], 1),
+                                'hasBph' => $staff->evaluation_data['has_bph'],
+                                'bphScore' => number_format($staff->evaluation_data['bph_score'], 1),
+                                'finalScore' => number_format($staff->evaluation_data['final_score'], 1),
+                                'grade' => $staff->evaluation_data['grade'] ? [
+                                    'label' => $staff->evaluation_data['grade']->grade,
+                                    'color' => $staff->evaluation_data['grade']->color,
+                                ] : null,
+                            ] : null,
+                            'primaryAction' => $staff->has_evaluated
+                                ? [
+                                    'href' => route('evaluations.show', ['user' => $staff]),
+                                    'label' => 'Lihat Detail',
+                                    'icon' => 'fas fa-eye',
+                                    'tone' => 'secondary',
+                                ]
+                                : [
+                                    'href' => route('evaluations.create', ['user_id' => $staff->id, 'month' => $month]),
+                                    'label' => 'Nilai Sekarang',
+                                    'icon' => 'fas fa-star',
+                                    'tone' => 'primary',
+                                ],
+                        ];
+                    })->values(),
+                    'emptyState' => [
+                        'title' => 'Tidak ada staff aktif',
+                        'text' => 'Departemen ini belum memiliki staff aktif untuk dinilai.',
+                    ],
+                ];
+
+                return $props;
+            })(compact('department', 'staffMembers', 'month', 'availableMonths')),
         );
     }
 
@@ -142,11 +249,66 @@ class EvaluationController extends Controller
         $gradeParams = GradeParameter::getAllGrades();
         $availableMonths = Evaluation::getAvailableMonths();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EvaluationFormPage',
-            view: 'evaluations.create',
-            scriptId: 'svelte-evaluation-form-props',
-            viewData: compact('staff', 'month', 'evaluatorType', 'gradeParams', 'availableMonths'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $criteria = [
+                    ['key' => 'kehadiran', 'label' => 'Kehadiran', 'description' => 'Konsistensi hadir dalam rapat, agenda, dan kegiatan organisasi.'],
+                    ['key' => 'kedisiplinan', 'label' => 'Kedisiplinan', 'description' => 'Ketepatan waktu, kesiapan, dan kepatuhan terhadap aturan kerja.'],
+                    ['key' => 'tanggung_jawab', 'label' => 'Tanggung Jawab', 'description' => 'Kualitas penyelesaian tugas serta komitmen menutup pekerjaan.'],
+                    ['key' => 'kerjasama', 'label' => 'Kerjasama', 'description' => 'Kemampuan berkolaborasi, membantu tim, dan menjaga ritme kerja bersama.'],
+                    ['key' => 'inisiatif', 'label' => 'Inisiatif', 'description' => 'Keaktifan menawarkan solusi, ide, atau langkah tanpa menunggu arahan.'],
+                    ['key' => 'komunikasi', 'label' => 'Komunikasi', 'description' => 'Kejelasan menyampaikan progres, hambatan, dan koordinasi antar pihak.'],
+                ];
+
+                $props = [
+                    'title' => 'Form Evaluasi',
+                    'description' => 'Isi penilaian yang spesifik, konsisten, dan relevan dengan performa staff pada periode berjalan.',
+                    'staff' => [
+                        'name' => $staff->name,
+                        'email' => $staff->email,
+                        'department' => $staff->department?->name ?? '-',
+                        'avatar' => $staff->avatar_url,
+                    ],
+                    'evaluatorType' => strtoupper($evaluatorType),
+                    'periodLabel' => \App\Models\Evaluation::getMonthLabel($month),
+                    'gradeLegend' => $gradeParams->map(fn ($grade) => [
+                        'letter' => $grade->grade,
+                        'label' => $grade->label,
+                        'range' => $grade->min_score.' - '.$grade->max_score,
+                        'color' => $grade->color,
+                    ])->values(),
+                    'criteria' => $criteria,
+                    'form' => [
+                        'action' => route('evaluations.store'),
+                        'method' => 'POST',
+                        'csrfToken' => csrf_token(),
+                        'hidden' => [
+                            ['name' => 'user_id', 'value' => $staff->id],
+                            ['name' => 'period', 'value' => $month],
+                        ],
+                    ],
+                    'values' => [
+                        'notes' => old('notes'),
+                        'kehadiran' => old('kehadiran', 3),
+                        'kedisiplinan' => old('kedisiplinan', 3),
+                        'tanggung_jawab' => old('tanggung_jawab', 3),
+                        'kerjasama' => old('kerjasama', 3),
+                        'inisiatif' => old('inisiatif', 3),
+                        'komunikasi' => old('komunikasi', 3),
+                    ],
+                    'errors' => collect(session('errors')?->messages() ?? [])->map(fn ($messages) => $messages[0])->all(),
+                    'cancelAction' => [
+                        'href' => route('evaluations.department', ['department' => $staff->department_id, 'month' => $month]),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                ];
+
+                return $props;
+            })(compact('staff', 'month', 'evaluatorType', 'gradeParams', 'availableMonths')),
         );
     }
 
@@ -215,11 +377,110 @@ class EvaluationController extends Controller
 
         $gradeParams = GradeParameter::getAllGrades();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EvaluationHistoryPage',
-            view: 'evaluations.show',
-            scriptId: 'svelte-evaluation-history-props',
-            viewData: compact('user', 'evaluations', 'periodScores', 'gradeParams'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $criteria = [
+                    'kehadiran' => 'Kehadiran',
+                    'kedisiplinan' => 'Kedisiplinan',
+                    'tanggung_jawab' => 'Tanggung Jawab',
+                    'kerjasama' => 'Kerjasama',
+                    'inisiatif' => 'Inisiatif',
+                    'komunikasi' => 'Komunikasi',
+                ];
+
+                $props = [
+                    'title' => 'Riwayat Evaluasi',
+                    'description' => 'Ringkasan nilai lintas periode, lengkap dengan detail penilaian dari Kabinet dan BPH.',
+                    'profile' => [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'avatar' => $user->avatar_url,
+                        'badge' => [
+                            'label' => $user->department?->name ?? 'No Department',
+                            'tone' => 'info',
+                        ],
+                    ],
+                    'createAction' => [
+                        'href' => route('evaluations.create', ['user_id' => $user->id]),
+                        'label' => 'Beri Evaluasi Baru',
+                        'icon' => 'fas fa-star',
+                    ],
+                    'backAction' => [
+                        'href' => route('evaluations.index'),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                    'gradeLegend' => $gradeParams->map(fn ($grade) => [
+                        'letter' => $grade->grade,
+                        'label' => $grade->label,
+                        'range' => $grade->min_score.' - '.$grade->max_score,
+                        'color' => $grade->color,
+                    ])->values(),
+                    'periods' => $evaluations->map(function ($evals, $period) use ($periodScores, $criteria) {
+                        $combined = $periodScores[$period] ?? null;
+
+                        return [
+                            'label' => \App\Models\Evaluation::getMonthLabel($period),
+                            'status' => $combined ? [
+                                'label' => $combined['is_complete'] ? 'Lengkap' : 'Pending',
+                                'tone' => $combined['is_complete'] ? 'success' : 'warning',
+                            ] : null,
+                            'grade' => $combined && $combined['grade'] ? [
+                                'label' => $combined['grade']->grade.' · '.$combined['grade']->label,
+                                'color' => $combined['grade']->color,
+                            ] : null,
+                            'summary' => $combined ? [
+                                [
+                                    'label' => 'Kabinet',
+                                    'value' => $combined['has_kabinet'] ? number_format($combined['kabinet_score'], 1) : '-',
+                                    'muted' => ! $combined['has_kabinet'],
+                                ],
+                                [
+                                    'label' => 'BPH',
+                                    'value' => $combined['has_bph'] ? number_format($combined['bph_score'], 1) : '-',
+                                    'muted' => ! $combined['has_bph'],
+                                ],
+                                [
+                                    'label' => 'Final',
+                                    'value' => number_format($combined['final_score'], 1),
+                                    'badge' => $combined['grade'] ? [
+                                        'label' => $combined['grade']->grade,
+                                        'color' => $combined['grade']->color,
+                                    ] : null,
+                                ],
+                            ] : [],
+                            'entries' => $evals->map(function ($eval) use ($criteria) {
+                                return [
+                                    'label' => strtoupper($eval->evaluator_type),
+                                    'tone' => $eval->evaluator_type === 'bph' ? 'primary' : 'info',
+                                    'byline' => 'oleh '.$eval->evaluator->name.' · '.$eval->created_at->format('d M Y'),
+                                    'score' => number_format($eval->total_score, 1),
+                                    'scoreColor' => $eval->grade_color,
+                                    'editAction' => [
+                                        'href' => route('evaluations.edit', $eval),
+                                        'label' => 'Edit evaluasi',
+                                        'icon' => 'fas fa-pen',
+                                    ],
+                                    'criteria' => collect($criteria)->map(fn ($label, $key) => [
+                                        'label' => $label,
+                                        'value' => (int) $eval->$key,
+                                    ])->values(),
+                                    'notes' => $eval->notes,
+                                ];
+                            })->values(),
+                        ];
+                    })->values(),
+                    'emptyState' => [
+                        'title' => 'Belum ada evaluasi',
+                        'text' => 'Staff ini belum memiliki evaluasi untuk ditinjau.',
+                    ],
+                ];
+
+                return $props;
+            })(compact('user', 'evaluations', 'periodScores', 'gradeParams')),
         );
     }
 
@@ -233,11 +494,63 @@ class EvaluationController extends Controller
         $gradeParams = GradeParameter::getAllGrades();
         $availableMonths = Evaluation::getAvailableMonths();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EvaluationFormPage',
-            view: 'evaluations.edit',
-            scriptId: 'svelte-evaluation-form-props',
-            viewData: compact('evaluation', 'gradeParams', 'availableMonths'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $criteria = [
+                    ['key' => 'kehadiran', 'label' => 'Kehadiran', 'description' => 'Konsistensi hadir dalam rapat, agenda, dan kegiatan organisasi.'],
+                    ['key' => 'kedisiplinan', 'label' => 'Kedisiplinan', 'description' => 'Ketepatan waktu, kesiapan, dan kepatuhan terhadap aturan kerja.'],
+                    ['key' => 'tanggung_jawab', 'label' => 'Tanggung Jawab', 'description' => 'Kualitas penyelesaian tugas serta komitmen menutup pekerjaan.'],
+                    ['key' => 'kerjasama', 'label' => 'Kerjasama', 'description' => 'Kemampuan berkolaborasi, membantu tim, dan menjaga ritme kerja bersama.'],
+                    ['key' => 'inisiatif', 'label' => 'Inisiatif', 'description' => 'Keaktifan menawarkan solusi, ide, atau langkah tanpa menunggu arahan.'],
+                    ['key' => 'komunikasi', 'label' => 'Komunikasi', 'description' => 'Kejelasan menyampaikan progres, hambatan, dan koordinasi antar pihak.'],
+                ];
+
+                $props = [
+                    'title' => 'Edit Evaluasi',
+                    'description' => 'Sesuaikan penilaian untuk menjaga akurasi histori evaluasi staff pada periode ini.',
+                    'staff' => [
+                        'name' => $evaluation->user->name,
+                        'email' => $evaluation->user->email,
+                        'department' => $evaluation->user->department?->name ?? '-',
+                        'avatar' => $evaluation->user->avatar_url,
+                    ],
+                    'evaluatorType' => strtoupper($evaluation->evaluator_type),
+                    'periodLabel' => \App\Models\Evaluation::getMonthLabel($evaluation->period),
+                    'gradeLegend' => $gradeParams->map(fn ($grade) => [
+                        'letter' => $grade->grade,
+                        'label' => $grade->label,
+                        'range' => $grade->min_score.' - '.$grade->max_score,
+                        'color' => $grade->color,
+                    ])->values(),
+                    'criteria' => $criteria,
+                    'form' => [
+                        'action' => route('evaluations.update', $evaluation),
+                        'method' => 'POST',
+                        'spoofMethod' => 'PUT',
+                        'csrfToken' => csrf_token(),
+                    ],
+                    'values' => [
+                        'notes' => old('notes', $evaluation->notes),
+                        'kehadiran' => old('kehadiran', $evaluation->kehadiran),
+                        'kedisiplinan' => old('kedisiplinan', $evaluation->kedisiplinan),
+                        'tanggung_jawab' => old('tanggung_jawab', $evaluation->tanggung_jawab),
+                        'kerjasama' => old('kerjasama', $evaluation->kerjasama),
+                        'inisiatif' => old('inisiatif', $evaluation->inisiatif),
+                        'komunikasi' => old('komunikasi', $evaluation->komunikasi),
+                    ],
+                    'errors' => collect(session('errors')?->messages() ?? [])->map(fn ($messages) => $messages[0])->all(),
+                    'cancelAction' => [
+                        'href' => route('evaluations.show', ['user' => $evaluation->user_id]),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                ];
+
+                return $props;
+            })(compact('evaluation', 'gradeParams', 'availableMonths')),
         );
     }
 
@@ -306,11 +619,97 @@ class EvaluationController extends Controller
 
         $gradeParams = GradeParameter::getAllGrades();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EvaluationHistoryPage',
-            view: 'evaluations.my',
-            scriptId: 'svelte-evaluation-history-props',
-            viewData: compact('evaluations', 'periodScores', 'gradeParams'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $user = auth()->user();
+
+                $criteria = [
+                    'kehadiran' => 'Kehadiran',
+                    'kedisiplinan' => 'Kedisiplinan',
+                    'tanggung_jawab' => 'Tanggung Jawab',
+                    'kerjasama' => 'Kerjasama',
+                    'inisiatif' => 'Inisiatif',
+                    'komunikasi' => 'Komunikasi',
+                ];
+
+                $props = [
+                    'title' => 'Nilai Saya',
+                    'description' => 'Lihat ringkasan nilai dari Kabinet dan BPH pada setiap periode, termasuk feedback yang sudah masuk.',
+                    'profile' => [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'avatar' => $user->avatar_url,
+                        'badge' => [
+                            'label' => $user->department?->name ?? 'No Department',
+                            'tone' => 'info',
+                        ],
+                    ],
+                    'gradeLegend' => $gradeParams->map(fn ($grade) => [
+                        'letter' => $grade->grade,
+                        'label' => $grade->label,
+                        'range' => $grade->min_score.' - '.$grade->max_score,
+                        'color' => $grade->color,
+                    ])->values(),
+                    'periods' => $evaluations->map(function ($evals, $period) use ($periodScores, $criteria) {
+                        $combined = $periodScores[$period] ?? null;
+
+                        return [
+                            'label' => \App\Models\Evaluation::getMonthLabel($period),
+                            'status' => $combined ? [
+                                'label' => $combined['is_complete'] ? 'Lengkap' : 'Pending',
+                                'tone' => $combined['is_complete'] ? 'success' : 'warning',
+                            ] : null,
+                            'grade' => $combined && $combined['grade'] ? [
+                                'label' => $combined['grade']->grade.' · '.$combined['grade']->label,
+                                'color' => $combined['grade']->color,
+                            ] : null,
+                            'summary' => $combined ? [
+                                [
+                                    'label' => 'Kabinet',
+                                    'value' => $combined['has_kabinet'] ? number_format($combined['kabinet_score'], 1) : 'Pending',
+                                    'muted' => ! $combined['has_kabinet'],
+                                ],
+                                [
+                                    'label' => 'BPH',
+                                    'value' => $combined['has_bph'] ? number_format($combined['bph_score'], 1) : 'Pending',
+                                    'muted' => ! $combined['has_bph'],
+                                ],
+                                [
+                                    'label' => 'Final',
+                                    'value' => number_format($combined['final_score'], 1),
+                                    'badge' => $combined['grade'] ? [
+                                        'label' => $combined['grade']->grade,
+                                        'color' => $combined['grade']->color,
+                                    ] : null,
+                                ],
+                            ] : [],
+                            'entries' => $evals->map(function ($eval) use ($criteria) {
+                                return [
+                                    'label' => strtoupper($eval->evaluator_type),
+                                    'tone' => $eval->evaluator_type === 'bph' ? 'primary' : 'info',
+                                    'byline' => $eval->created_at->format('d M Y'),
+                                    'score' => number_format($eval->total_score, 1),
+                                    'scoreColor' => $eval->grade_color,
+                                    'criteria' => collect($criteria)->map(fn ($label, $key) => [
+                                        'label' => $label,
+                                        'value' => (int) $eval->$key,
+                                    ])->values(),
+                                    'notes' => $eval->notes,
+                                ];
+                            })->values(),
+                        ];
+                    })->values(),
+                    'emptyState' => [
+                        'title' => 'Belum ada evaluasi',
+                        'text' => 'Anda belum memiliki evaluasi dari Kabinet atau BPH.',
+                    ],
+                ];
+
+                return $props;
+            })(compact('evaluations', 'periodScores', 'gradeParams')),
         );
     }
 

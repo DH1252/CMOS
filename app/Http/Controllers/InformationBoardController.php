@@ -43,11 +43,77 @@ class InformationBoardController extends Controller
         $publishedCount = InformationBoard::where('status', 'published')->count();
         $draftCount = InformationBoard::where('status', 'draft')->count();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/InformationBoardIndexPage',
-            view: 'information-boards.index',
-            scriptId: 'svelte-information-board-index-props',
-            viewData: compact(
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => 'Manajemen Artikel Informasi',
+                    'description' => 'Kelola artikel dan status publikasi.',
+                    'icon' => 'fas fa-newspaper',
+                    'csrfToken' => csrf_token(),
+                    'primaryAction' => [
+                        'label' => 'Tulis Artikel',
+                        'href' => route('information-boards.create'),
+                        'icon' => 'fas fa-plus',
+                    ],
+                    'filters' => [
+                        'action' => route('information-boards.index'),
+                        'query' => $search,
+                        'status' => $status,
+                        'category' => $category,
+                        'statusOptions' => [
+                            ['value' => 'draft', 'label' => 'Draft'],
+                            ['value' => 'published', 'label' => 'Published'],
+                        ],
+                        'categoryOptions' => $categories->map(fn ($cat) => ['value' => $cat->id, 'label' => $cat->name])->values(),
+                    ],
+                    'stats' => [
+                        ['label' => 'Total Artikel', 'value' => $totalCount, 'icon' => 'fas fa-newspaper', 'tone' => 'primary'],
+                        ['label' => 'Published', 'value' => $publishedCount, 'icon' => 'fas fa-check-circle', 'tone' => 'success'],
+                        ['label' => 'Draft', 'value' => $draftCount, 'icon' => 'fas fa-pen-nib', 'tone' => 'warning'],
+                    ],
+                    'articles' => $informationBoards->getCollection()->map(function ($article) {
+                        $canManage = auth()->user()->isAdmin() || $article->user_id === auth()->id();
+                        $previewSource = html_entity_decode($article->excerpt ?: $article->content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $previewSource = str_replace("\u{00A0}", ' ', $previewSource);
+                        $previewText = \Illuminate\Support\Str::squish(strip_tags($previewSource));
+
+                        return [
+                            'title' => $article->title,
+                            'excerpt' => \Illuminate\Support\Str::limit($previewText, 180),
+                            'coverImage' => $article->cover_image_url,
+                            'coverThumb' => $article->cover_image_url,
+                            'categories' => $article->categories->pluck('name')->values(),
+                            'statusLabel' => ucfirst($article->status),
+                            'statusTone' => $article->status === 'published' ? 'success' : 'secondary',
+                            'author' => $article->user?->name ?? '-',
+                            'date' => $article->created_at->toIso8601String(),
+                            'showHref' => route('information-boards.show', $article),
+                            'editHref' => $canManage ? route('information-boards.edit', $article) : null,
+                            'deleteAction' => $canManage ? route('information-boards.destroy', $article) : null,
+                            'confirm' => $article->title,
+                            'confirmText' => "Hapus artikel {$article->title}?",
+                        ];
+                    })->values(),
+                    'pagination' => [
+                        'currentPage' => $informationBoards->currentPage(),
+                        'lastPage' => $informationBoards->lastPage(),
+                        'prevUrl' => $informationBoards->previousPageUrl(),
+                        'nextUrl' => $informationBoards->nextPageUrl(),
+                        'from' => $informationBoards->firstItem() ?? 0,
+                        'to' => $informationBoards->lastItem() ?? 0,
+                        'total' => $informationBoards->total(),
+                    ],
+                    'emptyState' => [
+                        'title' => 'Belum ada artikel',
+                        'text' => 'Mulai dengan menulis artikel pertama untuk papan informasi internal.',
+                    ],
+                ];
+
+                return $props;
+            })(compact(
                 'informationBoards',
                 'categories',
                 'search',
@@ -56,7 +122,7 @@ class InformationBoardController extends Controller
                 'totalCount',
                 'publishedCount',
                 'draftCount'
-            ),
+            )),
         );
     }
 
@@ -64,11 +130,58 @@ class InformationBoardController extends Controller
     {
         $categories = InformationCategory::orderBy('name')->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/InformationBoardEditorPage',
-            view: 'information-boards.create',
-            scriptId: 'svelte-information-board-editor-props',
-            viewData: compact('categories'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => 'Form Artikel Baru',
+                    'description' => 'Tulis artikel informasi baru dengan struktur editorial yang rapi untuk dibaca pengurus.',
+                    'icon' => 'fas fa-pen',
+                    'form' => [
+                        'action' => route('information-boards.store'),
+                        'method' => 'POST',
+                        'csrfToken' => csrf_token(),
+                        'enctype' => 'multipart/form-data',
+                        'submitLabel' => 'Simpan',
+                    ],
+                    'article' => [
+                        'title' => old('title'),
+                        'excerpt' => old('excerpt'),
+                        'content' => old('content'),
+                        'status' => old('status', 'published'),
+                        'publishMode' => old('publish_mode', 'immediately'),
+                        'publishedAt' => old('published_at'),
+                        'metaTitle' => old('meta_title'),
+                        'metaDescription' => old('meta_description'),
+                        'categoryIds' => old('category_ids', []),
+                        'coverImage' => null,
+                    ],
+                    'categories' => $categories->map(fn ($category) => ['value' => $category->id, 'label' => $category->name])->values(),
+                    'errors' => [
+                        'title' => session('errors')?->first('title'),
+                        'excerpt' => session('errors')?->first('excerpt'),
+                        'content' => session('errors')?->first('content'),
+                        'status' => session('errors')?->first('status'),
+                        'publish_mode' => session('errors')?->first('publish_mode'),
+                        'published_at' => session('errors')?->first('published_at'),
+                        'meta_title' => session('errors')?->first('meta_title'),
+                        'meta_description' => session('errors')?->first('meta_description'),
+                        'cover_image' => session('errors')?->first('cover_image'),
+                        'category_ids' => session('errors')?->first('category_ids'),
+                        'category_ids_items' => session('errors')?->first('category_ids.*'),
+                    ],
+                    'cancelAction' => [
+                        'href' => route('information-boards.index'),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                    'editorId' => 'information-board-create-content',
+                ];
+
+                return $props;
+            })(compact('categories')),
         );
     }
 
@@ -133,9 +246,9 @@ class InformationBoardController extends Controller
 
         $canManage = request()->user()?->isAdmin() || $informationBoard->user_id === auth()->id();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/InformationBoardShowPage',
-            props: [
+            array_merge([
                 'article' => [
                     'title' => $informationBoard->title,
                     'coverImage' => $informationBoard->cover_image_url,
@@ -178,9 +291,10 @@ class InformationBoardController extends Controller
                         ?? $latest->created_at->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->toIso8601String(),
                     'href' => route('information-boards.show', $latest),
                 ])->values(),
-            ],
-            pageTitle: 'Papan Informasi',
-            pageMeta: '',
+            ], [
+                'pageTitle' => 'Papan Informasi',
+                'pageMeta' => '',
+            ]),
         );
     }
 
@@ -189,11 +303,66 @@ class InformationBoardController extends Controller
         $this->authorizeEdit($informationBoard, request()->user());
         $categories = InformationCategory::orderBy('name')->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/InformationBoardEditorPage',
-            view: 'information-boards.edit',
-            scriptId: 'svelte-information-board-editor-props',
-            viewData: compact('informationBoard', 'categories'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => "Edit Artikel: {$informationBoard->title}",
+                    'description' => '',
+                    'icon' => 'fas fa-edit',
+                    'form' => [
+                        'action' => route('information-boards.update', $informationBoard),
+                        'method' => 'PUT',
+                        'csrfToken' => csrf_token(),
+                        'enctype' => 'multipart/form-data',
+                        'submitLabel' => 'Update',
+                    ],
+                    'article' => [
+                        'title' => old('title', $informationBoard->title),
+                        'excerpt' => old('excerpt', $informationBoard->excerpt),
+                        'content' => old('content', $informationBoard->content),
+                        'status' => old('status', $informationBoard->status),
+                        'publishMode' => old('publish_mode', $informationBoard->published_at?->isFuture() ? 'scheduled' : 'immediately'),
+                        'publishedAt' => old('published_at', optional($informationBoard->published_at)?->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->format('Y-m-d\\TH:i')),
+                        'metaTitle' => old('meta_title', $informationBoard->meta_title),
+                        'metaDescription' => old('meta_description', $informationBoard->meta_description),
+                        'categoryIds' => old('category_ids', $informationBoard->categories->pluck('id')->all()),
+                        'coverImage' => $informationBoard->cover_image_url,
+                    ],
+                    'categories' => $categories->map(fn ($category) => ['value' => $category->id, 'label' => $category->name])->values(),
+                    'errors' => [
+                        'title' => session('errors')?->first('title'),
+                        'excerpt' => session('errors')?->first('excerpt'),
+                        'content' => session('errors')?->first('content'),
+                        'status' => session('errors')?->first('status'),
+                        'publish_mode' => session('errors')?->first('publish_mode'),
+                        'published_at' => session('errors')?->first('published_at'),
+                        'meta_title' => session('errors')?->first('meta_title'),
+                        'meta_description' => session('errors')?->first('meta_description'),
+                        'cover_image' => session('errors')?->first('cover_image'),
+                        'category_ids' => session('errors')?->first('category_ids'),
+                        'category_ids_items' => session('errors')?->first('category_ids.*'),
+                    ],
+                    'cancelAction' => [
+                        'href' => route('information-boards.index'),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                    'dangerAction' => [
+                        'action' => route('information-boards.destroy', $informationBoard),
+                        'method' => 'DELETE',
+                        'label' => 'Hapus',
+                        'icon' => 'fas fa-trash',
+                        'confirm' => $informationBoard->title,
+                        'confirmText' => "Hapus artikel {$informationBoard->title}?",
+                    ],
+                    'editorId' => 'information-board-edit-content',
+                ];
+
+                return $props;
+            })(compact('informationBoard', 'categories')),
         );
     }
 

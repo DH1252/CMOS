@@ -54,10 +54,6 @@ const publicRoot =
 	typeof document !== "undefined"
 		? document.getElementById("svelte-public-root")
 		: null;
-const legacyLoginRoot =
-	typeof document !== "undefined"
-		? document.getElementById("svelte-login-root")
-		: null;
 
 const parseJson = (id) => {
 	if (typeof document === "undefined") {
@@ -103,70 +99,32 @@ const isGuestPage = (name) => name === "LoginPage";
 
 let loginFallbackMounted = false;
 
-const resolveLoginTarget = () => {
-	if (legacyLoginRoot) {
-		return legacyLoginRoot;
-	}
-
-	if (inertiaRoot) {
-		return inertiaRoot;
-	}
-
-	if (typeof document === "undefined") {
-		return null;
-	}
-
-	const existing = document.getElementById("svelte-login-fallback-root");
-
-	if (existing) {
-		return existing;
-	}
-
-	const fallbackTarget = document.createElement("div");
-	fallbackTarget.id = "svelte-login-fallback-root";
-	document.body.append(fallbackTarget);
-
-	return fallbackTarget;
-};
-
-const legacyLoginProps = () => ({
-	appName: legacyLoginRoot?.dataset.appName || "CMOS",
-	loginUrl: legacyLoginRoot?.dataset.loginUrl || "/login",
-	homeUrl: legacyLoginRoot?.dataset.homeUrl || "/",
-	csrfToken:
-		legacyLoginRoot?.dataset.csrfToken ||
-		document
-			.querySelector('meta[name="csrf-token"]')
-			?.getAttribute("content") ||
-		"",
-	email: legacyLoginRoot?.dataset.email || "",
-	alertMessage: legacyLoginRoot?.dataset.alertMessage || "",
-	alertType: legacyLoginRoot?.dataset.alertType || "",
-	emailError: legacyLoginRoot?.dataset.emailError || "",
-	passwordError: legacyLoginRoot?.dataset.passwordError || "",
-	remember: legacyLoginRoot?.dataset.remember === "1",
-});
-
 const mountLoginFallback = async (sourceProps = {}) => {
-	if (!isLoginPath || loginFallbackMounted) {
-		return;
-	}
-
-	const target = resolveLoginTarget();
-
-	if (!target) {
+	if (!isLoginPath || loginFallbackMounted || !inertiaRoot) {
 		return;
 	}
 
 	const props = {
-		...legacyLoginProps(),
+		appName: "CMOS",
+		loginUrl: "/login",
+		homeUrl: "/",
+		csrfToken:
+			document
+				.querySelector('meta[name="csrf-token"]')
+				?.getAttribute("content") || "",
+		email: "",
+		alertMessage: "",
+		alertType: "",
+		emailError: "",
+		passwordError: "",
+		remember: false,
 		...sourceProps,
 	};
 
 	const { default: LoginPage } = await import("../svelte/LoginPage.svelte");
 
 	mount(LoginPage, {
-		target,
+		target: inertiaRoot,
 		props,
 	});
 
@@ -249,8 +207,4 @@ if (publicRoot) {
 		.catch((error) => {
 			console.error("Failed to boot the public Svelte app.", error);
 		});
-}
-
-if (legacyLoginRoot && !initialInertiaPage) {
-	void mountLoginFallback();
 }

@@ -230,61 +230,10 @@
 </head>
 <body>
     <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
-    <script id="svelte-auth-props" type="application/json">{!! str_replace('</', '<\/', json_encode($authProps, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
-    @if(session('swal'))
-        <script id="session-swal-data" type="application/json">{!! str_replace('</', '<\/', json_encode([
-            'type' => session('swal.type', 'success'),
-            'title' => session('swal.title'),
-            'text' => session('swal.text', ''),
-            'confirmButtonColor' => '#f5c518',
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) !!}</script>
-    @endif
-    <div id="svelte-auth-root"></div>
-
-    <div id="server-page-content">
-        <main class="page-content">
-            @if(session('success'))
-                <div class="alert alert-success animate-fadeIn">
-                    <i class="fas fa-check-circle"></i>
-                    <span>{{ session('success') }}</span>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert alert-danger animate-fadeIn">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>{{ session('error') }}</span>
-                </div>
-            @endif
-
-            @if(session('warning'))
-                <div class="alert alert-warning animate-fadeIn">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>{{ session('warning') }}</span>
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="alert alert-danger animate-fadeIn">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <div>
-                        <strong>Terjadi kesalahan:</strong>
-                        <ul class="mb-0 mt-1">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            @endif
-
-            @yield('content')
-        </main>
-    </div>
+    <main class="page-content" id="main-content">
+        @yield('content')
+    </main>
 
     @stack('scripts')
-
-    @auth
-    @endauth
 </body>
 </html>
