@@ -47,6 +47,7 @@
   let publishModeValue = $state('immediately');
   let editorReady = $state(typeof window !== 'undefined' && Boolean(window.Trix));
   let editorError = $state('');
+  let editorElement = $state(null);
   const isPublished = $derived(statusValue === 'published');
   const isScheduled = $derived(isPublished && publishModeValue === 'scheduled');
 
@@ -67,6 +68,81 @@
 
     event.currentTarget.src = fallbackImage;
   };
+
+  const uploadAttachment = async (attachment) => {
+    if (!attachment?.file || !form.attachmentUploadUrl || !form.csrfToken) {
+      attachment?.remove?.();
+      return;
+    }
+
+    const payload = new FormData();
+    payload.append('attachment', attachment.file);
+
+    attachment.setUploadProgress(10);
+
+    try {
+      const response = await fetch(form.attachmentUploadUrl, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': form.csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: payload,
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data?.url) {
+        throw new Error(data?.message || 'Gagal mengunggah lampiran.');
+      }
+
+      attachment.setAttributes({
+        url: data.url,
+        href: data.href || data.url,
+        filename: data.filename || attachment.file.name,
+        filesize: data.filesize || attachment.file.size,
+        contentType: data.contentType || attachment.file.type,
+      });
+      attachment.setUploadProgress(100);
+    } catch (error) {
+      console.error('Attachment upload failed.', error);
+      attachment.remove();
+
+      if (window.Swal) {
+        void window.Swal.fire({
+          icon: 'error',
+          title: 'Upload gagal',
+          text: error?.message || 'Lampiran tidak dapat diunggah. Coba lagi.',
+        });
+        return;
+      }
+
+      window.alert(error?.message || 'Lampiran tidak dapat diunggah. Coba lagi.');
+    }
+  };
+
+  $effect(() => {
+    if (!editorReady || !editorElement) {
+      return;
+    }
+
+    const handleAttachmentAdd = (event) => {
+      const attachment = event.attachment;
+
+      if (!attachment?.file) {
+        return;
+      }
+
+      void uploadAttachment(attachment);
+    };
+
+    editorElement.addEventListener('trix-attachment-add', handleAttachmentAdd);
+
+    return () => {
+      editorElement?.removeEventListener('trix-attachment-add', handleAttachmentAdd);
+    };
+  });
 
   onMount(() => {
     let active = true;
@@ -158,7 +234,7 @@
                 <div class="editor-rich-frame">
                   {#if editorReady}
                     <input id={editorId} type="hidden" name="content" value={article.content || ''} />
-                    <trix-editor input={editorId} class={errors.content ? 'is-invalid' : ''}></trix-editor>
+                    <trix-editor bind:this={editorElement} input={editorId} class={errors.content ? 'is-invalid' : ''}></trix-editor>
                   {:else}
                     <div class="editor-toolbar-placeholder" aria-hidden="true"></div>
                     <Textarea
@@ -456,10 +532,6 @@
     background: color-mix(in srgb, var(--signal-danger) 12%, white);
     color: color-mix(in srgb, var(--signal-danger) 80%, black);
     border-color: color-mix(in srgb, var(--signal-danger) 24%, var(--line-soft));
-  }
-
-  :global(trix-toolbar [data-trix-button-group='file-tools']) {
-    display: none;
   }
 
   :global(trix-editor) {
