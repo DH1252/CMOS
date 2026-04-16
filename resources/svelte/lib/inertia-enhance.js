@@ -94,6 +94,10 @@ export const inertiaEnhance = (node, enabled = true) => {
 	};
 
 	const handleSubmit = (event) => {
+		if (event.defaultPrevented) {
+			return;
+		}
+
 		const form = event.target;
 
 		if (!(form instanceof HTMLFormElement)) {
