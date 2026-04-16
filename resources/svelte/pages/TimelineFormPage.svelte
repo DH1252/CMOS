@@ -25,15 +25,21 @@
 
   const formId = 'timeline-form';
   let selectedType = $state('global');
-  let selectedColor = $state('#7C3AED');
   let startDate = $state('');
   let endDate = $state('');
   let timelineFormInitialized = $state(false);
 
+  const typeColors = {
+    global: '#7751DE',
+    department: '#D4A017',
+    program: '#3F7A50',
+  };
+
+  const selectedColor = $derived(typeColors[selectedType] || '#786F62');
+
   $effect(() => {
     if (!timelineFormInitialized) {
       selectedType = values.type || 'global';
-      selectedColor = values.color || '#7C3AED';
       startDate = values.start_date || '';
       endDate = values.end_date || '';
       timelineFormInitialized = true;
@@ -143,9 +149,9 @@
             </div>
 
             <div class="timeline-form-field timeline-form-field-half">
-              <Label for="timeline-color">Warna</Label>
-              <div class="timeline-color-field">
-                <input id="timeline-color" name="color" type="color" class="timeline-color-input" bind:value={selectedColor} />
+              <Label for="timeline-color">Warna (otomatis)</Label>
+              <div id="timeline-color" class="timeline-color-field" aria-live="polite">
+                <span class="timeline-color-swatch" style={`background:${selectedColor};`} aria-hidden="true"></span>
                 <span class="timeline-color-code">{selectedColor}</span>
               </div>
             </div>
@@ -342,13 +348,12 @@
     background: var(--background);
   }
 
-  .timeline-color-input {
+  .timeline-color-swatch {
     width: 3rem;
     height: 2.25rem;
-    border: none;
-    background: transparent;
-    padding: 0;
-    cursor: pointer;
+    border-radius: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--line-soft) 75%, transparent);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   }
 
   .timeline-color-code {

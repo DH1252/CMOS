@@ -256,7 +256,6 @@ class TimelineController extends Controller
             'program_id' => 'nullable|required_if:type,program|exists:programs,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'color' => 'nullable|string|max:7',
         ]);
 
         // Clear unrelated fields based on type
@@ -266,6 +265,8 @@ class TimelineController extends Controller
         } elseif ($validated['type'] === 'department') {
             $validated['program_id'] = null;
         }
+
+        $validated['color'] = $this->getTimelineColor($validated['type']);
 
         $timeline = Timeline::create($validated);
 
@@ -328,7 +329,6 @@ class TimelineController extends Controller
             'program_id' => 'nullable|required_if:type,program|exists:programs,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'color' => 'nullable|string|max:7',
         ]);
 
         if ($validated['type'] === 'global') {
@@ -337,6 +337,8 @@ class TimelineController extends Controller
         } elseif ($validated['type'] === 'department') {
             $validated['program_id'] = null;
         }
+
+        $validated['color'] = $this->getTimelineColor($validated['type']);
 
         $timeline->update($validated);
 
