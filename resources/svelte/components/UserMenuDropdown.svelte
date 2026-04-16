@@ -47,6 +47,14 @@
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   };
 
+  const shouldUseImageAvatar = (value) => {
+    if (!value) {
+      return false;
+    }
+
+    return !String(value).includes('ui-avatars.com');
+  };
+
   const handleImageError = (event) => {
     const nextSrc = fallbackAvatar(event.currentTarget.alt || user.name || 'User');
 
@@ -69,8 +77,8 @@
   <DropdownMenu.Trigger>
     {#snippet child({ props })}
       <button {...props} class={`shell-user-btn ${props.class || ''}`} aria-label="Buka menu pengguna">
-        {#if user.avatarUrl}
-          <img src={user.avatarUrl || fallbackAvatar(user.name)} alt={user.name} onerror={handleImageError} />
+        {#if shouldUseImageAvatar(user.avatarUrl)}
+          <img src={user.avatarUrl} alt={user.name} onerror={handleImageError} />
         {:else}
           <span class="shell-user-avatar-fallback">{initialsFor(user.name)}</span>
         {/if}
@@ -78,7 +86,9 @@
           <strong>{user.name}</strong>
           <small>{user.roleName}</small>
         </span>
-        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+        <svg aria-hidden="true" viewBox="0 0 24 24" class="h-4 w-4 shrink-0 fill-none stroke-current" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m6 9 6 6 6-6"></path>
+        </svg>
       </button>
     {/snippet}
   </DropdownMenu.Trigger>

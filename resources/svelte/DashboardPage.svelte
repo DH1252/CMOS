@@ -195,7 +195,7 @@
       <div class="grid gap-3 md:grid-cols-3">
         {#each summaryItems as item, index (item.label || index)}
           {#if item.href}
-            <a href={item.href} aria-label={`${item.actionLabel} - ${item.label}`} class="block rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
+            <a href={item.href} class="block rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
               <div class="text-sm text-muted-foreground">{item.label}</div>
               <div class={`mt-2 text-2xl font-semibold leading-none ${toneValueClass(item.tone)}`}>{item.value}</div>
               <p class="mt-2 text-sm leading-6 text-muted-foreground">{item.detail}</p>
@@ -214,7 +214,7 @@
       {#if quickActions.length > 1}
         <div class="flex flex-wrap gap-2 border-t border-border pt-5">
           {#each quickActions as action, index (action.href || index)}
-            <a href={action.href} class="inline-flex items-center justify-center rounded-[10px] border border-border bg-background px-3.5 py-2.5 text-sm font-medium text-foreground no-underline transition-colors hover:border-brand-primary hover:bg-muted">
+            <a href={action.href} class="dashboard-toolbar-link inline-flex items-center justify-center rounded-[10px] border border-border bg-background px-3.5 py-2.5 text-sm font-medium text-foreground no-underline transition-colors hover:border-brand-primary hover:bg-muted">
               {action.label}
             </a>
           {/each}
@@ -236,7 +236,7 @@
       <div class="grid gap-3 sm:grid-cols-3">
         {#each statusRows as item, index (item.label || index)}
           {#if item.href}
-            <a href={item.href} aria-label={`Buka ${item.label} task`} class="block rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
+            <a href={item.href} class="dashboard-quick-action block rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
               <div class="text-sm text-muted-foreground">{item.label}</div>
               <div class="mt-2 text-2xl font-semibold text-foreground">{item.value}</div>
               <div class="dashboard-link-action mt-3 text-sm font-medium">Buka daftar task</div>
@@ -299,7 +299,7 @@
         <div class="grid gap-3">
           {#each upcomingTimelines.slice(0, 4) as timeline, index (`timeline-${timeline.id || timeline.title || index}-${index}`)}
             {#if links?.timelinesCalendar}
-              <a href={links.timelinesCalendar} aria-label={`Buka kalender untuk ${timeline.title}`} class="rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
+              <a href={links.timelinesCalendar} class="rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
                 <strong class="block text-sm text-foreground">{timeline.title}</strong>
                 <div class="mt-2 text-sm text-muted-foreground">{formatLongDate(timeline.start_date)}</div>
               </a>
@@ -327,7 +327,7 @@
       </Card.Header>
       <Card.Content class="grid gap-3 pt-5 md:grid-cols-2">
         {#each latestInformationBoards.slice(0, 4) as article, index (`latest-${article.href || article.title || index}-${index}`)}
-          <a href={article.href} class="dashboard-link-card" aria-label={`Buka artikel ${article.title}`}>
+          <a href={article.href} class="dashboard-link-card">
             <strong class="dashboard-link-card-title">{article.title}</strong>
             <p class="dashboard-link-card-copy">{article.excerpt || 'Buka artikel untuk melihat detail lengkap.'}</p>
             <span class="dashboard-link-card-meta">{formatLongDate(article.publishedAt)}</span>
@@ -463,6 +463,14 @@
   }
 
   .dashboard-link-action {
+    color: var(--text-strong);
+  }
+
+  .dashboard-quick-action {
+    color: var(--text-strong);
+  }
+
+  .dashboard-toolbar-link {
     color: var(--text-strong);
   }
 
