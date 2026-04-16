@@ -58,7 +58,9 @@
   const buttonClass = (action) => `timeline-card-action-button ${action?.iconOnly ? 'timeline-card-action-button-icon' : ''}`.trim();
 
   const confirmSubmission = async (event, action) => {
-    if (shouldSkipFormConfirmation(event.currentTarget)) {
+    const form = event.currentTarget;
+
+    if (shouldSkipFormConfirmation(form)) {
       return;
     }
 
@@ -82,14 +84,14 @@
       });
 
       if (result.isConfirmed) {
-        submitConfirmedForm(event.currentTarget);
+        submitConfirmedForm(form);
       }
 
       return;
     }
 
     if (window.confirm(text)) {
-      submitConfirmedForm(event.currentTarget);
+      submitConfirmedForm(form);
     }
   };
 </script>
@@ -181,7 +183,13 @@
                       <div class="timeline-card-actions">
                         {#each item.actions as action, actionIndex (action.href || action.label || actionIndex)}
                           {#if action.method}
-                            <form method="POST" action={action.href} class="d-inline-flex" onsubmit={(event) => confirmSubmission(event, action)}>
+                            <form
+                              method="POST"
+                              action={action.href}
+                              class="d-inline-flex"
+                              data-native="true"
+                              onsubmit={(event) => confirmSubmission(event, action)}
+                            >
                               {#if action.csrfToken}
                                 <input type="hidden" name="_token" value={action.csrfToken} />
                               {/if}
