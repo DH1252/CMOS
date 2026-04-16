@@ -856,6 +856,10 @@
   };
 
   onMount(() => {
+    if (!realtimeSnapshot) {
+      return;
+    }
+
     liveUpdatesCleanup = subscribeToLiveUpdates(
       realtimeSnapshot,
       async ({ changed }) => {

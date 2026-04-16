@@ -14,12 +14,21 @@ class CabinetController extends Controller
             ->orderByDesc('year')
             ->get();
 
-        return view('cabinets.index', compact('cabinets'));
+        return $this->renderInertiaPage(
+            'pages/CrudTablePage',
+            view: 'cabinets.index',
+            scriptId: 'svelte-crud-table-props',
+            viewData: compact('cabinets'),
+        );
     }
 
     public function create()
     {
-        return view('cabinets.create');
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'cabinets.create',
+            scriptId: 'svelte-entity-form-props',
+        );
     }
 
     public function store(Request $request)
@@ -47,12 +56,22 @@ class CabinetController extends Controller
     {
         $cabinet->load(['departments.users.role', 'departments.programs']);
 
-        return view('cabinets.show', compact('cabinet'));
+        return $this->renderInertiaPage(
+            'pages/EntityDetailPage',
+            view: 'cabinets.show',
+            scriptId: 'svelte-entity-detail-props',
+            viewData: compact('cabinet'),
+        );
     }
 
     public function edit(Cabinet $cabinet)
     {
-        return view('cabinets.edit', compact('cabinet'));
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'cabinets.edit',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('cabinet'),
+        );
     }
 
     public function update(Request $request, Cabinet $cabinet)

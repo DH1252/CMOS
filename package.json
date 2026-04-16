@@ -26,6 +26,7 @@
     },
     "dependencies": {
         "@humanspeak/svelte-motion": "^0.2.0",
+        "@inertiajs/svelte": "^3.0.3",
         "laravel-echo": "^2.2.4",
         "lighthouse": "^13.1.0",
         "lucide-svelte": "^1.0.1",

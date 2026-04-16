@@ -15,15 +15,25 @@ class DepartmentController extends Controller
             ->withCount(['users', 'programs'])
             ->orderBy('name')
             ->get();
-            
-        return view('departments.index', compact('departments'));
+
+        return $this->renderInertiaPage(
+            'pages/CrudTablePage',
+            view: 'departments.index',
+            scriptId: 'svelte-crud-table-props',
+            viewData: compact('departments'),
+        );
     }
 
     public function create()
     {
         $cabinets = Cabinet::active()->get();
-        
-        return view('departments.create', compact('cabinets'));
+
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'departments.create',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('cabinets'),
+        );
     }
 
     public function store(Request $request)
@@ -36,7 +46,7 @@ class DepartmentController extends Controller
         ]);
 
         $department = Department::create($validated);
-        
+
         ActivityLog::log('created', "Created department: {$department->name}", $department);
 
         return redirect()->route('departments.index')
@@ -46,15 +56,25 @@ class DepartmentController extends Controller
     public function show(Department $department)
     {
         $department->load(['cabinet', 'users.role', 'programs']);
-        
-        return view('departments.show', compact('department'));
+
+        return $this->renderInertiaPage(
+            'pages/EntityDetailPage',
+            view: 'departments.show',
+            scriptId: 'svelte-entity-detail-props',
+            viewData: compact('department'),
+        );
     }
 
     public function edit(Department $department)
     {
         $cabinets = Cabinet::active()->get();
-        
-        return view('departments.edit', compact('department', 'cabinets'));
+
+        return $this->renderInertiaPage(
+            'pages/EntityFormPage',
+            view: 'departments.edit',
+            scriptId: 'svelte-entity-form-props',
+            viewData: compact('department', 'cabinets'),
+        );
     }
 
     public function update(Request $request, Department $department)
@@ -67,7 +87,7 @@ class DepartmentController extends Controller
         ]);
 
         $department->update($validated);
-        
+
         ActivityLog::log('updated', "Updated department: {$department->name}", $department);
 
         return redirect()->route('departments.index')
@@ -77,13 +97,13 @@ class DepartmentController extends Controller
     public function destroy(Department $department)
     {
         $name = $department->name;
-        
+
         if ($department->users()->count() > 0) {
             return back()->with('error', 'Tidak dapat menghapus departemen yang masih memiliki anggota!');
         }
-        
+
         ActivityLog::log('deleted', "Deleted department: {$name}", $department);
-        
+
         $department->delete();
 
         return redirect()->route('departments.index')

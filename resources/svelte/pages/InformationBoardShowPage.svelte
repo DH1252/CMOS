@@ -41,6 +41,14 @@
       minute: '2-digit',
     });
   };
+
+  const handleImageError = (event) => {
+    if (event.currentTarget.src.endsWith(fallbackImage)) {
+      return;
+    }
+
+    event.currentTarget.src = fallbackImage;
+  };
 </script>
 
 <div class="row">

@@ -75,7 +75,7 @@
         return rightTime - leftTime;
       }
 
-      return (left.name || 'Kontak').localeCompare(right.name || 'Kontak', 'id');
+      return String(left.name || 'Kontak').localeCompare(String(right.name || 'Kontak'), 'id');
     });
 
   const buildContacts = () => {
@@ -323,20 +323,22 @@
       await loadConversation(activeUserId);
     }
 
-    liveUpdatesCleanup = subscribeToLiveUpdates(
-      endpoints.realtimeSnapshot,
-      async ({ changed }) => {
-        if (!changed.includes('messages')) {
-          return;
-        }
+    if (endpoints.realtimeSnapshot) {
+      liveUpdatesCleanup = subscribeToLiveUpdates(
+        endpoints.realtimeSnapshot,
+        async ({ changed }) => {
+          if (!changed.includes('messages')) {
+            return;
+          }
 
-        await loadSidebarData();
+          await loadSidebarData();
 
-        if (activeUserId) {
-          await loadConversation(activeUserId, false);
-        }
-      },
-    );
+          if (activeUserId) {
+            await loadConversation(activeUserId, false);
+          }
+        },
+      );
+    }
   });
 
   onDestroy(() => {

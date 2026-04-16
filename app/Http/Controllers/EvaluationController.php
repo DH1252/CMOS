@@ -55,7 +55,12 @@ class EvaluationController extends Controller
         $ranking = Evaluation::getMonthlyRanking($month);
         $availableMonths = Evaluation::getAvailableMonths();
 
-        return view('evaluations.departments', compact('departments', 'ranking', 'month', 'availableMonths'));
+        return $this->renderInertiaPage(
+            'pages/EvaluationHubPage',
+            view: 'evaluations.departments',
+            scriptId: 'svelte-evaluation-hub-props',
+            viewData: compact('departments', 'ranking', 'month', 'availableMonths'),
+        );
     }
 
     /**
@@ -94,7 +99,12 @@ class EvaluationController extends Controller
 
         $availableMonths = Evaluation::getAvailableMonths();
 
-        return view('evaluations.staff-list', compact('department', 'staffMembers', 'month', 'availableMonths'));
+        return $this->renderInertiaPage(
+            'pages/EvaluationStaffPage',
+            view: 'evaluations.staff-list',
+            scriptId: 'svelte-evaluation-staff-props',
+            viewData: compact('department', 'staffMembers', 'month', 'availableMonths'),
+        );
     }
 
     /**
@@ -132,7 +142,12 @@ class EvaluationController extends Controller
         $gradeParams = GradeParameter::getAllGrades();
         $availableMonths = Evaluation::getAvailableMonths();
 
-        return view('evaluations.create', compact('staff', 'month', 'evaluatorType', 'gradeParams', 'availableMonths'));
+        return $this->renderInertiaPage(
+            'pages/EvaluationFormPage',
+            view: 'evaluations.create',
+            scriptId: 'svelte-evaluation-form-props',
+            viewData: compact('staff', 'month', 'evaluatorType', 'gradeParams', 'availableMonths'),
+        );
     }
 
     /**
@@ -200,7 +215,12 @@ class EvaluationController extends Controller
 
         $gradeParams = GradeParameter::getAllGrades();
 
-        return view('evaluations.show', compact('user', 'evaluations', 'periodScores', 'gradeParams'));
+        return $this->renderInertiaPage(
+            'pages/EvaluationHistoryPage',
+            view: 'evaluations.show',
+            scriptId: 'svelte-evaluation-history-props',
+            viewData: compact('user', 'evaluations', 'periodScores', 'gradeParams'),
+        );
     }
 
     /**
@@ -213,7 +233,12 @@ class EvaluationController extends Controller
         $gradeParams = GradeParameter::getAllGrades();
         $availableMonths = Evaluation::getAvailableMonths();
 
-        return view('evaluations.edit', compact('evaluation', 'gradeParams', 'availableMonths'));
+        return $this->renderInertiaPage(
+            'pages/EvaluationFormPage',
+            view: 'evaluations.edit',
+            scriptId: 'svelte-evaluation-form-props',
+            viewData: compact('evaluation', 'gradeParams', 'availableMonths'),
+        );
     }
 
     /**
@@ -281,7 +306,12 @@ class EvaluationController extends Controller
 
         $gradeParams = GradeParameter::getAllGrades();
 
-        return view('evaluations.my', compact('evaluations', 'periodScores', 'gradeParams'));
+        return $this->renderInertiaPage(
+            'pages/EvaluationHistoryPage',
+            view: 'evaluations.my',
+            scriptId: 'svelte-evaluation-history-props',
+            viewData: compact('evaluations', 'periodScores', 'gradeParams'),
+        );
     }
 
     /**

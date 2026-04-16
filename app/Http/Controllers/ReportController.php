@@ -21,13 +21,18 @@ class ReportController extends Controller
     {
         $payload = $this->buildPayload();
 
-        return view('reports.index', [
-            'stats' => $payload['stats'],
-            'departments' => $payload['departments'],
-            'tasksByStatus' => $payload['tasksByStatus'],
-            'programsByStatus' => $payload['programsByStatus'],
-            'topStaff' => $payload['topStaff'],
-        ]);
+        return $this->renderInertiaPage(
+            'pages/ReportDashboardPage',
+            view: 'reports.index',
+            scriptId: 'svelte-report-dashboard-props',
+            viewData: [
+                'stats' => $payload['stats'],
+                'departments' => $payload['departments'],
+                'tasksByStatus' => $payload['tasksByStatus'],
+                'programsByStatus' => $payload['programsByStatus'],
+                'topStaff' => $payload['topStaff'],
+            ],
+        );
     }
 
     public function export(Request $request, $type)

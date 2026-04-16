@@ -24,7 +24,12 @@ class AnnouncementController extends Controller
             return response()->json($this->indexPayload($announcements, $request));
         }
 
-        return view('announcements.index', compact('announcements'));
+        return $this->renderInertiaPage(
+            'pages/AnnouncementFeedPage',
+            view: 'announcements.index',
+            scriptId: 'svelte-announcement-feed-props',
+            viewData: compact('announcements'),
+        );
     }
 
     public function store(Request $request)

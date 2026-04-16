@@ -17,14 +17,20 @@
   let emailInput;
 
   onMount(() => {
+    document.documentElement.setAttribute('data-theme', 'dark');
     emailInput?.focus();
   });
 </script>
 
+<svelte:head>
+  <title>Login - {appName}</title>
+  <meta name="description" content={`Masuk ke ${appName} untuk melanjutkan operasional organisasi.`} />
+</svelte:head>
+
 <div class="min-h-screen bg-background px-5 py-10 text-foreground lg:px-8">
   <div class="mx-auto grid max-w-[980px] gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
     <section class="space-y-5 rounded-[10px] border border-border bg-card px-6 py-8 lg:px-8 lg:py-10">
-      <a href={homeUrl} class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground no-underline transition-colors hover:text-foreground" aria-label="Kembali ke beranda">
+      <a href={homeUrl} data-native="true" class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground no-underline transition-colors hover:text-foreground" aria-label="Kembali ke beranda">
         <i class="fas fa-arrow-left" aria-hidden="true"></i>
         <span>Kembali ke beranda</span>
       </a>

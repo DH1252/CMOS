@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +14,21 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
-        return view('auth.login');
+
+        $errors = session('errors');
+
+        return $this->renderInertiaPage('LoginPage', [
+            'appName' => Setting::get('app_name', 'CMOS'),
+            'loginUrl' => route('login.submit'),
+            'homeUrl' => route('home'),
+            'csrfToken' => csrf_token(),
+            'email' => old('email', ''),
+            'alertMessage' => session('error') ?? session('status') ?? '',
+            'alertType' => session()->has('error') ? 'error' : (session()->has('status') ? 'info' : ''),
+            'emailError' => $errors?->first('email') ?? '',
+            'passwordError' => $errors?->first('password') ?? '',
+            'remember' => (bool) old('remember', false),
+        ]);
     }
 
     public function login(Request $request)
@@ -25,9 +40,9 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            
+
             ActivityLog::log('login', 'User logged in');
-            
+
             return redirect()->intended(route('dashboard'));
         }
 
@@ -39,7 +54,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         ActivityLog::log('logout', 'User logged out');
-        
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

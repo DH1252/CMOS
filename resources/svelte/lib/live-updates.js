@@ -11,6 +11,10 @@ const parseAuthProps = () => {
 		return {};
 	}
 
+	if (typeof window !== "undefined" && window.__CMOS_AUTH_PROPS__) {
+		return window.__CMOS_AUTH_PROPS__;
+	}
+
 	const node = document.getElementById("svelte-auth-props");
 
 	if (!node?.textContent) {

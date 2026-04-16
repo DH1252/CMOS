@@ -1,6 +1,8 @@
 <script>
+  import { onMount } from 'svelte';
   import brandLogo from '../images/logokabinet.png?enhanced&w=80;160';
   import himatekkomBanner from '../images/himatekkom.jpg?enhanced&w=480;960;1440';
+  import { inertiaEnhance } from '$lib/inertia-enhance.js';
   import PublicInformationIndexPage from './public/PublicInformationIndexPage.svelte';
   import PublicInformationShowPage from './public/PublicInformationShowPage.svelte';
   import {
@@ -24,6 +26,7 @@
     logoUrl = '/images/logokabinet.png',
     infoIndex = {},
     infoShow = {},
+    enableSpaNavigation = false,
   } = $props();
 
   let mobileNavOpen = $state(false);
@@ -200,10 +203,45 @@
       year: 'numeric',
     });
   };
+
+  const pageTitle = $derived.by(() => {
+    if (page === 'landing') {
+      return 'Website Resmi HIMATEKKOM ITS 2026 | Kabinet Sentra Sinergi';
+    }
+
+    if (page === 'info-show') {
+      const seoTitle = infoShow?.article?.seoTitle;
+
+      return `${seoTitle || infoShow?.article?.title || 'Papan Informasi'} - ${organizationName}`;
+    }
+
+    return `Papan Informasi - ${organizationName}`;
+  });
+
+  const pageDescription = $derived.by(() => {
+    if (page === 'landing') {
+      return 'Platform resmi HIMATEKKOM ITS untuk informasi publik dan kerja operasional kabinet.';
+    }
+
+    if (page === 'info-show') {
+      return infoShow?.article?.excerpt || 'Publikasi resmi HIMATEKKOM ITS.';
+    }
+
+    return `Portal informasi resmi ${organizationName}. Artikel, pembaruan kegiatan, dan publikasi organisasi.`;
+  });
+
+  onMount(() => {
+    document.documentElement.setAttribute('data-theme', 'public');
+  });
 </script>
 
+<svelte:head>
+  <title>{pageTitle}</title>
+  <meta name="description" content={pageDescription} />
+</svelte:head>
+
 {#if page === 'landing'}
-  <div class="min-h-screen bg-background text-foreground">
+  <div class="min-h-screen bg-background text-foreground" use:inertiaEnhance={enableSpaNavigation}>
     <header class="border-b border-border bg-background/96">
       <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8">
         <a href={homeUrl} class="flex min-w-0 items-center gap-3 text-inherit no-underline">
@@ -484,7 +522,7 @@
     </footer>
   </div>
 {:else if isInfoIndex || isInfoShow}
-  <div class="min-h-screen bg-background text-foreground">
+  <div class="min-h-screen bg-background text-foreground" use:inertiaEnhance={enableSpaNavigation}>
     <header class="border-b border-border/80 bg-background/92 backdrop-blur-sm">
       <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8">
         <a href={homeUrl} class="flex min-w-0 items-center gap-3 text-inherit no-underline">

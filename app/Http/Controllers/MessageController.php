@@ -24,7 +24,12 @@ class MessageController extends Controller
         // Get conversations
         $conversations = Message::getConversations($user->id);
 
-        return view('messages.index', compact('users', 'conversations'));
+        return $this->renderInertiaPage(
+            'pages/MessagesPage',
+            view: 'messages.index',
+            scriptId: 'svelte-messages-props',
+            viewData: compact('users', 'conversations'),
+        );
     }
 
     public function unreadCount(Request $request)
@@ -101,6 +106,7 @@ class MessageController extends Controller
                 'name' => $user->name,
                 'avatar' => $user->avatar_url,
             ],
+            'unreadCount' => Message::unreadCountFor($currentUser->id),
         ]);
     }
 

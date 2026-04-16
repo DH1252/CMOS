@@ -1,4 +1,5 @@
 <script>
+  import { router } from '@inertiajs/svelte';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 
   let {
@@ -9,7 +10,6 @@
     onOpenChange = () => {},
   } = $props();
 
-  let logoutForm;
   let previousOpen = open;
 
   const navigate = (href) => {
@@ -17,7 +17,15 @@
       return;
     }
 
-    window.location.assign(href);
+    router.visit(href);
+  };
+
+  const logout = () => {
+    if (!links.logout) {
+      return;
+    }
+
+    router.post(links.logout, { _token: csrfToken });
   };
 
   const initialsFor = (value) => (value || 'U').trim().charAt(0).toUpperCase();
@@ -101,11 +109,7 @@
 
     <DropdownMenu.Separator class="my-1 h-px bg-border" />
 
-    <form bind:this={logoutForm} method="POST" action={links.logout || '#'} class="hidden">
-      <input type="hidden" name="_token" value={csrfToken} />
-    </form>
-
-    <DropdownMenu.Item onSelect={() => logoutForm?.requestSubmit()}>
+    <DropdownMenu.Item onSelect={logout}>
       {#snippet child({ props })}
         <div {...props} class={`shell-menu-item shell-menu-item-danger ${props.class || ''}`}>
           <i class="fas fa-right-from-bracket"></i>

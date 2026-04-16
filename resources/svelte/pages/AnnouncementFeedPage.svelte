@@ -1,7 +1,8 @@
 <script>
   import { onDestroy, onMount } from 'svelte';
   import { subscribeToLiveUpdates } from '$lib/live-updates.js';
-  import { Button } from '$lib/components/ui/button/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
@@ -129,6 +130,10 @@
   };
 
   const confirmSubmission = async (event, payload) => {
+		if (shouldSkipFormConfirmation(event.currentTarget)) {
+			return;
+		}
+
     if (!payload?.confirm) {
       return;
     }
@@ -148,14 +153,14 @@
       });
 
       if (result.isConfirmed) {
-        event.currentTarget.submit();
+			submitConfirmedForm(event.currentTarget);
       }
 
       return;
     }
 
     if (window.confirm(text)) {
-      event.currentTarget.submit();
+			submitConfirmedForm(event.currentTarget);
     }
   };
 
@@ -375,6 +380,10 @@
     summary.reduce((total, item) => total + Number(item.count || 0), 0);
 
   onMount(() => {
+    if (!realtimeSnapshot) {
+      return;
+    }
+
     liveUpdatesCleanup = subscribeToLiveUpdates(
       realtimeSnapshot,
       async ({ changed }) => {

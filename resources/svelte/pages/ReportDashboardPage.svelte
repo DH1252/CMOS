@@ -35,7 +35,7 @@
   };
 
   const resolveToneColor = (tone) => {
-    if (typeof window === 'undefined') {
+    if (typeof document === 'undefined') {
       return fallbackPalette[tone] || fallbackPalette.secondary;
     }
 
@@ -131,7 +131,7 @@
     {#if exports.length}
       <div class="report-intro-actions">
         {#each exports as item, index (item.href || index)}
-          <Button href={item.href} variant={exportVariant(item)}>
+          <Button href={item.href} variant={exportVariant(item)} data-native="true">
             <i class={item.icon}></i>
             <span>{item.label}</span>
           </Button>

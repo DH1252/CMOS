@@ -1,5 +1,6 @@
 <script>
   import { Button } from '$lib/components/ui/button/index.js';
+  import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Progress } from '$lib/components/ui/progress/index.js';
@@ -17,6 +18,10 @@
   } = $props();
 
   const submitRemoval = async (event, memberName) => {
+		if (shouldSkipFormConfirmation(event.currentTarget)) {
+			return;
+		}
+
     event.preventDefault();
 
     const text = `Hapus ${memberName} dari tim program ini?`;
@@ -32,13 +37,13 @@
       });
 
       if (result.isConfirmed) {
-        event.currentTarget.submit();
+			submitConfirmedForm(event.currentTarget);
       }
       return;
     }
 
     if (window.confirm(text)) {
-      event.currentTarget.submit();
+			submitConfirmedForm(event.currentTarget);
     }
   };
 
