@@ -11,13 +11,52 @@ class ProfileController extends Controller
     {
         $user = auth()->user()->loadMissing(['role', 'department']);
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/ProfileSettingsPage',
-            view: 'profile.edit',
-            scriptId: 'svelte-profile-settings-props',
-            viewData: [
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $errorMap = collect(session('errors')?->messages() ?? [])->map(fn ($messages) => $messages[0])->all();
+
+                $props = [
+                    'title' => 'Edit Profil',
+                    'description' => 'Perbarui identitas akun, foto profil, dan keamanan akses Anda.',
+                    'user' => [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'roleName' => $user->role_name,
+                        'department' => $user->department?->name,
+                        'avatarUrl' => $user->avatar_url,
+                        'joinedAt' => $user->created_at->toIso8601String(),
+                    ],
+                    'profileForm' => [
+                        'action' => route('profile.update'),
+                        'csrfToken' => csrf_token(),
+                        'spoofMethod' => 'PUT',
+                        'values' => [
+                            'name' => old('name', $user->name),
+                            'avatarUrl' => $user->avatar_url,
+                        ],
+                        'errors' => collect($errorMap)->only(['name', 'avatar'])->all(),
+                    ],
+                    'passwordForm' => [
+                        'action' => route('profile.password.update'),
+                        'csrfToken' => csrf_token(),
+                        'spoofMethod' => 'PUT',
+                        'errors' => collect($errorMap)->only(['current_password', 'password', 'password_confirmation'])->all(),
+                        'status' => session('status'),
+                    ],
+                    'removeAvatarAction' => $user->avatar ? [
+                        'action' => route('profile.avatar.remove'),
+                        'csrfToken' => csrf_token(),
+                    ] : null,
+                    'backHref' => route('dashboard'),
+                ];
+
+                return $props;
+            })([
                 'user' => $user,
-            ],
+            ]),
         );
     }
 

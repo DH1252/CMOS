@@ -35,11 +35,47 @@ class TaskController extends Controller
         $globalTasksCount = Task::global()->count();
         $globalPendingCount = Task::global()->where('status', '!=', 'done')->count();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TaskHubPage',
-            view: 'tasks.departments',
-            scriptId: 'svelte-task-hub-props',
-            viewData: compact('departments', 'globalTasksCount', 'globalPendingCount'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => 'Task Management',
+                    'description' => 'Pilih board global atau per departemen.',
+                    'icon' => 'fas fa-diagram-project',
+                    'cards' => array_merge([
+                        [
+                            'href' => route('tasks.global'),
+                            'title' => 'Global Tasks',
+                            'description' => 'Task lintas departemen.',
+                            'icon' => 'fas fa-globe',
+                            'tone' => 'primary',
+                            'featured' => true,
+                            'stats' => [
+                                ['icon' => 'fas fa-list-check', 'label' => "{$globalTasksCount} tugas", 'tone' => 'secondary'],
+                                ['icon' => 'fas fa-clock', 'label' => "{$globalPendingCount} aktif", 'tone' => 'warning'],
+                            ],
+                        ],
+                    ], $departments->map(fn ($department) => [
+                        'href' => route('tasks.department', $department),
+                        'title' => $department->name,
+                        'description' => $department->cabinet?->name ?? 'Belum terhubung ke kabinet',
+                        'icon' => 'fas fa-building',
+                        'tone' => 'info',
+                        'stats' => [
+                            ['icon' => 'fas fa-list-check', 'label' => ($department->total_tasks ?? 0).' tugas', 'tone' => 'secondary'],
+                            ['icon' => 'fas fa-clock', 'label' => ($department->pending_tasks ?? 0).' aktif', 'tone' => 'warning'],
+                        ],
+                    ])->values()->all()),
+                    'emptyState' => [
+                        'title' => 'Belum ada departemen',
+                        'text' => 'Departemen akan tampil di sini setelah data organisasi tersedia.',
+                    ],
+                ];
+
+                return $props;
+            })(compact('departments', 'globalTasksCount', 'globalPendingCount')),
         );
     }
 
@@ -75,11 +111,85 @@ class TaskController extends Controller
             return response()->json($payload);
         }
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TaskBoardPage',
-            view: 'tasks.kanban',
-            scriptId: 'svelte-task-board-props',
-            viewData: [
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $description = $type === 'global'
+        ? 'Task lintas departemen.'
+        : ($type === 'department'
+            ? "Board {$department->name}."
+            : "Task {$program->name}.");
+
+                $breadcrumbs = [['label' => 'Tasks', 'href' => route('tasks.index')]];
+
+                if ($type === 'department') {
+                    $breadcrumbs[] = ['label' => $department->name, 'href' => route('tasks.department', $department)];
+                    $breadcrumbs[] = ['label' => 'Tugas Departemen'];
+                } elseif ($type === 'program') {
+                    $breadcrumbs[] = ['label' => $program->department->name, 'href' => route('tasks.department', $program->department)];
+                    $breadcrumbs[] = ['label' => $program->name];
+                } else {
+                    $breadcrumbs[] = ['label' => 'Global Tasks'];
+                }
+
+                $statusLabels = [
+                    'todo' => 'To Do',
+                    'in_progress' => 'In Progress',
+                    'pending' => 'Pending',
+                    'done' => 'Done',
+                ];
+
+                $props = [
+                    'title' => $title,
+                    'description' => $description,
+                    'refreshUrl' => $type === 'global'
+                        ? route('tasks.global')
+                        : ($type === 'department'
+                            ? route('tasks.department.tasks', $department)
+                            : route('tasks.program', $program)),
+                    'realtimeSnapshot' => route('realtime.snapshot'),
+                    'breadcrumbs' => $breadcrumbs,
+                    'context' => [
+                        'type' => $type,
+                        'typeId' => $typeId,
+                    ],
+                    'endpoints' => [
+                        'storeInline' => route('tasks.inline.store'),
+                        'taskBase' => url('/tasks'),
+                    ],
+                    'csrfToken' => csrf_token(),
+                    'users' => $users->map(fn ($user) => [
+                        'value' => $user->id,
+                        'label' => $user->name.' ('.ucfirst($user->role?->name ?? 'user').')',
+                    ])->values(),
+                    'columns' => collect(\App\Models\Task::STATUSES)->map(function ($status) use ($tasks, $statusLabels) {
+                        return [
+                            'status' => $status,
+                            'label' => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)),
+                            'tasks' => collect($tasks->get($status, collect()))->map(fn ($task) => [
+                                'id' => $task->id,
+                                'title' => $task->title,
+                                'description' => $task->description,
+                                'status' => $task->status,
+                                'priority' => $task->priority,
+                                'priority_label' => $task->priority_label,
+                                'progress' => $task->progress,
+                                'deadline' => $task->deadline?->format('Y-m-d'),
+                                'deadline_fmt' => $task->deadline?->format('d M Y'),
+                                'is_overdue' => $task->is_overdue,
+                                'assigned_to' => $task->assigned_to,
+                                'assignee_name' => $task->assignee?->name,
+                                'assignee_avatar' => $task->assignee?->avatar_url,
+                                'showHref' => route('tasks.show', $task),
+                            ])->values(),
+                        ];
+                    })->values(),
+                ];
+
+                return $props;
+            })([
                 'tasks' => $tasks,
                 'users' => $users,
                 'title' => 'Global Tasks',
@@ -87,7 +197,7 @@ class TaskController extends Controller
                 'createUrl' => route('tasks.create', ['type' => 'global']),
                 'type' => 'global',
                 'typeId' => null,
-            ],
+            ]),
         );
     }
 
@@ -112,11 +222,55 @@ class TaskController extends Controller
         $deptPendingCount = (clone $departmentTasks)->where('status', '!=', 'done')->count();
         $deptDoneCount = (clone $departmentTasks)->done()->count();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TaskHubPage',
-            view: 'tasks.programs',
-            scriptId: 'svelte-task-hub-props',
-            viewData: compact('department', 'programs', 'deptTasksCount', 'deptPendingCount', 'deptDoneCount'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $departmentProgress = $deptTasksCount > 0 ? round(($deptDoneCount / $deptTasksCount) * 100) : 0;
+
+                $props = [
+                    'title' => $department->name,
+                    'description' => 'Pilih board departemen atau program kerja.',
+                    'icon' => 'fas fa-building',
+                    'breadcrumbs' => [
+                        ['label' => 'Tasks', 'href' => route('tasks.index')],
+                        ['label' => $department->name],
+                    ],
+                    'cards' => array_merge([
+                        [
+                            'href' => route('tasks.department.tasks', $department),
+                            'title' => 'Tugas Departemen',
+                            'description' => "Task untuk {$department->name}.",
+                            'icon' => 'fas fa-folder-tree',
+                            'tone' => 'primary',
+                            'featured' => true,
+                            'progress' => $departmentProgress,
+                            'stats' => [
+                                ['icon' => 'fas fa-check', 'label' => "{$deptDoneCount} selesai", 'tone' => 'success'],
+                                ['icon' => 'fas fa-clock', 'label' => "{$deptPendingCount} aktif", 'tone' => 'warning'],
+                            ],
+                        ],
+                    ], $programs->map(fn ($program) => [
+                        'href' => route('tasks.program', $program),
+                        'title' => $program->name,
+                        'description' => \Illuminate\Support\Str::limit($program->description ?: 'Belum ada deskripsi program.', 88),
+                        'icon' => 'fas fa-sitemap',
+                        'tone' => 'success',
+                        'progress' => $program->total_tasks > 0 ? round((($program->done_tasks ?? 0) / $program->total_tasks) * 100) : 0,
+                        'stats' => [
+                            ['icon' => 'fas fa-check', 'label' => ($program->done_tasks ?? 0).' selesai', 'tone' => 'success'],
+                            ['icon' => 'fas fa-clock', 'label' => ($program->pending_tasks ?? 0).' aktif', 'tone' => 'warning'],
+                        ],
+                    ])->values()->all()),
+                    'emptyState' => [
+                        'title' => 'Belum ada program',
+                        'text' => 'Departemen ini belum memiliki program kerja untuk diturunkan menjadi task board.',
+                    ],
+                ];
+
+                return $props;
+            })(compact('department', 'programs', 'deptTasksCount', 'deptPendingCount', 'deptDoneCount')),
         );
     }
 
@@ -154,11 +308,85 @@ class TaskController extends Controller
             return response()->json($payload);
         }
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TaskBoardPage',
-            view: 'tasks.kanban',
-            scriptId: 'svelte-task-board-props',
-            viewData: [
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $description = $type === 'global'
+        ? 'Task lintas departemen.'
+        : ($type === 'department'
+            ? "Board {$department->name}."
+            : "Task {$program->name}.");
+
+                $breadcrumbs = [['label' => 'Tasks', 'href' => route('tasks.index')]];
+
+                if ($type === 'department') {
+                    $breadcrumbs[] = ['label' => $department->name, 'href' => route('tasks.department', $department)];
+                    $breadcrumbs[] = ['label' => 'Tugas Departemen'];
+                } elseif ($type === 'program') {
+                    $breadcrumbs[] = ['label' => $program->department->name, 'href' => route('tasks.department', $program->department)];
+                    $breadcrumbs[] = ['label' => $program->name];
+                } else {
+                    $breadcrumbs[] = ['label' => 'Global Tasks'];
+                }
+
+                $statusLabels = [
+                    'todo' => 'To Do',
+                    'in_progress' => 'In Progress',
+                    'pending' => 'Pending',
+                    'done' => 'Done',
+                ];
+
+                $props = [
+                    'title' => $title,
+                    'description' => $description,
+                    'refreshUrl' => $type === 'global'
+                        ? route('tasks.global')
+                        : ($type === 'department'
+                            ? route('tasks.department.tasks', $department)
+                            : route('tasks.program', $program)),
+                    'realtimeSnapshot' => route('realtime.snapshot'),
+                    'breadcrumbs' => $breadcrumbs,
+                    'context' => [
+                        'type' => $type,
+                        'typeId' => $typeId,
+                    ],
+                    'endpoints' => [
+                        'storeInline' => route('tasks.inline.store'),
+                        'taskBase' => url('/tasks'),
+                    ],
+                    'csrfToken' => csrf_token(),
+                    'users' => $users->map(fn ($user) => [
+                        'value' => $user->id,
+                        'label' => $user->name.' ('.ucfirst($user->role?->name ?? 'user').')',
+                    ])->values(),
+                    'columns' => collect(\App\Models\Task::STATUSES)->map(function ($status) use ($tasks, $statusLabels) {
+                        return [
+                            'status' => $status,
+                            'label' => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)),
+                            'tasks' => collect($tasks->get($status, collect()))->map(fn ($task) => [
+                                'id' => $task->id,
+                                'title' => $task->title,
+                                'description' => $task->description,
+                                'status' => $task->status,
+                                'priority' => $task->priority,
+                                'priority_label' => $task->priority_label,
+                                'progress' => $task->progress,
+                                'deadline' => $task->deadline?->format('Y-m-d'),
+                                'deadline_fmt' => $task->deadline?->format('d M Y'),
+                                'is_overdue' => $task->is_overdue,
+                                'assigned_to' => $task->assigned_to,
+                                'assignee_name' => $task->assignee?->name,
+                                'assignee_avatar' => $task->assignee?->avatar_url,
+                                'showHref' => route('tasks.show', $task),
+                            ])->values(),
+                        ];
+                    })->values(),
+                ];
+
+                return $props;
+            })([
                 'tasks' => $tasks,
                 'users' => $users,
                 'title' => "Tugas {$department->name}",
@@ -167,7 +395,7 @@ class TaskController extends Controller
                 'type' => 'department',
                 'typeId' => $department->id,
                 'department' => $department,
-            ],
+            ]),
         );
     }
 
@@ -204,11 +432,85 @@ class TaskController extends Controller
             return response()->json($payload);
         }
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TaskBoardPage',
-            view: 'tasks.kanban',
-            scriptId: 'svelte-task-board-props',
-            viewData: [
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $description = $type === 'global'
+        ? 'Task lintas departemen.'
+        : ($type === 'department'
+            ? "Board {$department->name}."
+            : "Task {$program->name}.");
+
+                $breadcrumbs = [['label' => 'Tasks', 'href' => route('tasks.index')]];
+
+                if ($type === 'department') {
+                    $breadcrumbs[] = ['label' => $department->name, 'href' => route('tasks.department', $department)];
+                    $breadcrumbs[] = ['label' => 'Tugas Departemen'];
+                } elseif ($type === 'program') {
+                    $breadcrumbs[] = ['label' => $program->department->name, 'href' => route('tasks.department', $program->department)];
+                    $breadcrumbs[] = ['label' => $program->name];
+                } else {
+                    $breadcrumbs[] = ['label' => 'Global Tasks'];
+                }
+
+                $statusLabels = [
+                    'todo' => 'To Do',
+                    'in_progress' => 'In Progress',
+                    'pending' => 'Pending',
+                    'done' => 'Done',
+                ];
+
+                $props = [
+                    'title' => $title,
+                    'description' => $description,
+                    'refreshUrl' => $type === 'global'
+                        ? route('tasks.global')
+                        : ($type === 'department'
+                            ? route('tasks.department.tasks', $department)
+                            : route('tasks.program', $program)),
+                    'realtimeSnapshot' => route('realtime.snapshot'),
+                    'breadcrumbs' => $breadcrumbs,
+                    'context' => [
+                        'type' => $type,
+                        'typeId' => $typeId,
+                    ],
+                    'endpoints' => [
+                        'storeInline' => route('tasks.inline.store'),
+                        'taskBase' => url('/tasks'),
+                    ],
+                    'csrfToken' => csrf_token(),
+                    'users' => $users->map(fn ($user) => [
+                        'value' => $user->id,
+                        'label' => $user->name.' ('.ucfirst($user->role?->name ?? 'user').')',
+                    ])->values(),
+                    'columns' => collect(\App\Models\Task::STATUSES)->map(function ($status) use ($tasks, $statusLabels) {
+                        return [
+                            'status' => $status,
+                            'label' => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)),
+                            'tasks' => collect($tasks->get($status, collect()))->map(fn ($task) => [
+                                'id' => $task->id,
+                                'title' => $task->title,
+                                'description' => $task->description,
+                                'status' => $task->status,
+                                'priority' => $task->priority,
+                                'priority_label' => $task->priority_label,
+                                'progress' => $task->progress,
+                                'deadline' => $task->deadline?->format('Y-m-d'),
+                                'deadline_fmt' => $task->deadline?->format('d M Y'),
+                                'is_overdue' => $task->is_overdue,
+                                'assigned_to' => $task->assigned_to,
+                                'assignee_name' => $task->assignee?->name,
+                                'assignee_avatar' => $task->assignee?->avatar_url,
+                                'showHref' => route('tasks.show', $task),
+                            ])->values(),
+                        ];
+                    })->values(),
+                ];
+
+                return $props;
+            })([
                 'tasks' => $tasks,
                 'users' => $users,
                 'title' => $program->name,
@@ -217,7 +519,7 @@ class TaskController extends Controller
                 'type' => 'program',
                 'typeId' => $program->id,
                 'program' => $program,
-            ],
+            ]),
         );
     }
 
@@ -243,11 +545,74 @@ class TaskController extends Controller
         $programs = Program::with('department')->orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TaskFormPage',
-            view: 'tasks.create',
-            scriptId: 'svelte-task-form-props',
-            viewData: compact('type', 'typeId', 'users', 'programs', 'departments'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $typeLocked = filled($typeId);
+                $contextName = null;
+
+                if ($type === 'program' && $typeId) {
+                    $contextName = $programs->firstWhere('id', (int) $typeId)?->name;
+                } elseif ($type === 'department' && $typeId) {
+                    $contextName = $departments->firstWhere('id', (int) $typeId)?->name;
+                }
+
+                $description = match ($type) {
+                    'global' => 'Buat tugas lintas departemen untuk koordinasi organisasi.',
+                    'department' => $contextName ? "Susun penugasan baru untuk {$contextName}." : 'Buat tugas pada level departemen.',
+                    default => $contextName ? "Susun penugasan baru untuk program {$contextName}." : 'Buat tugas baru untuk program kerja.',
+                };
+
+                $cancelHref = match ($type) {
+                    'global' => route('tasks.global'),
+                    'department' => $typeId ? route('tasks.department.tasks', $typeId) : route('tasks.index'),
+                    default => $typeId ? route('tasks.program', $typeId) : route('tasks.index'),
+                };
+
+                $props = [
+                    'title' => 'Form Tambah Task',
+                    'description' => $description,
+                    'form' => [
+                        'action' => route('tasks.store'),
+                        'method' => 'POST',
+                        'csrfToken' => csrf_token(),
+                    ],
+                    'taskType' => $type,
+                    'typeLocked' => $typeLocked,
+                    'typeId' => $typeId,
+                    'values' => [
+                        'title' => old('title'),
+                        'description' => old('description'),
+                        'program_id' => old('program_id', $type === 'program' ? $typeId : null),
+                        'department_id' => old('department_id', $type === 'department' ? $typeId : null),
+                        'assigned_to' => old('assigned_to'),
+                        'priority' => old('priority', 'medium'),
+                        'deadline' => old('deadline'),
+                    ],
+                    'users' => $users->map(fn ($user) => [
+                        'value' => $user->id,
+                        'label' => $user->name.' ('.ucfirst($user->role?->name ?? 'user').')',
+                    ])->values(),
+                    'programs' => $programs->map(fn ($program) => [
+                        'value' => $program->id,
+                        'label' => $program->name.' ('.($program->department?->name ?? 'Tanpa departemen').')',
+                    ])->values(),
+                    'departments' => $departments->map(fn ($department) => [
+                        'value' => $department->id,
+                        'label' => $department->name,
+                    ])->values(),
+                    'errors' => collect(session('errors')?->messages() ?? [])->map(fn ($messages) => $messages[0])->all(),
+                    'cancelAction' => [
+                        'href' => $cancelHref,
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                ];
+
+                return $props;
+            })(compact('type', 'typeId', 'users', 'programs', 'departments')),
         );
     }
 
@@ -301,11 +666,64 @@ class TaskController extends Controller
     {
         $task->load(['program.department', 'department', 'assignee.role', 'creator']);
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/TaskDetailPage',
-            view: 'tasks.show',
-            scriptId: 'svelte-task-detail-props',
-            viewData: compact('task'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $backHref = $task->is_global
+        ? route('tasks.global')
+        : ($task->program_id
+            ? route('tasks.program', $task->program)
+            : ($task->department_id ? route('tasks.department.tasks', $task->department) : route('tasks.index')));
+
+                $taskTypeFact = $task->is_global
+                    ? ['label' => 'Tipe Task', 'value' => 'Global', 'className' => 'fw-semibold']
+                    : ($task->program_id
+                        ? ['label' => 'Tipe Task', 'value' => $task->program->name, 'href' => route('tasks.program', $task->program), 'className' => 'fw-semibold']
+                        : ($task->department_id
+                            ? ['label' => 'Tipe Task', 'value' => $task->department->name, 'href' => route('tasks.department.tasks', $task->department), 'className' => 'fw-semibold']
+                            : ['label' => 'Tipe Task', 'value' => '-', 'className' => 'text-muted']));
+
+                $props = [
+                    'summary' => [
+                        'title' => $task->title,
+                        'description' => $task->description,
+                        'badges' => [
+                            ['label' => ucfirst(str_replace('_', ' ', $task->status)), 'tone' => $task->status_badge],
+                            ['label' => ucfirst($task->priority), 'tone' => $task->priority_badge],
+                        ],
+                        'actions' => [
+                            ['href' => $backHref, 'label' => 'Kembali', 'icon' => 'fas fa-arrow-left', 'tone' => 'secondary'],
+                        ],
+                    ],
+                    'facts' => [
+                        $taskTypeFact,
+                        ['label' => 'Departemen', 'value' => $task->program?->department?->name ?? $task->department?->name ?? 'Global', 'className' => 'fw-semibold'],
+                        ['label' => 'Deadline', 'value' => $task->deadline?->format('d M Y') ?? '-', 'className' => $task->is_overdue ? 'fw-semibold text-danger' : 'fw-semibold'],
+                        ['label' => 'Dibuat oleh', 'value' => $task->creator?->name ?? '-', 'className' => 'fw-semibold'],
+                    ],
+                    'progress' => [
+                        'value' => $task->progress,
+                        'action' => route('tasks.progress', $task),
+                        'csrfToken' => csrf_token(),
+                        'canUpdate' => auth()->id() === $task->assigned_to || auth()->user()->hasRole(['admin', 'bph', 'kabinet']),
+                    ],
+                    'assignee' => $task->assignee ? [
+                        'name' => $task->assignee->name,
+                        'avatar' => $task->assignee->avatar_url,
+                        'email' => $task->assignee->email,
+                        'roleLabel' => ucfirst($task->assignee->role?->name ?? '-'),
+                        'roleTone' => $task->assignee->role?->name === 'kabinet' ? 'info' : 'secondary',
+                    ] : null,
+                    'meta' => [
+                        ['label' => 'Dibuat', 'value' => $task->created_at->format('d M Y H:i')],
+                        ['label' => 'Diupdate', 'value' => $task->updated_at->format('d M Y H:i')],
+                    ],
+                ];
+
+                return $props;
+            })(compact('task')),
         );
     }
 

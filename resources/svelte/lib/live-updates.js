@@ -7,26 +7,15 @@ let lifecycleListenersBound = false;
 let pageIsActive = true;
 
 const parseAuthProps = () => {
-	if (typeof document === "undefined") {
+	if (typeof window === "undefined") {
 		return {};
 	}
 
-	if (typeof window !== "undefined" && window.__CMOS_AUTH_PROPS__) {
+	if (window.__CMOS_AUTH_PROPS__) {
 		return window.__CMOS_AUTH_PROPS__;
 	}
 
-	const node = document.getElementById("svelte-auth-props");
-
-	if (!node?.textContent) {
-		return {};
-	}
-
-	try {
-		return JSON.parse(node.textContent);
-	} catch (error) {
-		console.error("Failed to parse auth realtime props", error);
-		return {};
-	}
+	return {};
 };
 
 const emit = (event) => {

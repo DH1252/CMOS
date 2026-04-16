@@ -8,7 +8,6 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
-use Inertia\Inertia;
 
 class PublicInformationController extends Controller
 {
@@ -40,7 +39,7 @@ class PublicInformationController extends Controller
         $articles = $query->paginate(9)->withQueryString();
         $categories = InformationCategory::orderBy('name')->get();
 
-        return Inertia::render('PublicApp', $this->indexPayload(
+        return \Inertia\Inertia::render('PublicApp', $this->indexPayload(
             $articles,
             $categories,
             $search,
@@ -60,7 +59,7 @@ class PublicInformationController extends Controller
             ->take(5)
             ->get();
 
-        return Inertia::render('PublicApp', $this->showPayload($article, $latestArticles));
+        return \Inertia\Inertia::render('PublicApp', $this->showPayload($article, $latestArticles));
     }
 
     /**

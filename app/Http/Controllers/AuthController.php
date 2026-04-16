@@ -17,18 +17,21 @@ class AuthController extends Controller
 
         $errors = session('errors');
 
-        return $this->renderInertiaPage('LoginPage', [
-            'appName' => Setting::get('app_name', 'CMOS'),
-            'loginUrl' => route('login.submit'),
-            'homeUrl' => route('home'),
-            'csrfToken' => csrf_token(),
-            'email' => old('email', ''),
-            'alertMessage' => session('error') ?? session('status') ?? '',
-            'alertType' => session()->has('error') ? 'error' : (session()->has('status') ? 'info' : ''),
-            'emailError' => $errors?->first('email') ?? '',
-            'passwordError' => $errors?->first('password') ?? '',
-            'remember' => (bool) old('remember', false),
-        ]);
+        return \Inertia\Inertia::render(
+            'LoginPage',
+            [
+                'appName' => Setting::get('app_name', 'CMOS'),
+                'loginUrl' => route('login.submit'),
+                'homeUrl' => route('home'),
+                'csrfToken' => csrf_token(),
+                'email' => old('email', ''),
+                'alertMessage' => session('error') ?? session('status') ?? '',
+                'alertType' => session()->has('error') ? 'error' : (session()->has('status') ? 'info' : ''),
+                'emailError' => session('errors')?->first('email') ?? '',
+                'passwordError' => session('errors')?->first('password') ?? '',
+                'remember' => (bool) old('remember', false),
+            ],
+        );
     }
 
     public function login(Request $request)

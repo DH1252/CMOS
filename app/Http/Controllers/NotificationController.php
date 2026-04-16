@@ -23,11 +23,50 @@ class NotificationController extends Controller
             return response()->json($this->indexPayload($notifications, $unreadCount));
         }
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/NotificationInboxPage',
-            view: 'notifications.index',
-            scriptId: 'svelte-notification-inbox-props',
-            viewData: compact('notifications', 'unreadCount'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => 'Notifikasi',
+                    'description' => 'Kotak masuk untuk task baru, pengingat deadline, evaluasi, dan publikasi terbaru.',
+                    'csrfToken' => csrf_token(),
+                    'refreshUrl' => route('notifications.index'),
+                    'realtimeSnapshot' => route('realtime.snapshot'),
+                    'unreadCount' => $unreadCount,
+                    'notifications' => $notifications->getCollection()->map(function ($notification) {
+                        $href = match ($notification->type) {
+                            \App\Models\Notification::TYPE_TASK_ASSIGNED, \App\Models\Notification::TYPE_DEADLINE_REMINDER => ! empty($notification->data['task_id']) ? route('tasks.show', $notification->data['task_id']) : route('notifications.index'),
+                            \App\Models\Notification::TYPE_EVALUATION_NEW => route('evaluations.my'),
+                            \App\Models\Notification::TYPE_ANNOUNCEMENT => route('announcements.index'),
+                            default => route('notifications.index'),
+                        };
+
+                        return [
+                            'id' => $notification->id,
+                            'title' => $notification->title,
+                            'message' => $notification->message,
+                            'icon' => $notification->icon,
+                            'tone' => $notification->color,
+                            'href' => $href,
+                            'readAt' => $notification->read_at?->toIso8601String(),
+                            'createdAt' => $notification->created_at->toIso8601String(),
+                            'readUrl' => route('notifications.read', $notification),
+                            'deleteUrl' => route('notifications.destroy', $notification),
+                        ];
+                    })->values(),
+                    'pagination' => [
+                        'currentPage' => $notifications->currentPage(),
+                        'lastPage' => $notifications->lastPage(),
+                        'previousUrl' => $notifications->previousPageUrl(),
+                        'nextUrl' => $notifications->nextPageUrl(),
+                        'markAllUrl' => route('notifications.mark-all-read'),
+                    ],
+                ];
+
+                return $props;
+            })(compact('notifications', 'unreadCount')),
         );
     }
 

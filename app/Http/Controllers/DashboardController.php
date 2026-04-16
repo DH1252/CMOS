@@ -31,13 +31,44 @@ class DashboardController extends Controller
             $data['monthlyTrends'] = $this->getMonthlyTrends();
         }
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'DashboardPage',
-            pageTitle: 'Dashboard',
-            pageMeta: 'Ringkasan utama workspace.',
-            view: 'dashboard.index',
-            scriptId: 'svelte-dashboard-props',
-            viewData: $data,
+            array_merge((static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'stats' => $stats,
+                    'tasksByStatus' => $tasksByStatus,
+                    'recentTasks' => $recentTasks,
+                    'upcomingTimelines' => $upcomingTimelines,
+                    'latestInformationBoards' => collect($latestInformationBoards ?? [])->map(fn ($article) => [
+                        'title' => $article->title,
+                        'excerpt' => $article->excerpt,
+                        'publishedAt' => optional($article->publishedAtLocal)->toIso8601String(),
+                        'href' => route('information-boards.show', $article),
+                    ])->values(),
+                    'departmentProgress' => $departmentProgress ?? [],
+                    'staffRanking' => collect($staffRanking ?? [])->map(fn ($staff) => [
+                        'name' => $staff->name,
+                        'department' => $staff->department?->name,
+                        'score' => $staff->evaluations_avg_total_score,
+                    ])->values(),
+                    'monthlyTrends' => $monthlyTrends ?? [],
+                    'links' => [
+                        'timelinesIndex' => route('timelines.index'),
+                        'timelinesCalendar' => route('timelines.calendar'),
+                        'tasksIndex' => route('tasks.index'),
+                    ],
+                    'now' => [
+                        'iso' => now()->toIso8601String(),
+                    ],
+                ];
+
+                return $props;
+            })($data), [
+                'pageTitle' => 'Dashboard',
+                'pageMeta' => 'Ringkasan utama workspace.',
+            ]),
         );
     }
 

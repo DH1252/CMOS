@@ -25,7 +25,18 @@
       return;
     }
 
-    router.post(links.logout, { _token: csrfToken });
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = links.logout;
+
+    const tokenInput = document.createElement('input');
+    tokenInput.type = 'hidden';
+    tokenInput.name = '_token';
+    tokenInput.value = csrfToken;
+
+    form.append(tokenInput);
+    document.body.append(form);
+    form.submit();
   };
 
   const initialsFor = (value) => (value || 'U').trim().charAt(0).toUpperCase();

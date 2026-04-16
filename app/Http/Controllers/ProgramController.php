@@ -29,11 +29,67 @@ class ProgramController extends Controller
 
         $programs = $query->orderByDesc('created_at')->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/CrudTablePage',
-            view: 'programs.index',
-            scriptId: 'svelte-crud-table-props',
-            viewData: compact('programs'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $canManagePrograms = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+
+                $props = [
+                    'title' => 'Daftar Program Kerja',
+                    'description' => 'Progres dan status tiap program kerja.',
+                    'icon' => 'fas fa-diagram-project',
+                    'csrfToken' => csrf_token(),
+                    'enableDataTable' => true,
+                    'primaryAction' => $canManagePrograms ? [
+                        'label' => 'Tambah Program',
+                        'href' => route('programs.create'),
+                        'icon' => 'fas fa-plus',
+                    ] : null,
+                    'columns' => [
+                        ['label' => 'Nama'],
+                        ['label' => 'Departemen'],
+                        ['label' => 'Periode'],
+                        ['label' => 'Task'],
+                        ['label' => 'Progress'],
+                        ['label' => 'Status'],
+                        ['label' => 'Aksi', 'width' => '100px'],
+                    ],
+                    'rows' => $programs->map(function ($program) use ($canManagePrograms) {
+                        $progress = $program->progress;
+
+                        return [
+                            'cells' => [
+                                ['type' => 'text', 'text' => $program->name, 'href' => route('programs.show', $program), 'className' => 'fw-semibold'],
+                                ['type' => 'text', 'text' => $program->department?->name ?? '-', 'muted' => ! $program->department],
+                                ['type' => 'text', 'text' => $program->start_date->format('d M').' - '.$program->end_date->format('d M Y'), 'muted' => true],
+                                ['type' => 'badge', 'label' => "{$program->tasks_count} task", 'tone' => 'info'],
+                                ['type' => 'progress', 'value' => $progress, 'label' => "{$progress}%"],
+                                ['type' => 'badge', 'label' => ucfirst($program->status), 'tone' => match ($program->status) {
+                                    'active' => 'warning',
+                                    'completed' => 'success',
+                                    'cancelled' => 'danger',
+                                    default => 'secondary',
+                                }],
+                                [
+                                    'type' => 'actions',
+                                    'items' => array_values(array_filter([
+                                        ['href' => route('programs.show', $program), 'label' => 'Detail', 'icon' => 'fas fa-eye', 'tone' => 'secondary'],
+                                        $canManagePrograms ? ['href' => route('programs.edit', $program), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'] : null,
+                                    ])),
+                                ],
+                            ],
+                        ];
+                    })->values(),
+                    'emptyState' => [
+                        'title' => 'Belum ada program kerja',
+                        'text' => 'Tambahkan program pertama untuk mulai membangun ritme kerja organisasi.',
+                    ],
+                ];
+
+                return $props;
+            })(compact('programs')),
         );
     }
 
@@ -49,11 +105,63 @@ class ProgramController extends Controller
 
         $users = User::active()->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EntityFormPage',
-            view: 'programs.create',
-            scriptId: 'svelte-entity-form-props',
-            viewData: compact('departments', 'users'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => 'Form Tambah Program',
+                    'description' => 'Tetapkan identitas program, departemen pengampu, dan periode kerjanya sejak awal.',
+                    'icon' => 'fas fa-diagram-project',
+                    'form' => [
+                        'action' => route('programs.store'),
+                        'method' => 'POST',
+                        'csrfToken' => csrf_token(),
+                        'submitLabel' => 'Simpan',
+                        'submitIcon' => 'fas fa-save',
+                    ],
+                    'cancelAction' => [
+                        'href' => route('programs.index'),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                    'fields' => [
+                        ['name' => 'name', 'label' => 'Nama Program', 'type' => 'text', 'required' => true, 'value' => old('name'), 'error' => session('errors')?->first('name')],
+                        ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description'), 'error' => session('errors')?->first('description'), 'rows' => 3],
+                        [
+                            'name' => 'department_id',
+                            'label' => 'Departemen',
+                            'type' => 'select',
+                            'required' => true,
+                            'value' => old('department_id'),
+                            'error' => session('errors')?->first('department_id'),
+                            'placeholder' => '-- Pilih Departemen --',
+                            'span' => 'half',
+                            'options' => $departments->map(fn ($department) => ['value' => $department->id, 'label' => $department->name])->values(),
+                        ],
+                        [
+                            'name' => 'status',
+                            'label' => 'Status',
+                            'type' => 'select',
+                            'required' => true,
+                            'value' => old('status', 'planning'),
+                            'error' => session('errors')?->first('status'),
+                            'span' => 'half',
+                            'options' => [
+                                ['value' => 'planning', 'label' => 'Planning'],
+                                ['value' => 'active', 'label' => 'Active'],
+                                ['value' => 'completed', 'label' => 'Completed'],
+                                ['value' => 'cancelled', 'label' => 'Cancelled'],
+                            ],
+                        ],
+                        ['name' => 'start_date', 'label' => 'Tanggal Mulai', 'type' => 'date', 'required' => true, 'value' => old('start_date'), 'error' => session('errors')?->first('start_date'), 'span' => 'half'],
+                        ['name' => 'end_date', 'label' => 'Tanggal Selesai', 'type' => 'date', 'required' => true, 'value' => old('end_date'), 'error' => session('errors')?->first('end_date'), 'span' => 'half'],
+                    ],
+                ];
+
+                return $props;
+            })(compact('departments', 'users')),
         );
     }
 
@@ -89,11 +197,90 @@ class ProgramController extends Controller
     {
         $program->load(['department', 'creator', 'members', 'tasks.assignee', 'timelines']);
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/ProgramDetailPage',
-            view: 'programs.show',
-            scriptId: 'svelte-program-detail-props',
-            viewData: compact('program'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $program->loadMissing(['department', 'creator', 'members', 'tasks.assignee', 'timelines']);
+                $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+
+                $props = [
+                    'csrfToken' => csrf_token(),
+                    'summary' => [
+                        'name' => $program->name,
+                        'description' => $program->description,
+                        'statusLabel' => ucfirst($program->status),
+                        'statusTone' => match ($program->status) {
+                            'active' => 'warning',
+                            'completed' => 'success',
+                            'cancelled' => 'danger',
+                            default => 'secondary',
+                        },
+                        'progress' => $program->progress,
+                        'facts' => [
+                            ['label' => 'Departemen', 'value' => $program->department?->name ?? '-'],
+                            ['label' => 'Periode', 'value' => $program->start_date->format('d M').' - '.$program->end_date->format('d M Y')],
+                            ['label' => 'PIC Internal', 'value' => $program->creator?->name ?? '-'],
+                            ['label' => 'Total Task', 'value' => $program->tasks->count()],
+                        ],
+                        'actions' => array_values(array_filter([
+                            $canManage ? ['href' => route('programs.edit', $program), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'] : null,
+                            ['href' => route('programs.index'), 'label' => 'Kembali', 'icon' => 'fas fa-arrow-left', 'tone' => 'secondary'],
+                        ])),
+                    ],
+                    'team' => [
+                        'members' => $program->members->map(fn ($member) => [
+                            'id' => $member->id,
+                            'name' => $member->name,
+                            'avatar' => $member->avatar_url,
+                            'roleLabel' => ucfirst($member->pivot->role),
+                            'roleTone' => $member->pivot->role === 'leader' ? 'primary' : 'secondary',
+                            'removeAction' => $canManage ? route('programs.members.remove', [$program, $member]) : null,
+                        ])->values(),
+                        'addAction' => $canManage ? route('programs.members.add', $program) : null,
+                        'availableUsers' => $canManage ? \App\Models\User::active()->orderBy('name')->get()->map(fn ($user) => [
+                            'value' => $user->id,
+                            'label' => $user->name,
+                        ])->values() : [],
+                    ],
+                    'tasks' => [
+                        'createAction' => $canManage ? route('tasks.create', ['type' => 'program', 'id' => $program->id]) : null,
+                        'columns' => [
+                            ['label' => 'Task'],
+                            ['label' => 'Assignee'],
+                            ['label' => 'Status'],
+                            ['label' => 'Progress'],
+                            ['label' => 'Aksi'],
+                        ],
+                        'rows' => $program->tasks->map(function ($task) {
+                            return [
+                                'cells' => [
+                                    ['type' => 'text', 'text' => $task->title, 'className' => 'fw-semibold'],
+                                    $task->assignee
+                                        ? ['type' => 'avatar', 'image' => $task->assignee->avatar_url, 'title' => $task->assignee->name]
+                                        : ['type' => 'text', 'text' => '-', 'muted' => true],
+                                    ['type' => 'badge', 'label' => ucfirst(str_replace('_', ' ', $task->status)), 'tone' => $task->status_badge],
+                                    ['type' => 'progress', 'value' => $task->progress, 'label' => "{$task->progress}%"],
+                                    ['type' => 'actions', 'items' => [
+                                        ['href' => route('tasks.show', $task), 'label' => 'Detail Task', 'icon' => 'fas fa-eye', 'tone' => 'secondary'],
+                                    ]],
+                                ],
+                            ];
+                        })->values(),
+                    ],
+                    'timelines' => [
+                        'items' => $program->timelines->map(fn ($timeline) => [
+                            'title' => $timeline->title,
+                            'range' => $timeline->start_date->format('d M').' - '.$timeline->end_date->format('d M Y'),
+                            'color' => $timeline->color ?? '#7C3AED',
+                            'description' => $timeline->description,
+                        ])->values(),
+                    ],
+                ];
+
+                return $props;
+            })(compact('program')),
         );
     }
 
@@ -109,11 +296,62 @@ class ProgramController extends Controller
 
         $users = User::active()->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/EntityFormPage',
-            view: 'programs.edit',
-            scriptId: 'svelte-entity-form-props',
-            viewData: compact('program', 'departments', 'users'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $props = [
+                    'title' => "Edit Program: {$program->name}",
+                    'description' => 'Perbarui identitas program, periode, atau departemen pengampu sesuai kebutuhan operasional.',
+                    'icon' => 'fas fa-diagram-project',
+                    'form' => [
+                        'action' => route('programs.update', $program),
+                        'method' => 'PUT',
+                        'csrfToken' => csrf_token(),
+                        'submitLabel' => 'Update',
+                        'submitIcon' => 'fas fa-save',
+                    ],
+                    'cancelAction' => [
+                        'href' => route('programs.show', $program),
+                        'label' => 'Kembali',
+                        'icon' => 'fas fa-arrow-left',
+                    ],
+                    'fields' => [
+                        ['name' => 'name', 'label' => 'Nama Program', 'type' => 'text', 'required' => true, 'value' => old('name', $program->name), 'error' => session('errors')?->first('name')],
+                        ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description', $program->description), 'error' => session('errors')?->first('description'), 'rows' => 3],
+                        [
+                            'name' => 'department_id',
+                            'label' => 'Departemen',
+                            'type' => 'select',
+                            'required' => true,
+                            'value' => old('department_id', $program->department_id),
+                            'error' => session('errors')?->first('department_id'),
+                            'span' => 'half',
+                            'options' => $departments->map(fn ($department) => ['value' => $department->id, 'label' => $department->name])->values(),
+                        ],
+                        [
+                            'name' => 'status',
+                            'label' => 'Status',
+                            'type' => 'select',
+                            'required' => true,
+                            'value' => old('status', $program->status),
+                            'error' => session('errors')?->first('status'),
+                            'span' => 'half',
+                            'options' => [
+                                ['value' => 'planning', 'label' => 'Planning'],
+                                ['value' => 'active', 'label' => 'Active'],
+                                ['value' => 'completed', 'label' => 'Completed'],
+                                ['value' => 'cancelled', 'label' => 'Cancelled'],
+                            ],
+                        ],
+                        ['name' => 'start_date', 'label' => 'Tanggal Mulai', 'type' => 'date', 'required' => true, 'value' => old('start_date', $program->start_date->format('Y-m-d')), 'error' => session('errors')?->first('start_date'), 'span' => 'half'],
+                        ['name' => 'end_date', 'label' => 'Tanggal Selesai', 'type' => 'date', 'required' => true, 'value' => old('end_date', $program->end_date->format('Y-m-d')), 'error' => session('errors')?->first('end_date'), 'span' => 'half'],
+                    ],
+                ];
+
+                return $props;
+            })(compact('program', 'departments', 'users')),
         );
     }
 
@@ -215,11 +453,57 @@ class ProgramController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return $this->renderInertiaPage(
+        return \Inertia\Inertia::render(
             'pages/CrudTablePage',
-            view: 'programs.my',
-            scriptId: 'svelte-crud-table-props',
-            viewData: compact('programs'),
+            (static function (array $__viewData): array {
+                extract($__viewData, EXTR_SKIP);
+
+                $currentUser = auth()->user();
+
+                $props = [
+                    'title' => 'Daftar Proker Saya',
+                    'description' => 'Fokuskan perhatian pada program yang secara langsung menjadi tanggung jawab Anda.',
+                    'icon' => 'fas fa-folder-open',
+                    'csrfToken' => csrf_token(),
+                    'columns' => [
+                        ['label' => 'Nama Proker'],
+                        ['label' => 'Departemen'],
+                        ['label' => 'Peran'],
+                        ['label' => 'Status'],
+                        ['label' => 'Progress'],
+                        ['label' => 'Periode'],
+                    ],
+                    'rows' => $programs->map(function ($program) use ($currentUser) {
+                        $isPic = $program->pics->contains('id', $currentUser->id);
+                        $isMember = $program->members->contains('id', $currentUser->id);
+
+                        return [
+                            'cells' => [
+                                ['type' => 'text', 'text' => $program->name, 'href' => route('programs.show', $program), 'className' => 'fw-semibold'],
+                                ['type' => 'text', 'text' => $program->department?->name ?? '-', 'muted' => ! $program->department],
+                                ['type' => 'badges', 'items' => array_values(array_filter([
+                                    $isPic ? ['label' => 'PIC', 'tone' => 'primary', 'icon' => 'fas fa-star'] : null,
+                                    ! $isPic && $isMember ? ['label' => 'Member', 'tone' => 'info'] : null,
+                                ]))],
+                                ['type' => 'badge', 'label' => ucfirst($program->status), 'tone' => match ($program->status) {
+                                    'active' => 'warning',
+                                    'completed' => 'success',
+                                    'cancelled' => 'danger',
+                                    default => 'secondary',
+                                }],
+                                ['type' => 'progress', 'value' => $program->progress, 'label' => "{$program->progress}%"],
+                                ['type' => 'text', 'text' => $program->start_date->format('d M').' - '.$program->end_date->format('d M Y'), 'muted' => true],
+                            ],
+                        ];
+                    })->values(),
+                    'emptyState' => [
+                        'title' => 'Belum ada program yang diikuti',
+                        'text' => 'Program yang melibatkan Anda akan muncul di sini.',
+                    ],
+                ];
+
+                return $props;
+            })(compact('programs')),
         );
     }
 }
