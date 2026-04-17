@@ -3,12 +3,21 @@
 namespace App\Http\Middleware;
 
 use App\Support\AuthShellData;
+use Closure;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Symfony\Component\HttpFoundation\Response;
 
 class HandleInertiaRequests extends Middleware
 {
     public function __construct(private readonly AuthShellData $authShellData) {}
+
+    public function handle(Request $request, Closure $next): Response
+    {
+        config(['inertia.ssr.enabled' => $request->user() !== null]);
+
+        return parent::handle($request, $next);
+    }
 
     /**
      * The root template that's loaded on the first page visit.

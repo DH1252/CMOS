@@ -212,6 +212,12 @@ if (inertiaRoot && initialInertiaPage && !shouldBootStandaloneLogin) {
 			];
 		},
 		setup({ el, App, props }) {
+			if (el?.hasAttribute("data-server-rendered")) {
+				hydrate(App, { target: el, props });
+
+				return;
+			}
+
 			mount(App, { target: el, props });
 		},
 	}).catch((error) => {
