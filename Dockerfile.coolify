@@ -52,10 +52,11 @@ COPY docker/coolify/start-all.sh /usr/local/bin/start-all
 COPY docker/coolify/start-app.sh /usr/local/bin/start-app
 COPY docker/coolify/start-reverb.sh /usr/local/bin/start-reverb
 COPY docker/coolify/start-service.sh /usr/local/bin/start-service
+COPY docker/coolify/start-ssr.sh /usr/local/bin/start-ssr
 COPY docker/coolify/start-worker.sh /usr/local/bin/start-worker
 COPY docker/coolify/supervisord.conf /etc/supervisor/conf.d/coolify.conf
 
-RUN chmod +x /usr/local/bin/prepare-runtime /usr/local/bin/start-all /usr/local/bin/start-app /usr/local/bin/start-reverb /usr/local/bin/start-service /usr/local/bin/start-worker
+RUN chmod +x /usr/local/bin/prepare-runtime /usr/local/bin/start-all /usr/local/bin/start-app /usr/local/bin/start-reverb /usr/local/bin/start-service /usr/local/bin/start-ssr /usr/local/bin/start-worker
 
 COPY . .
 

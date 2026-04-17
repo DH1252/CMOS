@@ -1,58 +1,51 @@
-import { fileURLToPath } from "node:url";
+import { createInertiaApp } from "@inertiajs/svelte";
+import createServer from "@inertiajs/svelte/server";
 import { render } from "svelte/server";
-import PublicApp from "../svelte/PublicApp.svelte";
-import InformationBoardShowPage from "../svelte/pages/InformationBoardShowPage.svelte";
+import AuthLayout from "../svelte/layouts/AuthLayout.svelte";
 
-const renderers = {
-	informationBoardShowPage: (props = {}) => {
-		const { body = "", head = "" } = render(InformationBoardShowPage, {
-			props,
-		});
-
-		return { body, head };
-	},
-	publicApp: (props = {}) => {
-		const { body = "", head = "" } = render(PublicApp, { props });
-
-		return { body, head };
-	},
+const pages = {
+	...import.meta.glob("../svelte/*Page.svelte"),
+	...import.meta.glob("../svelte/pages/**/*.svelte"),
+	...import.meta.glob("../svelte/PublicApp.svelte"),
 };
 
-const readStdin = async () => {
-	let input = "";
+const isPublicPage = (name) =>
+	name === "PublicApp" || name.startsWith("public/");
+const isGuestPage = (name) => name === "LoginPage";
 
-	for await (const chunk of process.stdin) {
-		input += chunk;
-	}
+createServer((page) =>
+	createInertiaApp({
+		page,
+		render,
+		resolve: async (name) => {
+			const importer = pages[`../svelte/${name}.svelte`];
 
-	return input;
-};
+			if (!importer) {
+				throw new Error(`Unknown Inertia page: ${name}`);
+			}
 
-export const renderComponent = (component, props = {}) => {
-	const renderer = renderers[component];
+			return await importer();
+		},
+		layout: (name, pagePayload) => {
+			if (isPublicPage(name) || isGuestPage(name)) {
+				return undefined;
+			}
 
-	if (!renderer) {
-		throw new Error(`Unknown SSR component: ${component}`);
-	}
-
-	return renderer(props);
-};
-
-const runCli = async () => {
-	try {
-		const payload = JSON.parse((await readStdin()) || "{}");
-		const result = renderComponent(payload.component, payload.props ?? {});
-
-		process.stdout.write(JSON.stringify(result));
-	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "Unknown Svelte SSR error";
-
-		process.stderr.write(`${message}\n`);
-		process.exitCode = 1;
-	}
-};
-
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-	await runCli();
-}
+			return [
+				AuthLayout,
+				{
+					shell: pagePayload.props.shell,
+					flash: pagePayload.props.flash,
+					errors: pagePayload.props.errors,
+					pageTitle: pagePayload.props.pageTitle,
+					pageMeta: pagePayload.props.pageMeta,
+					title: pagePayload.props.title,
+					description: pagePayload.props.description,
+				},
+			];
+		},
+		setup: ({ App, props }) => {
+			return render(App, { props });
+		},
+	}),
+);
