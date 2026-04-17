@@ -51,26 +51,6 @@
     event.currentTarget.src = fallbackImage;
   };
 
-  const formatDateTime = (value) => {
-    if (!value) {
-      return '-';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return date.toLocaleString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 </script>
 
 <section class="space-y-10">
@@ -144,7 +124,7 @@
           <h2 class="max-w-[16ch] text-4xl leading-tight text-foreground md:text-5xl">{featured.title}</h2>
         </a>
         <div class="flex flex-wrap gap-3 text-sm text-muted-foreground">
-          <span>{formatDateTime(featured.date)}</span>
+          <span>{featured.dateLabel || '-'}</span>
           <span>{featured.author}</span>
         </div>
         <p class="max-w-[60ch] text-sm leading-8 text-[var(--text-soft)]">{featured.excerpt}</p>
@@ -192,7 +172,7 @@
 
           <div class="min-w-0 space-y-3">
             <div class="flex flex-wrap gap-3 text-sm text-muted-foreground">
-              <span>{formatDateTime(article.date)}</span>
+              <span>{article.dateLabel || '-'}</span>
               <span>{article.author}</span>
             </div>
             <h3 class="max-w-[22ch] text-3xl leading-tight text-foreground md:text-[2rem]">{article.title}</h3>

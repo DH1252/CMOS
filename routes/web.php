@@ -34,26 +34,34 @@ use Inertia\Inertia;
 
 // Public Landing Page
 Route::get('/', function () {
+    $settings = \App\Models\Setting::query()
+        ->whereIn('key', ['app_name', 'organization_name'])
+        ->pluck('value', 'key');
+
+    $appName = $settings->get('app_name', 'CMOS');
+    $organizationName = $settings->get('organization_name', 'HIMATEKKOM ITS');
     $latestInfo = collect();
+
     if (Schema::hasTable('information_boards')) {
         $latestInfo = \App\Models\InformationBoard::published()
-            ->with('categories')
+            ->select(['id', 'title', 'slug', 'excerpt', 'content', 'cover_image', 'published_at'])
+            ->with('categories:id,name')
             ->latest('published_at')
-            ->take(5)
+            ->take(3)
             ->get();
     }
 
     return Inertia::render('PublicApp', [
         'page' => 'landing',
-        'appName' => \App\Models\Setting::get('app_name', 'CMOS'),
-        'organizationName' => \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS'),
+        'appName' => $appName,
+        'organizationName' => $organizationName,
         'loginUrl' => route('login'),
         'infoUrl' => route('informasi.index'),
         'logoUrl' => asset('images/logokabinet.png'),
         'latestInfo' => $latestInfo->map(fn ($item) => [
             'title' => $item->title,
             'excerpt' => $item->excerpt ?: Str::limit(strip_tags($item->content), 140),
-            'publishedAt' => optional($item->publishedAtLocal)->toIso8601String(),
+            'publishedAtLabel' => optional($item->publishedAtLocal)?->locale('id')->translatedFormat('d M Y'),
             'coverImage' => $item->cover_image_url,
             'category' => $item->categories->pluck('name')->implode(', ') ?: 'Papan Informasi',
             'url' => route('informasi.show', $item->slug),

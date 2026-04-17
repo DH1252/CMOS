@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\InformationBoard;
 use App\Models\InformationCategory;
 use App\Models\Setting;
+use DateTimeInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class PublicInformationController extends Controller
@@ -16,12 +19,14 @@ class PublicInformationController extends Controller
         $search = trim((string) $request->get('q', ''));
         $categorySlug = trim((string) $request->get('kategori', ''));
 
-        $query = InformationBoard::with(['user', 'categories'])
+        $query = InformationBoard::query()
+            ->select(['id', 'user_id', 'title', 'slug', 'excerpt', 'content', 'cover_image', 'published_at'])
+            ->with(['user:id,name', 'categories:id,name'])
             ->published()
             ->latest('published_at');
 
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
+            $query->where(function (Builder $q) use ($search): void {
                 $q->where('title', 'like', "%{$search}%")
                     ->orWhere('excerpt', 'like', "%{$search}%")
                     ->orWhere('content', 'like', "%{$search}%");
@@ -29,8 +34,10 @@ class PublicInformationController extends Controller
         }
 
         $activeCategory = null;
+
         if ($categorySlug !== '') {
             $activeCategory = InformationCategory::where('slug', $categorySlug)->first();
+
             if ($activeCategory) {
                 $query->whereHas('categories', fn ($q) => $q->where('information_categories.id', $activeCategory->id));
             }
@@ -51,9 +58,10 @@ class PublicInformationController extends Controller
     {
         abort_unless($informationBoard->status === 'published' && (! $informationBoard->published_at || $informationBoard->published_at->lte(now())), 404);
 
-        $article = $informationBoard->load(['user', 'categories']);
+        $article = $informationBoard->load(['user:id,name', 'categories:id,name']);
 
         $latestArticles = InformationBoard::published()
+            ->select(['id', 'title', 'slug', 'published_at'])
             ->where('id', '!=', $article->id)
             ->latest('published_at')
             ->take(5)
@@ -72,11 +80,12 @@ class PublicInformationController extends Controller
         $articleItems = $articles->getCollection()->values();
         $featuredArticle = $articleItems->first();
         $remainingArticles = $articleItems->slice($featuredArticle ? 1 : 0)->values();
+        $settings = $this->publicSettings();
 
         return [
             'page' => 'info-index',
-            'appName' => Setting::get('app_name', 'CMOS'),
-            'organizationName' => Setting::get('organization_name', 'HIMATEKKOM ITS'),
+            'appName' => $settings['appName'],
+            'organizationName' => $settings['organizationName'],
             'homeUrl' => route('home'),
             'loginUrl' => route('login'),
             'infoUrl' => route('informasi.index'),
@@ -106,7 +115,7 @@ class PublicInformationController extends Controller
                     'coverImage' => $featuredArticle->cover_image_url,
                     'categories' => $featuredArticle->categories->pluck('name')->values(),
                     'author' => $featuredArticle->user?->name ?? '-',
-                    'date' => optional($featuredArticle->publishedAtLocal)?->toIso8601String(),
+                    'dateLabel' => $this->formatPublicDate($featuredArticle->publishedAtLocal, includeTime: true),
                     'href' => route('informasi.show', $featuredArticle->slug),
                 ] : null,
                 'articles' => $remainingArticles->map(fn ($article) => [
@@ -115,7 +124,7 @@ class PublicInformationController extends Controller
                     'coverImage' => $article->cover_image_url,
                     'categories' => $article->categories->pluck('name')->values(),
                     'author' => $article->user?->name ?? '-',
-                    'date' => optional($article->publishedAtLocal)?->toIso8601String(),
+                    'dateLabel' => $this->formatPublicDate($article->publishedAtLocal, includeTime: true),
                     'href' => route('informasi.show', $article->slug),
                 ])->values(),
                 'pagination' => [
@@ -137,10 +146,12 @@ class PublicInformationController extends Controller
      */
     private function showPayload(InformationBoard $article, $latestArticles): array
     {
+        $settings = $this->publicSettings();
+
         return [
             'page' => 'info-show',
-            'appName' => Setting::get('app_name', 'CMOS'),
-            'organizationName' => Setting::get('organization_name', 'HIMATEKKOM ITS'),
+            'appName' => $settings['appName'],
+            'organizationName' => $settings['organizationName'],
             'homeUrl' => route('home'),
             'loginUrl' => route('login'),
             'infoUrl' => route('informasi.index'),
@@ -149,7 +160,7 @@ class PublicInformationController extends Controller
                 'article' => [
                     'title' => $article->title,
                     'seoTitle' => $article->seo_title,
-                    'date' => optional($article->publishedAtLocal)?->toIso8601String(),
+                    'dateLabel' => $this->formatPublicDate($article->publishedAtLocal, includeTime: true),
                     'author' => $article->user?->name ?? '-',
                     'coverImage' => $article->cover_image_url,
                     'categories' => $article->categories->pluck('name')->values(),
@@ -158,10 +169,36 @@ class PublicInformationController extends Controller
                 ],
                 'latestArticles' => $latestArticles->map(fn ($latest) => [
                     'title' => $latest->title,
-                    'date' => optional($latest->publishedAtLocal)?->toIso8601String(),
+                    'dateLabel' => $this->formatPublicDate($latest->publishedAtLocal, includeTime: true),
                     'href' => route('informasi.show', $latest->slug),
                 ])->values(),
             ],
         ];
+    }
+
+    /**
+     * @return array{appName: string, organizationName: string}
+     */
+    private function publicSettings(): array
+    {
+        $settings = Setting::query()
+            ->whereIn('key', ['app_name', 'organization_name'])
+            ->pluck('value', 'key');
+
+        return [
+            'appName' => (string) $settings->get('app_name', 'CMOS'),
+            'organizationName' => (string) $settings->get('organization_name', 'HIMATEKKOM ITS'),
+        ];
+    }
+
+    private function formatPublicDate(?DateTimeInterface $date, bool $includeTime = false): ?string
+    {
+        if (! $date) {
+            return null;
+        }
+
+        return Carbon::instance($date)
+            ->locale('id')
+            ->translatedFormat($includeTime ? 'd M Y H:i' : 'd M Y');
     }
 }
