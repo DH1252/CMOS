@@ -138,6 +138,9 @@ class AuthShellData
             'user' => [
                 'id' => $currentUser->id,
                 'name' => $currentUser->name,
+                'email' => $currentUser->email,
+                'role' => $currentUser->role?->name,
+                'department' => $currentUser->department?->name,
                 'roleName' => $currentUser->role_name,
                 'avatarUrl' => $currentUser->avatar_url,
             ],

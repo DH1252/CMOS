@@ -1,5 +1,6 @@
-import { createInertiaApp } from "@inertiajs/svelte";
+import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
+import "./bootstrap";
 import AuthLayout from "../svelte/layouts/AuthLayout.svelte";
 import { loadExternalScript } from "../svelte/lib/external-assets.js";
 
@@ -32,6 +33,27 @@ const applyThemeVariables = (variables = null) => {
 		}
 
 		document.documentElement.style.setProperty(`--${token}`, value);
+	});
+};
+
+const capturePostHogPageview = (page = null) => {
+	const posthogClient =
+		typeof window !== "undefined" ? window.__CMOS_POSTHOG__ : null;
+
+	if (!posthogClient) {
+		return;
+	}
+
+	const pageUrl =
+		page?.url ||
+		(typeof window !== "undefined" ? window.location.pathname : "/");
+	const component = page?.component || null;
+
+	posthogClient.capture("$pageview", {
+		$current_url:
+			typeof window !== "undefined" ? window.location.href : pageUrl,
+		$page_path: pageUrl,
+		inertia_component: component,
 	});
 };
 
@@ -195,6 +217,11 @@ if (typeof document !== "undefined") {
 
 	applyBrandTheme(pageBrand);
 	applyThemeVariables(themeVariables);
+	capturePostHogPageview(initialInertiaPage);
+
+	router.on("navigate", (event) => {
+		capturePostHogPageview(event?.detail?.page || null);
+	});
 }
 
 const shouldBootStandaloneLogin =

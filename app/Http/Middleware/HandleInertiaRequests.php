@@ -71,6 +71,11 @@ class HandleInertiaRequests extends Middleware
                 'color' => $themePayload['color'],
                 'variables' => $themePayload['variables'],
             ],
+            'posthog' => [
+                'key' => (string) config('posthog-js.key', ''),
+                'host' => (string) config('posthog-js.host', 'https://app.posthog.com'),
+                'disabled' => (bool) config('posthog-js.disabled', false),
+            ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
