@@ -16,6 +16,8 @@
     page = 'landing',
     appName = 'CMOS',
     organizationName = 'HIMATEKKOM ITS',
+    themeColor = 'purple',
+    themeVariables = null,
     homeUrl = '/',
     loginUrl = '/login',
     infoUrl = '/informasi',
@@ -29,6 +31,24 @@
   const isInfoShow = $derived(page === 'info-show');
   const latestArticles = $derived(latestInfo);
   const fallbackImage = $derived(logoUrl || '/images/logokabinet.png');
+
+  $effect(() => {
+    document.documentElement.setAttribute('data-brand', themeColor || 'purple');
+  });
+
+  $effect(() => {
+    if (!themeVariables || typeof themeVariables !== 'object') {
+      return;
+    }
+
+    Object.entries(themeVariables).forEach(([token, value]) => {
+      if (typeof token !== 'string' || typeof value !== 'string') {
+        return;
+      }
+
+      document.documentElement.style.setProperty(`--${token}`, value);
+    });
+  });
 
   const navigation = [
     { href: '#profil', label: 'Profil Organisasi' },

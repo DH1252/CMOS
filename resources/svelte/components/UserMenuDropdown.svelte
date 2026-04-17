@@ -181,7 +181,7 @@
     display: inline-grid;
     place-items: center;
     background: var(--brand-primary);
-    color: #1a1a2e;
+    color: var(--primary-foreground);
     font-size: 0.82rem;
     font-weight: 700;
   }

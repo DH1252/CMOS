@@ -3,6 +3,8 @@
 
   let {
     appName = 'CMOS',
+    themeColor = 'purple',
+    themeVariables = null,
     loginUrl = '/login',
     homeUrl = '/',
     csrfToken = '',
@@ -18,7 +20,26 @@
 
   onMount(() => {
     document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.setAttribute('data-brand', themeColor || 'purple');
     emailInput?.focus();
+  });
+
+  $effect(() => {
+    document.documentElement.setAttribute('data-brand', themeColor || 'purple');
+  });
+
+  $effect(() => {
+    if (!themeVariables || typeof themeVariables !== 'object') {
+      return;
+    }
+
+    Object.entries(themeVariables).forEach(([token, value]) => {
+      if (typeof token !== 'string' || typeof value !== 'string') {
+        return;
+      }
+
+      document.documentElement.style.setProperty(`--${token}`, value);
+    });
   });
 </script>
 
@@ -103,7 +124,7 @@
           <span>Simpan sesi di perangkat ini</span>
         </label>
 
-        <button type="submit" class="inline-flex h-11 items-center justify-center rounded-[10px] bg-brand-primary px-4 text-sm font-semibold text-[#1a1a2e] transition-colors hover:bg-brand-hover">
+        <button type="submit" class="inline-flex h-11 items-center justify-center rounded-[10px] bg-brand-primary px-4 text-sm font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-brand-hover">
           Masuk ke CMOS
         </button>
       </form>

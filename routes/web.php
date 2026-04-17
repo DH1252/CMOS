@@ -35,11 +35,12 @@ use Inertia\Inertia;
 // Public Landing Page
 Route::get('/', function () {
     $settings = \App\Models\Setting::query()
-        ->whereIn('key', ['app_name', 'organization_name'])
+        ->whereIn('key', array_merge(['app_name', 'organization_name', 'theme_color'], \App\Support\ThemePalette::settingKeys()))
         ->pluck('value', 'key');
 
     $appName = $settings->get('app_name', 'CMOS');
     $organizationName = $settings->get('organization_name', 'HIMATEKKOM ITS');
+    $theme = \App\Support\ThemePalette::payloadFromSettings($settings->all());
     $latestInfo = collect();
 
     if (Schema::hasTable('information_boards')) {
@@ -55,6 +56,8 @@ Route::get('/', function () {
         'page' => 'landing',
         'appName' => $appName,
         'organizationName' => $organizationName,
+        'themeColor' => $theme['color'],
+        'themeVariables' => $theme['variables'],
         'loginUrl' => route('login'),
         'infoUrl' => route('informasi.index'),
         'logoUrl' => asset('images/logokabinet.png'),

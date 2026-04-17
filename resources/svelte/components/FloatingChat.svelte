@@ -555,7 +555,7 @@
     border: 1px solid var(--border);
     border-radius: 999px;
     background: var(--brand-primary);
-    color: #1a1a2e;
+    color: var(--primary-foreground);
     cursor: pointer;
     box-shadow: none;
     transition: transform 180ms ease;
@@ -773,7 +773,7 @@
   .floating-chat-bubble-mine {
     justify-self: end;
     background: var(--brand-primary);
-    color: #1a1a2e;
+    color: var(--primary-foreground);
     border-bottom-right-radius: 0.3rem;
   }
 
@@ -802,7 +802,7 @@
     height: 2.7rem;
     border-radius: 0.5rem;
     background: var(--brand-primary);
-    color: #1a1a2e;
+    color: var(--primary-foreground);
     box-shadow: none;
   }
 

@@ -1,8 +1,9 @@
 @php
     $appName = \App\Models\Setting::get('app_name', 'CMOS');
+    $themeColor = \App\Models\Setting::get('theme_color', \App\Support\ThemePalette::defaultName());
 @endphp
 <!DOCTYPE html>
-<html lang="id" data-theme="public">
+<html lang="id" data-theme="public" data-brand="{{ $themeColor }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

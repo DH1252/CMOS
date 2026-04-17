@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Setting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -40,6 +41,21 @@ class AuthControllerTest extends TestCase
 
         $this->assertTrue($page['props']['remember']);
         $this->assertSame('user@example.com', $page['props']['email']);
+    }
+
+    public function test_login_page_exposes_configured_theme_color(): void
+    {
+        $this->withoutVite();
+        Setting::set('theme_color', 'teal');
+        Setting::set('theme_primary', '#14B8A6');
+
+        $response = $this->get(route('login'));
+
+        $response->assertOk();
+        $page = $this->inertiaPage($response->getContent());
+
+        $this->assertSame('teal', $page['props']['themeColor']);
+        $this->assertSame('#14B8A6', $page['props']['themeVariables']['brand-primary-base']);
     }
 
     /**
