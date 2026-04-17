@@ -25,26 +25,6 @@
     event.currentTarget.src = fallbackImage;
   };
 
-  const formatDateTime = (value) => {
-    if (!value) {
-      return '-';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return date.toLocaleString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 </script>
 
 <article class="space-y-10">
@@ -60,7 +40,7 @@
     <h1 class="text-4xl leading-tight text-foreground md:text-5xl">{article.title}</h1>
 
     <div class="flex flex-wrap gap-3 text-sm text-muted-foreground">
-      <span>{formatDateTime(article.date)}</span>
+      <span>{article.dateLabel || '-'}</span>
       <span>{article.author}</span>
     </div>
 
@@ -106,7 +86,7 @@
             {#each latestArticles as latest (latest.href)}
               <a href={latest.href} class="border-t border-border pt-4 text-inherit no-underline transition-colors hover:text-brand-secondary first:border-t-0 first:pt-0">
                 <strong class="block text-base leading-7 text-foreground">{latest.title}</strong>
-                <span class="mt-1 block text-sm text-muted-foreground">{formatDateTime(latest.date)}</span>
+                <span class="mt-1 block text-sm text-muted-foreground">{latest.dateLabel || '-'}</span>
               </a>
             {/each}
           </div>

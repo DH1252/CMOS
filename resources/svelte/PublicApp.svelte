@@ -33,7 +33,7 @@
 
   const isInfoIndex = $derived(page === 'info-index');
   const isInfoShow = $derived(page === 'info-show');
-  const latestArticles = $derived(latestInfo.slice(0, 3));
+  const latestArticles = $derived(latestInfo);
   const fallbackImage = $derived(logoUrl || '/images/logokabinet.png');
 
   const navigation = [
@@ -183,25 +183,6 @@
     }
 
     event.currentTarget.src = fallbackImage;
-  };
-
-  const formatDate = (value) => {
-    if (!value) {
-      return '';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return '';
-    }
-
-    return date.toLocaleDateString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
   };
 
   const pageTitle = $derived.by(() => {
@@ -434,7 +415,7 @@
                         </div>
                       {/if}
                       <div class="grid gap-3 px-5 py-5">
-                        <div class="text-sm text-muted-foreground">{formatDate(article.publishedAt) || 'Publikasi baru'}</div>
+                        <div class="text-sm text-muted-foreground">{article.publishedAtLabel || 'Publikasi baru'}</div>
                         <h3 class="text-xl leading-snug text-foreground">{article.title}</h3>
                         <p class="text-sm leading-7 text-muted-foreground">{article.excerpt}</p>
                         <div class="text-sm font-medium text-foreground">{article.category}</div>
