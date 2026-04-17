@@ -153,7 +153,7 @@
     return text.length > 34 ? `${text.slice(0, 33)}...` : text;
   };
 
-  const formatTime = (value) => {
+  const formatTime = (value, fallbackDateLabel = '') => {
     if (!value) {
       return '';
     }
@@ -162,7 +162,7 @@
     const now = new Date();
 
     if (Number.isNaN(date.getTime())) {
-      return value;
+      return fallbackDateLabel ? `${fallbackDateLabel} ${value}` : value;
     }
 
     const dayKey = (input) =>
@@ -458,7 +458,7 @@
               {#each messages as message, index (message.id || `${message.created_at || 'message'}-${index}`)}
                 <article class={`floating-chat-bubble ${message.is_mine ? 'floating-chat-bubble-mine' : 'floating-chat-bubble-theirs'}`}>
                   <p>{message.content}</p>
-                  <span>{formatTime(message.created_at)}</span>
+                  <span>{formatTime(message.created_at_raw || message.created_at, message.date || '')}</span>
                 </article>
               {/each}
             {:else}
