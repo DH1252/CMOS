@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Message;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\RealtimeBroadcaster;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -74,6 +75,17 @@ class MessageSidebarDataTest extends TestCase
             'content' => 'Pesan lain',
             'is_read' => false,
         ]);
+
+        $broadcaster = \Mockery::mock(RealtimeBroadcaster::class);
+        $broadcaster->shouldReceive('user')->once()->with($currentUser->id, ['messages'], [
+            'readByUserId' => $currentUser->id,
+            'participantId' => $activeConversationUser->id,
+        ]);
+        $broadcaster->shouldReceive('user')->once()->with($activeConversationUser->id, ['messages'], [
+            'readByUserId' => $currentUser->id,
+            'participantId' => $currentUser->id,
+        ]);
+        $this->app->instance(RealtimeBroadcaster::class, $broadcaster);
 
         /** @var User $currentUser */
         $response = $this->actingAs($currentUser)->getJson(route('messages.conversation', $activeConversationUser));

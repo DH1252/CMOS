@@ -154,11 +154,28 @@ const organizationCallback = (payload = {}) => {
 };
 
 const userCallback = (payload = {}) => {
+	const context = payload.context || {};
+	const readByUserId = Number(context.readByUserId || 0) || null;
+	const participantId = Number(context.participantId || 0) || null;
+	const unreadCount = Number(
+		payload.snapshot?.messages?.unreadCount ||
+			payload.snapshot?.messages?.unread_count ||
+			0,
+	);
+
 	emit({
 		type: "realtime.channels.updated",
 		currentUserId,
 		changed: Array.isArray(payload.changed) ? payload.changed : [],
-		payload: payload.snapshot || {},
+		payload: {
+			...(payload.snapshot || {}),
+			messages: {
+				...(payload.snapshot?.messages || {}),
+				unreadCount,
+				readByUserId,
+				participantId,
+			},
+		},
 		context: payload.context || {},
 		scope: payload.scope || "user",
 		raw: payload,

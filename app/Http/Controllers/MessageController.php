@@ -123,7 +123,15 @@ class MessageController extends Controller
             ->update(['is_read' => true]);
 
         if ($updated > 0) {
-            app(RealtimeBroadcaster::class)->user($currentUser->id, ['messages']);
+            $broadcaster = app(RealtimeBroadcaster::class);
+            $broadcaster->user($currentUser->id, ['messages'], [
+                'readByUserId' => $currentUser->id,
+                'participantId' => $user->id,
+            ]);
+            $broadcaster->user($user->id, ['messages'], [
+                'readByUserId' => $currentUser->id,
+                'participantId' => $currentUser->id,
+            ]);
         }
 
         return response()->json([
@@ -176,7 +184,15 @@ class MessageController extends Controller
             ->update(['is_read' => true]);
 
         if ($updated > 0) {
-            app(RealtimeBroadcaster::class)->user($request->user()->id, ['messages']);
+            $broadcaster = app(RealtimeBroadcaster::class);
+            $broadcaster->user($request->user()->id, ['messages'], [
+                'readByUserId' => $request->user()->id,
+                'participantId' => $user->id,
+            ]);
+            $broadcaster->user($user->id, ['messages'], [
+                'readByUserId' => $request->user()->id,
+                'participantId' => $request->user()->id,
+            ]);
         }
 
         return response()->json(['success' => true]);
