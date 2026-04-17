@@ -1,8 +1,6 @@
 <script>
-  import { onMount } from 'svelte';
   import brandLogo from '../images/logokabinet.png?enhanced&w=80;160';
   import himatekkomBanner from '../images/himatekkom.jpg?enhanced&w=480;960;1440';
-  import { inertiaEnhance } from '$lib/inertia-enhance.js';
   import PublicInformationIndexPage from './public/PublicInformationIndexPage.svelte';
   import PublicInformationShowPage from './public/PublicInformationShowPage.svelte';
   import {
@@ -12,7 +10,6 @@
     LogIn,
     Menu,
     Newspaper,
-    X,
   } from 'lucide-svelte';
 
   let {
@@ -26,10 +23,7 @@
     logoUrl = '/images/logokabinet.png',
     infoIndex = {},
     infoShow = {},
-    enableSpaNavigation = false,
   } = $props();
-
-  let mobileNavOpen = $state(false);
 
   const isInfoIndex = $derived(page === 'info-index');
   const isInfoShow = $derived(page === 'info-show');
@@ -173,10 +167,6 @@
     },
   ]);
 
-  const closeMobileNav = () => {
-    mobileNavOpen = false;
-  };
-
   const handleImageError = (event) => {
     if (event.currentTarget.src === fallbackImage) {
       return;
@@ -211,9 +201,6 @@
     return `Portal informasi resmi ${organizationName}. Artikel, pembaruan kegiatan, dan publikasi organisasi.`;
   });
 
-  onMount(() => {
-    document.documentElement.setAttribute('data-theme', 'public');
-  });
 </script>
 
 <svelte:head>
@@ -222,7 +209,7 @@
 </svelte:head>
 
 {#if page === 'landing'}
-  <div class="min-h-screen bg-background text-foreground" use:inertiaEnhance={enableSpaNavigation}>
+  <div class="min-h-screen bg-background text-foreground">
     <header class="border-b border-border bg-background/96">
       <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8">
         <a href={homeUrl} class="flex min-w-0 items-center gap-3 text-inherit no-underline">
@@ -248,34 +235,22 @@
             Masuk
           </a>
 
-          <button
-            type="button"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-[8px] border border-border bg-card text-foreground md:hidden"
-            aria-label="Toggle navigation"
-            onclick={() => (mobileNavOpen = !mobileNavOpen)}
-          >
-            {#if mobileNavOpen}
-              <X size={18} />
-            {:else}
+          <details class="relative md:hidden">
+            <summary class="inline-flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-[8px] border border-border bg-card text-foreground [&::-webkit-details-marker]:hidden">
               <Menu size={18} />
-            {/if}
-          </button>
+            </summary>
+            <div class="absolute right-0 top-[calc(100%+0.75rem)] z-20 grid min-w-56 gap-1 rounded-[10px] border border-border bg-background p-3 shadow-sm">
+              {#each navigation as item (item.href)}
+                <a href={item.href} class="rounded-[8px] px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-card hover:text-foreground">{item.label}</a>
+              {/each}
+              <a href={loginUrl} class="mt-1 rounded-[8px] border border-border bg-card px-3 py-2 text-sm font-medium text-foreground">Masuk ke CMOS</a>
+            </div>
+          </details>
         </div>
       </div>
-
-      {#if mobileNavOpen}
-        <div class="border-t border-border bg-background md:hidden">
-          <div class="mx-auto grid max-w-[1180px] gap-1 px-5 py-3 lg:px-8">
-            {#each navigation as item (item.href)}
-              <a href={item.href} class="rounded-[8px] px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-card hover:text-foreground" onclick={closeMobileNav}>{item.label}</a>
-            {/each}
-            <a href={loginUrl} class="mt-1 rounded-[8px] border border-border bg-card px-3 py-2 text-sm font-medium text-foreground" onclick={closeMobileNav}>Masuk ke CMOS</a>
-          </div>
-        </div>
-      {/if}
     </header>
 
-    <main>
+    <main id="main-content">
       <section class="border-b border-border">
         <div class="mx-auto grid max-w-[1180px] gap-10 px-5 py-14 lg:grid-cols-[minmax(0,1.05fr)_24rem] lg:px-8 lg:py-18">
           <div class="space-y-6">
@@ -503,7 +478,7 @@
     </footer>
   </div>
 {:else if isInfoIndex || isInfoShow}
-  <div class="min-h-screen bg-background text-foreground" use:inertiaEnhance={enableSpaNavigation}>
+  <div class="min-h-screen bg-background text-foreground">
     <header class="border-b border-border/80 bg-background/92 backdrop-blur-sm">
       <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8">
         <a href={homeUrl} class="flex min-w-0 items-center gap-3 text-inherit no-underline">
@@ -525,7 +500,7 @@
       </div>
     </header>
 
-    <main class="mx-auto max-w-[1180px] px-5 py-10 lg:px-8 lg:py-14">
+    <main id="main-content" class="mx-auto max-w-[1180px] px-5 py-10 lg:px-8 lg:py-14">
       {#if isInfoIndex}
         <PublicInformationIndexPage {...infoIndex} homeUrl={homeUrl} />
       {:else if isInfoShow}

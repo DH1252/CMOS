@@ -75,7 +75,6 @@ if (typeof window !== "undefined" && !window.Swal) {
 const pages = {
 	...import.meta.glob("../svelte/*Page.svelte"),
 	...import.meta.glob("../svelte/pages/**/*.svelte"),
-	...import.meta.glob("../svelte/PublicApp.svelte"),
 };
 const isLoginPath =
 	typeof window !== "undefined" && window.location.pathname === "/login";
@@ -87,31 +86,6 @@ const inertiaScriptPagePayload =
 		? document.querySelector('script[data-page="app"][type="application/json"]')
 				?.textContent || ""
 		: "";
-const publicRoot =
-	typeof document !== "undefined"
-		? document.getElementById("svelte-public-root")
-		: null;
-
-const parseJson = (id) => {
-	if (typeof document === "undefined") {
-		return null;
-	}
-
-	const node = document.getElementById(id);
-
-	if (!node?.textContent) {
-		return null;
-	}
-
-	try {
-		return JSON.parse(node.textContent);
-	} catch (error) {
-		console.error(`Failed to parse JSON from #${id}`, error);
-
-		return null;
-	}
-};
-
 const resolveInitialPage = (payload) => {
 	if (!payload || payload === "null") {
 		return null;
@@ -233,21 +207,4 @@ if (inertiaRoot && !initialInertiaPage) {
 	);
 
 	void mountLoginFallback();
-}
-
-if (publicRoot) {
-	const publicPageProps = parseJson("svelte-public-props") || {};
-
-	void import("../svelte/PublicApp.svelte")
-		.then(({ default: PublicApp }) => {
-			const bootComponent = publicRoot.dataset.ssr === "true" ? hydrate : mount;
-
-			bootComponent(PublicApp, {
-				target: publicRoot,
-				props: publicPageProps,
-			});
-		})
-		.catch((error) => {
-			console.error("Failed to boot the public Svelte app.", error);
-		});
 }
