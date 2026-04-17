@@ -37,6 +37,7 @@
   let shellActivityPrimed = $state(false);
   let shellActivityPromise = $state(null);
   let sonnerLoadPromise = $state(null);
+  let sonnerToast = $state(null);
   let liveUpdatesModulePromise = $state(null);
 
   const toneMap = {
@@ -112,8 +113,8 @@
   };
 
   const ensureSonnerLoaded = async () => {
-    if (ToasterComponent) {
-      return ToasterComponent;
+    if (sonnerToast) {
+      return sonnerToast;
     }
 
     if (!sonnerLoadPromise) {
@@ -122,7 +123,9 @@
         import('svelte-sonner'),
       ]).then(([toasterModule, sonnerModule]) => {
         ToasterComponent = toasterModule.Toaster;
-        return sonnerModule.toast;
+        sonnerToast = sonnerModule.toast;
+
+        return sonnerToast;
       });
     }
 

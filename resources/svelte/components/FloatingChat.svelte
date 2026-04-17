@@ -386,11 +386,20 @@
 
     if (initiallyOpen) {
       isOpen = true;
+      void ensureDirectoryData();
     }
 
     return scheduleAfterPaint(() => {
       void syncUnreadBadge();
     });
+  });
+
+  $effect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    void ensureDirectoryData();
   });
 
   $effect(() => {
@@ -539,16 +548,21 @@
 
   .floating-chat-toggle {
     position: relative;
-    width: 3.9rem;
-    height: 3.9rem;
+    width: 3.5rem;
+    height: 3.5rem;
     display: grid;
     place-items: center;
     border: 1px solid var(--border);
-    border-radius: 0.625rem;
+    border-radius: 999px;
     background: var(--brand-primary);
     color: #1a1a2e;
     cursor: pointer;
     box-shadow: none;
+    transition: transform 180ms ease;
+  }
+
+  .floating-chat-toggle:hover {
+    transform: scale(1.02);
   }
 
   .floating-chat-badge {
