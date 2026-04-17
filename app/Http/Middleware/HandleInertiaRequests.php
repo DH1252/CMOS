@@ -14,7 +14,7 @@ class HandleInertiaRequests extends Middleware
 
     public function handle(Request $request, Closure $next): Response
     {
-        config(['inertia.ssr.enabled' => $request->user() !== null]);
+        config(['inertia.ssr.enabled' => true]);
 
         return parent::handle($request, $next);
     }
