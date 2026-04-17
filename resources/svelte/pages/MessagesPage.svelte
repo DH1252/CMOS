@@ -110,7 +110,7 @@
     });
   });
 
-  const formatMessageTime = (value) => {
+  const formatMessageTime = (value, fallbackDateLabel = '') => {
     if (!value) {
       return '';
     }
@@ -119,7 +119,7 @@
     const now = new Date();
 
     if (Number.isNaN(date.getTime())) {
-      return value;
+      return fallbackDateLabel ? `${fallbackDateLabel} ${value}` : value;
     }
 
     const dayKey = (input) =>
@@ -164,7 +164,11 @@
     });
   };
 
-  const formatMessageDay = (value) => {
+  const formatMessageDay = (value, fallbackDateLabel = '') => {
+    if (fallbackDateLabel) {
+      return fallbackDateLabel;
+    }
+
     if (!value) {
       return '';
     }
@@ -184,7 +188,8 @@
 
   const groupedMessages = $derived.by(() =>
     messages.reduce((groups, message) => {
-      const groupDate = formatMessageDay(message.created_at);
+      const sourceValue = message.created_at_raw || message.created_at;
+      const groupDate = formatMessageDay(sourceValue, message.date || '');
       const lastGroup = groups[groups.length - 1];
       if (!lastGroup || lastGroup.date !== groupDate) {
         groups.push({
@@ -466,7 +471,7 @@
             {#each group.items as message, messageIndex (message.id || `${groupIndex}-${messageIndex}`)}
               <article class={`messages-bubble ${message.is_mine ? 'messages-bubble-mine' : 'messages-bubble-theirs'}`.trim()}>
                 <p>{message.content}</p>
-                <span>{formatMessageTime(message.created_at)}{message.is_mine ? message.is_read ? ' • Dibaca' : ' • Terkirim' : ''}</span>
+                <span>{formatMessageTime(message.created_at_raw || message.created_at, message.date || '')}{message.is_mine ? message.is_read ? ' • Dibaca' : ' • Terkirim' : ''}</span>
               </article>
             {/each}
           {/each}
