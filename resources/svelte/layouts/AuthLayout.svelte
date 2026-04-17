@@ -84,6 +84,7 @@
   const shellThemeColor = $derived(shell.themeColor || 'purple');
   const shellThemeVariables = $derived(shell.themeVariables || null);
   const shellCsrfToken = $derived(shell.csrfToken || '');
+  const shellUserId = $derived(shellUser.id ? String(shellUser.id) : '');
   const errorMessages = $derived(Object.values(errors || {}).flat().filter(Boolean));
 
   const applyThemeMode = (value) => {
@@ -110,6 +111,25 @@
       }
 
       document.documentElement.style.setProperty(`--${token}`, value);
+    });
+  };
+
+  const identifyPostHogUser = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const posthogClient = window.__CMOS_POSTHOG__;
+
+    if (!posthogClient || !shellUserId) {
+      return;
+    }
+
+    posthogClient.identify(shellUserId, {
+      email: shellUser.email || null,
+      name: shellUser.name || null,
+      role: shellUser.role || null,
+      department: shellUser.department || null,
     });
   };
 
@@ -440,6 +460,7 @@
     applyThemeMode(savedTheme);
     applyBrandThemeColor(shellThemeColor);
     applyThemeVariables(shellThemeVariables);
+    identifyPostHogUser();
     window.__CMOS_AUTH_PROPS__ = shell;
     deferredUiCleanup = scheduleAfterPaint(() => {
       void ensureSonnerLoaded();
@@ -488,6 +509,10 @@
 
   $effect(() => {
     applyThemeVariables(shellThemeVariables);
+  });
+
+  $effect(() => {
+    identifyPostHogUser();
   });
 </script>
 

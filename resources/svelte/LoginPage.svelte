@@ -21,6 +21,13 @@
   onMount(() => {
     document.documentElement.setAttribute('data-theme', 'dark');
     document.documentElement.setAttribute('data-brand', themeColor || 'purple');
+
+    const posthogClient = window.__CMOS_POSTHOG__;
+
+    if (posthogClient) {
+      posthogClient.capture('login_page_viewed');
+    }
+
     emailInput?.focus();
   });
 
