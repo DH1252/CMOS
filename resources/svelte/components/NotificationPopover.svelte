@@ -13,8 +13,12 @@
     toneForNotification = () => '',
     iconForNotification = () => 'fas fa-bell',
     onOpenChange = () => {},
-    onMarkAllAsRead = async () => {},
+    onClearAll = async () => {},
+    onClearOne = async () => {},
   } = $props();
+
+  let isClearingAll = $state(false);
+  let clearingOneId = $state(null);
 
   let previousOpen = open;
 
@@ -54,13 +58,32 @@
     window.location.href = href;
   };
 
-  const markAllAsRead = async () => {
-    if (!endpoints.notificationsMarkAll) {
+  const clearAll = async () => {
+    if (!endpoints.notificationsClearAll || isClearingAll) {
       return;
     }
 
-    open = false;
-    await onMarkAllAsRead();
+    isClearingAll = true;
+
+    try {
+      await onClearAll();
+    } finally {
+      isClearingAll = false;
+    }
+  };
+
+  const clearOne = async (notificationId) => {
+    if (!notificationId || clearingOneId === notificationId) {
+      return;
+    }
+
+    clearingOneId = notificationId;
+
+    try {
+      await onClearOne(notificationId);
+    } finally {
+      clearingOneId = null;
+    }
   };
 </script>
 
@@ -81,7 +104,11 @@
       <div>
         <strong>Notifikasi</strong>
       </div>
-      <button type="button" class="shell-text-btn" onclick={markAllAsRead}>Tandai dibaca</button>
+      <div class="shell-header-actions">
+        <button type="button" class="shell-text-btn shell-text-btn-danger" onclick={clearAll} disabled={isClearingAll || notifications.length < 1}>
+          {isClearingAll ? 'Membersihkan...' : 'Bersihkan'}
+        </button>
+      </div>
     </div>
 
     {#if isLoading}
@@ -91,16 +118,28 @@
     {:else}
       <div class="shell-notification-list">
         {#each notifications as notification (notification.id || `${notification.type}-${notification.created_at}-${notification.title}`)}
-          <button type="button" class="shell-notification-item" onclick={() => navigate(notification.href || links.notifications || '#')}>
-            <span class={`shell-notification-icon ${toneForNotification(notification.type)}`}>
-              <i class={iconForNotification(notification.type)}></i>
-            </span>
-            <span class="shell-notification-copy">
-              <strong>{notification.title}</strong>
-              <span>{notification.message}</span>
-              <small>{formatNotificationTime(notification.created_at)}</small>
-            </span>
-          </button>
+          <div class="shell-notification-row">
+            <button type="button" class="shell-notification-item" onclick={() => navigate(notification.href || links.notifications || '#')}>
+              <span class={`shell-notification-icon ${toneForNotification(notification.type)}`}>
+                <i class={iconForNotification(notification.type)}></i>
+              </span>
+              <span class="shell-notification-copy">
+                <strong>{notification.title}</strong>
+                <span>{notification.message}</span>
+                <small>{formatNotificationTime(notification.created_at)}</small>
+              </span>
+            </button>
+            <button
+              type="button"
+              class="shell-clear-one-btn"
+              onclick={() => clearOne(notification.id)}
+              aria-label="Bersihkan notifikasi"
+              title="Bersihkan"
+              disabled={clearingOneId === notification.id}
+            >
+              <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+          </div>
         {/each}
       </div>
     {/if}
@@ -167,13 +206,32 @@
     display: block;
     font-size: 0.95rem;
   }
+
+  .shell-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
   .shell-text-btn {
+    min-height: 1.75rem;
+    padding: 0 0.35rem;
     border: none;
     background: transparent;
     color: var(--brand-hover);
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
+    border-radius: 0.4rem;
+  }
+
+  .shell-text-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .shell-text-btn-danger {
+    color: var(--signal-danger);
   }
 
   .shell-empty {
@@ -186,6 +244,13 @@
     display: grid;
   }
 
+  .shell-notification-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+
   .shell-notification-item {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -196,11 +261,34 @@
     background: transparent;
     color: inherit;
     text-align: left;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 0;
   }
 
   .shell-notification-item:hover {
     background: var(--muted);
+  }
+
+  .shell-clear-one-btn {
+    width: 1.9rem;
+    height: 1.9rem;
+    margin-right: 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 0.45rem;
+    background: var(--background);
+    color: var(--text-muted);
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+  }
+
+  .shell-clear-one-btn:hover {
+    color: var(--text-strong);
+    border-color: color-mix(in srgb, var(--signal-danger) 35%, var(--border));
+  }
+
+  .shell-clear-one-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
   }
 
   .shell-notification-icon {
