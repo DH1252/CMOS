@@ -57,3 +57,4 @@ pnpm-debug.log*
 /boost.json
 /opencode.json
 /skills-lock.json
+.env

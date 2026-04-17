@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Evaluation;
 use App\Models\GradeParameter;
 use App\Models\User;
+use App\Services\PostHogService;
 use Illuminate\Http\Request;
 
 class EvaluationController extends Controller
@@ -350,6 +351,14 @@ class EvaluationController extends Controller
         $staff = User::find($validated['user_id']);
         ActivityLog::log('created', "Created {$evaluatorType} evaluation for: {$staff->name} ({$validated['period']})", $evaluation);
 
+        app(PostHogService::class)->capture((string) $user->id, 'evaluation_submitted', [
+            'evaluation_id' => $evaluation->id,
+            'evaluator_type' => $evaluatorType,
+            'staff_id' => $staff->id,
+            'period' => $validated['period'],
+            'total_score' => $evaluation->total_score,
+        ]);
+
         return redirect()->route('evaluations.department', [
             'department' => $staff->department_id,
             'month' => $validated['period'],
@@ -572,6 +581,14 @@ class EvaluationController extends Controller
         $evaluation->update($validated);
 
         ActivityLog::log('updated', "Updated evaluation for: {$evaluation->user->name}", $evaluation);
+
+        app(PostHogService::class)->capture((string) auth()->id(), 'evaluation_updated', [
+            'evaluation_id' => $evaluation->id,
+            'evaluator_type' => $evaluation->evaluator_type,
+            'staff_id' => $evaluation->user_id,
+            'period' => $evaluation->period,
+            'total_score' => $evaluation->total_score,
+        ]);
 
         return redirect()->route('evaluations.department', [
             'department' => $evaluation->user->department_id,

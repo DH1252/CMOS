@@ -8,6 +8,7 @@ use App\Models\AnnouncementComment;
 use App\Models\AnnouncementReaction;
 use App\Models\PollOption;
 use App\Models\PollVote;
+use App\Services\PostHogService;
 use App\Support\RealtimeBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -171,6 +172,12 @@ class AnnouncementController extends Controller
         ActivityLog::log('created', 'Created announcement', $announcement);
         app(RealtimeBroadcaster::class)->organization(['announcements']);
 
+        app(PostHogService::class)->capture((string) auth()->id(), 'announcement_created', [
+            'announcement_id' => $announcement->id,
+            'has_poll' => $announcement->has_poll,
+            'content_length' => strlen($validated['content']),
+        ]);
+
         return redirect()->route('announcements.index')
             ->with('success', 'Pengumuman berhasil diposting!');
     }
@@ -223,12 +230,24 @@ class AnnouncementController extends Controller
 
                 app(RealtimeBroadcaster::class)->organization(['announcements']);
 
+                app(PostHogService::class)->capture((string) auth()->id(), 'announcement_reacted', [
+                    'announcement_id' => $announcement->id,
+                    'reaction_type' => $validated['type'],
+                    'action' => 'removed',
+                ]);
+
                 return response()->json(['removed' => true]);
             } else {
                 // Change reaction
                 $existing->update(['type' => $validated['type']]);
 
                 app(RealtimeBroadcaster::class)->organization(['announcements']);
+
+                app(PostHogService::class)->capture((string) auth()->id(), 'announcement_reacted', [
+                    'announcement_id' => $announcement->id,
+                    'reaction_type' => $validated['type'],
+                    'action' => 'changed',
+                ]);
 
                 return response()->json(['changed' => true, 'type' => $validated['type']]);
             }
@@ -241,6 +260,12 @@ class AnnouncementController extends Controller
         ]);
 
         app(RealtimeBroadcaster::class)->organization(['announcements']);
+
+        app(PostHogService::class)->capture((string) auth()->id(), 'announcement_reacted', [
+            'announcement_id' => $announcement->id,
+            'reaction_type' => $validated['type'],
+            'action' => 'added',
+        ]);
 
         return response()->json(['added' => true, 'type' => $validated['type']]);
     }
@@ -273,6 +298,12 @@ class AnnouncementController extends Controller
 
         $option->increment('votes_count');
         app(RealtimeBroadcaster::class)->organization(['announcements']);
+
+        app(PostHogService::class)->capture((string) auth()->id(), 'poll_voted', [
+            'announcement_id' => $announcement->id,
+            'poll_option_id' => $option->id,
+            'poll_question' => $announcement->poll_question,
+        ]);
 
         // Return updated poll data
         $announcement->refresh();
