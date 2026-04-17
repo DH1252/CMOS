@@ -377,6 +377,7 @@
           if (activeUserId) {
             await loadConversation(activeUserId, false);
           }
+
         },
       );
     }
