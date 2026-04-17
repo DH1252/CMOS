@@ -694,7 +694,7 @@
   .messages-bubble-mine {
     justify-self: end;
     background: var(--brand-primary);
-    color: #1a1a2e;
+    color: var(--primary-foreground);
     border-bottom-right-radius: 0.35rem;
   }
 

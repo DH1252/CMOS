@@ -3,6 +3,38 @@ import { hydrate, mount } from "svelte";
 import AuthLayout from "../svelte/layouts/AuthLayout.svelte";
 import { loadExternalScript } from "../svelte/lib/external-assets.js";
 
+const applyBrandTheme = (themeName) => {
+	if (typeof document === "undefined") {
+		return;
+	}
+
+	const fallbackTheme = "purple";
+	const resolvedTheme =
+		typeof themeName === "string" && themeName.length > 0
+			? themeName
+			: fallbackTheme;
+
+	document.documentElement.setAttribute("data-brand", resolvedTheme);
+};
+
+const applyThemeVariables = (variables = null) => {
+	if (
+		typeof document === "undefined" ||
+		!variables ||
+		typeof variables !== "object"
+	) {
+		return;
+	}
+
+	Object.entries(variables).forEach(([token, value]) => {
+		if (typeof token !== "string" || typeof value !== "string") {
+			return;
+		}
+
+		document.documentElement.style.setProperty(`--${token}`, value);
+	});
+};
+
 const sweetAlertUrl =
 	"https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js";
 
@@ -147,6 +179,24 @@ const initialInertiaPage =
 	resolveInitialPage(inertiaPagePayload) ||
 	resolveInitialPage(inertiaScriptPagePayload);
 
+if (typeof document !== "undefined") {
+	const rootBrand = document.documentElement.getAttribute("data-brand");
+	const pageBrand =
+		initialInertiaPage?.props?.themeColor ||
+		initialInertiaPage?.props?.shell?.themeColor ||
+		initialInertiaPage?.props?.theme?.color ||
+		rootBrand ||
+		"purple";
+	const themeVariables =
+		initialInertiaPage?.props?.themeVariables ||
+		initialInertiaPage?.props?.shell?.themeVariables ||
+		initialInertiaPage?.props?.theme?.variables ||
+		null;
+
+	applyBrandTheme(pageBrand);
+	applyThemeVariables(themeVariables);
+}
+
 const shouldBootStandaloneLogin =
 	isLoginPath && initialInertiaPage?.component === "LoginPage";
 
@@ -187,6 +237,19 @@ if (inertiaRoot && initialInertiaPage && !shouldBootStandaloneLogin) {
 			];
 		},
 		setup({ el, App, props }) {
+			const brandFromProps =
+				props?.initialPage?.props?.themeColor ||
+				props?.initialPage?.props?.shell?.themeColor ||
+				props?.initialPage?.props?.theme?.color ||
+				"purple";
+			const variablesFromProps =
+				props?.initialPage?.props?.themeVariables ||
+				props?.initialPage?.props?.shell?.themeVariables ||
+				props?.initialPage?.props?.theme?.variables ||
+				null;
+			applyBrandTheme(brandFromProps);
+			applyThemeVariables(variablesFromProps);
+
 			if (el?.hasAttribute("data-server-rendered")) {
 				hydrate(App, { target: el, props });
 

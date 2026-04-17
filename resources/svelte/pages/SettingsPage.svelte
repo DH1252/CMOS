@@ -18,27 +18,81 @@
     errors = {},
   } = $props();
 
-  const curatedAccentNames = ['purple', 'indigo', 'slate', 'amber'];
   let selectedColor = $state(null);
+  let hasHydratedCustomColors = $state(false);
+  let customPrimary = $state('#7C3AED');
+  let customHover = $state('#6D28D9');
+  let customSoft = $state('#A78BFA');
+  let customLight = $state('#EDE9FE');
+  let customSecondary = $state('#5B2BA9');
+  let customSecondarySoft = $state('#E9E0F8');
+  let customPrimaryForeground = $state('#FFFFFF');
   const activeColor = $derived(selectedColor || values.themeColor || colors[0]?.name || 'purple');
-
-  const visibleColors = $derived.by(() => {
-    const filtered = colors.filter((color) => curatedAccentNames.includes(color.name));
-
-    if (!filtered.find((color) => color.name === activeColor)) {
-      const current = colors.find((color) => color.name === activeColor);
-
-      if (current) {
-        return [current, ...filtered.filter((color) => color.name !== current.name)];
-      }
-    }
-
-    return filtered;
-  });
 
   const selectedPalette = $derived.by(
     () => colors.find((color) => color.name === activeColor) || colors[0] || null,
   );
+
+  const palettePreview = $derived.by(() => ({
+    primary: customPrimary,
+    hover: customHover,
+    soft: customSoft,
+    light: customLight,
+    secondary: customSecondary,
+    secondarySoft: customSecondarySoft,
+    primaryForeground: customPrimaryForeground,
+  }));
+
+  const applyPreviewTheme = () => {
+    document.documentElement.setAttribute('data-brand', activeColor);
+    document.documentElement.style.setProperty('--brand-primary-base', customPrimary);
+    document.documentElement.style.setProperty('--brand-hover-base', customHover);
+    document.documentElement.style.setProperty('--brand-soft-base', customSoft);
+    document.documentElement.style.setProperty('--brand-light-base', customLight);
+    document.documentElement.style.setProperty('--brand-secondary-base', customSecondary);
+    document.documentElement.style.setProperty('--brand-secondary-soft-base', customSecondarySoft);
+    document.documentElement.style.setProperty('--primary-foreground-base', customPrimaryForeground);
+  };
+
+  const syncFromPreset = (name) => {
+    const preset = colors.find((color) => color.name === name);
+
+    if (!preset) {
+      return;
+    }
+
+    customPrimary = preset.primary;
+    customHover = preset.hover;
+    customSoft = preset.soft;
+    customLight = preset.light;
+    customSecondary = preset.secondary;
+    customSecondarySoft = preset.secondarySoft;
+    customPrimaryForeground = preset.primaryForeground;
+  };
+
+  const selectPreset = (name) => {
+    selectedColor = name;
+    syncFromPreset(name);
+  };
+
+  $effect(() => {
+    if (hasHydratedCustomColors) {
+      return;
+    }
+
+    customPrimary = values.themePrimary || '#7C3AED';
+    customHover = values.themeHover || '#6D28D9';
+    customSoft = values.themeSoft || '#A78BFA';
+    customLight = values.themeLight || '#EDE9FE';
+    customSecondary = values.themeSecondary || '#5B2BA9';
+    customSecondarySoft = values.themeSecondarySoft || '#E9E0F8';
+    customPrimaryForeground = values.themePrimaryForeground || '#FFFFFF';
+    hasHydratedCustomColors = true;
+  });
+
+  $effect(() => {
+    applyPreviewTheme();
+  });
 </script>
 
 <div class="mx-auto max-w-5xl">
@@ -96,35 +150,101 @@
 
         <section class="grid gap-5 rounded-[10px] border border-border bg-background px-5 py-5 lg:grid-cols-[16rem_minmax(0,1fr)]">
           <div>
-            <div class="text-sm font-medium text-brand-primary">Aksen workspace</div>
-            <h3 class="mt-2 text-xl font-semibold text-foreground">Pilih warna bantu untuk shell internal</h3>
-            <p class="mt-2 text-sm leading-7 text-muted-foreground">Identitas utama tetap mengikuti nuansa ungu-emas CMOS. Pilihan ini mengubah aksen kerja internal tanpa mengubah arah brand utamanya.</p>
+            <div class="text-sm font-medium text-brand-primary">Warna halaman</div>
+            <h3 class="mt-2 text-xl font-semibold text-foreground">Atur warna utama untuk seluruh situs</h3>
+            <p class="mt-2 text-sm leading-7 text-muted-foreground">Pilihan ini mengubah warna tombol, tautan, fokus, panel, dan elemen pendukung di halaman publik, login, dan workspace internal.</p>
           </div>
 
           <div class="grid gap-4">
             <input type="hidden" name="theme_color" value={activeColor} />
+            <input type="hidden" name="theme_primary" value={customPrimary} />
+            <input type="hidden" name="theme_hover" value={customHover} />
+            <input type="hidden" name="theme_soft" value={customSoft} />
+            <input type="hidden" name="theme_light" value={customLight} />
+            <input type="hidden" name="theme_secondary" value={customSecondary} />
+            <input type="hidden" name="theme_secondary_soft" value={customSecondarySoft} />
+            <input type="hidden" name="theme_primary_foreground" value={customPrimaryForeground} />
 
-            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-2">
-              {#each visibleColors as color, index (color.name || index)}
+            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {#each colors as color, index (color.name || index)}
                 <button
                   type="button"
                   class={`rounded-[10px] border px-4 py-4 text-left transition-colors ${activeColor === color.name ? 'border-brand-primary bg-card' : 'border-border bg-card hover:bg-muted'}`}
-                  onclick={() => (selectedColor = color.name)}
+                  onclick={() => selectPreset(color.name)}
                   aria-pressed={activeColor === color.name}
                 >
-                  <span class="block h-8 rounded-[8px]" style={`background:${color.hex}`}></span>
+                  <span class="block h-8 rounded-[8px]" style={`background:${color.primary}`}></span>
+                  <span class="mt-2 block h-2 rounded-[6px]" style={`background:${color.secondary}`}></span>
                   <strong class="mt-3 block text-sm text-foreground">{color.label}</strong>
-                  <span class="mt-1 block text-xs text-muted-foreground">{color.hex}</span>
+                  <span class="mt-1 block text-xs text-muted-foreground">{color.primary}</span>
                 </button>
               {/each}
             </div>
 
+            <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
+              <label class="grid gap-2 text-sm text-foreground">
+                <span class="font-medium">Primary</span>
+                <input type="color" bind:value={customPrimary} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+              </label>
+              <label class="grid gap-2 text-sm text-foreground">
+                <span class="font-medium">Hover</span>
+                <input type="color" bind:value={customHover} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+              </label>
+              <label class="grid gap-2 text-sm text-foreground">
+                <span class="font-medium">Soft</span>
+                <input type="color" bind:value={customSoft} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+              </label>
+              <label class="grid gap-2 text-sm text-foreground">
+                <span class="font-medium">Light</span>
+                <input type="color" bind:value={customLight} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+              </label>
+              <label class="grid gap-2 text-sm text-foreground">
+                <span class="font-medium">Secondary</span>
+                <input type="color" bind:value={customSecondary} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+              </label>
+              <label class="grid gap-2 text-sm text-foreground">
+                <span class="font-medium">Secondary Soft</span>
+                <input type="color" bind:value={customSecondarySoft} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+              </label>
+              <label class="grid gap-2 text-sm text-foreground">
+                <span class="font-medium">Primary Foreground</span>
+                <input type="color" bind:value={customPrimaryForeground} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+              </label>
+            </div>
+
+            <div class="grid gap-3 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 md:items-center">
+              <div class="grid gap-2">
+                <strong class="text-sm text-foreground">Teks tombol utama</strong>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    class={`h-9 rounded-[8px] border px-3 text-sm font-medium ${customPrimaryForeground === '#FFFFFF' ? 'border-brand-primary bg-brand-primary text-white' : 'border-border bg-card text-foreground'}`}
+                    onclick={() => (customPrimaryForeground = '#FFFFFF')}
+                  >
+                    Putih
+                  </button>
+                  <button
+                    type="button"
+                    class={`h-9 rounded-[8px] border px-3 text-sm font-medium ${customPrimaryForeground === '#0F172A' ? 'border-brand-primary bg-brand-primary text-[var(--primary-foreground)]' : 'border-border bg-card text-foreground'}`}
+                    onclick={() => (customPrimaryForeground = '#0F172A')}
+                  >
+                    Gelap
+                  </button>
+                </div>
+              </div>
+              <div class="flex items-center justify-start md:justify-end">
+                <div class="inline-flex h-10 items-center rounded-[8px] border border-border px-3 text-sm font-semibold" style={`background:${palettePreview.primary};color:${palettePreview.primaryForeground}`}>
+                  Preview Tombol
+                </div>
+              </div>
+            </div>
+
             {#if selectedPalette}
               <div class="grid gap-3 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-[auto_minmax(0,1fr)] md:items-center">
-                <div class="h-12 w-12 rounded-[10px]" style={`background:${selectedPalette.hex}`}></div>
+                <div class="h-12 w-12 rounded-[10px]" style={`background:${selectedPalette.primary}`}></div>
                 <div>
                   <strong class="block text-sm text-foreground">{selectedPalette.label}</strong>
-                  <p class="mt-1 text-sm leading-6 text-muted-foreground">Aksen ini dipakai sebagai warna bantu di workspace internal. Identitas utama tetap mengikuti arah ungu-emas CMOS.</p>
+                  <p class="mt-1 text-sm leading-6 text-muted-foreground">Warna ini diterapkan untuk seluruh situs, termasuk halaman publik, login, dan workspace internal.</p>
                 </div>
               </div>
             {/if}

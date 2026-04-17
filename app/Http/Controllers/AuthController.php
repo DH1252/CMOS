@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Setting;
+use App\Support\ThemePalette;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Response;
 
 class AuthController extends Controller
 {
-    public function showLogin()
+    public function showLogin(): Response|\Illuminate\Http\RedirectResponse
     {
         if (Auth::check()) {
             return redirect()->route('dashboard');
@@ -21,6 +23,7 @@ class AuthController extends Controller
             'LoginPage',
             [
                 'appName' => Setting::get('app_name', 'CMOS'),
+                ...$this->themePayload(),
                 'loginUrl' => route('login.submit'),
                 'homeUrl' => route('home'),
                 'csrfToken' => csrf_token(),
@@ -63,5 +66,22 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    /**
+     * @return array{themeColor: string, themeVariables: array<string, string>}
+     */
+    private function themePayload(): array
+    {
+        $settings = Setting::query()
+            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys()))
+            ->pluck('value', 'key')
+            ->all();
+        $theme = ThemePalette::payloadFromSettings($settings);
+
+        return [
+            'themeColor' => $theme['color'],
+            'themeVariables' => $theme['variables'],
+        ];
     }
 }

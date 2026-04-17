@@ -30,6 +30,9 @@ class PublicPageSsrTest extends TestCase
 
         $this->assertSame('PublicApp', $page['component']);
         $this->assertSame('landing', $page['props']['page']);
+        $this->assertSame('purple', $page['props']['themeColor']);
+        $this->assertArrayHasKey('brand-primary-base', $page['props']['themeVariables']);
+        $response->assertSee('data-brand="purple"', false);
     }
 
     /**

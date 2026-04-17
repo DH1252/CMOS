@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\InformationBoard;
 use App\Models\InformationCategory;
 use App\Models\Setting;
+use App\Support\ThemePalette;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -86,6 +87,8 @@ class PublicInformationController extends Controller
             'page' => 'info-index',
             'appName' => $settings['appName'],
             'organizationName' => $settings['organizationName'],
+            'themeColor' => $settings['themeColor'],
+            'themeVariables' => $settings['themeVariables'],
             'homeUrl' => route('home'),
             'loginUrl' => route('login'),
             'infoUrl' => route('informasi.index'),
@@ -152,6 +155,8 @@ class PublicInformationController extends Controller
             'page' => 'info-show',
             'appName' => $settings['appName'],
             'organizationName' => $settings['organizationName'],
+            'themeColor' => $settings['themeColor'],
+            'themeVariables' => $settings['themeVariables'],
             'homeUrl' => route('home'),
             'loginUrl' => route('login'),
             'infoUrl' => route('informasi.index'),
@@ -177,17 +182,20 @@ class PublicInformationController extends Controller
     }
 
     /**
-     * @return array{appName: string, organizationName: string}
+     * @return array{appName: string, organizationName: string, themeColor: string, themeVariables: array<string, string>}
      */
     private function publicSettings(): array
     {
         $settings = Setting::query()
-            ->whereIn('key', ['app_name', 'organization_name'])
+            ->whereIn('key', array_merge(['app_name', 'organization_name', 'theme_color'], ThemePalette::settingKeys()))
             ->pluck('value', 'key');
+        $themePayload = ThemePalette::payloadFromSettings($settings->all());
 
         return [
             'appName' => (string) $settings->get('app_name', 'CMOS'),
             'organizationName' => (string) $settings->get('organization_name', 'HIMATEKKOM ITS'),
+            'themeColor' => $themePayload['color'],
+            'themeVariables' => $themePayload['variables'],
         ];
     }
 

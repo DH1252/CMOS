@@ -50,25 +50,33 @@
     --font-display: 'Public Sans', sans-serif;
     --font-body: 'Public Sans', sans-serif;
 
-    --page-bg: #f4efe5;
-    --page-bg-soft: #ece4d6;
-    --panel-bg: #fffaf0;
-    --panel-bg-strong: #f6eedf;
-    --panel-muted: #eee2cc;
+    --page-bg: color-mix(in srgb, var(--brand-light-base) 16%, #f5f3ef);
+    --page-bg-soft: color-mix(in srgb, var(--brand-light-base) 26%, #f1eee8);
+    --panel-bg: color-mix(in srgb, var(--brand-light-base) 12%, #ffffff);
+    --panel-bg-strong: color-mix(in srgb, var(--brand-light-base) 22%, #f7f5f1);
+    --panel-muted: color-mix(in srgb, var(--brand-light-base) 30%, #ece8e0);
 
     --text-strong: #211d18;
     --text-soft: #4a433a;
     --text-muted: #6d655b;
-    --line-soft: #ddd0b7;
-    --line-strong: #c8b897;
+    --line-soft: color-mix(in srgb, var(--brand-soft-base) 22%, #d6d0c6);
+    --line-strong: color-mix(in srgb, var(--brand-soft-base) 36%, #c5bdb0);
     --white-soft: #fffdf7;
 
-    --brand-primary: #d4a017;
-    --brand-hover: #b38308;
-    --brand-soft: #f0d57d;
-    --brand-light: #f5e8bb;
-    --brand-secondary: #7751de;
-    --brand-secondary-soft: #ece6fa;
+    --brand-primary-base: #7c3aed;
+    --brand-hover-base: #6d28d9;
+    --brand-soft-base: #a78bfa;
+    --brand-light-base: #ede9fe;
+    --brand-secondary-base: #5b2ba9;
+    --brand-secondary-soft-base: #e9e0f8;
+    --primary-foreground-base: #ffffff;
+
+    --brand-primary: var(--brand-primary-base);
+    --brand-hover: var(--brand-hover-base);
+    --brand-soft: var(--brand-soft-base);
+    --brand-light: var(--brand-light-base);
+    --brand-secondary: var(--brand-secondary-base);
+    --brand-secondary-soft: var(--brand-secondary-soft-base);
 
     --brand-yellow: #d4a017;
     --brand-yellow-hover: #b38308;
@@ -82,7 +90,7 @@
     --popover: color-mix(in srgb, var(--panel-bg) 94%, white);
     --popover-foreground: var(--text-strong);
     --primary: var(--brand-primary);
-    --primary-foreground: #241a0f;
+    --primary-foreground: var(--primary-foreground-base);
     --secondary: color-mix(in srgb, var(--panel-muted) 74%, white);
     --secondary-foreground: var(--text-strong);
     --muted: var(--panel-muted);
@@ -132,29 +140,149 @@
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+[data-brand='purple'] {
+    --brand-primary-base: #7c3aed;
+    --brand-hover-base: #6d28d9;
+    --brand-soft-base: #a78bfa;
+    --brand-light-base: #ede9fe;
+    --brand-secondary-base: #5b2ba9;
+    --brand-secondary-soft-base: #e9e0f8;
+    --primary-foreground-base: #ffffff;
+}
+
+[data-brand='blue'] {
+    --brand-primary-base: #3b82f6;
+    --brand-hover-base: #2563eb;
+    --brand-soft-base: #60a5fa;
+    --brand-light-base: #dbeafe;
+    --brand-secondary-base: #1d4ed8;
+    --brand-secondary-soft-base: #dfe8fd;
+    --primary-foreground-base: #ffffff;
+}
+
+[data-brand='green'] {
+    --brand-primary-base: #10b981;
+    --brand-hover-base: #059669;
+    --brand-soft-base: #34d399;
+    --brand-light-base: #d1fae5;
+    --brand-secondary-base: #0f766e;
+    --brand-secondary-soft-base: #d6f3ee;
+    --primary-foreground-base: #0f172a;
+}
+
+[data-brand='red'] {
+    --brand-primary-base: #ef4444;
+    --brand-hover-base: #dc2626;
+    --brand-soft-base: #f87171;
+    --brand-light-base: #fee2e2;
+    --brand-secondary-base: #b91c1c;
+    --brand-secondary-soft-base: #f9dddd;
+    --primary-foreground-base: #ffffff;
+}
+
+[data-brand='orange'] {
+    --brand-primary-base: #f59e0b;
+    --brand-hover-base: #d97706;
+    --brand-soft-base: #fbbf24;
+    --brand-light-base: #fef3c7;
+    --brand-secondary-base: #b45309;
+    --brand-secondary-soft-base: #f8e6cc;
+    --primary-foreground-base: #0f172a;
+}
+
+[data-brand='pink'] {
+    --brand-primary-base: #ec4899;
+    --brand-hover-base: #db2777;
+    --brand-soft-base: #f472b6;
+    --brand-light-base: #fce7f3;
+    --brand-secondary-base: #be185d;
+    --brand-secondary-soft-base: #f8ddeb;
+    --primary-foreground-base: #ffffff;
+}
+
+[data-brand='indigo'] {
+    --brand-primary-base: #6366f1;
+    --brand-hover-base: #4f46e5;
+    --brand-soft-base: #818cf8;
+    --brand-light-base: #e0e7ff;
+    --brand-secondary-base: #4338ca;
+    --brand-secondary-soft-base: #dee1fc;
+    --primary-foreground-base: #ffffff;
+}
+
+[data-brand='teal'] {
+    --brand-primary-base: #14b8a6;
+    --brand-hover-base: #0d9488;
+    --brand-soft-base: #2dd4bf;
+    --brand-light-base: #ccfbf1;
+    --brand-secondary-base: #0f766e;
+    --brand-secondary-soft-base: #d4f3ef;
+    --primary-foreground-base: #0f172a;
+}
+
+[data-brand='cyan'] {
+    --brand-primary-base: #06b6d4;
+    --brand-hover-base: #0891b2;
+    --brand-soft-base: #22d3ee;
+    --brand-light-base: #cffafe;
+    --brand-secondary-base: #0e7490;
+    --brand-secondary-soft-base: #d5f1f7;
+    --primary-foreground-base: #0f172a;
+}
+
+[data-brand='rose'] {
+    --brand-primary-base: #f43f5e;
+    --brand-hover-base: #e11d48;
+    --brand-soft-base: #fb7185;
+    --brand-light-base: #ffe4e6;
+    --brand-secondary-base: #be123c;
+    --brand-secondary-soft-base: #fbdce2;
+    --primary-foreground-base: #ffffff;
+}
+
+[data-brand='amber'] {
+    --brand-primary-base: #f59e0b;
+    --brand-hover-base: #d97706;
+    --brand-soft-base: #fbbf24;
+    --brand-light-base: #fef3c7;
+    --brand-secondary-base: #b45309;
+    --brand-secondary-soft-base: #f8e6cc;
+    --primary-foreground-base: #0f172a;
+}
+
+[data-brand='slate'] {
+    --brand-primary-base: #64748b;
+    --brand-hover-base: #475569;
+    --brand-soft-base: #94a3b8;
+    --brand-light-base: #f1f5f9;
+    --brand-secondary-base: #334155;
+    --brand-secondary-soft-base: #e2e8f0;
+    --primary-foreground-base: #ffffff;
+}
+
 [data-theme='public'] {
     --font-display: 'Public Sans', sans-serif;
     --font-body: 'Public Sans', sans-serif;
 
-    --page-bg: oklch(0.97 0.015 85);
-    --page-bg-soft: oklch(0.945 0.02 84);
-    --panel-bg: oklch(0.99 0.008 85);
-    --panel-bg-strong: oklch(0.952 0.02 84);
-    --panel-muted: oklch(0.938 0.018 84);
+    --page-bg: color-mix(in srgb, var(--brand-light-base) 12%, #faf9f7);
+    --page-bg-soft: color-mix(in srgb, var(--brand-light-base) 18%, #f6f4f1);
+    --panel-bg: color-mix(in srgb, var(--brand-light-base) 7%, #ffffff);
+    --panel-bg-strong: color-mix(in srgb, var(--brand-light-base) 15%, #faf8f5);
+    --panel-muted: color-mix(in srgb, var(--brand-light-base) 21%, #f2efea);
 
     --text-strong: oklch(0.28 0.025 72);
     --text-soft: oklch(0.41 0.02 74);
     --text-muted: oklch(0.53 0.018 74);
-    --line-soft: oklch(0.87 0.014 82);
-    --line-strong: oklch(0.76 0.028 80);
+    --line-soft: color-mix(in srgb, var(--brand-soft-base) 18%, #d6d1c9);
+    --line-strong: color-mix(in srgb, var(--brand-soft-base) 28%, #bfb8ad);
     --white-soft: oklch(0.995 0.004 85);
 
-    --brand-primary: oklch(0.74 0.15 84);
-    --brand-hover: oklch(0.68 0.14 84);
-    --brand-soft: oklch(0.87 0.08 84);
-    --brand-light: oklch(0.93 0.045 84);
-    --brand-secondary: oklch(0.53 0.16 309);
-    --brand-secondary-soft: oklch(0.94 0.02 308);
+    --brand-primary: var(--brand-primary-base);
+    --brand-hover: var(--brand-hover-base);
+    --brand-soft: var(--brand-soft-base);
+    --brand-light: var(--brand-light-base);
+    --brand-secondary: var(--brand-secondary-base);
+    --brand-secondary-soft: var(--brand-secondary-soft-base);
 
     --background: var(--page-bg);
     --foreground: var(--text-strong);
@@ -163,7 +291,7 @@
     --popover: color-mix(in srgb, var(--panel-bg) 96%, white);
     --popover-foreground: var(--text-strong);
     --primary: var(--brand-primary);
-    --primary-foreground: #241a0f;
+    --primary-foreground: var(--primary-foreground-base);
     --secondary: color-mix(in srgb, var(--panel-muted) 76%, white);
     --secondary-foreground: var(--text-strong);
     --muted: var(--panel-muted);
@@ -190,25 +318,25 @@
 }
 
 [data-theme='dark'] {
-    --page-bg: #18161a;
-    --page-bg-soft: #1d1a20;
-    --panel-bg: #211f24;
-    --panel-bg-strong: #29262d;
-    --panel-muted: #312d35;
+    --page-bg: color-mix(in srgb, #18161a 88%, var(--brand-secondary-base) 12%);
+    --page-bg-soft: color-mix(in srgb, #1d1a20 84%, var(--brand-secondary-base) 16%);
+    --panel-bg: color-mix(in srgb, #211f24 86%, var(--brand-secondary-base) 14%);
+    --panel-bg-strong: color-mix(in srgb, #29262d 82%, var(--brand-secondary-base) 18%);
+    --panel-muted: color-mix(in srgb, #312d35 80%, var(--brand-secondary-base) 20%);
 
     --text-strong: #f3eee8;
     --text-soft: #d5cdc2;
     --text-muted: #a79c90;
-    --line-soft: #3b3640;
-    --line-strong: #4a4450;
+    --line-soft: color-mix(in srgb, #3b3640 78%, var(--brand-secondary-soft-base) 22%);
+    --line-strong: color-mix(in srgb, #4a4450 74%, var(--brand-secondary-soft-base) 26%);
     --white-soft: #fffaf0;
 
-    --brand-primary: #f0c34a;
-    --brand-hover: #d6a82c;
-    --brand-soft: #5b4820;
-    --brand-light: #332914;
-    --brand-secondary: #7c5bbb;
-    --brand-secondary-soft: #2d243f;
+    --brand-primary: var(--brand-primary-base);
+    --brand-hover: var(--brand-hover-base);
+    --brand-soft: color-mix(in srgb, var(--brand-primary-base) 34%, #0b0b0b);
+    --brand-light: color-mix(in srgb, var(--brand-primary-base) 20%, #121212);
+    --brand-secondary: var(--brand-secondary-base);
+    --brand-secondary-soft: color-mix(in srgb, var(--brand-secondary-soft-base) 24%, #1a1a1a);
 
     --background: var(--page-bg);
     --foreground: var(--text-strong);
@@ -217,7 +345,7 @@
     --popover: #26232a;
     --popover-foreground: var(--text-strong);
     --primary: var(--brand-primary);
-    --primary-foreground: #22180d;
+    --primary-foreground: var(--primary-foreground-base);
     --secondary: #29262d;
     --secondary-foreground: var(--text-strong);
     --muted: #29262d;
@@ -692,7 +820,7 @@ select {
 
 .btn-primary {
     background: var(--brand-primary);
-    color: #1a1a2e;
+    color: var(--primary-foreground);
     border-color: var(--brand-primary);
 }
 

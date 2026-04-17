@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use App\Support\AuthShellData;
+use App\Support\ThemePalette;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -56,9 +58,19 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $themeSettings = Setting::query()
+            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys()))
+            ->pluck('value', 'key')
+            ->all();
+        $themePayload = ThemePalette::payloadFromSettings($themeSettings);
+
         return [
             ...parent::share($request),
             'shell' => fn () => $this->authShellData->forRequest($request),
+            'theme' => [
+                'color' => $themePayload['color'],
+                'variables' => $themePayload['variables'],
+            ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

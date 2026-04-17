@@ -21,6 +21,11 @@ class AuthShellData
 
         $appName = Setting::get('app_name', 'CMOS');
         $organizationName = Setting::get('organization_name', 'HIMATEKKOM ITS');
+        $themeSettings = Setting::query()
+            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys()))
+            ->pluck('value', 'key')
+            ->all();
+        $themePayload = ThemePalette::payloadFromSettings($themeSettings);
 
         $navSections = [
             [
@@ -127,6 +132,8 @@ class AuthShellData
         return [
             'appName' => $appName,
             'organizationName' => $organizationName,
+            'themeColor' => $themePayload['color'],
+            'themeVariables' => $themePayload['variables'],
             'csrfToken' => csrf_token(),
             'user' => [
                 'id' => $currentUser->id,
