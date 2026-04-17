@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\PostHogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -180,6 +181,13 @@ class UserController extends Controller
         $user = User::create($validated);
 
         ActivityLog::log('created', "Created user: {$user->name}", $user);
+
+        app(PostHogService::class)->capture((string) auth()->id(), 'user_created', [
+            'new_user_id' => $user->id,
+            'role' => $user->role?->name,
+            'department_id' => $user->department_id,
+            'status' => $user->status,
+        ]);
 
         return redirect()->route('users.index')
             ->with('success', 'User berhasil ditambahkan!');
@@ -558,6 +566,12 @@ class UserController extends Controller
         }
 
         fclose($handle);
+
+        app(PostHogService::class)->capture((string) auth()->id(), 'users_imported', [
+            'success_count' => count($results['success']),
+            'error_count' => count($results['errors']),
+            'total_rows' => $rowNumber - 1,
+        ]);
 
         return redirect()->route('users.import')
             ->with('import_results', $results)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Setting;
+use App\Services\PostHogService;
 use App\Support\ThemePalette;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +50,21 @@ class AuthController extends Controller
 
             ActivityLog::log('login', 'User logged in');
 
+            $user = Auth::user();
+            $posthog = app(PostHogService::class);
+
+            $posthog->identify((string) $user->id, [
+                'email' => $user->email,
+                'name' => $user->name,
+                'role' => $user->role?->name,
+                'department' => $user->department?->name,
+            ]);
+
+            $posthog->capture((string) $user->id, 'user_logged_in', [
+                'role' => $user->role?->name,
+                'department' => $user->department?->name,
+            ]);
+
             return redirect()->intended(route('dashboard'));
         }
 
@@ -59,7 +75,11 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+
         ActivityLog::log('logout', 'User logged out');
+
+        app(PostHogService::class)->capture((string) $user->id, 'user_logged_out');
 
         Auth::logout();
         $request->session()->invalidate();

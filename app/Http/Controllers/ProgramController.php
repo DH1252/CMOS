@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Program;
 use App\Models\User;
+use App\Services\PostHogService;
 use Illuminate\Http\Request;
 
 class ProgramController extends Controller
@@ -189,6 +190,13 @@ class ProgramController extends Controller
 
         ActivityLog::log('created', "Created program: {$program->name}", $program);
 
+        app(PostHogService::class)->capture((string) auth()->id(), 'program_created', [
+            'program_id' => $program->id,
+            'program_name' => $program->name,
+            'status' => $program->status,
+            'department_id' => $program->department_id,
+        ]);
+
         return redirect()->route('programs.index')
             ->with('success', 'Program kerja berhasil ditambahkan!');
     }
@@ -366,9 +374,18 @@ class ProgramController extends Controller
             'status' => 'required|in:planning,active,completed,cancelled',
         ]);
 
+        $previousStatus = $program->status;
         $program->update($validated);
 
         ActivityLog::log('updated', "Updated program: {$program->name}", $program);
+
+        app(PostHogService::class)->capture((string) auth()->id(), 'program_updated', [
+            'program_id' => $program->id,
+            'program_name' => $program->name,
+            'status' => $program->status,
+            'previous_status' => $previousStatus,
+            'department_id' => $program->department_id,
+        ]);
 
         return redirect()->route('programs.show', $program)
             ->with('success', 'Program kerja berhasil diupdate!');
