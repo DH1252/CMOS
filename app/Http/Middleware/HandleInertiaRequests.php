@@ -19,6 +19,15 @@ class HandleInertiaRequests extends Middleware
         return parent::handle($request, $next);
     }
 
+    public function rootView(Request $request): string
+    {
+        if ($request->routeIs('home') || $request->routeIs('informasi.*')) {
+            return 'public-app';
+        }
+
+        return $this->rootView;
+    }
+
     /**
      * The root template that's loaded on the first page visit.
      *

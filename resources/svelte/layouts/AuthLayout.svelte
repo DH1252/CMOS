@@ -1,10 +1,7 @@
 <script>
   import { onDestroy, onMount } from 'svelte';
-  import { toast } from 'svelte-sonner';
-  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
   import { inertiaEnhance } from '$lib/inertia-enhance.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
-  import { Toaster } from '$lib/components/ui/sonner/index.js';
   import SidebarNav from '../components/SidebarNav.svelte';
   import UserMenuDropdown from '../components/UserMenuDropdown.svelte';
 
@@ -28,8 +25,10 @@
   let themeMode = $state('dark');
   let liveUpdatesCleanup = $state(null);
   let deferredShellBootCleanup = $state(null);
+  let deferredUiCleanup = $state(null);
   let NotificationPopoverComponent = $state(null);
   let FloatingChatComponent = $state(null);
+  let ToasterComponent = $state(null);
   let shellComponentLoads = $state({
     notifications: null,
     floatingChat: null,
@@ -37,6 +36,8 @@
   let floatingChatInitiallyOpen = $state(false);
   let shellActivityPrimed = $state(false);
   let shellActivityPromise = $state(null);
+  let sonnerLoadPromise = $state(null);
+  let liveUpdatesModulePromise = $state(null);
 
   const toneMap = {
     primary: 'tone-primary',
@@ -110,6 +111,37 @@
     return () => window.clearTimeout(handle);
   };
 
+  const ensureSonnerLoaded = async () => {
+    if (ToasterComponent) {
+      return ToasterComponent;
+    }
+
+    if (!sonnerLoadPromise) {
+      sonnerLoadPromise = Promise.all([
+        import('$lib/components/ui/sonner/index.js'),
+        import('svelte-sonner'),
+      ]).then(([toasterModule, sonnerModule]) => {
+        ToasterComponent = toasterModule.Toaster;
+        return sonnerModule.toast;
+      });
+    }
+
+    return sonnerLoadPromise;
+  };
+
+  const showShellToastError = async (message, id) => {
+    const toast = await ensureSonnerLoaded();
+    toast.error(message, { id });
+  };
+
+  const ensureLiveUpdatesModule = async () => {
+    if (!liveUpdatesModulePromise) {
+      liveUpdatesModulePromise = import('$lib/live-updates.js');
+    }
+
+    return liveUpdatesModulePromise;
+  };
+
   const ensureNotificationPopoverLoaded = async () => {
     if (NotificationPopoverComponent) {
       return NotificationPopoverComponent;
@@ -156,6 +188,8 @@
         await syncUnreadCount();
 
         if (shellEndpoints.realtimeSnapshot) {
+          const { subscribeToLiveUpdates } = await ensureLiveUpdatesModule();
+
           liveUpdatesCleanup = subscribeToLiveUpdates(
             shellEndpoints.realtimeSnapshot,
             async ({ changed, payload }) => {
@@ -238,7 +272,7 @@
       unreadCount = Number(data.unread_count || 0);
     } catch (error) {
       console.error('Failed to fetch notifications', error);
-      toast.error('Gagal memuat notifikasi terbaru.', { id: 'shell-notifications' });
+      void showShellToastError('Gagal memuat notifikasi terbaru.', 'shell-notifications');
     } finally {
       isLoadingNotifications = false;
     }
@@ -282,7 +316,7 @@
       }));
     } catch (error) {
       console.error('Failed to mark all notifications as read', error);
-      toast.error('Tidak bisa menandai semua notifikasi.', { id: 'shell-notifications-mark-all' });
+      void showShellToastError('Tidak bisa menandai semua notifikasi.', 'shell-notifications-mark-all');
     }
   };
 
@@ -348,6 +382,9 @@
 
     applyThemeMode(savedTheme);
     window.__CMOS_AUTH_PROPS__ = shell;
+    deferredUiCleanup = scheduleAfterPaint(() => {
+      void ensureSonnerLoaded();
+    }, 2500);
     const interactionEvents = ['pointerdown', 'keydown', 'touchstart'];
 
     const activateShellActivity = () => {
@@ -378,6 +415,7 @@
   onDestroy(() => {
     window.removeEventListener('resize', handleResize);
     deferredShellBootCleanup?.();
+    deferredUiCleanup?.();
     liveUpdatesCleanup?.();
 
     if (window.__CMOS_AUTH_PROPS__ === shell) {
@@ -539,7 +577,9 @@
     </main>
   </div>
 
-  <Toaster position="top-right" richColors />
+  {#if ToasterComponent}
+    <ToasterComponent position="top-right" richColors />
+  {/if}
   {#if FloatingChatComponent}
     <FloatingChatComponent quickChat={shellQuickChat} initiallyOpen={floatingChatInitiallyOpen} />
   {:else if shellQuickChat}
