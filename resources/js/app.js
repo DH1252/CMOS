@@ -74,6 +74,7 @@ if (typeof window !== "undefined" && !window.Swal) {
 
 const pages = {
 	...import.meta.glob("../svelte/*Page.svelte"),
+	...import.meta.glob("../svelte/PublicApp.svelte"),
 	...import.meta.glob("../svelte/pages/**/*.svelte"),
 };
 const isLoginPath =
