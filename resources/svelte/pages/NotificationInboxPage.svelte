@@ -18,7 +18,7 @@
     pagination = null,
   } = $props();
 
-  let isMarkingAll = $state(false);
+  let isClearingAll = $state(false);
   let deletingId = $state(null);
   let paginationState = $state(null);
   let liveUpdatesCleanup = $state(null);
@@ -125,22 +125,22 @@
     }
   };
 
-  const markAllRead = async () => {
-    if (!paginationState?.markAllUrl || unreadCount < 1 || isMarkingAll) {
+  const clearAllNotifications = async () => {
+    if (!paginationState?.clearAllUrl || notifications.length < 1 || isClearingAll) {
       return;
     }
 
-    isMarkingAll = true;
+    isClearingAll = true;
 
     try {
-      await request(paginationState.markAllUrl);
-      notifications = notifications.map((item) => ({ ...item, readAt: item.readAt || new Date().toISOString() }));
+      await request(paginationState.clearAllUrl, 'DELETE');
+      notifications = [];
       unreadCount = 0;
-      toast('Notifikasi diperbarui', 'Semua notifikasi sudah ditandai dibaca.');
+      toast('Notifikasi dibersihkan', 'Semua notifikasi telah dihapus.');
     } catch (error) {
-      toast('Gagal memperbarui', 'Tidak bisa menandai semua notifikasi.', 'error');
+      toast('Gagal membersihkan', 'Tidak bisa menghapus semua notifikasi.', 'error');
     } finally {
-      isMarkingAll = false;
+      isClearingAll = false;
     }
   };
 
@@ -235,10 +235,10 @@
         <strong>{unreadCount}</strong>
       </div>
 
-      {#if unreadCount > 0}
-        <Button type="button" variant="secondary" size="sm" onclick={markAllRead} disabled={isMarkingAll}>
-          <i class="fas fa-check-double"></i>
-          <span>{isMarkingAll ? 'Memproses...' : 'Tandai Semua Dibaca'}</span>
+      {#if notifications.length > 0}
+        <Button type="button" variant="secondary" size="sm" onclick={clearAllNotifications} disabled={isClearingAll}>
+          <i class="fas fa-trash"></i>
+          <span>{isClearingAll ? 'Memproses...' : 'Bersihkan Semua'}</span>
         </Button>
       {/if}
     </div>

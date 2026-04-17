@@ -6,6 +6,7 @@ use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
@@ -23,51 +24,23 @@ class NotificationController extends Controller
             return response()->json($this->indexPayload($notifications, $unreadCount));
         }
 
-        return \Inertia\Inertia::render(
-            'pages/NotificationInboxPage',
-            (static function (array $__viewData): array {
-                extract($__viewData, EXTR_SKIP);
-
-                $props = [
-                    'title' => 'Notifikasi',
-                    'description' => 'Kotak masuk untuk task baru, pengingat deadline, evaluasi, dan publikasi terbaru.',
-                    'csrfToken' => csrf_token(),
-                    'refreshUrl' => route('notifications.index'),
-                    'realtimeSnapshot' => route('realtime.snapshot'),
-                    'unreadCount' => $unreadCount,
-                    'notifications' => $notifications->getCollection()->map(function ($notification) {
-                        $href = match ($notification->type) {
-                            \App\Models\Notification::TYPE_TASK_ASSIGNED, \App\Models\Notification::TYPE_DEADLINE_REMINDER => ! empty($notification->data['task_id']) ? route('tasks.show', $notification->data['task_id']) : route('notifications.index'),
-                            \App\Models\Notification::TYPE_EVALUATION_NEW => route('evaluations.my'),
-                            \App\Models\Notification::TYPE_ANNOUNCEMENT => route('announcements.index'),
-                            default => route('notifications.index'),
-                        };
-
-                        return [
-                            'id' => $notification->id,
-                            'title' => $notification->title,
-                            'message' => $notification->message,
-                            'icon' => $notification->icon,
-                            'tone' => $notification->color,
-                            'href' => $href,
-                            'readAt' => $notification->read_at?->toIso8601String(),
-                            'createdAt' => $notification->created_at->toIso8601String(),
-                            'readUrl' => route('notifications.read', $notification),
-                            'deleteUrl' => route('notifications.destroy', $notification),
-                        ];
-                    })->values(),
-                    'pagination' => [
-                        'currentPage' => $notifications->currentPage(),
-                        'lastPage' => $notifications->lastPage(),
-                        'previousUrl' => $notifications->previousPageUrl(),
-                        'nextUrl' => $notifications->nextPageUrl(),
-                        'markAllUrl' => route('notifications.mark-all-read'),
-                    ],
-                ];
-
-                return $props;
-            })(compact('notifications', 'unreadCount')),
-        );
+        return \Inertia\Inertia::render('pages/NotificationInboxPage', [
+            'title' => 'Notifikasi',
+            'description' => 'Kotak masuk untuk task baru, pengingat deadline, evaluasi, dan publikasi terbaru.',
+            'csrfToken' => csrf_token(),
+            'refreshUrl' => route('notifications.index'),
+            'realtimeSnapshot' => route('realtime.snapshot'),
+            'unreadCount' => $unreadCount,
+            'notifications' => $notifications->getCollection()->map(fn (Notification $notification): array => $this->notificationPayload($notification))->values(),
+            'pagination' => [
+                'currentPage' => $notifications->currentPage(),
+                'lastPage' => $notifications->lastPage(),
+                'previousUrl' => $notifications->previousPageUrl(),
+                'nextUrl' => $notifications->nextPageUrl(),
+                'markAllUrl' => route('notifications.mark-all-read'),
+                'clearAllUrl' => route('notifications.clear-all'),
+            ],
+        ]);
     }
 
     /**
@@ -97,7 +70,7 @@ class NotificationController extends Controller
             ->count();
 
         return response()->json([
-            'notifications' => $notifications,
+            'notifications' => $notifications->map(fn (Notification $notification): array => $this->notificationPayload($notification))->values(),
             'unread_count' => $unreadCount,
         ]);
     }
@@ -109,7 +82,7 @@ class NotificationController extends Controller
     \Illuminate\Http\RedirectResponse
     {
         // Ensure user owns this notification
-        if ($notification->user_id !== auth()->id()) {
+        if ((int) $notification->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -149,12 +122,27 @@ class NotificationController extends Controller
     }
 
     /**
+     * Clear all notifications.
+     */
+    public function clearAll(Request $request): JsonResponse|
+    \Illuminate\Http\RedirectResponse
+    {
+        $deletedCount = Notification::forUser($request->user()->id)->delete();
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'deleted' => $deletedCount]);
+        }
+
+        return back()->with('success', 'Semua notifikasi dibersihkan');
+    }
+
+    /**
      * Delete notification
      */
     public function destroy(Notification $notification): JsonResponse|
     \Illuminate\Http\RedirectResponse
     {
-        if ($notification->user_id !== auth()->id()) {
+        if ((int) $notification->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -174,34 +162,52 @@ class NotificationController extends Controller
     {
         return [
             'unreadCount' => $unreadCount,
-            'notifications' => $notifications->getCollection()->map(function (Notification $notification) {
-                $href = match ($notification->type) {
-                    Notification::TYPE_TASK_ASSIGNED, Notification::TYPE_DEADLINE_REMINDER => ! empty($notification->data['task_id']) ? route('tasks.show', $notification->data['task_id']) : route('notifications.index'),
-                    Notification::TYPE_EVALUATION_NEW => route('evaluations.my'),
-                    Notification::TYPE_ANNOUNCEMENT => route('announcements.index'),
-                    default => route('notifications.index'),
-                };
-
-                return [
-                    'id' => $notification->id,
-                    'title' => $notification->title,
-                    'message' => $notification->message,
-                    'icon' => $notification->icon,
-                    'tone' => $notification->color,
-                    'href' => $href,
-                    'readAt' => $notification->read_at?->toIso8601String(),
-                    'createdAt' => $notification->created_at->toIso8601String(),
-                    'readUrl' => route('notifications.read', $notification),
-                    'deleteUrl' => route('notifications.destroy', $notification),
-                ];
-            })->values(),
+            'notifications' => $notifications->getCollection()->map(fn (Notification $notification): array => $this->notificationPayload($notification))->values(),
             'pagination' => [
                 'currentPage' => $notifications->currentPage(),
                 'lastPage' => $notifications->lastPage(),
                 'previousUrl' => $notifications->previousPageUrl(),
                 'nextUrl' => $notifications->nextPageUrl(),
                 'markAllUrl' => route('notifications.mark-all-read'),
+                'clearAllUrl' => route('notifications.clear-all'),
             ],
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function notificationPayload(Notification $notification): array
+    {
+        $href = $this->notificationHref($notification);
+        $readAt = $notification->read_at?->toIso8601String();
+        $createdAt = $notification->created_at->toIso8601String();
+
+        return [
+            'id' => $notification->id,
+            'title' => $notification->title,
+            'message' => $notification->message,
+            'icon' => $notification->icon,
+            'tone' => $notification->color,
+            'type' => $notification->type,
+            'href' => $href,
+            'readAt' => $readAt,
+            'read_at' => $readAt,
+            'createdAt' => $createdAt,
+            'created_at' => $createdAt,
+            'readUrl' => route('notifications.read', $notification),
+            'deleteUrl' => route('notifications.destroy', $notification),
+        ];
+    }
+
+    private function notificationHref(Notification $notification): string
+    {
+        return match ($notification->type) {
+            Notification::TYPE_TASK_ASSIGNED,
+            Notification::TYPE_DEADLINE_REMINDER => ! empty($notification->data['task_id']) ? route('tasks.show', $notification->data['task_id']) : route('notifications.index'),
+            Notification::TYPE_EVALUATION_NEW => route('evaluations.my'),
+            Notification::TYPE_ANNOUNCEMENT => route('announcements.index'),
+            default => route('notifications.index'),
+        };
     }
 }

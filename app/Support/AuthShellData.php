@@ -149,6 +149,7 @@ class AuthShellData
                 'notificationsRecent' => route('notifications.recent'),
                 'notificationsUnread' => route('notifications.unread-count'),
                 'notificationsMarkAll' => route('notifications.mark-all-read'),
+                'notificationsClearAll' => route('notifications.clear-all'),
             ],
             'quickChat' => [
                 'endpoints' => [

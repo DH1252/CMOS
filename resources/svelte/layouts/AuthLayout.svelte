@@ -290,14 +290,14 @@
     }
   };
 
-  const markAllNotificationsAsRead = async () => {
-    if (!shellEndpoints.notificationsMarkAll || unreadCount < 1) {
+  const clearAllNotifications = async () => {
+    if (!shellEndpoints.notificationsClearAll) {
       return;
     }
 
     try {
-      const response = await fetch(shellEndpoints.notificationsMarkAll, {
-        method: 'POST',
+      const response = await fetch(shellEndpoints.notificationsClearAll, {
+        method: 'DELETE',
         headers: {
           Accept: 'application/json',
           'X-CSRF-TOKEN': shellCsrfToken,
@@ -309,17 +309,47 @@
         throw new Error(`Request failed with status ${response.status}`);
       }
 
-      const readAt = new Date().toISOString();
-
+      notifications = [];
       unreadCount = 0;
-      notifications = notifications.map((notification) => ({
-        ...notification,
-        read_at: notification.read_at || readAt,
-        readAt: notification.readAt || readAt,
-      }));
     } catch (error) {
-      console.error('Failed to mark all notifications as read', error);
-      void showShellToastError('Tidak bisa menandai semua notifikasi.', 'shell-notifications-mark-all');
+      console.error('Failed to clear all notifications', error);
+      void showShellToastError('Tidak bisa membersihkan notifikasi.', 'shell-notifications-clear-all');
+    }
+  };
+
+  const clearSingleNotification = async (notificationId) => {
+    if (!notificationId) {
+      return;
+    }
+
+    const target = notifications.find((notification) => Number(notification.id) === Number(notificationId));
+
+    if (!target?.deleteUrl) {
+      return;
+    }
+
+    try {
+      const response = await fetch(target.deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': shellCsrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+
+      notifications = notifications.filter((notification) => Number(notification.id) !== Number(notificationId));
+
+      if (!target.read_at && !target.readAt) {
+        unreadCount = Math.max(unreadCount - 1, 0);
+      }
+    } catch (error) {
+      console.error('Failed to clear notification', error);
+      void showShellToastError('Tidak bisa menghapus notifikasi ini.', 'shell-notifications-clear-one');
     }
   };
 
@@ -504,7 +534,8 @@
               {toneForNotification}
               {iconForNotification}
               onOpenChange={handleNotificationsOpenChange}
-              onMarkAllAsRead={markAllNotificationsAsRead}
+              onClearAll={clearAllNotifications}
+              onClearOne={clearSingleNotification}
             />
           {:else}
             <button
@@ -586,14 +617,14 @@
   {#if FloatingChatComponent}
     <FloatingChatComponent quickChat={shellQuickChat} initiallyOpen={floatingChatInitiallyOpen} />
   {:else if shellQuickChat}
-    <div class="fixed bottom-4 right-4 z-40 md:bottom-6 md:right-6">
+    <div class="fixed bottom-[1.4rem] right-[1.4rem] z-40">
       <button
         type="button"
-        class="relative inline-grid h-14 w-14 place-items-center rounded-full bg-[var(--brand-primary)] text-[var(--primary-foreground)] shadow-lg transition-transform hover:scale-[1.02]"
+        class="relative inline-grid h-14 w-14 place-items-center rounded-full border border-border bg-[var(--brand-primary)] text-[#1a1a2e] shadow-none transition-transform hover:scale-[1.02]"
         onclick={() => void openFloatingChat()}
         aria-label="Pesan cepat"
       >
-        <i class="fas fa-comments text-lg" aria-hidden="true"></i>
+        <i class="fas fa-comments text-base" aria-hidden="true"></i>
       </button>
     </div>
   {/if}
