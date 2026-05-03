@@ -15,7 +15,7 @@ class ProgramController extends Controller
     {
         $user = auth()->user();
 
-        $query = Program::with(['department', 'creator', 'members'])
+        $query = Program::with(['department', 'creator', 'members', 'pics', 'tasks'])
             ->withCount('tasks');
 
         // Filter by department for kabinet
@@ -209,15 +209,16 @@ class ProgramController extends Controller
             abort(403, 'Anda tidak memiliki akses ke program ini.');
         }
 
-        $program->load(['department', 'creator', 'members', 'tasks.assignee', 'timelines']);
+        $program->load(['department', 'creator', 'members', 'pics', 'tasks.assignee', 'timelines']);
 
         return \Inertia\Inertia::render(
             'pages/ProgramDetailPage',
             (static function (array $__viewData): array {
                 extract($__viewData, EXTR_SKIP);
 
-                $program->loadMissing(['department', 'creator', 'members', 'tasks.assignee', 'timelines']);
+                $program->loadMissing(['department', 'creator', 'members', 'pics', 'tasks.assignee', 'timelines']);
                 $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+                $backRoute = auth()->user()->isStaff() ? route('programs.my') : route('programs.index');
 
                 $props = [
                     'csrfToken' => csrf_token(),
@@ -235,13 +236,26 @@ class ProgramController extends Controller
                         'facts' => [
                             ['label' => 'Departemen', 'value' => $program->department?->name ?? '-'],
                             ['label' => 'Periode', 'value' => $program->start_date->format('d M').' - '.$program->end_date->format('d M Y')],
-                            ['label' => 'PIC Internal', 'value' => $program->creator?->name ?? '-'],
+                            ['label' => 'Dibuat oleh', 'value' => $program->creator?->name ?? '-'],
                             ['label' => 'Total Task', 'value' => $program->tasks->count()],
                         ],
                         'actions' => array_values(array_filter([
                             $canManage ? ['href' => route('programs.edit', $program), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'] : null,
-                            ['href' => route('programs.index'), 'label' => 'Kembali', 'icon' => 'fas fa-arrow-left', 'tone' => 'secondary'],
+                            ['href' => $backRoute, 'label' => 'Kembali', 'icon' => 'fas fa-arrow-left', 'tone' => 'secondary'],
                         ])),
+                    ],
+                    'pics' => [
+                        'items' => $program->pics->map(fn ($pic) => [
+                            'id' => $pic->id,
+                            'name' => $pic->name,
+                            'avatar' => $pic->avatar_url,
+                            'removeAction' => $canManage ? route('programs.pics.remove', [$program, $pic]) : null,
+                        ])->values(),
+                        'addAction' => $canManage ? route('programs.pics.add', $program) : null,
+                        'availableUsers' => $canManage ? \App\Models\User::active()->orderBy('name')->get()->map(fn ($user) => [
+                            'value' => $user->id,
+                            'label' => $user->name,
+                        ])->values() : [],
                     ],
                     'team' => [
                         'members' => $program->members->map(fn ($member) => [
@@ -471,7 +485,7 @@ class ProgramController extends Controller
         $user = auth()->user();
 
         $programs = Program::forUser($user->id)
-            ->with(['department', 'pics', 'members'])
+            ->with(['department', 'pics', 'members', 'tasks'])
             ->withCount('tasks')
             ->orderByDesc('created_at')
             ->get();
