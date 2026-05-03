@@ -282,33 +282,56 @@
             </div>
 
             {#if cssTab === 'light'}
-              <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
-                {@render cssInput('css_text_strong', 'Teks Utama', values.customCss?.light?.css_text_strong)}
-                {@render cssInput('css_text_soft', 'Teks Lembut', values.customCss?.light?.css_text_soft)}
-                {@render cssInput('css_text_muted', 'Teks Redup', values.customCss?.light?.css_text_muted)}
-                {@render cssInput('css_page_bg', 'Latar Halaman', values.customCss?.light?.css_page_bg)}
-                {@render cssInput('css_page_bg_soft', 'Latar Halaman Lembut', values.customCss?.light?.css_page_bg_soft)}
-                {@render cssInput('css_panel_bg', 'Latar Panel', values.customCss?.light?.css_panel_bg)}
-                {@render cssInput('css_panel_muted', 'Panel Redup', values.customCss?.light?.css_panel_muted)}
-                {@render cssInput('css_line_soft', 'Garis Lembut', values.customCss?.light?.css_line_soft)}
+              <div class="grid gap-5">
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Teks</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-3">
+                    {@render cssInput('css_text_strong', 'Teks Utama', values.customCss?.light?.css_text_strong)}
+                    {@render cssInput('css_text_soft', 'Teks Lembut', values.customCss?.light?.css_text_soft)}
+                    {@render cssInput('css_text_muted', 'Teks Redup', values.customCss?.light?.css_text_muted)}
+                  </div>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Latar & Permukaan</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
+                    {@render cssInput('css_page_bg', 'Latar Halaman', values.customCss?.light?.css_page_bg)}
+                    {@render cssInput('css_page_bg_soft', 'Latar Halaman Lembut', values.customCss?.light?.css_page_bg_soft)}
+                    {@render cssInput('css_panel_bg', 'Latar Panel', values.customCss?.light?.css_panel_bg)}
+                    {@render cssInput('css_panel_muted', 'Panel Redup', values.customCss?.light?.css_panel_muted)}
+                    {@render cssInput('css_line_soft', 'Garis Lembut', values.customCss?.light?.css_line_soft)}
+                  </div>
+                </div>
               </div>
             {:else if cssTab === 'dark'}
-              <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
-                {@render cssInput('css_dark_text_strong', 'Teks Utama (Gelap)', values.customCss?.dark?.css_dark_text_strong)}
-                {@render cssInput('css_dark_text_soft', 'Teks Lembut (Gelap)', values.customCss?.dark?.css_dark_text_soft)}
-                {@render cssInput('css_dark_text_muted', 'Teks Redup (Gelap)', values.customCss?.dark?.css_dark_text_muted)}
-                {@render cssInput('css_dark_page_bg', 'Latar Halaman (Gelap)', values.customCss?.dark?.css_dark_page_bg)}
-                {@render cssInput('css_dark_page_bg_soft', 'Latar Halaman Lembut (Gelap)', values.customCss?.dark?.css_dark_page_bg_soft)}
-                {@render cssInput('css_dark_panel_bg', 'Latar Panel (Gelap)', values.customCss?.dark?.css_dark_panel_bg)}
-                {@render cssInput('css_dark_panel_muted', 'Panel Redup (Gelap)', values.customCss?.dark?.css_dark_panel_muted)}
-                {@render cssInput('css_dark_line_soft', 'Garis Lembut (Gelap)', values.customCss?.dark?.css_dark_line_soft)}
+              <div class="grid gap-5">
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Teks</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-3">
+                    {@render cssInput('css_dark_text_strong', 'Teks Utama (Gelap)', values.customCss?.dark?.css_dark_text_strong)}
+                    {@render cssInput('css_dark_text_soft', 'Teks Lembut (Gelap)', values.customCss?.dark?.css_dark_text_soft)}
+                    {@render cssInput('css_dark_text_muted', 'Teks Redup (Gelap)', values.customCss?.dark?.css_dark_text_muted)}
+                  </div>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Latar & Permukaan</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
+                    {@render cssInput('css_dark_page_bg', 'Latar Halaman (Gelap)', values.customCss?.dark?.css_dark_page_bg)}
+                    {@render cssInput('css_dark_page_bg_soft', 'Latar Halaman Lembut (Gelap)', values.customCss?.dark?.css_dark_page_bg_soft)}
+                    {@render cssInput('css_dark_panel_bg', 'Latar Panel (Gelap)', values.customCss?.dark?.css_dark_panel_bg)}
+                    {@render cssInput('css_dark_panel_muted', 'Panel Redup (Gelap)', values.customCss?.dark?.css_dark_panel_muted)}
+                    {@render cssInput('css_dark_line_soft', 'Garis Lembut (Gelap)', values.customCss?.dark?.css_dark_line_soft)}
+                  </div>
+                </div>
               </div>
             {:else}
-              <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
-                {@render cssInput('css_signal_success', 'Sukses', values.customCss?.light?.css_signal_success)}
-                {@render cssInput('css_signal_warning', 'Peringatan', values.customCss?.light?.css_signal_warning)}
-                {@render cssInput('css_signal_danger', 'Bahaya', values.customCss?.light?.css_signal_danger)}
-                {@render cssInput('css_signal_info', 'Info', values.customCss?.light?.css_signal_info)}
+              <div>
+                <h4 class="text-sm font-semibold text-foreground mb-3">Status & Sinyal</h4>
+                <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
+                  {@render cssInput('css_signal_success', 'Sukses', values.customCss?.light?.css_signal_success)}
+                  {@render cssInput('css_signal_warning', 'Peringatan', values.customCss?.light?.css_signal_warning)}
+                  {@render cssInput('css_signal_danger', 'Bahaya', values.customCss?.light?.css_signal_danger)}
+                  {@render cssInput('css_signal_info', 'Info', values.customCss?.light?.css_signal_info)}
+                </div>
               </div>
             {/if}
           </div>
