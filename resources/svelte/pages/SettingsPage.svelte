@@ -45,6 +45,10 @@
   }));
 
   const applyPreviewTheme = () => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
     document.documentElement.setAttribute('data-brand', activeColor);
     document.documentElement.style.setProperty('--brand-primary-base', customPrimary);
     document.documentElement.style.setProperty('--brand-hover-base', customHover);
