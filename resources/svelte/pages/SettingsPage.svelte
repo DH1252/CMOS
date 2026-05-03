@@ -96,12 +96,13 @@
   });
 </script>
 
-{#snippet cssInput(name, label, value)}
+{#snippet cssInput(name, label, rawValue)}
+  {@const safeValue = typeof rawValue === 'string' && rawValue.startsWith('#') ? rawValue : '#000000'}
   <label class="grid gap-2 text-sm text-foreground">
     <span class="font-medium">{label}</span>
     <div class="flex items-center gap-2">
-      <input type="color" {name} {value} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
-      <span class="text-xs text-muted-foreground font-mono w-20">{value || '-'}</span>
+      <input type="color" {name} value={safeValue} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+      <span class="text-xs text-muted-foreground font-mono w-20">{safeValue}</span>
     </div>
   </label>
 {/snippet}
