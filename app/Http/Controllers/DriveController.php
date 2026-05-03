@@ -9,6 +9,47 @@ use Illuminate\Http\Request;
 
 class DriveController extends Controller
 {
+    /**
+     * Authorize that the current user can manage the given drive.
+     * Admin and BPH can manage all drives; Kabinet only their own department.
+     */
+    private function authorizeDriveAccess(?DriveAccount $drive = null): void
+    {
+        $user = auth()->user();
+
+        if ($user->isAdmin() || $user->isBph()) {
+            return;
+        }
+
+        if ($user->isKabinet()) {
+            if ($drive === null) {
+                return;
+            }
+
+            if ($drive->department_id === $user->department_id) {
+                return;
+            }
+        }
+
+        abort(403, 'Anda tidak memiliki akses untuk mengelola drive ini.');
+    }
+
+    /**
+     * Get departments the user is allowed to assign drives to.
+     */
+    private function allowedDepartments()
+    {
+        $user = auth()->user();
+
+        if ($user->isAdmin() || $user->isBph()) {
+            return Department::active()->get();
+        }
+
+        return Department::active()
+            ->where('id', $user->department_id)
+            ->get();
+    }
+
     public function index()
     {
         $user = auth()->user();
@@ -32,7 +73,7 @@ class DriveController extends Controller
             (static function (array $__viewData): array {
                 extract($__viewData, EXTR_SKIP);
 
-                $canManage = auth()->user()->hasRole(['admin', 'bph']);
+                $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
 
                 $props = [
                     'title' => 'Google Drive Organisasi',
@@ -88,7 +129,7 @@ class DriveController extends Controller
 
     public function create()
     {
-        $departments = Department::active()->get();
+        $departments = $this->allowedDepartments();
 
         return \Inertia\Inertia::render(
             'pages/EntityFormPage',
@@ -168,6 +209,8 @@ class DriveController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
@@ -175,6 +218,11 @@ class DriveController extends Controller
             'password' => 'required|string',
             'drive_url' => 'required|url',
         ]);
+
+        // Kabinet can only create drives for their own department
+        if ($user->isKabinet()) {
+            $validated['department_id'] = $user->department_id;
+        }
 
         $drive = DriveAccount::create($validated);
 
@@ -186,7 +234,9 @@ class DriveController extends Controller
 
     public function edit(DriveAccount $drive)
     {
-        $departments = Department::active()->get();
+        $this->authorizeDriveAccess($drive);
+
+        $departments = $this->allowedDepartments();
 
         return \Inertia\Inertia::render(
             'pages/EntityFormPage',
@@ -272,6 +322,10 @@ class DriveController extends Controller
 
     public function update(Request $request, DriveAccount $drive)
     {
+        $this->authorizeDriveAccess($drive);
+
+        $user = auth()->user();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
@@ -280,6 +334,11 @@ class DriveController extends Controller
             'drive_url' => 'required|url',
             'is_active' => 'boolean',
         ]);
+
+        // Kabinet can only update drives for their own department
+        if ($user->isKabinet()) {
+            $validated['department_id'] = $user->department_id;
+        }
 
         $drive->update($validated);
 
@@ -291,6 +350,8 @@ class DriveController extends Controller
 
     public function destroy(DriveAccount $drive)
     {
+        $this->authorizeDriveAccess($drive);
+
         $name = $drive->name;
 
         ActivityLog::log('deleted', "Deleted drive account: {$name}", $drive);

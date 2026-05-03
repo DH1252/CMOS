@@ -112,8 +112,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('settings', SettingController::class)->only(['index', 'update']);
     });
 
-    // Admin & BPH Routes
-    Route::middleware('role:admin,bph')->group(function () {
+    // Admin, BPH & Kabinet Routes
+    Route::middleware('role:admin,bph,kabinet')->group(function () {
         Route::resource('drives', DriveController::class)->except(['index', 'show']);
         Route::resource('cabinets', CabinetController::class);
         Route::resource('departments', DepartmentController::class);
