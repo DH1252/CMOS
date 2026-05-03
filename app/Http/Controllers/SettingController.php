@@ -78,14 +78,21 @@ class SettingController extends Controller
             array_keys(ThemePalette::darkCssDefaults()),
         );
 
-        foreach ($request->validated() as $key => $value) {
-            if (in_array($key, $cssKeys, true) && ($value === null || $value === '')) {
-                Setting::query()->where('key', $key)->delete();
+        try {
+            foreach ($request->validated() as $key => $value) {
+                if (in_array($key, $cssKeys, true) && ($value === null || $value === '')) {
+                    Setting::query()->where('key', $key)->delete();
 
-                continue;
+                    continue;
+                }
+
+                Setting::set($key, $value);
             }
+        } catch (\Throwable $e) {
+            report($e);
 
-            Setting::set($key, $value);
+            return redirect()->route('settings.index')
+                ->with('error', 'Gagal menyimpan pengaturan: '.$e->getMessage());
         }
 
         return redirect()->route('settings.index')
