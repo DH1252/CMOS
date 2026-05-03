@@ -325,8 +325,8 @@
     --panel-muted: color-mix(in srgb, #312d35 80%, var(--brand-secondary-base) 20%);
 
     --text-strong: #f3eee8;
-    --text-soft: #d5cdc2;
-    --text-muted: #a79c90;
+    --text-soft: #ddd4c8;
+    --text-muted: #c8bab0;
     --line-soft: color-mix(in srgb, #3b3640 78%, var(--brand-secondary-soft-base) 22%);
     --line-strong: color-mix(in srgb, #4a4450 74%, var(--brand-secondary-soft-base) 26%);
     --white-soft: #fffaf0;
@@ -1131,6 +1131,133 @@ small.text-muted {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Dark mode contrast fixes */
+
+[data-theme='dark'] .text-primary {
+    color: color-mix(in srgb, var(--brand-primary) 85%, white) !important;
+}
+
+[data-theme='dark'] .text-danger {
+    color: color-mix(in srgb, var(--signal-danger) 85%, white) !important;
+}
+
+[data-theme='dark'] .text-warning {
+    color: color-mix(in srgb, var(--signal-warning) 88%, white) !important;
+}
+
+[data-theme='dark'] .badge-primary {
+    background: color-mix(in srgb, var(--brand-primary) 20%, var(--panel-muted));
+    color: color-mix(in srgb, var(--brand-primary) 18%, white);
+}
+
+[data-theme='dark'] .badge-secondary {
+    background: color-mix(in srgb, var(--text-muted) 22%, var(--panel-bg));
+    color: var(--text-soft);
+}
+
+[data-theme='dark'] .badge-success {
+    background: color-mix(in srgb, var(--signal-success) 18%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-success) 18%, white);
+}
+
+[data-theme='dark'] .badge-warning {
+    background: color-mix(in srgb, var(--signal-warning) 18%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-warning) 18%, white);
+}
+
+[data-theme='dark'] .badge-danger {
+    background: color-mix(in srgb, var(--signal-danger) 18%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-danger) 18%, white);
+}
+
+[data-theme='dark'] .badge-info {
+    background: color-mix(in srgb, var(--signal-info) 18%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-info) 18%, white);
+}
+
+[data-theme='dark'] .alert-success {
+    background: color-mix(in srgb, var(--signal-success) 12%, var(--panel-bg));
+    color: color-mix(in srgb, var(--signal-success) 18%, white);
+}
+
+[data-theme='dark'] .alert-danger {
+    background: color-mix(in srgb, var(--signal-danger) 12%, var(--panel-bg));
+    color: color-mix(in srgb, var(--signal-danger) 18%, white);
+}
+
+[data-theme='dark'] .alert-warning {
+    background: color-mix(in srgb, var(--signal-warning) 12%, var(--panel-bg));
+    color: color-mix(in srgb, var(--signal-warning) 18%, white);
+}
+
+[data-theme='dark'] .stat-icon.primary {
+    background: color-mix(in srgb, var(--brand-primary) 14%, var(--panel-muted));
+    color: color-mix(in srgb, var(--brand-primary) 18%, white);
+}
+
+[data-theme='dark'] .stat-icon.info {
+    background: color-mix(in srgb, var(--signal-info) 12%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-info) 18%, white);
+}
+
+[data-theme='dark'] .stat-icon.success {
+    background: color-mix(in srgb, var(--signal-success) 12%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-success) 18%, white);
+}
+
+[data-theme='dark'] .stat-icon.warning {
+    background: color-mix(in srgb, var(--signal-warning) 12%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-warning) 18%, white);
+}
+
+[data-theme='dark'] .stat-icon.danger {
+    background: color-mix(in srgb, var(--signal-danger) 12%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-danger) 18%, white);
+}
+
+[data-theme='dark'] .empty-state-icon {
+    background: color-mix(in srgb, var(--brand-primary) 10%, var(--panel-muted));
+    color: color-mix(in srgb, var(--brand-primary) 18%, white);
+}
+
+[data-theme='dark'] .avatar-sm,
+[data-theme='dark'] .avatar-md,
+[data-theme='dark'] .avatar-xl {
+    background: color-mix(in srgb, var(--brand-primary) 8%, var(--panel-muted));
+}
+
+[data-theme='dark'] .progress {
+    background: color-mix(in srgb, var(--panel-muted) 60%, transparent);
+}
+
+[data-theme='dark'] .form-control:focus,
+[data-theme='dark'] .form-select:focus,
+[data-theme='dark'] .comment-form input:focus,
+[data-theme='dark'] .create-post textarea:focus,
+[data-theme='dark'] .chat-search input:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 28%, transparent);
+}
+
+[data-theme='dark'] .invalid-feedback {
+    color: color-mix(in srgb, var(--signal-danger) 85%, white);
+}
+
+[data-theme='dark'] .btn-outline-danger {
+    color: color-mix(in srgb, var(--signal-danger) 85%, white);
+}
+
+[data-theme='dark'] .btn-outline-success {
+    color: color-mix(in srgb, var(--signal-success) 85%, white);
+}
+
+[data-theme='dark'] a {
+    color: color-mix(in srgb, var(--brand-primary) 85%, white);
+}
+
+[data-theme='dark'] .table tbody tr:hover {
+    background: color-mix(in srgb, var(--panel-muted) 60%, transparent);
 }
 
 /* Legacy helpers used across existing Blade templates */

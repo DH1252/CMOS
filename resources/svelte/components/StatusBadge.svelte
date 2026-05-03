@@ -95,4 +95,40 @@
     background: color-mix(in srgb, var(--brand-secondary-soft) 44%, white);
     color: color-mix(in srgb, var(--brand-secondary) 52%, var(--text-strong));
   }
+
+  :global([data-theme='dark']) .status-badge-primary {
+    border-color: color-mix(in srgb, var(--brand-primary) 30%, var(--line-soft));
+    background: color-mix(in srgb, var(--brand-primary) 16%, var(--panel-muted));
+    color: color-mix(in srgb, var(--brand-primary) 18%, white);
+  }
+
+  :global([data-theme='dark']) .status-badge-success {
+    border-color: color-mix(in srgb, var(--signal-success) 26%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-success) 14%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-success) 18%, white);
+  }
+
+  :global([data-theme='dark']) .status-badge-warning {
+    border-color: color-mix(in srgb, var(--signal-warning) 26%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-warning) 14%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-warning) 18%, white);
+  }
+
+  :global([data-theme='dark']) .status-badge-danger {
+    border-color: color-mix(in srgb, var(--signal-danger) 26%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-danger) 14%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-danger) 18%, white);
+  }
+
+  :global([data-theme='dark']) .status-badge-info {
+    border-color: color-mix(in srgb, var(--signal-info) 26%, var(--line-soft));
+    background: color-mix(in srgb, var(--signal-info) 12%, var(--panel-muted));
+    color: color-mix(in srgb, var(--signal-info) 18%, white);
+  }
+
+  :global([data-theme='dark']) .status-badge-secondary {
+    border-color: color-mix(in srgb, var(--brand-secondary) 16%, var(--border));
+    background: color-mix(in srgb, var(--brand-secondary-soft) 28%, var(--panel-bg));
+    color: var(--text-soft);
+  }
 </style>
