@@ -273,7 +273,9 @@ if (typeof document !== "undefined") {
 }
 
 const shouldBootStandaloneLogin =
-	isLoginPath && initialInertiaPage?.component === "LoginPage";
+	isLoginPath &&
+	initialInertiaPage?.component === "LoginPage" &&
+	!inertiaRoot?.hasAttribute("data-server-rendered");
 
 if (shouldBootStandaloneLogin) {
 	void mountLoginFallback(initialInertiaPage?.props || {});
