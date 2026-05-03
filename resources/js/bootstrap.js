@@ -1,5 +1,4 @@
 import axios from "axios";
-import posthog from "posthog-js";
 
 import { initEcho } from "./echo";
 
@@ -14,7 +13,7 @@ const postHogDisabled =
 	String(import.meta.env.VITE_POSTHOG_DISABLED || "false").toLowerCase() ===
 	"true";
 
-const ensurePostHog = () => {
+const loadPostHog = async () => {
 	if (typeof window === "undefined") {
 		return null;
 	}
@@ -23,26 +22,56 @@ const ensurePostHog = () => {
 		return null;
 	}
 
-	if (!window.__CMOS_POSTHOG_READY__) {
-		posthog.init(postHogApiKey, {
-			api_host: postHogHost,
-			autocapture: false,
-			capture_pageview: true,
-			capture_pageleave: true,
-			person_profiles: "identified_only",
-		});
-
-		window.__CMOS_POSTHOG_READY__ = true;
+	if (window.__CMOS_POSTHOG__) {
+		return window.__CMOS_POSTHOG__;
 	}
 
-	return posthog;
+	if (!window.__CMOS_POSTHOG_PROMISE__) {
+		window.__CMOS_POSTHOG_PROMISE__ = import("posthog-js")
+			.then(({ default: posthog }) => {
+				posthog.init(postHogApiKey, {
+					api_host: postHogHost,
+					autocapture: false,
+					capture_pageview: true,
+					capture_pageleave: true,
+					person_profiles: "identified_only",
+				});
+
+				window.__CMOS_POSTHOG_READY__ = true;
+				window.__CMOS_POSTHOG__ = posthog;
+				window.posthog = posthog;
+
+				return posthog;
+			})
+			.catch((error) => {
+				console.warn("PostHog failed to load.", error);
+
+				return null;
+			})
+			.finally(() => {
+				window.__CMOS_POSTHOG_PROMISE__ = null;
+			});
+	}
+
+	return window.__CMOS_POSTHOG_PROMISE__;
 };
 
-const posthogClient = ensurePostHog();
+export const withPostHog = async (callback) => {
+	const posthogClient = await loadPostHog();
 
-if (posthogClient) {
-	window.__CMOS_POSTHOG__ = posthogClient;
-	window.posthog = posthogClient;
+	if (posthogClient && typeof callback === "function") {
+		callback(posthogClient);
+	}
+
+	return posthogClient;
+};
+
+if (typeof window !== "undefined") {
+	window.__CMOS_WITH_POSTHOG__ = withPostHog;
+	window.__CMOS_POSTHOG__ = null;
+	window.__CMOS_POSTHOG_PROMISE__ = null;
+	window.__CMOS_POSTHOG_READY__ = false;
+	void loadPostHog();
 }
 
 export const initRealtime = async () => {

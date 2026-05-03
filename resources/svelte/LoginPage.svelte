@@ -22,10 +22,12 @@
     document.documentElement.setAttribute('data-theme', 'dark');
     document.documentElement.setAttribute('data-brand', themeColor || 'purple');
 
-    const posthogClient = window.__CMOS_POSTHOG__;
+    const runWithPostHog = window.__CMOS_WITH_POSTHOG__;
 
-    if (posthogClient) {
-      posthogClient.capture('login_page_viewed');
+    if (typeof runWithPostHog === 'function') {
+      void runWithPostHog((posthogClient) => {
+        posthogClient.capture('login_page_viewed');
+      });
     }
 
     emailInput?.focus();
