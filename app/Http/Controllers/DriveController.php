@@ -13,11 +13,16 @@ class DriveController extends Controller
     {
         $user = auth()->user();
 
-        // All users can see drives
-        $drives = DriveAccount::with('department')
+        $query = DriveAccount::with('department')
             ->active()
-            ->orderBy('name')
-            ->get();
+            ->orderBy('name');
+
+        // Staff and Kabinet only see their department's drive
+        if ($user->isStaff() || $user->isKabinet()) {
+            $query->where('department_id', $user->department_id);
+        }
+
+        $drives = $query->get();
 
         // Group by department for display
         $drivesByDept = $drives->groupBy(fn ($d) => $d->department?->name ?? 'Umum');
@@ -27,11 +32,11 @@ class DriveController extends Controller
             (static function (array $__viewData): array {
                 extract($__viewData, EXTR_SKIP);
 
-                $canManage = auth()->user()->isAdmin();
+                $canManage = auth()->user()->hasRole(['admin', 'bph']);
 
                 $props = [
-                    'title' => 'Daftar Drive',
-                    'description' => 'Pilih akun Google Drive berdasarkan departemen, lalu ambil kredensialnya dari panel akses tanpa harus membuka modal terpisah.',
+                    'title' => 'Google Drive Organisasi',
+                    'description' => 'Akses folder Google Drive yang terhubung dengan departemen atau kebutuhan umum organisasi.',
                     'icon' => 'fab fa-google-drive',
                     'csrfToken' => csrf_token(),
                     'primaryAction' => $canManage ? [
@@ -44,13 +49,13 @@ class DriveController extends Controller
                             'name' => $deptName,
                             'icon' => 'fab fa-google-drive',
                             'description' => $deptName === 'Umum'
-                                ? 'Akun bersama untuk kebutuhan lintas departemen dan arsip umum organisasi.'
-                                : "Akun Drive yang dipakai khusus untuk operasional {$deptName}.",
+                                ? 'Folder bersama untuk kebutuhan lintas departemen dan arsip umum organisasi.'
+                                : "Folder Google Drive untuk operasional {$deptName}.",
                             'cards' => $drives->map(function ($drive) use ($canManage) {
                                 return [
                                     'id' => $drive->id,
                                     'title' => $drive->name,
-                                    'description' => 'Gunakan akun ini untuk membuka folder kerja dan arsip yang terkait dengan aktivitas organisasi.',
+                                    'description' => 'Gunakan kredensial ini untuk membuka folder kerja dan arsip yang terkait dengan aktivitas organisasi.',
                                     'href' => $drive->drive_url,
                                     'icon' => 'fab fa-google-drive',
                                     'email' => $drive->email,
@@ -59,7 +64,7 @@ class DriveController extends Controller
                                         ['label' => $drive->department?->name ?? 'Umum', 'tone' => $drive->department ? 'info' : 'secondary'],
                                     ],
                                     'meta' => [
-                                        ['text' => $drive->is_active ? 'Akun aktif dan siap dipakai' : 'Akun nonaktif', 'muted' => ! $drive->is_active],
+                                        ['text' => $drive->is_active ? 'Aktif dan siap dipakai' : 'Nonaktif', 'muted' => ! $drive->is_active],
                                     ],
                                     'editHref' => $canManage ? route('drives.edit', $drive) : null,
                                     'deleteAction' => $canManage ? route('drives.destroy', $drive) : null,
@@ -176,7 +181,7 @@ class DriveController extends Controller
         ActivityLog::log('created', "Created drive account: {$drive->name}", $drive);
 
         return redirect()->route('drives.index')
-            ->with('success', 'Drive account berhasil ditambahkan!');
+            ->with('success', 'Akun Drive berhasil ditambahkan!');
     }
 
     public function edit(DriveAccount $drive)
@@ -281,7 +286,7 @@ class DriveController extends Controller
         ActivityLog::log('updated', "Updated drive account: {$drive->name}", $drive);
 
         return redirect()->route('drives.index')
-            ->with('success', 'Drive account berhasil diupdate!');
+            ->with('success', 'Akun Drive berhasil diupdate!');
     }
 
     public function destroy(DriveAccount $drive)
@@ -293,6 +298,6 @@ class DriveController extends Controller
         $drive->delete();
 
         return redirect()->route('drives.index')
-            ->with('success', "Drive account {$name} berhasil dihapus!");
+            ->with('success', "Akun Drive {$name} berhasil dihapus!");
     }
 }

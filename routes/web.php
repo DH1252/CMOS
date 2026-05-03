@@ -110,11 +110,11 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('users', UserController::class);
         Route::resource('settings', SettingController::class)->only(['index', 'update']);
-        Route::resource('drives', DriveController::class)->except(['index', 'show']);
     });
 
     // Admin & BPH Routes
     Route::middleware('role:admin,bph')->group(function () {
+        Route::resource('drives', DriveController::class)->except(['index', 'show']);
         Route::resource('cabinets', CabinetController::class);
         Route::resource('departments', DepartmentController::class);
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');

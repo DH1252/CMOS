@@ -513,10 +513,10 @@ class DevelopmentSeeder extends Seeder
             ],
         ] as $account) {
             DriveAccount::updateOrCreate(
-                ['email' => $account['email']],
+                ['name' => $account['name']],
                 [
                     'department_id' => $departments[$account['department']]->id,
-                    'name' => $account['name'],
+                    'email' => $account['email'],
                     'password' => $account['password'],
                     'drive_url' => $account['drive_url'],
                     'is_active' => true,
