@@ -70,6 +70,10 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'css_signal_warning' => $hex,
             'css_signal_danger' => $hex,
             'css_signal_info' => $hex,
+            'css_pill_text_secondary' => $hex,
+            'css_pill_text_warning' => $hex,
+            'css_pill_text_success' => $hex,
+            'css_pill_text_danger' => $hex,
             'css_dark_text_strong' => $hex,
             'css_dark_text_soft' => $hex,
             'css_dark_text_muted' => $hex,
@@ -78,6 +82,10 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'css_dark_panel_bg' => $hex,
             'css_dark_panel_muted' => $hex,
             'css_dark_line_soft' => $hex,
+            'css_dark_pill_text_secondary' => $hex,
+            'css_dark_pill_text_warning' => $hex,
+            'css_dark_pill_text_success' => $hex,
+            'css_dark_pill_text_danger' => $hex,
         ];
     }
 
