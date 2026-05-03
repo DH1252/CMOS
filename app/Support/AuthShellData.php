@@ -22,7 +22,7 @@ class AuthShellData
         $appName = Setting::get('app_name', 'CMOS');
         $organizationName = Setting::get('organization_name', 'HIMATEKKOM ITS');
         $themeSettings = Setting::query()
-            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys()))
+            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys(), ThemePalette::cssVariableKeys()))
             ->pluck('value', 'key')
             ->all();
         $themePayload = ThemePalette::payloadFromSettings($themeSettings);
@@ -134,6 +134,7 @@ class AuthShellData
             'organizationName' => $organizationName,
             'themeColor' => $themePayload['color'],
             'themeVariables' => $themePayload['variables'],
+            'themeCustomCss' => $themePayload['customCss'],
             'csrfToken' => csrf_token(),
             'user' => [
                 'id' => $currentUser->id,

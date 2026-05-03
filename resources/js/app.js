@@ -18,6 +18,14 @@ const applyBrandTheme = (themeName) => {
 	document.documentElement.setAttribute("data-brand", resolvedTheme);
 };
 
+const isDarkModeActive = () => {
+	if (typeof document === "undefined") {
+		return false;
+	}
+
+	return document.documentElement.getAttribute("data-theme") === "dark";
+};
+
 const applyThemeVariables = (variables = null) => {
 	if (
 		typeof document === "undefined" ||
@@ -27,7 +35,37 @@ const applyThemeVariables = (variables = null) => {
 		return;
 	}
 
-	Object.entries(variables).forEach(([token, value]) => {
+	// Handle legacy flat variable format
+	if (!variables.customCss && !variables.light && !variables.dark) {
+		Object.entries(variables).forEach(([token, value]) => {
+			if (typeof token !== "string" || typeof value !== "string") {
+				return;
+			}
+
+			document.documentElement.style.setProperty(`--${token}`, value);
+		});
+
+		return;
+	}
+
+	const customCss = variables.customCss || variables;
+	const isDark = isDarkModeActive();
+
+	// Apply shared variables (signal colors, etc.)
+	if (customCss.shared && typeof customCss.shared === "object") {
+		Object.entries(customCss.shared).forEach(([token, value]) => {
+			if (typeof token !== "string" || typeof value !== "string") {
+				return;
+			}
+
+			document.documentElement.style.setProperty(`--${token}`, value);
+		});
+	}
+
+	// Apply mode-specific variables
+	const modeVars = isDark ? customCss.dark || {} : customCss.light || {};
+
+	Object.entries(modeVars).forEach(([token, value]) => {
 		if (typeof token !== "string" || typeof value !== "string") {
 			return;
 		}
@@ -219,9 +257,14 @@ if (typeof document !== "undefined") {
 		initialInertiaPage?.props?.shell?.themeVariables ||
 		initialInertiaPage?.props?.theme?.variables ||
 		null;
+	const themeCustomCss =
+		initialInertiaPage?.props?.themeCustomCss ||
+		initialInertiaPage?.props?.shell?.themeCustomCss ||
+		initialInertiaPage?.props?.theme?.customCss ||
+		null;
 
 	applyBrandTheme(pageBrand);
-	applyThemeVariables(themeVariables);
+	applyThemeVariables({ ...themeVariables, customCss: themeCustomCss });
 	capturePostHogPageview(initialInertiaPage);
 
 	router.on("navigate", (event) => {
@@ -279,8 +322,16 @@ if (inertiaRoot && initialInertiaPage && !shouldBootStandaloneLogin) {
 				props?.initialPage?.props?.shell?.themeVariables ||
 				props?.initialPage?.props?.theme?.variables ||
 				null;
+			const customCssFromProps =
+				props?.initialPage?.props?.themeCustomCss ||
+				props?.initialPage?.props?.shell?.themeCustomCss ||
+				props?.initialPage?.props?.theme?.customCss ||
+				null;
 			applyBrandTheme(brandFromProps);
-			applyThemeVariables(variablesFromProps);
+			applyThemeVariables({
+				...variablesFromProps,
+				customCss: customCssFromProps,
+			});
 
 			if (el?.hasAttribute("data-server-rendered")) {
 				hydrate(App, { target: el, props });

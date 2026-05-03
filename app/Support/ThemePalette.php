@@ -20,6 +20,42 @@ class ThemePalette
     ];
 
     /**
+     * Map of setting keys to CSS variable names for light mode.
+     *
+     * @var array<string, string>
+     */
+    private const LIGHT_CSS_MAP = [
+        'css_text_strong' => 'text-strong',
+        'css_text_soft' => 'text-soft',
+        'css_text_muted' => 'text-muted',
+        'css_page_bg' => 'page-bg',
+        'css_page_bg_soft' => 'page-bg-soft',
+        'css_panel_bg' => 'panel-bg',
+        'css_panel_muted' => 'panel-muted',
+        'css_line_soft' => 'line-soft',
+        'css_signal_success' => 'signal-success',
+        'css_signal_warning' => 'signal-warning',
+        'css_signal_danger' => 'signal-danger',
+        'css_signal_info' => 'signal-info',
+    ];
+
+    /**
+     * Map of setting keys to CSS variable names for dark mode.
+     *
+     * @var array<string, string>
+     */
+    private const DARK_CSS_MAP = [
+        'css_dark_text_strong' => 'text-strong',
+        'css_dark_text_soft' => 'text-soft',
+        'css_dark_text_muted' => 'text-muted',
+        'css_dark_page_bg' => 'page-bg',
+        'css_dark_page_bg_soft' => 'page-bg-soft',
+        'css_dark_panel_bg' => 'panel-bg',
+        'css_dark_panel_muted' => 'panel-muted',
+        'css_dark_line_soft' => 'line-soft',
+    ];
+
+    /**
      * @var array<string, array{label: string, primary: string, hover: string, soft: string, light: string, secondary: string, secondarySoft: string, primaryForeground: string}>
      */
     private const COLORS = [
@@ -56,6 +92,17 @@ class ThemePalette
     public static function settingKeys(): array
     {
         return array_keys(self::CUSTOM_SETTING_MAP);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function cssVariableKeys(): array
+    {
+        return array_merge(
+            array_keys(self::LIGHT_CSS_MAP),
+            array_keys(self::DARK_CSS_MAP),
+        );
     }
 
     /**
@@ -110,7 +157,7 @@ class ThemePalette
 
     /**
      * @param  array<string, mixed>  $settings
-     * @return array{color: string, palette: array<string, string>, variables: array<string, string>}
+     * @return array{color: string, palette: array<string, string>, variables: array<string, string>, customCss: array{light: array<string, string>, dark: array<string, string>, shared: array<string, string>}}
      */
     public static function payloadFromSettings(array $settings): array
     {
@@ -133,6 +180,41 @@ class ThemePalette
             $palette[$paletteKey] = $normalized;
         }
 
+        $lightCss = [];
+        foreach (self::LIGHT_CSS_MAP as $settingKey => $cssVar) {
+            $value = $settings[$settingKey] ?? null;
+            if (is_string($value)) {
+                $normalized = self::normalizeHex($value);
+                if ($normalized) {
+                    $lightCss[$cssVar] = $normalized;
+                }
+            }
+        }
+
+        $darkCss = [];
+        foreach (self::DARK_CSS_MAP as $settingKey => $cssVar) {
+            $value = $settings[$settingKey] ?? null;
+            if (is_string($value)) {
+                $normalized = self::normalizeHex($value);
+                if ($normalized) {
+                    $darkCss[$cssVar] = $normalized;
+                }
+            }
+        }
+
+        $sharedCss = [];
+        $sharedKeys = ['css_signal_success', 'css_signal_warning', 'css_signal_danger', 'css_signal_info'];
+        foreach ($sharedKeys as $settingKey) {
+            $value = $settings[$settingKey] ?? null;
+            if (is_string($value)) {
+                $normalized = self::normalizeHex($value);
+                if ($normalized) {
+                    $cssVar = str_replace('css_', '', str_replace('css_signal_', 'signal-', $settingKey));
+                    $sharedCss[$cssVar] = $normalized;
+                }
+            }
+        }
+
         return [
             'color' => array_key_exists($themeName, self::COLORS) ? $themeName : self::DEFAULT,
             'palette' => $palette,
@@ -145,6 +227,49 @@ class ThemePalette
                 'brand-secondary-soft-base' => $palette['secondarySoft'],
                 'primary-foreground-base' => $palette['primaryForeground'],
             ],
+            'customCss' => [
+                'light' => $lightCss,
+                'dark' => $darkCss,
+                'shared' => $sharedCss,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function lightCssDefaults(): array
+    {
+        return [
+            'css_text_strong' => '#211D18',
+            'css_text_soft' => '#4A433A',
+            'css_text_muted' => '#6D655B',
+            'css_page_bg' => '#F5F3EF',
+            'css_page_bg_soft' => '#F1EEE8',
+            'css_panel_bg' => '#FFFFFF',
+            'css_panel_muted' => '#ECE8E0',
+            'css_line_soft' => '#D6D0C6',
+            'css_signal_success' => '#3F7A50',
+            'css_signal_warning' => '#A96B12',
+            'css_signal_danger' => '#B44C40',
+            'css_signal_info' => '#7751DE',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function darkCssDefaults(): array
+    {
+        return [
+            'css_dark_text_strong' => '#F3EEE8',
+            'css_dark_text_soft' => '#DDD4C8',
+            'css_dark_text_muted' => '#C8BAB0',
+            'css_dark_page_bg' => '#18161A',
+            'css_dark_page_bg_soft' => '#1D1A20',
+            'css_dark_panel_bg' => '#211F24',
+            'css_dark_panel_muted' => '#312D35',
+            'css_dark_line_soft' => '#3B3640',
         ];
     }
 

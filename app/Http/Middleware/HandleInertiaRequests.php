@@ -59,7 +59,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $themeSettings = Setting::query()
-            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys()))
+            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys(), ThemePalette::cssVariableKeys()))
             ->pluck('value', 'key')
             ->all();
         $themePayload = ThemePalette::payloadFromSettings($themeSettings);
@@ -70,6 +70,7 @@ class HandleInertiaRequests extends Middleware
             'theme' => [
                 'color' => $themePayload['color'],
                 'variables' => $themePayload['variables'],
+                'customCss' => $themePayload['customCss'],
             ],
             'posthog' => [
                 'key' => (string) config('posthog-js.key', ''),

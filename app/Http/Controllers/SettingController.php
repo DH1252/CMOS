@@ -40,6 +40,20 @@ class SettingController extends Controller
                         'themeSecondary' => old('theme_secondary', $themePayload['palette']['secondary']),
                         'themeSecondarySoft' => old('theme_secondary_soft', $themePayload['palette']['secondarySoft']),
                         'themePrimaryForeground' => old('theme_primary_foreground', $themePayload['palette']['primaryForeground']),
+                        'customCss' => [
+                            'light' => array_merge(
+                                ThemePalette::lightCssDefaults(),
+                                collect(ThemePalette::lightCssDefaults())
+                                    ->mapWithKeys(fn ($default, $key) => [$key => old($key, $settings[$key]?->value ?? $default)])
+                                    ->all()
+                            ),
+                            'dark' => array_merge(
+                                ThemePalette::darkCssDefaults(),
+                                collect(ThemePalette::darkCssDefaults())
+                                    ->mapWithKeys(fn ($default, $key) => [$key => old($key, $settings[$key]?->value ?? $default)])
+                                    ->all()
+                            ),
+                        ],
                         'evaluationPeriod' => old('evaluation_period', $settings['evaluation_period']?->value ?? 'quarterly'),
                         'periodOptions' => [
                             ['value' => 'monthly', 'label' => 'Bulanan'],

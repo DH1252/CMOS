@@ -89,12 +89,12 @@ class AuthController extends Controller
     }
 
     /**
-     * @return array{themeColor: string, themeVariables: array<string, string>}
+     * @return array{themeColor: string, themeVariables: array<string, string>, themeCustomCss: array{light: array<string, string>, dark: array<string, string>, shared: array<string, string>}}
      */
     private function themePayload(): array
     {
         $settings = Setting::query()
-            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys()))
+            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys(), ThemePalette::cssVariableKeys()))
             ->pluck('value', 'key')
             ->all();
         $theme = ThemePalette::payloadFromSettings($settings);
@@ -102,6 +102,7 @@ class AuthController extends Controller
         return [
             'themeColor' => $theme['color'],
             'themeVariables' => $theme['variables'],
+            'themeCustomCss' => $theme['customCss'],
         ];
     }
 }

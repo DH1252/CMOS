@@ -89,6 +89,7 @@ class PublicInformationController extends Controller
             'organizationName' => $settings['organizationName'],
             'themeColor' => $settings['themeColor'],
             'themeVariables' => $settings['themeVariables'],
+            'themeCustomCss' => $settings['themeCustomCss'],
             'homeUrl' => route('home'),
             'loginUrl' => route('login'),
             'infoUrl' => route('informasi.index'),
@@ -157,6 +158,7 @@ class PublicInformationController extends Controller
             'organizationName' => $settings['organizationName'],
             'themeColor' => $settings['themeColor'],
             'themeVariables' => $settings['themeVariables'],
+            'themeCustomCss' => $settings['themeCustomCss'],
             'homeUrl' => route('home'),
             'loginUrl' => route('login'),
             'infoUrl' => route('informasi.index'),
@@ -182,12 +184,12 @@ class PublicInformationController extends Controller
     }
 
     /**
-     * @return array{appName: string, organizationName: string, themeColor: string, themeVariables: array<string, string>}
+     * @return array{appName: string, organizationName: string, themeColor: string, themeVariables: array<string, string>, themeCustomCss: array{light: array<string, string>, dark: array<string, string>, shared: array<string, string>}}
      */
     private function publicSettings(): array
     {
         $settings = Setting::query()
-            ->whereIn('key', array_merge(['app_name', 'organization_name', 'theme_color'], ThemePalette::settingKeys()))
+            ->whereIn('key', array_merge(['app_name', 'organization_name', 'theme_color'], ThemePalette::settingKeys(), ThemePalette::cssVariableKeys()))
             ->pluck('value', 'key');
         $themePayload = ThemePalette::payloadFromSettings($settings->all());
 
@@ -196,6 +198,7 @@ class PublicInformationController extends Controller
             'organizationName' => (string) $settings->get('organization_name', 'HIMATEKKOM ITS'),
             'themeColor' => $themePayload['color'],
             'themeVariables' => $themePayload['variables'],
+            'themeCustomCss' => $themePayload['customCss'],
         ];
     }
 
