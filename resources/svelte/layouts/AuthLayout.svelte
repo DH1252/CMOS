@@ -119,17 +119,19 @@
       return;
     }
 
-    const posthogClient = window.__CMOS_POSTHOG__;
+    const runWithPostHog = window.__CMOS_WITH_POSTHOG__;
 
-    if (!posthogClient || !shellUserId) {
+    if (typeof runWithPostHog !== 'function' || !shellUserId) {
       return;
     }
 
-    posthogClient.identify(shellUserId, {
-      email: shellUser.email || null,
-      name: shellUser.name || null,
-      role: shellUser.role || null,
-      department: shellUser.department || null,
+    void runWithPostHog((posthogClient) => {
+      posthogClient.identify(shellUserId, {
+        email: shellUser.email || null,
+        name: shellUser.name || null,
+        role: shellUser.role || null,
+        department: shellUser.department || null,
+      });
     });
   };
 

@@ -37,10 +37,13 @@ const applyThemeVariables = (variables = null) => {
 };
 
 const capturePostHogPageview = (page = null) => {
-	const posthogClient =
-		typeof window !== "undefined" ? window.__CMOS_POSTHOG__ : null;
+	if (typeof window === "undefined") {
+		return;
+	}
 
-	if (!posthogClient) {
+	const runWithPostHog = window.__CMOS_WITH_POSTHOG__;
+
+	if (typeof runWithPostHog !== "function") {
 		return;
 	}
 
@@ -49,11 +52,13 @@ const capturePostHogPageview = (page = null) => {
 		(typeof window !== "undefined" ? window.location.pathname : "/");
 	const component = page?.component || null;
 
-	posthogClient.capture("$pageview", {
-		$current_url:
-			typeof window !== "undefined" ? window.location.href : pageUrl,
-		$page_path: pageUrl,
-		inertia_component: component,
+	void runWithPostHog((posthogClient) => {
+		posthogClient.capture("$pageview", {
+			$current_url:
+				typeof window !== "undefined" ? window.location.href : pageUrl,
+			$page_path: pageUrl,
+			inertia_component: component,
+		});
 	});
 };
 
