@@ -84,9 +84,14 @@ class TaskController extends Controller
      */
     public function global(Request $request)
     {
-        $tasks = Task::global()
-            ->with(['assignee', 'creator'])
-            ->orderByDesc('sort_order')
+        $user = auth()->user();
+        $query = Task::global()->with(['assignee', 'creator']);
+
+        if ($user->isStaff()) {
+            $query->where('assigned_to', $user->id);
+        }
+
+        $tasks = $query->orderByDesc('sort_order')
             ->orderByDesc('created_at')
             ->get()
             ->groupBy('status');
@@ -207,6 +212,8 @@ class TaskController extends Controller
      */
     public function department(Department $department)
     {
+        $this->authorizeDepartmentAccess($department);
+
         $programs = $department->programs()
             ->withCount([
                 'tasks as total_tasks',
@@ -280,6 +287,8 @@ class TaskController extends Controller
      */
     public function departmentTasks(Request $request, Department $department)
     {
+        $this->authorizeDepartmentAccess($department);
+
         $tasks = Task::forDepartment($department->id)
             ->with(['assignee', 'creator'])
             ->orderByDesc('sort_order')
@@ -404,6 +413,8 @@ class TaskController extends Controller
      */
     public function program(Request $request, Program $program)
     {
+        $this->authorizeProgramAccess($program);
+
         $tasks = Task::forProgram($program->id)
             ->with(['assignee', 'creator'])
             ->orderByDesc('sort_order')
@@ -664,6 +675,8 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
+        $this->authorizeTaskAccess($task);
+
         $task->load(['program.department', 'department', 'assignee.role', 'creator']);
 
         return \Inertia\Inertia::render(
@@ -732,6 +745,8 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
+        $this->authorizeTaskAccess($task);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -760,6 +775,8 @@ class TaskController extends Controller
      */
     public function updateStatus(Request $request, Task $task)
     {
+        $this->authorizeTaskAccess($task);
+
         $validated = $request->validate([
             'status' => 'required|in:todo,in_progress,pending,done',
             'column_orders' => 'sometimes|array',
@@ -799,6 +816,8 @@ class TaskController extends Controller
      */
     public function updateProgress(Request $request, Task $task)
     {
+        $this->authorizeTaskAccess($task);
+
         $validated = $request->validate([
             'progress' => 'required|integer|min:0|max:100',
         ]);
@@ -850,6 +869,12 @@ class TaskController extends Controller
             'status' => 'nullable|in:todo,in_progress,pending,done',
         ]);
 
+        $this->authorizeTaskStore(
+            $validated['type'],
+            $validated['type'] === 'program' ? $validated['program_id'] : null,
+            $validated['type'] === 'department' ? $validated['department_id'] : null
+        );
+
         $task = Task::create([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
@@ -880,6 +905,8 @@ class TaskController extends Controller
      */
     public function updateInline(Request $request, Task $task)
     {
+        $this->authorizeTaskAccess($task);
+
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -915,6 +942,12 @@ class TaskController extends Controller
      */
     public function destroyInline(Task $task)
     {
+        $this->authorizeTaskAccess($task);
+
+        if (! auth()->user()->hasRole(['admin', 'bph', 'kabinet'])) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus task ini.');
+        }
+
         $title = $task->title;
         ActivityLog::log('deleted', "Deleted task: {$title}", $task);
         $task->delete();
@@ -1009,55 +1042,110 @@ class TaskController extends Controller
         return $query->where('department_id', $task->department_id)->whereNull('program_id');
     }
 
-    /**
-     * @param  \Illuminate\Support\Collection<int, User>  $users
-     * @param  \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, Task>>  $tasks
-     * @param  array<int, array<string, string>>  $breadcrumbs
-     * @return array<string, mixed>
-     */
-    private function boardPayload(
-        string $title,
-        string $description,
-        string $type,
-        ?int $typeId,
-        $users,
-        $tasks,
-        array $breadcrumbs,
-        string $refreshUrl,
-    ): array {
-        $statusLabels = [
-            'todo' => 'To Do',
-            'in_progress' => 'In Progress',
-            'pending' => 'Pending',
-            'done' => 'Done',
-        ];
+    private function authorizeDepartmentAccess(Department $department): void
+    {
+        $user = auth()->user();
 
-        return [
-            'title' => $title,
-            'description' => $description,
-            'breadcrumbs' => $breadcrumbs,
-            'refreshUrl' => $refreshUrl,
-            'context' => [
-                'type' => $type,
-                'typeId' => $typeId,
-            ],
-            'endpoints' => [
-                'storeInline' => route('tasks.inline.store'),
-                'taskBase' => url('/tasks'),
-            ],
-            'columns' => collect(Task::STATUSES)->map(function (string $status) use ($statusLabels, $tasks) {
-                return [
-                    'status' => $status,
-                    'label' => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)),
-                    'tasks' => collect($tasks->get($status, collect()))
-                        ->map(fn (Task $task) => $this->formatTask($task))
-                        ->values(),
-                ];
-            })->values(),
-            'users' => $users->map(fn (User $user) => [
-                'value' => $user->id,
-                'label' => $user->name.' ('.ucfirst($user->role?->name ?? 'user').')',
-            ])->values(),
-        ];
+        if ($user->hasRole(['admin', 'bph'])) {
+            return;
+        }
+
+        if ($user->isKabinet() && $user->department_id !== $department->id) {
+            abort(403, 'Anda tidak memiliki akses ke departemen ini.');
+        }
+
+        if ($user->isStaff() && $user->department_id !== $department->id) {
+            abort(403, 'Anda tidak memiliki akses ke departemen ini.');
+        }
+    }
+
+    private function authorizeProgramAccess(Program $program): void
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole(['admin', 'bph'])) {
+            return;
+        }
+
+        if ($user->isKabinet() && $program->department_id !== $user->department_id) {
+            abort(403, 'Anda tidak memiliki akses ke program ini.');
+        }
+
+        if ($user->isStaff() && ! $program->hasMemberOrPic($user->id)) {
+            abort(403, 'Anda tidak memiliki akses ke program ini.');
+        }
+    }
+
+    private function authorizeTaskAccess(Task $task): void
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole(['admin', 'bph'])) {
+            return;
+        }
+
+        if ($user->isKabinet() && $user->department_id) {
+            if ($task->program_id) {
+                $task->loadMissing('program');
+                if ($task->program?->department_id === $user->department_id) {
+                    return;
+                }
+            }
+            if ($task->department_id === $user->department_id) {
+                return;
+            }
+            abort(403, 'Anda tidak memiliki akses ke task ini.');
+        }
+
+        if ($user->isStaff()) {
+            if ($task->assigned_to === $user->id) {
+                return;
+            }
+            if ($task->program_id) {
+                $task->loadMissing('program');
+                if ($task->program?->hasMemberOrPic($user->id)) {
+                    return;
+                }
+            }
+            if ($task->department_id === $user->department_id) {
+                return;
+            }
+            abort(403, 'Anda tidak memiliki akses ke task ini.');
+        }
+    }
+
+    private function authorizeTaskStore(string $type, ?int $programId, ?int $departmentId): void
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole(['admin', 'bph'])) {
+            return;
+        }
+
+        if ($user->isKabinet() && $user->department_id) {
+            if ($type === 'department' && $departmentId === $user->department_id) {
+                return;
+            }
+            if ($type === 'program') {
+                $program = Program::find($programId);
+                if ($program && $program->department_id === $user->department_id) {
+                    return;
+                }
+            }
+            abort(403, 'Anda tidak memiliki izin untuk membuat task di konteks ini.');
+        }
+
+        if ($user->isStaff()) {
+            if ($type === 'department' && $departmentId === $user->department_id) {
+                return;
+            }
+            if ($type === 'program') {
+                $program = Program::find($programId);
+                if ($program && $program->hasMemberOrPic($user->id)) {
+                    return;
+                }
+            }
+            abort(403, 'Anda tidak memiliki izin untuk membuat task di konteks ini.');
+        }
     }
 }

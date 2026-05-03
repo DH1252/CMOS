@@ -11,6 +11,7 @@
 
   let {
     summary = {},
+    pics = {},
     team = {},
     tasks = {},
     timelines = {},
@@ -123,6 +124,59 @@
             </Button>
           {/each}
         </div>
+      </Card.Content>
+    </Card.Root>
+
+    <Card.Root class="mb-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+      <Card.Header class="border-b border-border/70 pb-4">
+        <PageHeader title="PIC Program" icon="fas fa-star" compact={true} headingTag="h3" />
+      </Card.Header>
+      <Card.Content class="pt-5">
+        {#if !pics.items?.length}
+          <EmptyStatePanel title="Belum ada PIC" text="Tambahkan PIC untuk menentukan penanggung jawab program ini." icon="fas fa-star-half-stroke" tone="secondary" compact={true} />
+        {:else}
+          <div class="detail-list">
+            {#each pics.items as pic, index (pic.name || index)}
+              <div class="program-member">
+                <div class="program-member-main">
+                  <img src={pic.avatar || fallbackAvatar(pic.name)} alt={pic.name} class="avatar-sm" onerror={handleImageError} />
+                  <div class="program-member-copy">
+                    <div class="fw-semibold">{pic.name}</div>
+                    <StatusBadge label="PIC" tone="primary" />
+                  </div>
+                </div>
+                {#if pic.removeAction}
+                  <form method="POST" action={pic.removeAction} onsubmit={(event) => submitRemoval(event, pic.name)}>
+                    <input type="hidden" name="_token" value={csrfToken} />
+                    <input type="hidden" name="_method" value="DELETE" />
+                    <Button type="submit" variant="destructive" size="icon-sm" aria-label={`Hapus ${pic.name}`}>
+                      <i class="fas fa-xmark"></i>
+                    </Button>
+                  </form>
+                {/if}
+              </div>
+            {/each}
+          </div>
+        {/if}
+
+        {#if pics.addAction}
+          <form method="POST" action={pics.addAction} class="program-inline-form">
+            <input type="hidden" name="_token" value={csrfToken} />
+            <div class="program-inline-field">
+              <Label for="pic_user_id">Tambah PIC</Label>
+              <select id="pic_user_id" name="user_id" class="program-select" required>
+                <option value="">-- Pilih User --</option>
+                {#each pics.availableUsers || [] as user, index (user.value || index)}
+                  <option value={user.value}>{user.label}</option>
+                {/each}
+              </select>
+            </div>
+            <Button type="submit" class="w-full">
+              <i class="fas fa-user-plus"></i>
+              <span>Tambah PIC</span>
+            </Button>
+          </form>
+        {/if}
       </Card.Content>
     </Card.Root>
 

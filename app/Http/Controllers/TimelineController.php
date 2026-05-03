@@ -200,7 +200,7 @@ class TimelineController extends Controller
         if ($user->isKabinet() && $user->department_id) {
             $programsQuery->where('department_id', $user->department_id);
         } elseif ($user->isStaff()) {
-            $programsQuery->whereHas('members', fn ($q) => $q->where('user_id', $user->id));
+            $programsQuery->forUser($user->id);
         }
 
         $programs = $programsQuery->where('status', '!=', 'cancelled')->get();
@@ -355,6 +355,14 @@ class TimelineController extends Controller
             $department = Department::find($user->department_id);
         }
 
+        if ($department && $user->isStaff() && $user->department_id !== $department->id) {
+            abort(403, 'Anda tidak memiliki akses ke departemen ini.');
+        }
+
+        if ($department && $user->isKabinet() && $user->department_id !== $department->id) {
+            abort(403, 'Anda tidak memiliki akses ke departemen ini.');
+        }
+
         $departments = Department::active()->orderBy('name')->get();
 
         $timelines = $department
@@ -456,6 +464,16 @@ class TimelineController extends Controller
 
     public function program(Program $program)
     {
+        $user = auth()->user();
+
+        if ($user->isStaff() && ! $program->hasMemberOrPic($user->id)) {
+            abort(403, 'Anda tidak memiliki akses ke program ini.');
+        }
+
+        if ($user->isKabinet() && $user->department_id !== $program->department_id) {
+            abort(403, 'Anda tidak memiliki akses ke program ini.');
+        }
+
         $program->loadMissing('department');
 
         $timelines = Timeline::where('program_id', $program->id)
