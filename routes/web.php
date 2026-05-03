@@ -124,9 +124,17 @@ Route::middleware('auth')->group(function () {
         Route::resource('links', LinkController::class)->except(['index', 'show']);
     });
 
+    // All authenticated users can view programs
+    Route::get('/programs', [ProgramController::class, 'index'])->name('programs.index');
+    Route::get('/programs/{program}', [ProgramController::class, 'show'])->name('programs.show');
+
     // Admin, BPH & Kabinet Routes
     Route::middleware('role:admin,bph,kabinet')->group(function () {
-        Route::resource('programs', ProgramController::class);
+        Route::get('/programs/create', [ProgramController::class, 'create'])->name('programs.create');
+        Route::post('/programs', [ProgramController::class, 'store'])->name('programs.store');
+        Route::get('/programs/{program}/edit', [ProgramController::class, 'edit'])->name('programs.edit');
+        Route::put('/programs/{program}', [ProgramController::class, 'update'])->name('programs.update');
+        Route::delete('/programs/{program}', [ProgramController::class, 'destroy'])->name('programs.destroy');
         Route::post('/programs/{program}/members', [ProgramController::class, 'addMember'])->name('programs.members.add');
         Route::delete('/programs/{program}/members/{user}', [ProgramController::class, 'removeMember'])->name('programs.members.remove');
         Route::post('/programs/{program}/pics', [ProgramController::class, 'addPic'])->name('programs.pics.add');
