@@ -27,6 +27,7 @@
   let customSecondary = $state('#5B2BA9');
   let customSecondarySoft = $state('#E9E0F8');
   let customPrimaryForeground = $state('#FFFFFF');
+  let cssTab = $state('light');
   const activeColor = $derived(selectedColor || values.themeColor || colors[0]?.name || 'purple');
 
   const selectedPalette = $derived.by(
@@ -94,6 +95,16 @@
     applyPreviewTheme();
   });
 </script>
+
+{#snippet cssInput(name, label, value)}
+  <label class="grid gap-2 text-sm text-foreground">
+    <span class="font-medium">{label}</span>
+    <div class="flex items-center gap-2">
+      <input type="color" {name} {value} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+      <span class="text-xs text-muted-foreground font-mono w-20">{value || '-'}</span>
+    </div>
+  </label>
+{/snippet}
 
 <div class="mx-auto max-w-5xl">
   <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
@@ -246,6 +257,53 @@
                   <strong class="block text-sm text-foreground">{selectedPalette.label}</strong>
                   <p class="mt-1 text-sm leading-6 text-muted-foreground">Warna ini diterapkan untuk seluruh situs, termasuk halaman publik, login, dan workspace internal.</p>
                 </div>
+              </div>
+            {/if}
+          </div>
+        </section>
+
+        <section class="grid gap-5 rounded-[10px] border border-border bg-background px-5 py-5 lg:grid-cols-[16rem_minmax(0,1fr)]">
+          <div>
+            <div class="text-sm font-medium text-brand-primary">Variabel CSS</div>
+            <h3 class="mt-2 text-xl font-semibold text-foreground">Kustomisasi warna teks, permukaan, dan sinyal</h3>
+            <p class="mt-2 text-sm leading-7 text-muted-foreground">Atur warna teks, latar, panel, dan sinyal secara langsung. Nilai kosong akan menggunakan default sistem.</p>
+          </div>
+
+          <div class="grid gap-4">
+            <div class="flex gap-2">
+              <button type="button" onclick={() => (cssTab = 'light')} class={`h-9 rounded-[8px] border px-4 text-sm font-medium transition-colors ${cssTab === 'light' ? 'border-brand-primary bg-brand-primary text-white' : 'border-border bg-card text-foreground hover:bg-muted'}`}>Mode Terang</button>
+              <button type="button" onclick={() => (cssTab = 'dark')} class={`h-9 rounded-[8px] border px-4 text-sm font-medium transition-colors ${cssTab === 'dark' ? 'border-brand-primary bg-brand-primary text-white' : 'border-border bg-card text-foreground hover:bg-muted'}`}>Mode Gelap</button>
+              <button type="button" onclick={() => (cssTab = 'signal')} class={`h-9 rounded-[8px] border px-4 text-sm font-medium transition-colors ${cssTab === 'signal' ? 'border-brand-primary bg-brand-primary text-white' : 'border-border bg-card text-foreground hover:bg-muted'}`}>Sinyal</button>
+            </div>
+
+            {#if cssTab === 'light'}
+              <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
+                {@render cssInput('css_text_strong', 'Teks Utama', values.customCss?.light?.css_text_strong)}
+                {@render cssInput('css_text_soft', 'Teks Lembut', values.customCss?.light?.css_text_soft)}
+                {@render cssInput('css_text_muted', 'Teks Redup', values.customCss?.light?.css_text_muted)}
+                {@render cssInput('css_page_bg', 'Latar Halaman', values.customCss?.light?.css_page_bg)}
+                {@render cssInput('css_page_bg_soft', 'Latar Halaman Lembut', values.customCss?.light?.css_page_bg_soft)}
+                {@render cssInput('css_panel_bg', 'Latar Panel', values.customCss?.light?.css_panel_bg)}
+                {@render cssInput('css_panel_muted', 'Panel Redup', values.customCss?.light?.css_panel_muted)}
+                {@render cssInput('css_line_soft', 'Garis Lembut', values.customCss?.light?.css_line_soft)}
+              </div>
+            {:else if cssTab === 'dark'}
+              <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
+                {@render cssInput('css_dark_text_strong', 'Teks Utama (Gelap)', values.customCss?.dark?.css_dark_text_strong)}
+                {@render cssInput('css_dark_text_soft', 'Teks Lembut (Gelap)', values.customCss?.dark?.css_dark_text_soft)}
+                {@render cssInput('css_dark_text_muted', 'Teks Redup (Gelap)', values.customCss?.dark?.css_dark_text_muted)}
+                {@render cssInput('css_dark_page_bg', 'Latar Halaman (Gelap)', values.customCss?.dark?.css_dark_page_bg)}
+                {@render cssInput('css_dark_page_bg_soft', 'Latar Halaman Lembut (Gelap)', values.customCss?.dark?.css_dark_page_bg_soft)}
+                {@render cssInput('css_dark_panel_bg', 'Latar Panel (Gelap)', values.customCss?.dark?.css_dark_panel_bg)}
+                {@render cssInput('css_dark_panel_muted', 'Panel Redup (Gelap)', values.customCss?.dark?.css_dark_panel_muted)}
+                {@render cssInput('css_dark_line_soft', 'Garis Lembut (Gelap)', values.customCss?.dark?.css_dark_line_soft)}
+              </div>
+            {:else}
+              <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
+                {@render cssInput('css_signal_success', 'Sukses', values.customCss?.light?.css_signal_success)}
+                {@render cssInput('css_signal_warning', 'Peringatan', values.customCss?.light?.css_signal_warning)}
+                {@render cssInput('css_signal_danger', 'Bahaya', values.customCss?.light?.css_signal_danger)}
+                {@render cssInput('css_signal_info', 'Info', values.customCss?.light?.css_signal_info)}
               </div>
             {/if}
           </div>
