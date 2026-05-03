@@ -25,7 +25,7 @@ class ProgramController extends Controller
 
         // Staff only sees their programs
         if ($user->isStaff()) {
-            $query->whereHas('members', fn ($q) => $q->where('user_id', $user->id));
+            $query->forUser($user->id);
         }
 
         $programs = $query->orderByDesc('created_at')->get();
@@ -203,6 +203,12 @@ class ProgramController extends Controller
 
     public function show(Program $program)
     {
+        $user = auth()->user();
+
+        if ($user->isStaff() && ! $program->hasMemberOrPic($user->id)) {
+            abort(403, 'Anda tidak memiliki akses ke program ini.');
+        }
+
         $program->load(['department', 'creator', 'members', 'tasks.assignee', 'timelines']);
 
         return \Inertia\Inertia::render(
