@@ -13,6 +13,32 @@ class UpdateGeneralSettingsRequest extends FormRequest
         return (bool) $this->user()?->isAdmin();
     }
 
+    protected function prepareForValidation(): void
+    {
+        $cssKeys = array_merge(
+            array_keys(ThemePalette::lightCssDefaults()),
+            array_keys(ThemePalette::darkCssDefaults()),
+        );
+
+        foreach ($cssKeys as $key) {
+            $value = $this->input($key);
+
+            if ($value === '' || $value === null) {
+                $this->merge([$key => null]);
+
+                continue;
+            }
+
+            $trimmed = strtoupper(trim((string) $value));
+
+            if (! str_starts_with($trimmed, '#')) {
+                $trimmed = '#'.$trimmed;
+            }
+
+            $this->merge([$key => $trimmed]);
+        }
+    }
+
     /**
      * @return array<string, array<int, \Illuminate\Contracts\Validation\ValidationRule|string>>
      */

@@ -73,7 +73,18 @@ class SettingController extends Controller
 
     public function update(UpdateGeneralSettingsRequest $request): RedirectResponse
     {
+        $cssKeys = array_merge(
+            array_keys(ThemePalette::lightCssDefaults()),
+            array_keys(ThemePalette::darkCssDefaults()),
+        );
+
         foreach ($request->validated() as $key => $value) {
+            if (in_array($key, $cssKeys, true) && ($value === null || $value === '')) {
+                Setting::query()->where('key', $key)->delete();
+
+                continue;
+            }
+
             Setting::set($key, $value);
         }
 
