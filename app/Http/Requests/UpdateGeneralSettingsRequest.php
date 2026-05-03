@@ -44,7 +44,7 @@ class UpdateGeneralSettingsRequest extends FormRequest
      */
     public function rules(): array
     {
-        $hexRule = 'nullable|regex:/^#[0-9A-Fa-f]{6}$/';
+        $hex = ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'];
 
         return [
             'app_name' => ['required', 'string', 'max:60'],
@@ -58,26 +58,26 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'theme_secondary_soft' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'theme_primary_foreground' => ['required', Rule::in(['#FFFFFF', '#0F172A'])],
             'evaluation_period' => ['required', Rule::in(['monthly', 'quarterly', 'semester', 'yearly'])],
-            'css_text_strong' => [$hexRule],
-            'css_text_soft' => [$hexRule],
-            'css_text_muted' => [$hexRule],
-            'css_page_bg' => [$hexRule],
-            'css_page_bg_soft' => [$hexRule],
-            'css_panel_bg' => [$hexRule],
-            'css_panel_muted' => [$hexRule],
-            'css_line_soft' => [$hexRule],
-            'css_signal_success' => [$hexRule],
-            'css_signal_warning' => [$hexRule],
-            'css_signal_danger' => [$hexRule],
-            'css_signal_info' => [$hexRule],
-            'css_dark_text_strong' => [$hexRule],
-            'css_dark_text_soft' => [$hexRule],
-            'css_dark_text_muted' => [$hexRule],
-            'css_dark_page_bg' => [$hexRule],
-            'css_dark_page_bg_soft' => [$hexRule],
-            'css_dark_panel_bg' => [$hexRule],
-            'css_dark_panel_muted' => [$hexRule],
-            'css_dark_line_soft' => [$hexRule],
+            'css_text_strong' => $hex,
+            'css_text_soft' => $hex,
+            'css_text_muted' => $hex,
+            'css_page_bg' => $hex,
+            'css_page_bg_soft' => $hex,
+            'css_panel_bg' => $hex,
+            'css_panel_muted' => $hex,
+            'css_line_soft' => $hex,
+            'css_signal_success' => $hex,
+            'css_signal_warning' => $hex,
+            'css_signal_danger' => $hex,
+            'css_signal_info' => $hex,
+            'css_dark_text_strong' => $hex,
+            'css_dark_text_soft' => $hex,
+            'css_dark_text_muted' => $hex,
+            'css_dark_page_bg' => $hex,
+            'css_dark_page_bg_soft' => $hex,
+            'css_dark_panel_bg' => $hex,
+            'css_dark_panel_muted' => $hex,
+            'css_dark_line_soft' => $hex,
         ];
     }
 
