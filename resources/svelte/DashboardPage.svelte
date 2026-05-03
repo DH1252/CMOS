@@ -563,22 +563,22 @@
 
   .dashboard-pill-secondary {
     background: var(--muted);
-    color: var(--text-soft);
+    color: var(--pill-text-secondary);
   }
 
   .dashboard-pill-warning {
     background: color-mix(in srgb, var(--signal-warning) 14%, transparent);
-    color: color-mix(in srgb, var(--signal-warning) 60%, black 40%);
+    color: var(--pill-text-warning);
   }
 
   .dashboard-pill-success {
     background: color-mix(in srgb, var(--signal-success) 14%, transparent);
-    color: color-mix(in srgb, var(--signal-success) 68%, black 32%);
+    color: var(--pill-text-success);
   }
 
   .dashboard-pill-danger {
     background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
-    color: color-mix(in srgb, var(--signal-danger) 72%, black 28%);
+    color: var(--pill-text-danger);
   }
 
   @media (min-width: 768px) {

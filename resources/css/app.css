@@ -115,6 +115,11 @@
     --signal-info: #7751de;
     --signal-secondary: #786f62;
 
+    --pill-text-secondary: #4a433a;
+    --pill-text-warning: #7a4f0a;
+    --pill-text-success: #2d5a3a;
+    --pill-text-danger: #8a3530;
+
     --scrollbar-track: color-mix(in srgb, var(--panel-muted) 74%, white);
     --scrollbar-thumb: color-mix(in srgb, var(--line-strong) 72%, var(--brand-primary) 28%);
     --scrollbar-thumb-hover: color-mix(in srgb, var(--line-strong) 52%, var(--brand-primary) 48%);
@@ -368,6 +373,11 @@
     --scrollbar-track: color-mix(in srgb, var(--panel-muted) 84%, black);
     --scrollbar-thumb: color-mix(in srgb, var(--line-strong) 68%, var(--brand-primary) 32%);
     --scrollbar-thumb-hover: color-mix(in srgb, var(--line-strong) 44%, var(--brand-primary) 56%);
+
+    --pill-text-secondary: #ddd4c8;
+    --pill-text-warning: #f0c34a;
+    --pill-text-success: #7ecf9a;
+    --pill-text-danger: #f08a82;
 }
 
 *,

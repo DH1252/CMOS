@@ -322,15 +322,35 @@
                     {@render cssInput('css_dark_line_soft', 'Garis Lembut (Gelap)', values.customCss?.dark?.css_dark_line_soft)}
                   </div>
                 </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Warna Teks Pill</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
+                    {@render cssInput('css_dark_pill_text_secondary', 'Teks Pill Sekunder (Gelap)', values.customCss?.dark?.css_dark_pill_text_secondary)}
+                    {@render cssInput('css_dark_pill_text_warning', 'Teks Pill Peringatan (Gelap)', values.customCss?.dark?.css_dark_pill_text_warning)}
+                    {@render cssInput('css_dark_pill_text_success', 'Teks Pill Sukses (Gelap)', values.customCss?.dark?.css_dark_pill_text_success)}
+                    {@render cssInput('css_dark_pill_text_danger', 'Teks Pill Bahaya (Gelap)', values.customCss?.dark?.css_dark_pill_text_danger)}
+                  </div>
+                </div>
               </div>
             {:else}
-              <div>
-                <h4 class="text-sm font-semibold text-foreground mb-3">Status & Sinyal</h4>
-                <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
-                  {@render cssInput('css_signal_success', 'Sukses', values.customCss?.light?.css_signal_success)}
-                  {@render cssInput('css_signal_warning', 'Peringatan', values.customCss?.light?.css_signal_warning)}
-                  {@render cssInput('css_signal_danger', 'Bahaya', values.customCss?.light?.css_signal_danger)}
-                  {@render cssInput('css_signal_info', 'Info', values.customCss?.light?.css_signal_info)}
+              <div class="grid gap-5">
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Status & Sinyal</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
+                    {@render cssInput('css_signal_success', 'Sukses', values.customCss?.light?.css_signal_success)}
+                    {@render cssInput('css_signal_warning', 'Peringatan', values.customCss?.light?.css_signal_warning)}
+                    {@render cssInput('css_signal_danger', 'Bahaya', values.customCss?.light?.css_signal_danger)}
+                    {@render cssInput('css_signal_info', 'Info', values.customCss?.light?.css_signal_info)}
+                  </div>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Warna Teks Pill</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
+                    {@render cssInput('css_pill_text_secondary', 'Teks Pill Sekunder', values.customCss?.light?.css_pill_text_secondary)}
+                    {@render cssInput('css_pill_text_warning', 'Teks Pill Peringatan', values.customCss?.light?.css_pill_text_warning)}
+                    {@render cssInput('css_pill_text_success', 'Teks Pill Sukses', values.customCss?.light?.css_pill_text_success)}
+                    {@render cssInput('css_pill_text_danger', 'Teks Pill Bahaya', values.customCss?.light?.css_pill_text_danger)}
+                  </div>
                 </div>
               </div>
             {/if}

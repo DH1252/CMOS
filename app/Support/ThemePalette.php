@@ -37,6 +37,10 @@ class ThemePalette
         'css_signal_warning' => 'signal-warning',
         'css_signal_danger' => 'signal-danger',
         'css_signal_info' => 'signal-info',
+        'css_pill_text_secondary' => 'pill-text-secondary',
+        'css_pill_text_warning' => 'pill-text-warning',
+        'css_pill_text_success' => 'pill-text-success',
+        'css_pill_text_danger' => 'pill-text-danger',
     ];
 
     /**
@@ -53,6 +57,10 @@ class ThemePalette
         'css_dark_panel_bg' => 'panel-bg',
         'css_dark_panel_muted' => 'panel-muted',
         'css_dark_line_soft' => 'line-soft',
+        'css_dark_pill_text_secondary' => 'pill-text-secondary',
+        'css_dark_pill_text_warning' => 'pill-text-warning',
+        'css_dark_pill_text_success' => 'pill-text-success',
+        'css_dark_pill_text_danger' => 'pill-text-danger',
     ];
 
     /**
@@ -253,6 +261,10 @@ class ThemePalette
             'css_signal_warning' => '#A96B12',
             'css_signal_danger' => '#B44C40',
             'css_signal_info' => '#7751DE',
+            'css_pill_text_secondary' => '#4A433A',
+            'css_pill_text_warning' => '#7A4F0A',
+            'css_pill_text_success' => '#2D5A3A',
+            'css_pill_text_danger' => '#8A3530',
         ];
     }
 
@@ -270,6 +282,10 @@ class ThemePalette
             'css_dark_panel_bg' => '#211F24',
             'css_dark_panel_muted' => '#312D35',
             'css_dark_line_soft' => '#3B3640',
+            'css_dark_pill_text_secondary' => '#DDD4C8',
+            'css_dark_pill_text_warning' => '#F0C34A',
+            'css_dark_pill_text_success' => '#7ECF9A',
+            'css_dark_pill_text_danger' => '#F08A82',
         ];
     }
 
