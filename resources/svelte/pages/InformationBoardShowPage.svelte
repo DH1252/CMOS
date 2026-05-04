@@ -53,12 +53,9 @@
   };
 </script>
 
-{#if backgroundColor}
-  {@html `<style>.page-content { background-color: ${backgroundColor} !important; }</style>`}
-{/if}
-
-<div class="row">
-  <div class="col-12 col-lg-8">
+<div class="article-page-wrapper" style={backgroundColor ? `background-color: ${backgroundColor};` : ''}>
+  <div class="row">
+    <div class="col-12 col-lg-8">
     <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
       {#if article.coverImage}
         <img src={article.coverImage} alt={article.title} class="article-cover" loading="lazy" decoding="async" onerror={handleImageError} />
@@ -135,8 +132,14 @@
     </Card.Root>
   </div>
 </div>
+</div>
 
 <style>
+  .article-page-wrapper {
+    min-height: 100vh;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+  }
   .article-shell {
     overflow: hidden;
   }
