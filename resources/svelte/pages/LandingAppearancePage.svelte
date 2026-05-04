@@ -20,12 +20,13 @@
   let selectedColor = $state(null);
   let iframeRef = $state(null);
   let iframeReady = $state(false);
-  let landingCss = $state({});
 
-  const css = values.customCss || {};
-  for (const key of Object.keys(css)) {
-    landingCss[key] = css[key];
+  const initialCss = {};
+  const cssData = values.customCss || {};
+  for (const key of Object.keys(cssData)) {
+    initialCss[key] = cssData[key];
   }
+  let landingCss = $state(initialCss);
 
   const activeColor = $derived(selectedColor || 'none');
 
