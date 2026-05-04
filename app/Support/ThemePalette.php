@@ -64,6 +64,28 @@ class ThemePalette
     ];
 
     /**
+     * Map of setting keys to CSS variable names for landing page.
+     *
+     * @var array<string, string>
+     */
+    private const LANDING_CSS_MAP = [
+        'css_landing_text_strong' => 'text-strong',
+        'css_landing_text_soft' => 'text-soft',
+        'css_landing_text_muted' => 'text-muted',
+        'css_landing_page_bg' => 'page-bg',
+        'css_landing_page_bg_soft' => 'page-bg-soft',
+        'css_landing_panel_bg' => 'panel-bg',
+        'css_landing_panel_muted' => 'panel-muted',
+        'css_landing_line_soft' => 'line-soft',
+        'css_landing_brand_primary' => 'brand-primary',
+        'css_landing_brand_hover' => 'brand-hover',
+        'css_landing_brand_soft' => 'brand-soft',
+        'css_landing_brand_light' => 'brand-light',
+        'css_landing_brand_secondary' => 'brand-secondary',
+        'css_landing_brand_secondary_soft' => 'brand-secondary-soft',
+    ];
+
+    /**
      * @var array<string, array{label: string, primary: string, hover: string, soft: string, light: string, secondary: string, secondarySoft: string, primaryForeground: string}>
      */
     private const COLORS = [
@@ -110,6 +132,7 @@ class ThemePalette
         return array_merge(
             array_keys(self::LIGHT_CSS_MAP),
             array_keys(self::DARK_CSS_MAP),
+            array_keys(self::LANDING_CSS_MAP),
         );
     }
 
@@ -223,6 +246,17 @@ class ThemePalette
             }
         }
 
+        $landingCss = [];
+        foreach (self::LANDING_CSS_MAP as $settingKey => $cssVar) {
+            $value = $settings[$settingKey] ?? null;
+            if (is_string($value)) {
+                $normalized = self::normalizeHex($value);
+                if ($normalized) {
+                    $landingCss[$cssVar] = $normalized;
+                }
+            }
+        }
+
         return [
             'color' => array_key_exists($themeName, self::COLORS) ? $themeName : self::DEFAULT,
             'palette' => $palette,
@@ -239,6 +273,7 @@ class ThemePalette
                 'light' => $lightCss,
                 'dark' => $darkCss,
                 'shared' => $sharedCss,
+                'landing' => $landingCss,
             ],
         ];
     }
@@ -286,6 +321,29 @@ class ThemePalette
             'css_dark_pill_text_warning' => '#F0C34A',
             'css_dark_pill_text_success' => '#7ECF9A',
             'css_dark_pill_text_danger' => '#F08A82',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function landingCssDefaults(): array
+    {
+        return [
+            'css_landing_text_strong' => '#211D18',
+            'css_landing_text_soft' => '#4A433A',
+            'css_landing_text_muted' => '#6D655B',
+            'css_landing_page_bg' => '#FAF9F7',
+            'css_landing_page_bg_soft' => '#F6F4F1',
+            'css_landing_panel_bg' => '#FFFFFF',
+            'css_landing_panel_muted' => '#F2EFEA',
+            'css_landing_line_soft' => '#D6D1C9',
+            'css_landing_brand_primary' => '#7C3AED',
+            'css_landing_brand_hover' => '#6D28D9',
+            'css_landing_brand_soft' => '#A78BFA',
+            'css_landing_brand_light' => '#EDE9FE',
+            'css_landing_brand_secondary' => '#5B2BA9',
+            'css_landing_brand_secondary_soft' => '#E9E0F8',
         ];
     }
 

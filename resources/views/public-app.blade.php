@@ -1,6 +1,10 @@
 @php
     $appName = \App\Models\Setting::get('app_name', 'CMOS');
     $themeColor = \App\Models\Setting::get('theme_color', \App\Support\ThemePalette::defaultName());
+    $landingCss = \App\Support\ThemePalette::payloadFromSettings(\App\Models\Setting::query()
+        ->whereIn('key', array_merge(['theme_color'], \App\Support\ThemePalette::settingKeys(), \App\Support\ThemePalette::cssVariableKeys()))
+        ->pluck('value', 'key')
+        ->all())['customCss']['landing'] ?? [];
 @endphp
 <!DOCTYPE html>
 <html lang="id" data-theme="public" data-brand="{{ $themeColor }}">
@@ -16,6 +20,15 @@
     <noscript>
         <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     </noscript>
+    @if(!empty($landingCss))
+    <style>
+        [data-theme="public"] {
+            @foreach($landingCss as $var => $value)
+            --{{ $var }}: {{ $value }};
+            @endforeach
+        }
+    </style>
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
 </head>
