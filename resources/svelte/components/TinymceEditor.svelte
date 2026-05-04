@@ -25,6 +25,7 @@
     placeholder = '',
     error = false,
     disabled = false,
+    backgroundColor = '',
   } = $props();
 
   // svelte-ignore state_referenced_locally
@@ -278,7 +279,7 @@
     color_map: colorMap,
     color_cols: 7,
     custom_colors: true,
-    content_style: contentStyle,
+    content_style: backgroundColor ? `${contentStyle} body { background-color: ${backgroundColor}; }` : contentStyle,
   });
 
   onMount(() => {
