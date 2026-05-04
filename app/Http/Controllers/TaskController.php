@@ -254,7 +254,11 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        $departmentTasks = Task::forDepartment($department->id);
+        $departmentTasks = Task::query()
+            ->where(function ($q) use ($department) {
+                $q->where('department_id', $department->id)->whereNull('program_id');
+            })
+            ->orWhereHas('program', fn ($q) => $q->where('department_id', $department->id));
 
         $deptTasksCount = (clone $departmentTasks)->count();
         $deptTodoCount = (clone $departmentTasks)->todo()->count();
