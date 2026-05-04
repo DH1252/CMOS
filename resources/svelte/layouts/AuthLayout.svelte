@@ -495,14 +495,17 @@
   });
 
   onDestroy(() => {
-    window.removeEventListener('resize', handleResize);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', handleResize);
+
+      if (window.__CMOS_AUTH_PROPS__ === shell) {
+        delete window.__CMOS_AUTH_PROPS__;
+      }
+    }
+
     deferredShellBootCleanup?.();
     deferredUiCleanup?.();
     liveUpdatesCleanup?.();
-
-    if (window.__CMOS_AUTH_PROPS__ === shell) {
-      delete window.__CMOS_AUTH_PROPS__;
-    }
   });
 
   $effect(() => {

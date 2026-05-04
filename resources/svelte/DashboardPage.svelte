@@ -39,7 +39,7 @@
   });
 
   onDestroy(() => {
-    if (clockInterval) {
+    if (typeof window !== 'undefined' && clockInterval) {
       window.clearInterval(clockInterval);
     }
   });
