@@ -18,17 +18,15 @@
   } = $props();
 
   let selectedColor = $state(null);
-  let hasHydratedCustomColors = $state(false);
   let iframeRef = $state(null);
   let iframeLoaded = $state(false);
 
-  // Deep clone incoming customCss into reactive state so mutations work
-  let landingCss = $state({});
+  let landingCss = $state({ ...(values.customCss || {}) });
 
-  const activeColor = $derived(selectedColor || values.themeColor || colors[0]?.name || 'purple');
+  const activeColor = $derived(selectedColor || 'none');
 
   const selectedPalette = $derived.by(
-    () => colors.find((color) => color.name === activeColor) || colors[0] || null,
+    () => colors.find((color) => color.name === activeColor) || null,
   );
 
   const syncLandingBrandFromPreset = (name) => {
@@ -49,7 +47,6 @@
   const selectPreset = (name) => {
     selectedColor = name;
     syncLandingBrandFromPreset(name);
-    injectPreviewStyles();
   };
 
   const landingCssKeys = [
@@ -69,19 +66,6 @@
     { key: 'css_landing_brand_secondary_soft', var: 'brand-secondary-soft' },
   ];
 
-  const getLandingCssVariables = () => {
-    const vars = [];
-
-    for (const { key, var: cssVar } of landingCssKeys) {
-      const value = landingCss[key];
-      if (typeof value === 'string' && value.startsWith('#')) {
-        vars.push(`  --${cssVar}: ${value};`);
-      }
-    }
-
-    return vars.join('\n');
-  };
-
   const injectPreviewStyles = () => {
     if (!iframeRef || !iframeRef.contentDocument || !iframeLoaded) {
       return;
@@ -96,8 +80,16 @@
       doc.head.appendChild(style);
     }
 
-    const css = getLandingCssVariables();
+    const vars = [];
 
+    for (const { key, var: cssVar } of landingCssKeys) {
+      const value = landingCss[key];
+      if (typeof value === 'string' && value.startsWith('#')) {
+        vars.push(`  --${cssVar}: ${value};`);
+      }
+    }
+
+    const css = vars.join('\n');
     style.textContent = css ? `[data-theme="public"] {\n${css}\n}` : '';
   };
 
@@ -107,23 +99,20 @@
   };
 
   $effect(() => {
-    if (hasHydratedCustomColors) {
+    if (!iframeLoaded) {
       return;
     }
 
-    landingCss = { ...(values.customCss || {}) };
-    hasHydratedCustomColors = true;
-  });
-
-  $effect(() => {
-    if (hasHydratedCustomColors && iframeLoaded) {
-      injectPreviewStyles();
+    // Establish reactivity by reading every landingCss value
+    for (const { key } of landingCssKeys) {
+      landingCss[key];
     }
+
+    injectPreviewStyles();
   });
 </script>
 
 {#snippet cssInput(name, label)}
-  {@const safeValue = typeof landingCss[name] === 'string' && landingCss[name].startsWith('#') ? landingCss[name] : '#000000'}
   <label class="grid gap-2 text-sm text-foreground">
     <span class="font-medium">{label}</span>
     <div class="flex items-center gap-2">
@@ -131,10 +120,11 @@
         type="color"
         {name}
         bind:value={landingCss[name]}
-        oninput={injectPreviewStyles}
         class="h-10 w-full rounded-[8px] border border-border bg-background p-1"
       />
-      <span class="text-xs text-muted-foreground font-mono w-20">{safeValue}</span>
+      <span class="text-xs text-muted-foreground font-mono w-20">
+        {typeof landingCss[name] === 'string' && landingCss[name].startsWith('#') ? landingCss[name] : '#000000'}
+      </span>
     </div>
   </label>
 {/snippet}
@@ -177,33 +167,6 @@
                     <span class="mt-1 block text-xs text-muted-foreground">{color.primary}</span>
                   </button>
                 {/each}
-              </div>
-
-              <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
-                <label class="grid gap-2 text-sm text-foreground">
-                  <span class="font-medium">Primary</span>
-                  <input type="color" bind:value={landingCss['css_landing_brand_primary']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
-                </label>
-                <label class="grid gap-2 text-sm text-foreground">
-                  <span class="font-medium">Hover</span>
-                  <input type="color" bind:value={landingCss['css_landing_brand_hover']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
-                </label>
-                <label class="grid gap-2 text-sm text-foreground">
-                  <span class="font-medium">Soft</span>
-                  <input type="color" bind:value={landingCss['css_landing_brand_soft']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
-                </label>
-                <label class="grid gap-2 text-sm text-foreground">
-                  <span class="font-medium">Light</span>
-                  <input type="color" bind:value={landingCss['css_landing_brand_light']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
-                </label>
-                <label class="grid gap-2 text-sm text-foreground">
-                  <span class="font-medium">Secondary</span>
-                  <input type="color" bind:value={landingCss['css_landing_brand_secondary']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
-                </label>
-                <label class="grid gap-2 text-sm text-foreground">
-                  <span class="font-medium">Secondary Soft</span>
-                  <input type="color" bind:value={landingCss['css_landing_brand_secondary_soft']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
-                </label>
               </div>
 
               {#if selectedPalette}
