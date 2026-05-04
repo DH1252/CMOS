@@ -465,7 +465,7 @@ class EvaluationController extends Controller
                                 return [
                                     'label' => strtoupper($eval->evaluator_type),
                                     'tone' => $eval->evaluator_type === 'bph' ? 'primary' : 'info',
-                                    'byline' => 'oleh '.$eval->evaluator->name.' · '.$eval->created_at->format('d M Y'),
+                                    'byline' => 'oleh '.($eval->evaluator?->name ?? 'Unknown').' · '.$eval->created_at->format('d M Y'),
                                     'score' => number_format($eval->total_score, 1),
                                     'scoreColor' => $eval->grade_color,
                                     'editAction' => [
@@ -521,10 +521,10 @@ class EvaluationController extends Controller
                     'title' => 'Edit Evaluasi',
                     'description' => 'Sesuaikan penilaian untuk menjaga akurasi histori evaluasi staff pada periode ini.',
                     'staff' => [
-                        'name' => $evaluation->user->name,
-                        'email' => $evaluation->user->email,
-                        'department' => $evaluation->user->department?->name ?? '-',
-                        'avatar' => $evaluation->user->avatar_url,
+                        'name' => $evaluation->user?->name ?? '-',
+                        'email' => $evaluation->user?->email,
+                        'department' => $evaluation->user?->department?->name ?? '-',
+                        'avatar' => $evaluation->user?->avatar_url,
                     ],
                     'evaluatorType' => strtoupper($evaluation->evaluator_type),
                     'periodLabel' => \App\Models\Evaluation::getMonthLabel($evaluation->period),
@@ -580,7 +580,7 @@ class EvaluationController extends Controller
 
         $evaluation->update($validated);
 
-        ActivityLog::log('updated', "Updated evaluation for: {$evaluation->user->name}", $evaluation);
+        ActivityLog::log('updated', 'Updated evaluation for: '.($evaluation->user?->name ?? 'Unknown'), $evaluation);
 
         app(PostHogService::class)->capture((string) auth()->id(), 'evaluation_updated', [
             'evaluation_id' => $evaluation->id,
@@ -601,8 +601,8 @@ class EvaluationController extends Controller
      */
     public function destroy(Evaluation $evaluation)
     {
-        $userName = $evaluation->user->name;
-        $deptId = $evaluation->user->department_id;
+        $userName = $evaluation->user?->name ?? 'Unknown';
+        $deptId = $evaluation->user?->department_id;
         $month = $evaluation->period;
 
         ActivityLog::log('deleted', "Deleted evaluation for: {$userName}", $evaluation);

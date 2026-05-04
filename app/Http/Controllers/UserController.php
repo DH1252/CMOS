@@ -450,6 +450,10 @@ class UserController extends Controller
         $file = $request->file('csv_file');
         $handle = fopen($file->getPathname(), 'r');
 
+        if ($handle === false) {
+            return redirect()->back()->with('error', 'Gagal membaca file CSV.');
+        }
+
         // Skip header row
         $header = fgetcsv($handle);
 

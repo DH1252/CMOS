@@ -74,8 +74,8 @@ class AnnouncementController extends Controller
                         return [
                             'id' => $post->id,
                             'author' => [
-                                'name' => $post->user->name,
-                                'avatar' => $post->user->avatar_url,
+                                'name' => $post->user?->name ?? '-',
+                                'avatar' => $post->user?->avatar_url,
                             ],
                             'createdAt' => $post->created_at->toIso8601String(),
                             'content' => $post->content,
@@ -98,8 +98,8 @@ class AnnouncementController extends Controller
                                 ->values(),
                             'comments' => $post->comments->take(5)->map(fn ($comment) => [
                                 'user' => [
-                                    'name' => $comment->user->name,
-                                    'avatar' => $comment->user->avatar_url,
+                                    'name' => $comment->user?->name ?? '-',
+                                    'avatar' => $comment->user?->avatar_url,
                                 ],
                                 'content' => $comment->content,
                                 'createdAt' => $comment->created_at->toIso8601String(),
@@ -345,8 +345,8 @@ class AnnouncementController extends Controller
                 return [
                     'id' => $post->id,
                     'author' => [
-                        'name' => $post->user->name,
-                        'avatar' => $post->user->avatar_url,
+                        'name' => $post->user?->name ?? '-',
+                        'avatar' => $post->user?->avatar_url,
                     ],
                     'createdAt' => $post->created_at->toIso8601String(),
                     'content' => $post->content,
@@ -369,8 +369,8 @@ class AnnouncementController extends Controller
                         ->values(),
                     'comments' => $post->comments->take(5)->map(fn ($comment) => [
                         'user' => [
-                            'name' => $comment->user->name,
-                            'avatar' => $comment->user->avatar_url,
+                            'name' => $comment->user?->name ?? '-',
+                            'avatar' => $comment->user?->avatar_url,
                         ],
                         'content' => $comment->content,
                         'createdAt' => $comment->created_at->toIso8601String(),
