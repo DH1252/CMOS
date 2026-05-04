@@ -275,9 +275,10 @@
           </div>
 
           <div class="grid gap-4">
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
               <button type="button" onclick={() => (cssTab = 'light')} class={`h-9 rounded-[8px] border px-4 text-sm font-medium transition-colors ${cssTab === 'light' ? 'border-brand-primary bg-brand-primary text-white' : 'border-border bg-card text-foreground hover:bg-muted'}`}>Mode Terang</button>
               <button type="button" onclick={() => (cssTab = 'dark')} class={`h-9 rounded-[8px] border px-4 text-sm font-medium transition-colors ${cssTab === 'dark' ? 'border-brand-primary bg-brand-primary text-white' : 'border-border bg-card text-foreground hover:bg-muted'}`}>Mode Gelap</button>
+              <button type="button" onclick={() => (cssTab = 'landing')} class={`h-9 rounded-[8px] border px-4 text-sm font-medium transition-colors ${cssTab === 'landing' ? 'border-brand-primary bg-brand-primary text-white' : 'border-border bg-card text-foreground hover:bg-muted'}`}>Landing Page</button>
               <button type="button" onclick={() => (cssTab = 'signal')} class={`h-9 rounded-[8px] border px-4 text-sm font-medium transition-colors ${cssTab === 'signal' ? 'border-brand-primary bg-brand-primary text-white' : 'border-border bg-card text-foreground hover:bg-muted'}`}>Sinyal</button>
             </div>
 
@@ -329,6 +330,38 @@
                     {@render cssInput('css_dark_pill_text_warning', 'Teks Pill Peringatan (Gelap)', values.customCss?.dark?.css_dark_pill_text_warning)}
                     {@render cssInput('css_dark_pill_text_success', 'Teks Pill Sukses (Gelap)', values.customCss?.dark?.css_dark_pill_text_success)}
                     {@render cssInput('css_dark_pill_text_danger', 'Teks Pill Bahaya (Gelap)', values.customCss?.dark?.css_dark_pill_text_danger)}
+                  </div>
+                </div>
+              </div>
+            {:else if cssTab === 'landing'}
+              <div class="grid gap-5">
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Teks</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-3">
+                    {@render cssInput('css_landing_text_strong', 'Teks Utama', values.customCss?.landing?.css_landing_text_strong)}
+                    {@render cssInput('css_landing_text_soft', 'Teks Lembut', values.customCss?.landing?.css_landing_text_soft)}
+                    {@render cssInput('css_landing_text_muted', 'Teks Redup', values.customCss?.landing?.css_landing_text_muted)}
+                  </div>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Latar & Permukaan</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
+                    {@render cssInput('css_landing_page_bg', 'Latar Halaman', values.customCss?.landing?.css_landing_page_bg)}
+                    {@render cssInput('css_landing_page_bg_soft', 'Latar Halaman Lembut', values.customCss?.landing?.css_landing_page_bg_soft)}
+                    {@render cssInput('css_landing_panel_bg', 'Latar Panel', values.customCss?.landing?.css_landing_panel_bg)}
+                    {@render cssInput('css_landing_panel_muted', 'Panel Redup', values.customCss?.landing?.css_landing_panel_muted)}
+                    {@render cssInput('css_landing_line_soft', 'Garis Lembut', values.customCss?.landing?.css_landing_line_soft)}
+                  </div>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-foreground mb-3">Brand</h4>
+                  <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
+                    {@render cssInput('css_landing_brand_primary', 'Brand Primary', values.customCss?.landing?.css_landing_brand_primary)}
+                    {@render cssInput('css_landing_brand_hover', 'Brand Hover', values.customCss?.landing?.css_landing_brand_hover)}
+                    {@render cssInput('css_landing_brand_soft', 'Brand Soft', values.customCss?.landing?.css_landing_brand_soft)}
+                    {@render cssInput('css_landing_brand_light', 'Brand Light', values.customCss?.landing?.css_landing_brand_light)}
+                    {@render cssInput('css_landing_brand_secondary', 'Brand Secondary', values.customCss?.landing?.css_landing_brand_secondary)}
+                    {@render cssInput('css_landing_brand_secondary_soft', 'Brand Secondary Soft', values.customCss?.landing?.css_landing_brand_secondary_soft)}
                   </div>
                 </div>
               </div>

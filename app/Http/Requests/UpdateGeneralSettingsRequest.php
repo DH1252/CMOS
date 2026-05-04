@@ -18,6 +18,7 @@ class UpdateGeneralSettingsRequest extends FormRequest
         $cssKeys = array_merge(
             array_keys(ThemePalette::lightCssDefaults()),
             array_keys(ThemePalette::darkCssDefaults()),
+            array_keys(ThemePalette::landingCssDefaults()),
         );
 
         foreach ($cssKeys as $key) {
@@ -86,6 +87,20 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'css_dark_pill_text_warning' => $hex,
             'css_dark_pill_text_success' => $hex,
             'css_dark_pill_text_danger' => $hex,
+            'css_landing_text_strong' => $hex,
+            'css_landing_text_soft' => $hex,
+            'css_landing_text_muted' => $hex,
+            'css_landing_page_bg' => $hex,
+            'css_landing_page_bg_soft' => $hex,
+            'css_landing_panel_bg' => $hex,
+            'css_landing_panel_muted' => $hex,
+            'css_landing_line_soft' => $hex,
+            'css_landing_brand_primary' => $hex,
+            'css_landing_brand_hover' => $hex,
+            'css_landing_brand_soft' => $hex,
+            'css_landing_brand_light' => $hex,
+            'css_landing_brand_secondary' => $hex,
+            'css_landing_brand_secondary_soft' => $hex,
         ];
     }
 

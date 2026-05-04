@@ -53,6 +53,12 @@ class SettingController extends Controller
                                     ->mapWithKeys(fn ($default, $key) => [$key => old($key, $settings[$key]?->value ?? $default)])
                                     ->all()
                             ),
+                            'landing' => array_merge(
+                                ThemePalette::landingCssDefaults(),
+                                collect(ThemePalette::landingCssDefaults())
+                                    ->mapWithKeys(fn ($default, $key) => [$key => old($key, $settings[$key]?->value ?? $default)])
+                                    ->all()
+                            ),
                         ],
                         'evaluationPeriod' => old('evaluation_period', $settings['evaluation_period']?->value ?? 'quarterly'),
                         'periodOptions' => [
@@ -76,6 +82,7 @@ class SettingController extends Controller
         $cssKeys = array_merge(
             array_keys(ThemePalette::lightCssDefaults()),
             array_keys(ThemePalette::darkCssDefaults()),
+            array_keys(ThemePalette::landingCssDefaults()),
         );
 
         try {
