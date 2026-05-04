@@ -234,7 +234,7 @@
     <header class="border-b border-border bg-background/96">
       <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8">
         <a href={homeUrl} class="flex min-w-0 items-center gap-3 text-inherit no-underline">
-          <enhanced:img src={brandLogo} alt={organizationName} class="h-10 w-10 shrink-0 object-contain" loading="eager" fetchpriority="high" />
+          <enhanced:img src={brandLogo} alt={organizationName} class="h-10 w-auto shrink-0 object-contain" loading="eager" fetchpriority="high" sizes="40px" />
           <div class="min-w-0">
             <div class="truncate text-sm font-semibold text-foreground">{organizationName}</div>
             <div class="truncate text-sm text-muted-foreground">Kabinet Sentra Sinergi 2026</div>
@@ -311,7 +311,7 @@
             <enhanced:img
               src={himatekkomBanner}
               alt="Kabinet Sentra Sinergi"
-              class="h-56 w-full border-b border-border object-cover"
+              class="w-full aspect-video border-b border-border object-cover"
               loading="eager"
               fetchpriority="high"
               sizes="(min-width: 1024px) 24rem, 100vw"
@@ -399,14 +399,14 @@
                         <OptimizedImage
                           src={article.coverImage}
                           alt={article.title}
-                          class="h-28 w-full border-b border-border object-cover"
+                          class="aspect-video w-full border-b border-border object-cover"
                           loading="lazy"
                           decoding="async"
                           sizes="(min-width: 1280px) 18rem, (min-width: 768px) 40vw, 100vw"
                           onerror={handleImageError}
                         />
                       {:else}
-                        <div class="flex h-44 items-center justify-center border-b border-border bg-muted/40 px-5 text-sm text-muted-foreground">
+                        <div class="flex aspect-video items-center justify-center border-b border-border bg-muted/40 px-5 text-sm text-muted-foreground">
                           Publikasi resmi HIMATEKKOM ITS
                         </div>
                       {/if}
@@ -503,7 +503,7 @@
     <header class="border-b border-border/80 bg-background/92 backdrop-blur-sm">
       <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8">
         <a href={homeUrl} class="flex min-w-0 items-center gap-3 text-inherit no-underline">
-          <enhanced:img src={brandLogo} alt={organizationName} class="h-10 w-10 shrink-0 object-contain" />
+          <enhanced:img src={brandLogo} alt={organizationName} class="h-10 w-auto shrink-0 object-contain" loading="eager" sizes="40px" />
           <div class="min-w-0">
             <div class="truncate text-sm font-semibold text-foreground">{organizationName}</div>
             <div class="truncate text-sm text-muted-foreground">Papan Informasi Publik</div>
