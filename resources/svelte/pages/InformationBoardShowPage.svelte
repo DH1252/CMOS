@@ -168,8 +168,8 @@
 
   .article-content {
     margin-top: 1rem;
-    color: var(--text-strong);
     line-height: 1.82;
+    color: #1f2937;
   }
 
   .article-actions {
@@ -245,10 +245,10 @@
 
   .article-content :global(blockquote) {
     padding: 1rem 1.15rem;
-    border: 1px solid var(--line-soft);
+    border: 1px solid #e5e7eb;
     border-radius: 0.625rem;
-    background: var(--background);
-    color: var(--text-soft);
+    background: #f9fafb;
+    color: #4b5563;
   }
 
   .article-content :global(.aligncenter),
