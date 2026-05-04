@@ -52,22 +52,21 @@
     return input ? input.value : (initialValues[key] || '#000000');
   };
 
-  const buildPreviewCss = () => {
-    const vars = [];
+  const buildPreviewVars = () => {
+    const vars = {};
     for (const { key, var: cssVar } of landingCssKeys) {
       const value = getFormValue(key);
       if (typeof value === 'string' && value.startsWith('#')) {
-        vars.push(`  --${cssVar}: ${value};`);
+        vars[`--${cssVar}`] = value;
       }
     }
-    const css = vars.join('\n');
-    return css ? `[data-theme="public"] {\n${css}\n}` : '';
+    return vars;
   };
 
   const sendPreview = () => {
     if (!iframeRef || !iframeReady) return;
     try {
-      iframeRef.contentWindow?.postMessage({ type: 'preview-css', css: buildPreviewCss() }, '*');
+      iframeRef.contentWindow?.postMessage({ type: 'preview-css', vars: buildPreviewVars() }, '*');
     } catch { /* silent */ }
   };
 

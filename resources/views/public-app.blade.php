@@ -32,14 +32,13 @@
     @inertiaHead
     <script>
         window.addEventListener('message', function (e) {
-            if (e.data && e.data.type === 'preview-css') {
-                var style = document.getElementById('preview-style');
-                if (!style) {
-                    style = document.createElement('style');
-                    style.id = 'preview-style';
-                    document.head.appendChild(style);
+            if (e.data && e.data.type === 'preview-css' && e.data.vars) {
+                var html = document.documentElement;
+                for (var key in e.data.vars) {
+                    if (e.data.vars.hasOwnProperty(key)) {
+                        html.style.setProperty(key, e.data.vars[key]);
+                    }
                 }
-                style.textContent = e.data.css || '';
             }
         });
     </script>
