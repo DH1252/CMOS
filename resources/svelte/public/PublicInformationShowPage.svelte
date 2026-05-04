@@ -56,7 +56,7 @@
 
   {#if article.coverImage}
     <div class="overflow-hidden rounded-[10px] border border-border bg-card">
-      <OptimizedImage src={article.coverImage} alt={article.title} class="aspect-video w-full object-cover" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1280px) 72rem, 100vw" onerror={handleImageError} />
+      <OptimizedImage src={article.coverImage} alt={article.title} class="w-full" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1280px) 72rem, 100vw" onerror={handleImageError} />
     </div>
   {/if}
 

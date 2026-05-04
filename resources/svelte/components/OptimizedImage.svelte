@@ -51,7 +51,7 @@
       src={originalSrc}
       srcset={webpSrcset || avifSrcset}
       {alt}
-      class={className}
+      class="h-auto {className}"
       {loading}
       {decoding}
       {fetchpriority}

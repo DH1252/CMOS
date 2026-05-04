@@ -399,14 +399,14 @@
                         <OptimizedImage
                           src={article.coverImage}
                           alt={article.title}
-                          class="aspect-video w-full border-b border-border object-cover"
+                          class="w-full border-b border-border"
                           loading="lazy"
                           decoding="async"
                           sizes="(min-width: 1280px) 18rem, (min-width: 768px) 40vw, 100vw"
                           onerror={handleImageError}
                         />
                       {:else}
-                        <div class="flex aspect-video items-center justify-center border-b border-border bg-muted/40 px-5 text-sm text-muted-foreground">
+                        <div class="flex items-center justify-center border-b border-border bg-muted/40 px-5 py-12 text-sm text-muted-foreground">
                           Publikasi resmi HIMATEKKOM ITS
                         </div>
                       {/if}
