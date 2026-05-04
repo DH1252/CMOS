@@ -167,6 +167,6 @@ class SettingController extends Controller
         }
 
         return redirect()->route('settings.landing')
-            ->with('success', 'Pengaturan landing page berhasil disimpan.');
+            ->with('success', 'Pengaturan landing page berhasil disimpan dan langsung diterapkan.');
     }
 }

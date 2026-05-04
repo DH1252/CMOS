@@ -20,6 +20,8 @@
     <noscript>
         <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     </noscript>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @inertiaHead
     @if(!empty($landingCss))
     <style>
         [data-theme="public"] {
@@ -29,8 +31,6 @@
         }
     </style>
     @endif
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @inertiaHead
     <script>
         window.addEventListener('message', function (e) {
             if (e.data && e.data.type === 'preview-css') {
