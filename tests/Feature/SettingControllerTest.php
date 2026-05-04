@@ -112,6 +112,61 @@ class SettingControllerTest extends TestCase
         $response->assertSessionHasErrors(['theme_primary']);
     }
 
+    public function test_admin_can_view_landing_appearance_page(): void
+    {
+        $admin = $this->createUserWithRole('admin');
+
+        $response = $this->actingAs($admin)->get(route('settings.landing'));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->has('values.customCss')
+            ->has('colors')
+            ->where('previewUrl', route('home'))
+        );
+    }
+
+    public function test_admin_can_update_landing_colors(): void
+    {
+        $admin = $this->createUserWithRole('admin');
+
+        $response = $this->actingAs($admin)->put(route('settings.landing.update'), [
+            'css_landing_text_strong' => '#111111',
+            'css_landing_page_bg' => '#FAFAFA',
+            'css_landing_brand_primary' => '#FF0000',
+        ]);
+
+        $response->assertRedirect(route('settings.landing'));
+        $response->assertSessionHas('success');
+
+        $this->assertSame('#111111', Setting::get('css_landing_text_strong'));
+        $this->assertSame('#FAFAFA', Setting::get('css_landing_page_bg'));
+        $this->assertSame('#FF0000', Setting::get('css_landing_brand_primary'));
+    }
+
+    public function test_non_admin_cannot_update_landing_colors(): void
+    {
+        $staff = $this->createUserWithRole('staff');
+
+        $response = $this->actingAs($staff)->put(route('settings.landing.update'), [
+            'css_landing_brand_primary' => '#FF0000',
+        ]);
+
+        $response->assertForbidden();
+    }
+
+    public function test_invalid_landing_hex_is_rejected(): void
+    {
+        $admin = $this->createUserWithRole('admin');
+
+        $response = $this->from(route('settings.landing'))->actingAs($admin)->put(route('settings.landing.update'), [
+            'css_landing_brand_primary' => 'not-a-hex',
+        ]);
+
+        $response->assertRedirect(route('settings.landing'));
+        $response->assertSessionHasErrors(['css_landing_brand_primary']);
+    }
+
     private function createUserWithRole(string $roleName): User
     {
         $role = Role::create([

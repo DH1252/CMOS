@@ -109,6 +109,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/users/import/template', [UserController::class, 'downloadTemplate'])->name('users.import.template');
 
         Route::resource('users', UserController::class);
+        Route::get('/settings/landing', [SettingController::class, 'landing'])->name('settings.landing');
+        Route::put('/settings/landing', [SettingController::class, 'updateLanding'])->name('settings.landing.update');
         Route::resource('settings', SettingController::class)->only(['index', 'update']);
     });
 
