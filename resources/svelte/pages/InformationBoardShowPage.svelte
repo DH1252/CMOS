@@ -53,10 +53,10 @@
   };
 </script>
 
-<div class="article-page-wrapper" style={backgroundColor ? `background-color: ${backgroundColor};` : ''}>
+<div class="article-page-wrapper">
   <div class="row">
     <div class="col-12 col-lg-8">
-    <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border shadow-none" style={backgroundColor ? `background-color: ${backgroundColor};` : ''}>
       {#if article.coverImage}
         <img src={article.coverImage} alt={article.title} class="article-cover" loading="lazy" decoding="async" onerror={handleImageError} />
       {/if}
@@ -136,7 +136,6 @@
 
 <style>
   .article-page-wrapper {
-    min-height: 100vh;
     padding-top: 1rem;
     padding-bottom: 2rem;
   }
