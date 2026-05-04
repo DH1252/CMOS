@@ -19,6 +19,7 @@
 /public/build/
 /bootstrap/ssr/
 /public/hot
+/public/tinymce/
 
 # Laravel runtime files
 /bootstrap/cache/*.php
@@ -57,4 +58,22 @@ pnpm-debug.log*
 /boost.json
 /opencode.json
 /skills-lock.json
-.env
+
+# Common AI assistant directories
+/.cursor/
+/.cline/
+/.aider*
+/.windsurf/
+/.continue/
+/.copilot/
+
+# Development artifacts
+*.sql
+/extract-design.js
+/frontend-documentation.md
+/posthog-setup-report.md
+/reverb-start.sh
+/error_log
+/Dockerfile.coolify
+/lighthouse-desktop/
+/undefined:

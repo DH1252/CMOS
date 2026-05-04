@@ -1,12 +1,11 @@
 <script>
-  import { onMount } from 'svelte';
   import * as Card from '$lib/components/ui/card/index.js';
-  import { loadExternalScript, loadExternalStylesheet } from '$lib/external-assets.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import FormActions from '../components/FormActions.svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import TinymceEditor from '../components/TinymceEditor.svelte';
 
   let {
     title = 'Tulis Artikel',
@@ -40,14 +39,9 @@
 
   const isSelected = (value) => article.categoryIds?.map(String).includes(String(value));
   const fallbackImage = '/images/logokabinet.png';
-  const trixCssUrl = 'https://unpkg.com/trix@2.1.3/dist/trix.css';
-  const trixScriptUrl = 'https://unpkg.com/trix@2.1.3/dist/trix.umd.min.js';
   let formStateInitialized = $state(false);
   let statusValue = $state('draft');
   let publishModeValue = $state('immediately');
-  let editorReady = $state(typeof window !== 'undefined' && Boolean(window.Trix));
-  let editorError = $state('');
-  let editorElement = $state(null);
   const isPublished = $derived(statusValue === 'published');
   const isScheduled = $derived(isPublished && publishModeValue === 'scheduled');
 
@@ -68,116 +62,9 @@
 
     event.currentTarget.src = fallbackImage;
   };
-
-  const uploadAttachment = async (attachment) => {
-    if (!attachment?.file || !form.attachmentUploadUrl || !form.csrfToken) {
-      attachment?.remove?.();
-      return;
-    }
-
-    const payload = new FormData();
-    payload.append('attachment', attachment.file);
-
-    attachment.setUploadProgress(10);
-
-    try {
-      const response = await fetch(form.attachmentUploadUrl, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': form.csrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: payload,
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok || !data?.url) {
-        throw new Error(data?.message || 'Gagal mengunggah lampiran.');
-      }
-
-      attachment.setAttributes({
-        url: data.url,
-        href: data.href || data.url,
-        filename: data.filename || attachment.file.name,
-        filesize: data.filesize || attachment.file.size,
-        contentType: data.contentType || attachment.file.type,
-      });
-      attachment.setUploadProgress(100);
-    } catch (error) {
-      console.error('Attachment upload failed.', error);
-      attachment.remove();
-
-      if (window.Swal) {
-        void window.Swal.fire({
-          icon: 'error',
-          title: 'Upload gagal',
-          text: error?.message || 'Lampiran tidak dapat diunggah. Coba lagi.',
-        });
-        return;
-      }
-
-      window.alert(error?.message || 'Lampiran tidak dapat diunggah. Coba lagi.');
-    }
-  };
-
-  $effect(() => {
-    if (!editorReady || !editorElement) {
-      return;
-    }
-
-    const handleAttachmentAdd = (event) => {
-      const attachment = event.attachment;
-
-      if (!attachment?.file) {
-        return;
-      }
-
-      void uploadAttachment(attachment);
-    };
-
-    editorElement.addEventListener('trix-attachment-add', handleAttachmentAdd);
-
-    return () => {
-      editorElement?.removeEventListener('trix-attachment-add', handleAttachmentAdd);
-    };
-  });
-
-  onMount(() => {
-    let active = true;
-
-    const loadEditorAssets = async () => {
-      try {
-        await Promise.all([
-          loadExternalStylesheet(trixCssUrl),
-          loadExternalScript(trixScriptUrl, 'Trix'),
-        ]);
-
-        if (active) {
-          editorReady = true;
-          editorError = '';
-        }
-      } catch (error) {
-        console.error('Failed to load Trix assets.', error);
-
-        if (active) {
-          editorError = 'Editor artikel tidak dapat dimuat. Gunakan textarea sementara di bawah ini.';
-        }
-      }
-    };
-
-    if (!editorReady) {
-      void loadEditorAssets();
-    }
-
-    return () => {
-      active = false;
-    };
-  });
 </script>
 
-<div class="mx-auto max-w-6xl">
+<div class="w-full">
     <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
       <Card.Header class="border-b border-border/70 pb-4">
         <PageHeader {title} {description} {icon} />
@@ -232,27 +119,29 @@
                   <span class="editor-required">*</span>
                 </Label>
                 <div class="editor-rich-frame">
-                  {#if editorReady}
-                    <input id={editorId} type="hidden" name="content" value={article.content || ''} />
-                    <trix-editor bind:this={editorElement} input={editorId} class={errors.content ? 'is-invalid' : ''}></trix-editor>
-                  {:else}
-                    <div class="editor-toolbar-placeholder" aria-hidden="true"></div>
-                    <Textarea
-                      id={`${editorId}-fallback`}
-                      name="content"
-                      rows="12"
-                      class="editor-textarea editor-textarea-editor"
-                      aria-invalid={Boolean(errors.content || editorError)}
-                      value={article.content || ''}
-                      disabled={!editorError}
-                    />
-
-                    {#if editorError}
-                      <div class="editor-error" role="alert">{editorError}</div>
-                    {:else}
-                      <div class="editor-helper">Memuat editor artikel...</div>
-                    {/if}
-                  {/if}
+                  <TinymceEditor
+                    id={editorId}
+                    name="content"
+                    content={article.content || ''}
+                    tools={[
+                      'undo', 'redo',
+                      'fontFamily',
+                      'heading',
+                      'bold', 'italic', 'underline', 'strike',
+                      'textColor', 'highlight',
+                      'subscript', 'superscript',
+                      'clearFormat',
+                      'alignLeft', 'alignCenter', 'alignRight', 'alignJustify',
+                      'bulletList', 'orderedList',
+                      'blockquote', 'codeBlock',
+                      'link', 'image', 'horizontalRule',
+                      'table',
+                    ]}
+                    uploadUrl={form.attachmentUploadUrl}
+                    csrfToken={form.csrfToken}
+                    error={Boolean(errors.content)}
+                    placeholder="Tulis konten artikel..."
+                  />
                 </div>
 
                 {#if errors.content}
@@ -386,29 +275,6 @@
     display: none;
   }
 
-  .editor-helper {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-  }
-
-  .editor-rich-frame {
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  .editor-toolbar-placeholder {
-    height: 2.5rem;
-    border: 1px solid var(--line-soft);
-    border-radius: 0.625rem;
-    background: color-mix(in srgb, var(--muted) 58%, transparent);
-  }
-
-  .editor-textarea-editor {
-    min-height: 18rem;
-    height: 22rem;
-    resize: vertical;
-  }
-
   .editor-label {
     font-size: 0.95rem;
     font-weight: 500;
@@ -532,22 +398,6 @@
     background: color-mix(in srgb, var(--signal-danger) 12%, white);
     color: color-mix(in srgb, var(--signal-danger) 80%, black);
     border-color: color-mix(in srgb, var(--signal-danger) 24%, var(--line-soft));
-  }
-
-  :global(trix-editor) {
-    min-height: 18rem;
-    height: 22rem;
-    border: 1px solid var(--line-soft);
-    border-radius: 0.625rem;
-    background: var(--background);
-    color: var(--text-strong);
-    overflow-y: auto;
-  }
-
-  :global(trix-editor:focus) {
-    outline: none;
-    border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--line-soft));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
   }
 
   @media (max-width: 1023px) {

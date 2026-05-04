@@ -321,6 +321,7 @@ class InformationBoardController extends Controller
     {
         $this->authorizeEdit($informationBoard, request()->user());
         $categories = InformationCategory::orderBy('name')->get();
+        $normalizedContent = $this->normalizeImageUrls($informationBoard->content);
 
         return \Inertia\Inertia::render(
             'pages/InformationBoardEditorPage',
@@ -342,7 +343,7 @@ class InformationBoardController extends Controller
                     'article' => [
                         'title' => old('title', $informationBoard->title),
                         'excerpt' => old('excerpt', $informationBoard->excerpt),
-                        'content' => old('content', $informationBoard->content),
+                        'content' => old('content', $normalizedContent),
                         'status' => old('status', $informationBoard->status),
                         'publishMode' => old('publish_mode', $informationBoard->published_at?->isFuture() ? 'scheduled' : 'immediately'),
                         'publishedAt' => old('published_at', optional($informationBoard->published_at)?->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->format('Y-m-d\\TH:i')),
@@ -382,7 +383,7 @@ class InformationBoardController extends Controller
                 ];
 
                 return $props;
-            })(compact('informationBoard', 'categories')),
+            })(compact('informationBoard', 'categories', 'normalizedContent')),
         );
     }
 
@@ -474,9 +475,106 @@ class InformationBoardController extends Controller
 
     private function sanitizeHtml(string $content): string
     {
-        $clean = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $content) ?? '';
+        $clean = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $content) ?? '';
+        $clean = preg_replace('#<style\b[^>]*>.*?</style>#is', '', $clean) ?? '';
 
-        return strip_tags($clean, '<p><br><strong><b><em><i><u><ul><ol><li><a><h1><h2><h3><h4><blockquote><figure><figcaption><img><action-text-attachment>');
+        $allowedTags = '<p><br><strong><b><em><i><u><s><del><strike><ul><ol><li><a><h1><h2><h3><h4><h5><h6><blockquote><figure><figcaption><img><pre><code><hr><table><thead><tbody><tr><td><th><colgroup><col><span><mark><sup><sub><action-text-attachment>';
+        $clean = strip_tags($clean, $allowedTags);
+
+        $allowedAttrs = [
+            'a' => ['href', 'title', 'target'],
+            'img' => ['src', 'alt', 'title', 'style', 'width', 'height', 'class'],
+            'p' => ['style'],
+            'h1' => ['style'], 'h2' => ['style'], 'h3' => ['style'],
+            'h4' => ['style'], 'h5' => ['style'], 'h6' => ['style'],
+            'span' => ['style'],
+            'mark' => ['style'],
+            'blockquote' => ['style'],
+            'ul' => ['style'],
+            'ol' => ['style'],
+            'li' => ['style'],
+            'table' => ['style'],
+            'td' => ['style'],
+            'th' => ['style'],
+            'tr' => ['style'],
+            'pre' => ['style', 'class'],
+            'code' => ['style', 'class'],
+        ];
+
+        $allowedCss = ['text-align', 'color', 'background-color', 'font-family', 'text-decoration', 'width', 'height', 'border-collapse', 'border', 'padding', 'margin', 'font-size'];
+
+        $clean = preg_replace_callback(
+            '#<([a-z][a-z0-9]*)\b([^>]*)>#i',
+            function (array $matches) use ($allowedAttrs, $allowedCss): string {
+                $tag = strtolower($matches[1]);
+                $attrsRaw = $matches[2];
+                $safe = [];
+
+                $tagAllowed = $allowedAttrs[$tag] ?? [];
+
+                foreach ($tagAllowed as $attrName) {
+                    $pattern = '#\b'.preg_quote($attrName, '#').'\s*=\s*(["\'])(.*?)\1#i';
+                    if (! preg_match($pattern, $attrsRaw, $m)) {
+                        continue;
+                    }
+
+                    $value = $m[2];
+
+                    if ($attrName === 'style') {
+                        $value = $this->sanitizeStyle($value, $allowedCss);
+                        if ($value === '') {
+                            continue;
+                        }
+                    } elseif (in_array($attrName, ['href', 'src'], true)) {
+                        if (str_starts_with(strtolower(trim($value)), 'javascript:')) {
+                            continue;
+                        }
+                        $value = filter_var($value, FILTER_SANITIZE_URL) ?: $value;
+                    }
+
+                    $safe[] = $attrName.'="'.htmlspecialchars($value, ENT_QUOTES, 'UTF-8').'"';
+                }
+
+                return '<'.$tag.($safe === [] ? '' : ' '.implode(' ', $safe)).'>';
+            },
+            $clean
+        );
+
+        return $clean;
+    }
+
+    private function sanitizeStyle(string $style, array $allowedProperties): string
+    {
+        $declarations = array_filter(array_map('trim', explode(';', $style)));
+        $clean = [];
+
+        foreach ($declarations as $declaration) {
+            $parts = explode(':', $declaration, 2);
+            if (count($parts) !== 2) {
+                continue;
+            }
+
+            $property = strtolower(trim($parts[0]));
+            $value = trim($parts[1]);
+
+            if (! in_array($property, $allowedProperties, true)) {
+                continue;
+            }
+
+            $lowerValue = strtolower($value);
+            if (str_contains($lowerValue, 'javascript:')
+                || str_contains($lowerValue, 'expression(')
+                || str_contains($lowerValue, 'behavior:')
+                || str_contains($lowerValue, '-moz-binding')
+                || str_contains($lowerValue, 'url(')
+            ) {
+                continue;
+            }
+
+            $clean[] = $property.': '.$value;
+        }
+
+        return implode('; ', $clean);
     }
 
     private function deleteCoverImage(?string $path): void
@@ -494,5 +592,14 @@ class InformationBoardController extends Controller
         if (is_file($legacyPublicPath)) {
             @unlink($legacyPublicPath);
         }
+    }
+
+    private function normalizeImageUrls(?string $content): string
+    {
+        if (! $content) {
+            return '';
+        }
+
+        return str_replace(['src="../storage/', "src='../storage/"], ['src="/storage/', "src='/storage/"], $content);
     }
 }
