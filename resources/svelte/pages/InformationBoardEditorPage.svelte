@@ -35,6 +35,7 @@
     cancelAction = null,
     dangerAction = null,
     editorId = 'information-board-content',
+    backgroundColor = '',
   } = $props();
 
   const isSelected = (value) => article.categoryIds?.map(String).includes(String(value));
@@ -141,6 +142,7 @@
                     csrfToken={form.csrfToken}
                     error={Boolean(errors.content)}
                     placeholder="Tulis konten artikel..."
+                    {backgroundColor}
                   />
                 </div>
 
