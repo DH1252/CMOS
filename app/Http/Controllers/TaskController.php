@@ -85,6 +85,12 @@ class TaskController extends Controller
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
+    /**
+     * Build kanban board payload for JSON and Inertia responses.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     private function boardPayload(array $data): array
     {
         return $data;
@@ -109,6 +115,40 @@ class TaskController extends Controller
 
         $users = User::active()->with('role')->orderBy('name')->get();
 
+        $statusLabels = [
+            'todo' => 'To Do',
+            'in_progress' => 'In Progress',
+            'pending' => 'Pending',
+            'done' => 'Done',
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'title' => 'Global Tasks',
+                'description' => 'Task lintas departemen.',
+                'refreshUrl' => route('tasks.global'),
+                'context' => [
+                    'type' => 'global',
+                    'typeId' => null,
+                ],
+                'endpoints' => [
+                    'storeInline' => route('tasks.inline.store'),
+                    'taskBase' => url('/tasks'),
+                ],
+                'users' => $users->map(fn ($user) => [
+                    'value' => $user->id,
+                    'label' => $user->name.' ('.ucfirst($user->role?->name ?? 'user').')',
+                ])->values(),
+                'columns' => collect(Task::STATUSES)->map(function ($status) use ($statusLabels, $tasks) {
+                    return [
+                        'status' => $status,
+                        'label' => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)),
+                        'tasks' => collect($tasks->get($status, collect()))->map(fn ($task) => $this->formatTask($task))->values(),
+                    ];
+                })->values(),
+            ]);
+        }
+
         $payload = $this->boardPayload([
             'tasks' => $tasks,
             'users' => $users,
@@ -118,10 +158,6 @@ class TaskController extends Controller
             'type' => 'global',
             'typeId' => null,
         ]);
-
-        if ($request->expectsJson()) {
-            return response()->json($payload);
-        }
 
         return \Inertia\Inertia::render(
             'pages/TaskBoardPage',
@@ -145,13 +181,6 @@ class TaskController extends Controller
                 } else {
                     $breadcrumbs[] = ['label' => 'Global Tasks'];
                 }
-
-                $statusLabels = [
-                    'todo' => 'To Do',
-                    'in_progress' => 'In Progress',
-                    'pending' => 'Pending',
-                    'done' => 'Done',
-                ];
 
                 $props = [
                     'title' => $title,
@@ -297,6 +326,40 @@ class TaskController extends Controller
 
         $users = User::active()->with('role')->orderBy('name')->get();
 
+        $statusLabels = [
+            'todo' => 'To Do',
+            'in_progress' => 'In Progress',
+            'pending' => 'Pending',
+            'done' => 'Done',
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'title' => "Tugas {$department->name}",
+                'description' => "Board {$department->name}.",
+                'refreshUrl' => route('tasks.department.tasks', $department),
+                'context' => [
+                    'type' => 'department',
+                    'typeId' => $department->id,
+                ],
+                'endpoints' => [
+                    'storeInline' => route('tasks.inline.store'),
+                    'taskBase' => url('/tasks'),
+                ],
+                'users' => $users->map(fn ($user) => [
+                    'value' => $user->id,
+                    'label' => $user->name.' ('.ucfirst($user->role?->name ?? 'user').')',
+                ])->values(),
+                'columns' => collect(Task::STATUSES)->map(function ($status) use ($statusLabels, $tasks) {
+                    return [
+                        'status' => $status,
+                        'label' => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)),
+                        'tasks' => collect($tasks->get($status, collect()))->map(fn ($task) => $this->formatTask($task))->values(),
+                    ];
+                })->values(),
+            ]);
+        }
+
         $payload = $this->boardPayload([
             'tasks' => $tasks,
             'users' => $users,
@@ -307,10 +370,6 @@ class TaskController extends Controller
             'typeId' => $department->id,
             'department' => $department,
         ]);
-
-        if ($request->expectsJson()) {
-            return response()->json($payload);
-        }
 
         return \Inertia\Inertia::render(
             'pages/TaskBoardPage',
@@ -334,13 +393,6 @@ class TaskController extends Controller
                 } else {
                     $breadcrumbs[] = ['label' => 'Global Tasks'];
                 }
-
-                $statusLabels = [
-                    'todo' => 'To Do',
-                    'in_progress' => 'In Progress',
-                    'pending' => 'Pending',
-                    'done' => 'Done',
-                ];
 
                 $props = [
                     'title' => $title,
@@ -410,6 +462,40 @@ class TaskController extends Controller
 
         $users = User::active()->with('role')->orderBy('name')->get();
 
+        $statusLabels = [
+            'todo' => 'To Do',
+            'in_progress' => 'In Progress',
+            'pending' => 'Pending',
+            'done' => 'Done',
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'title' => $program->name,
+                'description' => "Task {$program->name}.",
+                'refreshUrl' => route('tasks.program', $program),
+                'context' => [
+                    'type' => 'program',
+                    'typeId' => $program->id,
+                ],
+                'endpoints' => [
+                    'storeInline' => route('tasks.inline.store'),
+                    'taskBase' => url('/tasks'),
+                ],
+                'users' => $users->map(fn ($user) => [
+                    'value' => $user->id,
+                    'label' => $user->name.' ('.ucfirst($user->role?->name ?? 'user').')',
+                ])->values(),
+                'columns' => collect(Task::STATUSES)->map(function ($status) use ($statusLabels, $tasks) {
+                    return [
+                        'status' => $status,
+                        'label' => $statusLabels[$status] ?? ucfirst(str_replace('_', ' ', $status)),
+                        'tasks' => collect($tasks->get($status, collect()))->map(fn ($task) => $this->formatTask($task))->values(),
+                    ];
+                })->values(),
+            ]);
+        }
+
         $payload = $this->boardPayload([
             'tasks' => $tasks,
             'users' => $users,
@@ -420,10 +506,6 @@ class TaskController extends Controller
             'typeId' => $program->id,
             'program' => $program,
         ]);
-
-        if ($request->expectsJson()) {
-            return response()->json($payload);
-        }
 
         return \Inertia\Inertia::render(
             'pages/TaskBoardPage',
@@ -447,13 +529,6 @@ class TaskController extends Controller
                 } else {
                     $breadcrumbs[] = ['label' => 'Global Tasks'];
                 }
-
-                $statusLabels = [
-                    'todo' => 'To Do',
-                    'in_progress' => 'In Progress',
-                    'pending' => 'Pending',
-                    'done' => 'Done',
-                ];
 
                 $props = [
                     'title' => $title,

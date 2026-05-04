@@ -125,7 +125,7 @@ class RealtimeSnapshotTest extends TestCase
             'description' => 'Task global untuk board realtime.',
             'program_id' => null,
             'department_id' => null,
-            'assigned_to' => null,
+            'assigned_to' => $user->id,
             'created_by' => $user->id,
             'status' => 'todo',
             'sort_order' => 1,
