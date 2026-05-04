@@ -257,7 +257,9 @@ class TaskController extends Controller
         $departmentTasks = Task::forDepartment($department->id);
 
         $deptTasksCount = (clone $departmentTasks)->count();
-        $deptPendingCount = (clone $departmentTasks)->where('status', '!=', 'done')->count();
+        $deptTodoCount = (clone $departmentTasks)->todo()->count();
+        $deptInProgressCount = (clone $departmentTasks)->inProgress()->count();
+        $deptPendingCount = (clone $departmentTasks)->pending()->count();
         $deptDoneCount = (clone $departmentTasks)->done()->count();
 
         return \Inertia\Inertia::render(
@@ -286,7 +288,9 @@ class TaskController extends Controller
                             'progress' => $departmentProgress,
                             'stats' => [
                                 ['icon' => 'fas fa-check', 'label' => "{$deptDoneCount} selesai", 'tone' => 'success'],
-                                ['icon' => 'fas fa-clock', 'label' => "{$deptPendingCount} aktif", 'tone' => 'warning'],
+                                ['icon' => 'fas fa-spinner', 'label' => "{$deptInProgressCount} dikerjakan", 'tone' => 'primary'],
+                                ['icon' => 'fas fa-pause', 'label' => "{$deptPendingCount} tertunda", 'tone' => 'warning'],
+                                ['icon' => 'fas fa-list', 'label' => "{$deptTodoCount} belum mulai", 'tone' => 'secondary'],
                             ],
                         ],
                     ], $programs->map(fn ($program) => [
@@ -308,7 +312,7 @@ class TaskController extends Controller
                 ];
 
                 return $props;
-            })(compact('department', 'programs', 'deptTasksCount', 'deptPendingCount', 'deptDoneCount')),
+            })(compact('department', 'programs', 'deptTasksCount', 'deptTodoCount', 'deptInProgressCount', 'deptPendingCount', 'deptDoneCount')),
         );
     }
 
