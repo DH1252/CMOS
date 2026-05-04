@@ -198,6 +198,35 @@
     a { color: #2563eb; text-decoration: underline; }
   `;
 
+  const colorMap = [
+    '000000', 'Black',
+    '4B5563', 'Gray',
+    '9CA3AF', 'Light Gray',
+    'E5E7EB', 'Silver',
+    'FFFFFF', 'White',
+    'EF4444', 'Red',
+    'F97316', 'Orange',
+    'F59E0B', 'Amber',
+    '84CC16', 'Lime',
+    '22C55E', 'Green',
+    '14B8A6', 'Teal',
+    '06B6D4', 'Cyan',
+    '3B82F6', 'Blue',
+    '6366F1', 'Indigo',
+    '8B5CF6', 'Violet',
+    'A855F7', 'Purple',
+    'D946EF', 'Fuchsia',
+    'EC4899', 'Pink',
+    'F43F5E', 'Rose',
+    '78350F', 'Brown',
+    'B45309', 'Dark Orange',
+    '1E3A5F', 'Navy',
+    '064E3B', 'Dark Green',
+    '7F1D1D', 'Dark Red',
+    '312E81', 'Dark Indigo',
+    '701A75', 'Dark Purple',
+  ];
+
   const conf = $derived({
     height: 500,
     min_height: 300,
@@ -246,6 +275,9 @@
       { text: 'SQL', value: 'sql' },
       { text: 'Bash', value: 'bash' },
     ],
+    color_map: colorMap,
+    color_cols: 7,
+    custom_colors: true,
     content_style: contentStyle,
   });
 
