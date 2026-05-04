@@ -56,31 +56,33 @@
 <div class="article-page-wrapper">
   <div class="row">
     <div class="col-12 col-lg-8">
-    <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border shadow-none" style={backgroundColor ? `background-color: ${backgroundColor};` : ''}>
-      {#if article.coverImage}
-        <img src={article.coverImage} alt={article.title} class="article-cover" loading="lazy" decoding="async" onerror={handleImageError} />
-      {/if}
-
-      <Card.Content class="article-body pt-5">
-        <div class="article-topline">
-          <div class="article-badges">
-            {#each article.badges || [] as badge, index (badge.label || index)}
-              <StatusBadge label={badge.label} icon={badge.icon || ''} tone={badge.tone || 'secondary'} />
-            {/each}
-          </div>
-
-          <div class="article-metadata">
-            {#each article.metadata || [] as item, index (item.label || index)}
-              <span>
-                {#if item.icon}
-                  <i class={item.icon}></i>
-                {/if}
-                {item.icon === 'fas fa-calendar' ? formatDateTime(item.label) : item.label}
-              </span>
-            {/each}
-          </div>
+    <Card.Root class="article-meta-shell animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+      <Card.Content class="article-meta-body">
+        <div class="article-badges">
+          {#each article.badges || [] as badge, index (badge.label || index)}
+            <StatusBadge label={badge.label} icon={badge.icon || ''} tone={badge.tone || 'secondary'} />
+          {/each}
         </div>
 
+        <div class="article-metadata">
+          {#each article.metadata || [] as item, index (item.label || index)}
+            <span>
+              {#if item.icon}
+                <i class={item.icon}></i>
+              {/if}
+              {item.icon === 'fas fa-calendar' ? formatDateTime(item.label) : item.label}
+            </span>
+          {/each}
+        </div>
+      </Card.Content>
+    </Card.Root>
+
+    {#if article.coverImage}
+      <img src={article.coverImage} alt={article.title} class="article-cover" loading="lazy" decoding="async" onerror={handleImageError} />
+    {/if}
+
+    <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border shadow-none" style={backgroundColor ? `background-color: ${backgroundColor};` : ''}>
+      <Card.Content class="article-body pt-5">
         <PageHeader title={article.title} icon="fas fa-newspaper" headingTag="h2" compact={true} />
 
         {@html `<style>.article-content { ${tinymceBaseStyle.replace(/body\s*\{/g, '& {').replace(/@import[^;]+;/g, '')} } .article-content { ${tinymceAlignmentStyle} }</style>`}
@@ -154,12 +156,17 @@
     padding: 1.5rem;
   }
 
-  .article-topline {
+  .article-meta-shell {
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+
+  .article-meta-body {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
     align-items: flex-start;
-    margin-bottom: 1rem;
+    padding: 1rem 1.5rem;
   }
 
   .article-badges,
@@ -234,7 +241,7 @@
   }
 
   @media (max-width: 767px) {
-    .article-topline {
+    .article-meta-body {
       flex-direction: column;
     }
 
