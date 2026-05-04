@@ -81,7 +81,7 @@ class ProfileController extends Controller
 
             // Store new avatar
             $file = $request->file('avatar');
-            $filename = 'avatar_'.$user->id.'_'.time().'.'.$file->getClientOriginalExtension();
+            $filename = 'avatar_'.$user->id.'_'.time().'.'.$file->extension();
             $file->storeAs('avatars', $filename, 'public');
             $user->avatar = $filename;
         }
