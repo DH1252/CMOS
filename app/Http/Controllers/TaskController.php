@@ -80,7 +80,18 @@ class TaskController extends Controller
     }
 
     /**
-     * Global tasks kanban board
+     * Build kanban board payload for JSON and Inertia responses.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function boardPayload(array $data): array
+    {
+        return $data;
+    }
+
+    /**
+     * Show global tasks kanban board
      */
     public function global(Request $request)
     {
@@ -98,19 +109,15 @@ class TaskController extends Controller
 
         $users = User::active()->with('role')->orderBy('name')->get();
 
-        $payload = $this->boardPayload(
-            title: 'Global Tasks',
-            description: 'Task lintas departemen untuk sinkronisasi kerja organisasi.',
-            type: 'global',
-            typeId: null,
-            users: $users,
-            tasks: $tasks,
-            breadcrumbs: [
-                ['label' => 'Tasks', 'href' => route('tasks.index')],
-                ['label' => 'Global Tasks'],
-            ],
-            refreshUrl: route('tasks.global'),
-        );
+        $payload = $this->boardPayload([
+            'tasks' => $tasks,
+            'users' => $users,
+            'title' => 'Global Tasks',
+            'backUrl' => route('tasks.index'),
+            'createUrl' => route('tasks.create', ['type' => 'global']),
+            'type' => 'global',
+            'typeId' => null,
+        ]);
 
         if ($request->expectsJson()) {
             return response()->json($payload);
@@ -194,15 +201,7 @@ class TaskController extends Controller
                 ];
 
                 return $props;
-            })([
-                'tasks' => $tasks,
-                'users' => $users,
-                'title' => 'Global Tasks',
-                'backUrl' => route('tasks.index'),
-                'createUrl' => route('tasks.create', ['type' => 'global']),
-                'type' => 'global',
-                'typeId' => null,
-            ]),
+            })($payload),
         );
     }
 
@@ -298,20 +297,16 @@ class TaskController extends Controller
 
         $users = User::active()->with('role')->orderBy('name')->get();
 
-        $payload = $this->boardPayload(
-            title: "Tugas {$department->name}",
-            description: "Papan kerja khusus untuk {$department->name}.",
-            type: 'department',
-            typeId: $department->id,
-            users: $users,
-            tasks: $tasks,
-            breadcrumbs: [
-                ['label' => 'Tasks', 'href' => route('tasks.index')],
-                ['label' => $department->name, 'href' => route('tasks.department', $department)],
-                ['label' => 'Tugas Departemen'],
-            ],
-            refreshUrl: route('tasks.department.tasks', $department),
-        );
+        $payload = $this->boardPayload([
+            'tasks' => $tasks,
+            'users' => $users,
+            'title' => "Tugas {$department->name}",
+            'backUrl' => route('tasks.department', $department),
+            'createUrl' => route('tasks.create', ['type' => 'department', 'id' => $department->id]),
+            'type' => 'department',
+            'typeId' => $department->id,
+            'department' => $department,
+        ]);
 
         if ($request->expectsJson()) {
             return response()->json($payload);
@@ -395,16 +390,7 @@ class TaskController extends Controller
                 ];
 
                 return $props;
-            })([
-                'tasks' => $tasks,
-                'users' => $users,
-                'title' => "Tugas {$department->name}",
-                'backUrl' => route('tasks.department', $department),
-                'createUrl' => route('tasks.create', ['type' => 'department', 'id' => $department->id]),
-                'type' => 'department',
-                'typeId' => $department->id,
-                'department' => $department,
-            ]),
+            })($payload),
         );
     }
 
@@ -424,20 +410,16 @@ class TaskController extends Controller
 
         $users = User::active()->with('role')->orderBy('name')->get();
 
-        $payload = $this->boardPayload(
-            title: $program->name,
-            description: "Pantau seluruh task untuk program {$program->name}.",
-            type: 'program',
-            typeId: $program->id,
-            users: $users,
-            tasks: $tasks,
-            breadcrumbs: [
-                ['label' => 'Tasks', 'href' => route('tasks.index')],
-                ['label' => $program->department->name, 'href' => route('tasks.department', $program->department)],
-                ['label' => $program->name],
-            ],
-            refreshUrl: route('tasks.program', $program),
-        );
+        $payload = $this->boardPayload([
+            'tasks' => $tasks,
+            'users' => $users,
+            'title' => $program->name,
+            'backUrl' => route('tasks.department', $program->department),
+            'createUrl' => route('tasks.create', ['type' => 'program', 'id' => $program->id]),
+            'type' => 'program',
+            'typeId' => $program->id,
+            'program' => $program,
+        ]);
 
         if ($request->expectsJson()) {
             return response()->json($payload);
@@ -521,16 +503,7 @@ class TaskController extends Controller
                 ];
 
                 return $props;
-            })([
-                'tasks' => $tasks,
-                'users' => $users,
-                'title' => $program->name,
-                'backUrl' => route('tasks.department', $program->department),
-                'createUrl' => route('tasks.create', ['type' => 'program', 'id' => $program->id]),
-                'type' => 'program',
-                'typeId' => $program->id,
-                'program' => $program,
-            ]),
+            })($payload),
         );
     }
 
