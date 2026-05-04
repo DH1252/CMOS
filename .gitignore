@@ -53,6 +53,7 @@ pnpm-debug.log*
 /.kilo/kilo.json
 /.kilo/node_modules/
 /.kilo/package.json
+/.kilo/package-lock.json
 /.kilo/plans/
 /.kilo/worktrees/
 /boost.json
@@ -66,6 +67,14 @@ pnpm-debug.log*
 /.windsurf/
 /.continue/
 /.copilot/
+/.claude/
+/.posthog/
+
+# AI agent instruction files
+/CLAUDE.md
+/GEMINI.md
+/HIMATEKKOM_Frontend_Spec_v4.md
+/dashboard-login-snapshot.md
 
 # Development artifacts
 *.sql
