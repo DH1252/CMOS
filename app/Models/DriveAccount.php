@@ -28,6 +28,11 @@ class DriveAccount extends Model
         return $this->belongsTo(Department::class);
     }
 
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

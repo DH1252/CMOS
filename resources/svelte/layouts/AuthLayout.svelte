@@ -89,6 +89,11 @@
 
   const applyThemeMode = (value) => {
     themeMode = value;
+
+    if (typeof document === 'undefined') {
+      return;
+    }
+
     document.documentElement.setAttribute('data-theme', value);
   };
 
@@ -97,11 +102,19 @@
       return;
     }
 
+    if (typeof document === 'undefined') {
+      return;
+    }
+
     document.documentElement.setAttribute('data-brand', value);
   };
 
   const applyThemeVariables = (variables) => {
     if (!variables || typeof variables !== 'object') {
+      return;
+    }
+
+    if (typeof document === 'undefined') {
       return;
     }
 
@@ -136,6 +149,10 @@
   };
 
   const handleResize = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     if (window.innerWidth >= 1024) {
       isSidebarOpen = false;
     }
@@ -408,6 +425,10 @@
   };
 
   const toggleThemeMode = () => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
     const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
     const next = current === 'dark' ? 'light' : 'dark';
     persistThemeMode(next);
