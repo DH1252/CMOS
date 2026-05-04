@@ -157,6 +157,7 @@ class TaskController extends Controller
             'createUrl' => route('tasks.create', ['type' => 'global']),
             'type' => 'global',
             'typeId' => null,
+            'statusLabels' => $statusLabels,
         ]);
 
         return \Inertia\Inertia::render(
@@ -369,6 +370,7 @@ class TaskController extends Controller
             'type' => 'department',
             'typeId' => $department->id,
             'department' => $department,
+            'statusLabels' => $statusLabels,
         ]);
 
         return \Inertia\Inertia::render(
@@ -505,6 +507,7 @@ class TaskController extends Controller
             'type' => 'program',
             'typeId' => $program->id,
             'program' => $program,
+            'statusLabels' => $statusLabels,
         ]);
 
         return \Inertia\Inertia::render(
