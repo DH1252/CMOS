@@ -168,8 +168,114 @@
 
   .article-content {
     margin-top: 1rem;
-    line-height: 1.82;
+    font-family: 'Public Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
     color: #1f2937;
+  }
+
+  .article-content :global(p) {
+    margin: 0 0 0.6rem 0;
+  }
+
+  .article-content :global(h1) {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.6rem 0;
+    line-height: 1.3;
+  }
+
+  .article-content :global(h2) {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.35;
+  }
+
+  .article-content :global(h3) {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.45rem 0;
+    line-height: 1.4;
+  }
+
+  .article-content :global(h4) {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.4rem 0;
+  }
+
+  .article-content :global(ul),
+  .article-content :global(ol) {
+    padding-left: 1.25rem;
+    margin: 0 0 0.6rem 0;
+  }
+
+  .article-content :global(li) {
+    margin: 0 0 0.25rem 0;
+  }
+
+  .article-content :global(blockquote) {
+    border-left: 3px solid #e2e8f0;
+    padding-left: 0.75rem;
+    margin: 0 0 0.6rem 0;
+    font-style: italic;
+    color: #64748b;
+  }
+
+  .article-content :global(pre) {
+    background: #f1f5f9;
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.5rem;
+    margin: 0 0 0.6rem 0;
+    overflow-x: auto;
+  }
+
+  .article-content :global(code) {
+    background: #f1f5f9;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+  }
+
+  .article-content :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.375rem;
+    display: block;
+    margin: 0.5rem 0;
+  }
+
+  .article-content :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 0.6rem 0;
+    font-size: 0.9rem;
+  }
+
+  .article-content :global(th),
+  .article-content :global(td) {
+    border: 1px solid #e2e8f0;
+    padding: 0.4rem 0.6rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .article-content :global(th) {
+    background: #f8fafc;
+    font-weight: 600;
+  }
+
+  .article-content :global(hr) {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 1rem 0;
+  }
+
+  .article-content :global(a) {
+    color: #2563eb;
+    text-decoration: underline;
   }
 
   .article-actions {
@@ -224,31 +330,6 @@
   .latest-article-date {
     font-size: 0.85rem;
     color: var(--text-muted);
-  }
-
-  .article-content :global(p),
-  .article-content :global(ul),
-  .article-content :global(ol),
-  .article-content :global(blockquote),
-  .article-content :global(h1),
-  .article-content :global(h2),
-  .article-content :global(h3),
-  .article-content :global(h4) {
-    margin-top: 0;
-    margin-bottom: 1rem;
-  }
-
-  .article-content :global(a) {
-    text-decoration: underline;
-    text-underline-offset: 0.18rem;
-  }
-
-  .article-content :global(blockquote) {
-    padding: 1rem 1.15rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.625rem;
-    background: #f9fafb;
-    color: #4b5563;
   }
 
   .article-content :global(.aligncenter),
