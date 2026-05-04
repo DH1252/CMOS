@@ -20,8 +20,9 @@
   let selectedColor = $state(null);
   let iframeRef = $state(null);
   let iframeReady = $state(false);
+  let landingCss = $state({});
 
-  let landingCss = $state({ ...(values.customCss || {}) });
+  Object.assign(landingCss, values.customCss || {});
 
   const activeColor = $derived(selectedColor || 'none');
 
@@ -29,8 +30,8 @@
     () => colors.find((color) => color.name === activeColor) || null,
   );
 
-  const syncLandingBrandFromPreset = (name) => {
-    const preset = colors.find((color) => color.name === name);
+  const syncLandingBrandFromPreset = (presetName) => {
+    const preset = colors.find((color) => color.name === presetName);
 
     if (!preset) {
       return;
@@ -44,26 +45,26 @@
     landingCss['css_landing_brand_secondary_soft'] = preset.secondarySoft;
   };
 
-  const selectPreset = (name) => {
-    selectedColor = name;
-    syncLandingBrandFromPreset(name);
+  const selectPreset = (presetName) => {
+    selectedColor = presetName;
+    syncLandingBrandFromPreset(presetName);
   };
 
   const landingCssKeys = [
-    { key: 'css_landing_text_strong', var: 'text-strong' },
-    { key: 'css_landing_text_soft', var: 'text-soft' },
-    { key: 'css_landing_text_muted', var: 'text-muted' },
-    { key: 'css_landing_page_bg', var: 'page-bg' },
-    { key: 'css_landing_page_bg_soft', var: 'page-bg-soft' },
-    { key: 'css_landing_panel_bg', var: 'panel-bg' },
-    { key: 'css_landing_panel_muted', var: 'panel-muted' },
-    { key: 'css_landing_line_soft', var: 'line-soft' },
-    { key: 'css_landing_brand_primary', var: 'brand-primary' },
-    { key: 'css_landing_brand_hover', var: 'brand-hover' },
-    { key: 'css_landing_brand_soft', var: 'brand-soft' },
-    { key: 'css_landing_brand_light', var: 'brand-light' },
-    { key: 'css_landing_brand_secondary', var: 'brand-secondary' },
-    { key: 'css_landing_brand_secondary_soft', var: 'brand-secondary-soft' },
+    { key: 'css_landing_text_strong', var: 'text-strong', label: 'Teks Utama' },
+    { key: 'css_landing_text_soft', var: 'text-soft', label: 'Teks Lembut' },
+    { key: 'css_landing_text_muted', var: 'text-muted', label: 'Teks Redup' },
+    { key: 'css_landing_page_bg', var: 'page-bg', label: 'Latar Halaman' },
+    { key: 'css_landing_page_bg_soft', var: 'page-bg-soft', label: 'Latar Halaman Lembut' },
+    { key: 'css_landing_panel_bg', var: 'panel-bg', label: 'Latar Panel' },
+    { key: 'css_landing_panel_muted', var: 'panel-muted', label: 'Panel Redup' },
+    { key: 'css_landing_line_soft', var: 'line-soft', label: 'Garis Lembut' },
+    { key: 'css_landing_brand_primary', var: 'brand-primary', label: 'Brand Primary' },
+    { key: 'css_landing_brand_hover', var: 'brand-hover', label: 'Brand Hover' },
+    { key: 'css_landing_brand_soft', var: 'brand-soft', label: 'Brand Soft' },
+    { key: 'css_landing_brand_light', var: 'brand-light', label: 'Brand Light' },
+    { key: 'css_landing_brand_secondary', var: 'brand-secondary', label: 'Brand Secondary' },
+    { key: 'css_landing_brand_secondary_soft', var: 'brand-secondary-soft', label: 'Brand Secondary Soft' },
   ];
 
   const buildPreviewCss = () => {
@@ -85,31 +86,13 @@
       return;
     }
 
-    const payload = buildPreviewCss();
-
-    // Primary: postMessage (works cross-origin and with SSR)
     try {
       const win = iframeRef.contentWindow;
       if (win) {
-        win.postMessage({ type: 'preview-css', css: payload }, '*');
+        win.postMessage({ type: 'preview-css', css: buildPreviewCss() }, '*');
       }
     } catch {
-      // Fallback: direct DOM access for same-origin
-      try {
-        const doc = iframeRef.contentDocument;
-        if (!doc) {
-          return;
-        }
-        let style = doc.getElementById('preview-style');
-        if (!style) {
-          style = doc.createElement('style');
-          style.id = 'preview-style';
-          doc.head.appendChild(style);
-        }
-        style.textContent = payload;
-      } catch {
-        // Silent fail
-      }
+      // Silent fail
     }
   };
 
@@ -118,12 +101,11 @@
     injectPreviewStyles();
   };
 
-  $effect(() => {
+  const checkIframe = () => {
     if (!iframeRef) {
       return;
     }
 
-    // Handle SSR case where iframe may already be loaded
     try {
       if (iframeRef.contentDocument?.readyState === 'complete') {
         markIframeReady();
@@ -133,8 +115,11 @@
       // Cross-origin or not ready yet
     }
 
-    // Wait for onload
     iframeRef.addEventListener('load', markIframeReady, { once: true });
+  };
+
+  $effect(() => {
+    checkIframe();
   });
 
   $effect(() => {
@@ -142,31 +127,10 @@
       return;
     }
 
-    // Establish reactivity by reading every landingCss value
-    for (const { key } of landingCssKeys) {
-      landingCss[key];
-    }
-
+    landingCssKeys.forEach(({ key }) => landingCss[key]);
     injectPreviewStyles();
   });
 </script>
-
-{#snippet cssInput(name, label)}
-  <label class="grid gap-2 text-sm text-foreground">
-    <span class="font-medium">{label}</span>
-    <div class="flex items-center gap-2">
-      <input
-        type="color"
-        {name}
-        bind:value={landingCss[name]}
-        class="h-10 w-full rounded-[8px] border border-border bg-background p-1"
-      />
-      <span class="text-xs text-muted-foreground font-mono w-20">
-        {typeof landingCss[name] === 'string' && landingCss[name].startsWith('#') ? landingCss[name] : '#000000'}
-      </span>
-    </div>
-  </label>
-{/snippet}
 
 <div class="mx-auto max-w-7xl">
   <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
@@ -177,9 +141,11 @@
     <Card.Content class="pt-5">
       <form action={form.action} method="POST" class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem]">
         <input type="hidden" name="_token" value={form.csrfToken} />
-        {#if form.spoofMethod}
-          <input type="hidden" name="_method" value={form.spoofMethod} />
-        {/if}
+        <input type="hidden" name="_method" value={form.spoofMethod} />
+
+        {#each landingCssKeys as { key } (key)}
+          <input type="hidden" name={key} value={typeof landingCss[key] === 'string' ? landingCss[key] : ''} />
+        {/each}
 
         <div class="grid gap-5">
           <section class="grid gap-5 rounded-[10px] border border-border bg-background px-5 py-5">
@@ -229,36 +195,34 @@
               </p>
             </div>
 
+            {#snippet colorGroup(heading, keys)}
+              <div>
+                <h4 class="text-sm font-semibold text-foreground mb-3">{heading}</h4>
+                <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
+                  {#each keys as k (k)}
+                    {@const meta = landingCssKeys.find((x) => x.key === k)}
+                    <label class="grid gap-2 text-sm text-foreground">
+                      <span class="font-medium">{meta?.label || k}</span>
+                      <div class="flex items-center gap-2">
+                        <input
+                          type="color"
+                          bind:value={() => landingCss[k], (v) => landingCss[k] = v}
+                          class="h-10 w-full rounded-[8px] border border-border bg-background p-1"
+                        />
+                        <span class="text-xs text-muted-foreground font-mono w-20">
+                          {typeof landingCss[k] === 'string' && landingCss[k].startsWith('#') ? landingCss[k] : '#000000'}
+                        </span>
+                      </div>
+                    </label>
+                  {/each}
+                </div>
+              </div>
+            {/snippet}
+
             <div class="grid gap-5">
-              <div>
-                <h4 class="text-sm font-semibold text-foreground mb-3">Teks</h4>
-                <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-3">
-                  {@render cssInput('css_landing_text_strong', 'Teks Utama')}
-                  {@render cssInput('css_landing_text_soft', 'Teks Lembut')}
-                  {@render cssInput('css_landing_text_muted', 'Teks Redup')}
-                </div>
-              </div>
-              <div>
-                <h4 class="text-sm font-semibold text-foreground mb-3">Latar & Permukaan</h4>
-                <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
-                  {@render cssInput('css_landing_page_bg', 'Latar Halaman')}
-                  {@render cssInput('css_landing_page_bg_soft', 'Latar Halaman Lembut')}
-                  {@render cssInput('css_landing_panel_bg', 'Latar Panel')}
-                  {@render cssInput('css_landing_panel_muted', 'Panel Redup')}
-                  {@render cssInput('css_landing_line_soft', 'Garis Lembut')}
-                </div>
-              </div>
-              <div>
-                <h4 class="text-sm font-semibold text-foreground mb-3">Brand</h4>
-                <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
-                  {@render cssInput('css_landing_brand_primary', 'Brand Primary')}
-                  {@render cssInput('css_landing_brand_hover', 'Brand Hover')}
-                  {@render cssInput('css_landing_brand_soft', 'Brand Soft')}
-                  {@render cssInput('css_landing_brand_light', 'Brand Light')}
-                  {@render cssInput('css_landing_brand_secondary', 'Brand Secondary')}
-                  {@render cssInput('css_landing_brand_secondary_soft', 'Brand Secondary Soft')}
-                </div>
-              </div>
+              {@render colorGroup('Teks', ['css_landing_text_strong', 'css_landing_text_soft', 'css_landing_text_muted'])}
+              {@render colorGroup('Latar & Permukaan', ['css_landing_page_bg', 'css_landing_page_bg_soft', 'css_landing_panel_bg', 'css_landing_panel_muted', 'css_landing_line_soft'])}
+              {@render colorGroup('Brand', ['css_landing_brand_primary', 'css_landing_brand_hover', 'css_landing_brand_soft', 'css_landing_brand_light', 'css_landing_brand_secondary', 'css_landing_brand_secondary_soft'])}
             </div>
           </section>
 
