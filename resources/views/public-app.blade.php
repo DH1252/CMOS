@@ -31,6 +31,19 @@
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
+    <script>
+        window.addEventListener('message', function (e) {
+            if (e.data && e.data.type === 'preview-css') {
+                var style = document.getElementById('preview-style');
+                if (!style) {
+                    style = document.createElement('style');
+                    style.id = 'preview-style';
+                    document.head.appendChild(style);
+                }
+                style.textContent = e.data.css || '';
+            }
+        });
+    </script>
 </head>
 <body>
     <a href="#main-content" class="skip-link">Lewati ke konten utama</a>

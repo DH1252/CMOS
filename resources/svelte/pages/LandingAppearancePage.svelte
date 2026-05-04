@@ -19,7 +19,7 @@
 
   let selectedColor = $state(null);
   let iframeRef = $state(null);
-  let iframeLoaded = $state(false);
+  let iframeReady = $state(false);
 
   let landingCss = $state({ ...(values.customCss || {}) });
 
@@ -66,20 +66,7 @@
     { key: 'css_landing_brand_secondary_soft', var: 'brand-secondary-soft' },
   ];
 
-  const injectPreviewStyles = () => {
-    if (!iframeRef || !iframeRef.contentDocument || !iframeLoaded) {
-      return;
-    }
-
-    const doc = iframeRef.contentDocument;
-    let style = doc.getElementById('preview-style');
-
-    if (!style) {
-      style = doc.createElement('style');
-      style.id = 'preview-style';
-      doc.head.appendChild(style);
-    }
-
+  const buildPreviewCss = () => {
     const vars = [];
 
     for (const { key, var: cssVar } of landingCssKeys) {
@@ -90,16 +77,68 @@
     }
 
     const css = vars.join('\n');
-    style.textContent = css ? `[data-theme="public"] {\n${css}\n}` : '';
+    return css ? `[data-theme="public"] {\n${css}\n}` : '';
   };
 
-  const handleIframeLoad = () => {
-    iframeLoaded = true;
+  const injectPreviewStyles = () => {
+    if (!iframeRef || !iframeReady) {
+      return;
+    }
+
+    const payload = buildPreviewCss();
+
+    // Primary: postMessage (works cross-origin and with SSR)
+    try {
+      const win = iframeRef.contentWindow;
+      if (win) {
+        win.postMessage({ type: 'preview-css', css: payload }, '*');
+      }
+    } catch {
+      // Fallback: direct DOM access for same-origin
+      try {
+        const doc = iframeRef.contentDocument;
+        if (!doc) {
+          return;
+        }
+        let style = doc.getElementById('preview-style');
+        if (!style) {
+          style = doc.createElement('style');
+          style.id = 'preview-style';
+          doc.head.appendChild(style);
+        }
+        style.textContent = payload;
+      } catch {
+        // Silent fail
+      }
+    }
+  };
+
+  const markIframeReady = () => {
+    iframeReady = true;
     injectPreviewStyles();
   };
 
   $effect(() => {
-    if (!iframeLoaded) {
+    if (!iframeRef) {
+      return;
+    }
+
+    // Handle SSR case where iframe may already be loaded
+    try {
+      if (iframeRef.contentDocument?.readyState === 'complete') {
+        markIframeReady();
+        return;
+      }
+    } catch {
+      // Cross-origin or not ready yet
+    }
+
+    // Wait for onload
+    iframeRef.addEventListener('load', markIframeReady, { once: true });
+  });
+
+  $effect(() => {
+    if (!iframeReady) {
       return;
     }
 
@@ -241,7 +280,6 @@
               title="Pratinjau Landing Page"
               class="w-full rounded-[8px] border-0 bg-background"
               style="height: 640px;"
-              onload={handleIframeLoad}
             ></iframe>
           </div>
           <p class="mt-2 text-xs text-muted-foreground">Pratinjau diperbarui secara otomatis saat warna diubah.</p>
