@@ -21,8 +21,11 @@
   let iframeRef = $state(null);
   let iframeReady = $state(false);
   let landingCss = $state({});
+  let saving = $state(false);
 
-  Object.assign(landingCss, values.customCss || {});
+  $effect(() => {
+    Object.assign(landingCss, values.customCss || {});
+  });
 
   const activeColor = $derived(selectedColor || 'none');
 
