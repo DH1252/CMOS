@@ -5,9 +5,17 @@
         ->whereIn('key', array_merge(['theme_color'], \App\Support\ThemePalette::settingKeys(), \App\Support\ThemePalette::cssVariableKeys()))
         ->pluck('value', 'key')
         ->all())['customCss']['landing'] ?? [];
+    $landingStyle = '';
+    if (!empty($landingCss)) {
+        $vars = [];
+        foreach ($landingCss as $var => $value) {
+            $vars[] = "--{$var}: {$value}";
+        }
+        $landingStyle = implode('; ', $vars);
+    }
 @endphp
 <!DOCTYPE html>
-<html lang="id" data-theme="public" data-brand="{{ $themeColor }}">
+<html lang="id" data-theme="public" data-brand="{{ $themeColor }}"@if($landingStyle) style="{{ $landingStyle }}"@endif>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,15 +30,6 @@
     </noscript>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
-    @if(!empty($landingCss))
-    <style>
-        [data-theme="public"] {
-            @foreach($landingCss as $var => $value)
-            --{{ $var }}: {{ $value }};
-            @endforeach
-        }
-    </style>
-    @endif
     <script>
         window.addEventListener('message', function (e) {
             if (e.data && e.data.type === 'preview-css') {
