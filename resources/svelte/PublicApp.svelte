@@ -1,6 +1,7 @@
 <script>
   import brandLogo from '../images/logokabinet.png?enhanced&w=80;160';
   import himatekkomBanner from '../images/himatekkom.jpg?enhanced&w=480;960;1440';
+  import OptimizedImage from './components/OptimizedImage.svelte';
   import PublicInformationIndexPage from './public/PublicInformationIndexPage.svelte';
   import PublicInformationShowPage from './public/PublicInformationShowPage.svelte';
   import {
@@ -395,7 +396,7 @@
                   {#each latestArticles as article (article.url || article.title)}
                     <a href={article.url} class="overflow-hidden rounded-[8px] border border-border bg-card text-inherit no-underline transition-colors hover:bg-muted/40">
                       {#if article.coverImage}
-                        <img
+                        <OptimizedImage
                           src={article.coverImage}
                           alt={article.title}
                           class="h-28 w-full border-b border-border object-cover"

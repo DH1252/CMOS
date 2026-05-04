@@ -1,5 +1,6 @@
 <script>
   import { ArrowRight } from 'lucide-svelte';
+  import OptimizedImage from '../components/OptimizedImage.svelte';
 
   let {
     homeUrl = '/',
@@ -112,7 +113,7 @@
     <section class="grid gap-6 border-b border-border pb-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
       {#if featured.coverImage}
         <a href={featured.href} class="block overflow-hidden rounded-[10px] border border-border bg-card">
-          <img src={featured.coverImage} alt={featured.title} class="h-full min-h-56 w-full object-cover" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1024px) 12rem, 100vw" onerror={handleImageError} />
+          <OptimizedImage src={featured.coverImage} alt={featured.title} class="h-full min-h-56 w-full object-cover" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1024px) 12rem, 100vw" onerror={handleImageError} />
         </a>
       {:else}
         <div class="flex min-h-72 items-center justify-center rounded-[10px] border border-border bg-card px-6 text-sm text-muted-foreground">Tanpa sampul</div>
@@ -163,7 +164,7 @@
       {#each articles as article (article.href)}
         <a href={article.href} class="grid gap-4 border-t border-border pt-5 text-inherit no-underline transition-colors hover:text-brand-secondary md:grid-cols-[12rem_minmax(0,1fr)] first:border-t-0 first:pt-0">
           {#if article.coverImage}
-            <img src={article.coverImage} alt={article.title} class="h-24 w-24 rounded-[10px] border border-border object-cover" loading="lazy" decoding="async" sizes="96px" onerror={handleImageError} />
+            <OptimizedImage src={article.coverImage} alt={article.title} class="h-24 w-24 rounded-[10px] border border-border object-cover" loading="lazy" decoding="async" sizes="96px" onerror={handleImageError} />
           {:else}
             <div class="flex h-40 items-center justify-center rounded-[10px] border border-border bg-card px-5 text-sm text-muted-foreground">
               Tanpa sampul
