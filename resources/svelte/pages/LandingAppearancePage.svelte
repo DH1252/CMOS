@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import PageHeader from '../components/PageHeader.svelte';
@@ -21,38 +22,11 @@
   let iframeRef = $state(null);
   let iframeReady = $state(false);
 
-  const initialCss = {};
-  const cssData = values.customCss || {};
-  for (const key of Object.keys(cssData)) {
-    initialCss[key] = cssData[key];
-  }
-  let landingCss = $state(initialCss);
-
   const activeColor = $derived(selectedColor || 'none');
 
   const selectedPalette = $derived.by(
     () => colors.find((color) => color.name === activeColor) || null,
   );
-
-  const syncLandingBrandFromPreset = (presetName) => {
-    const preset = colors.find((color) => color.name === presetName);
-
-    if (!preset) {
-      return;
-    }
-
-    landingCss['css_landing_brand_primary'] = preset.primary;
-    landingCss['css_landing_brand_hover'] = preset.hover;
-    landingCss['css_landing_brand_soft'] = preset.soft;
-    landingCss['css_landing_brand_light'] = preset.light;
-    landingCss['css_landing_brand_secondary'] = preset.secondary;
-    landingCss['css_landing_brand_secondary_soft'] = preset.secondarySoft;
-  };
-
-  const selectPreset = (presetName) => {
-    selectedColor = presetName;
-    syncLandingBrandFromPreset(presetName);
-  };
 
   const landingCssKeys = [
     { key: 'css_landing_text_strong', var: 'text-strong', label: 'Teks Utama' },
@@ -71,68 +45,75 @@
     { key: 'css_landing_brand_secondary_soft', var: 'brand-secondary-soft', label: 'Brand Secondary Soft' },
   ];
 
+  const initialValues = values.customCss || {};
+
+  const getFormValue = (key) => {
+    const input = document.querySelector(`input[data-css-key="${key}"]`);
+    return input ? input.value : (initialValues[key] || '#000000');
+  };
+
   const buildPreviewCss = () => {
     const vars = [];
-
     for (const { key, var: cssVar } of landingCssKeys) {
-      const value = landingCss[key];
+      const value = getFormValue(key);
       if (typeof value === 'string' && value.startsWith('#')) {
         vars.push(`  --${cssVar}: ${value};`);
       }
     }
-
     const css = vars.join('\n');
     return css ? `[data-theme="public"] {\n${css}\n}` : '';
   };
 
-  const injectPreviewStyles = () => {
-    if (!iframeRef || !iframeReady) {
-      return;
-    }
-
+  const sendPreview = () => {
+    if (!iframeRef || !iframeReady) return;
     try {
-      const win = iframeRef.contentWindow;
-      if (win) {
-        win.postMessage({ type: 'preview-css', css: buildPreviewCss() }, '*');
-      }
-    } catch {
-      // Silent fail
-    }
+      iframeRef.contentWindow?.postMessage({ type: 'preview-css', css: buildPreviewCss() }, '*');
+    } catch { /* silent */ }
   };
 
-  const markIframeReady = () => {
-    iframeReady = true;
-    injectPreviewStyles();
+  const onColorInput = (e) => {
+    const key = e.currentTarget.dataset.cssKey;
+    const hex = e.currentTarget.value;
+    const hexDisplay = e.currentTarget.parentElement.querySelector('.hex-display');
+    if (hexDisplay) hexDisplay.textContent = hex;
+
+    const hiddenInput = document.querySelector(`input[type="hidden"][name="${key}"]`);
+    if (hiddenInput) hiddenInput.value = hex;
+
+    sendPreview();
   };
 
-  const checkIframe = () => {
-    if (!iframeRef) {
-      return;
+  const applyPreset = (presetName) => {
+    selectedColor = presetName;
+    const preset = colors.find((c) => c.name === presetName);
+    if (!preset) return;
+
+    const brandMap = {
+      css_landing_brand_primary: preset.primary,
+      css_landing_brand_hover: preset.hover,
+      css_landing_brand_soft: preset.soft,
+      css_landing_brand_light: preset.light,
+      css_landing_brand_secondary: preset.secondary,
+      css_landing_brand_secondary_soft: preset.secondarySoft,
+    };
+
+    for (const [key, value] of Object.entries(brandMap)) {
+      const input = document.querySelector(`input[data-css-key="${key}"]`);
+      if (input) input.value = value;
+      const hiddenInput = document.querySelector(`input[type="hidden"][name="${key}"]`);
+      if (hiddenInput) hiddenInput.value = value;
+      const hexDisplay = input?.parentElement?.querySelector('.hex-display');
+      if (hexDisplay) hexDisplay.textContent = value;
     }
 
-    try {
-      if (iframeRef.contentDocument?.readyState === 'complete') {
-        markIframeReady();
-        return;
-      }
-    } catch {
-      // Cross-origin or not ready yet
-    }
-
-    iframeRef.addEventListener('load', markIframeReady, { once: true });
+    sendPreview();
   };
 
-  $effect(() => {
-    checkIframe();
-  });
-
-  $effect(() => {
-    if (!iframeReady) {
-      return;
-    }
-
-    landingCssKeys.forEach(({ key }) => landingCss[key]);
-    injectPreviewStyles();
+  onMount(() => {
+    iframeRef?.addEventListener('load', () => {
+      iframeReady = true;
+      sendPreview();
+    });
   });
 </script>
 
@@ -148,7 +129,7 @@
         <input type="hidden" name="_method" value={form.spoofMethod} />
 
         {#each landingCssKeys as { key } (key)}
-          <input type="hidden" name={key} value={landingCss[key] || ''} />
+          <input type="hidden" name={key} value={initialValues[key] || ''} />
         {/each}
 
         <div class="grid gap-5">
@@ -167,7 +148,7 @@
                   <button
                     type="button"
                     class={`rounded-[10px] border px-4 py-4 text-left transition-colors ${activeColor === color.name ? 'border-brand-primary bg-card' : 'border-border bg-card hover:bg-muted'}`}
-                    onclick={() => selectPreset(color.name)}
+                    onclick={() => applyPreset(color.name)}
                     aria-pressed={activeColor === color.name}
                   >
                     <span class="block h-8 rounded-[8px]" style={`background:${color.primary}`}></span>
@@ -210,12 +191,13 @@
                       <div class="flex items-center gap-2">
                         <input
                           type="color"
-                          value={landingCss[k] && landingCss[k].startsWith('#') ? landingCss[k] : '#000000'}
-                          oninput={(e) => { landingCss[k] = e.currentTarget.value; }}
+                          data-css-key={k}
+                          value={initialValues[k] && initialValues[k].startsWith('#') ? initialValues[k] : '#000000'}
+                          oninput={onColorInput}
                           class="h-10 w-full rounded-[8px] border border-border bg-background p-1"
                         />
-                        <span class="text-xs text-muted-foreground font-mono w-20">
-                          {typeof landingCss[k] === 'string' && landingCss[k].startsWith('#') ? landingCss[k] : '#000000'}
+                        <span class="hex-display text-xs text-muted-foreground font-mono w-20">
+                          {initialValues[k] && initialValues[k].startsWith('#') ? initialValues[k] : '#000000'}
                         </span>
                       </div>
                     </label>
