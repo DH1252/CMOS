@@ -124,7 +124,8 @@ class AuthShellData
                 'title' => 'Pengaturan',
                 'description' => 'Kontrol identitas aplikasi dan pengaturan dasar workspace.',
                 'items' => [
-                    ['label' => 'Pengaturan', 'icon' => 'fas fa-gear', 'href' => route('settings.index'), 'active' => $request->routeIs('settings.*'), 'meta' => 'Identitas, warna, dan cadence evaluasi'],
+                    ['label' => 'Pengaturan Umum', 'icon' => 'fas fa-gear', 'href' => route('settings.index'), 'active' => $request->routeIs('settings.index') || $request->routeIs('settings.update'), 'meta' => 'Identitas, warna, dan cadence evaluasi'],
+                    ['label' => 'Tampilan Landing', 'icon' => 'fas fa-palette', 'href' => route('settings.landing'), 'active' => $request->routeIs('settings.landing'), 'meta' => 'Warna dan pratinjau halaman publik'],
                 ],
             ];
         }
