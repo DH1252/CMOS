@@ -209,7 +209,8 @@
                       <div class="flex items-center gap-2">
                         <input
                           type="color"
-                          bind:value={() => landingCss[k], (v) => landingCss[k] = v}
+                          value={landingCss[k] && landingCss[k].startsWith('#') ? landingCss[k] : '#000000'}
+                          oninput={(e) => { landingCss[k] = e.currentTarget.value; }}
                           class="h-10 w-full rounded-[8px] border border-border bg-background p-1"
                         />
                         <span class="text-xs text-muted-foreground font-mono w-20">
