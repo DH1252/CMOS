@@ -157,6 +157,8 @@ class TaskController extends Controller
             'createUrl' => route('tasks.create', ['type' => 'global']),
             'type' => 'global',
             'typeId' => null,
+            'department' => null,
+            'program' => null,
             'statusLabels' => $statusLabels,
         ]);
 
@@ -370,6 +372,7 @@ class TaskController extends Controller
             'type' => 'department',
             'typeId' => $department->id,
             'department' => $department,
+            'program' => null,
             'statusLabels' => $statusLabels,
         ]);
 
@@ -506,6 +509,7 @@ class TaskController extends Controller
             'createUrl' => route('tasks.create', ['type' => 'program', 'id' => $program->id]),
             'type' => 'program',
             'typeId' => $program->id,
+            'department' => $program->department,
             'program' => $program,
             'statusLabels' => $statusLabels,
         ]);

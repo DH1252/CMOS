@@ -159,6 +159,7 @@ class DashboardController extends Controller
     {
         return User::byRole('staff')
             ->active()
+            ->with('department')
             ->withAvg('evaluations', 'total_score')
             ->orderByDesc('evaluations_avg_total_score')
             ->limit(5)
