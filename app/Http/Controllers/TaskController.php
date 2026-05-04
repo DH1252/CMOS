@@ -26,14 +26,28 @@ class TaskController extends Controller
             return redirect()->route('tasks.department', $user->department_id);
         }
 
-        // Admin and BPH: show all departments
-        $departments = Department::with('cabinet')->withCount([
-            'tasks as total_tasks' => fn ($q) => $q->whereNull('program_id'),
-            'tasks as pending_tasks' => fn ($q) => $q->whereNull('program_id')->where('status', '!=', 'done'),
-        ])->orderBy('name')->get();
+        // Admin and BPH: show all departments with full task counts (direct + program)
+        $departments = Department::with('cabinet')->get()->map(function ($department) {
+            $deptTaskQuery = Task::query()
+                ->where(function ($q) use ($department) {
+                    $q->where('department_id', $department->id)->whereNull('program_id');
+                })
+                ->orWhereHas('program', fn ($q) => $q->where('department_id', $department->id));
+
+            $department->total_tasks = (clone $deptTaskQuery)->count();
+            $department->done_tasks = (clone $deptTaskQuery)->done()->count();
+            $department->in_progress_tasks = (clone $deptTaskQuery)->inProgress()->count();
+            $department->pending_tasks = (clone $deptTaskQuery)->pending()->count();
+            $department->todo_tasks = (clone $deptTaskQuery)->todo()->count();
+
+            return $department;
+        });
 
         $globalTasksCount = Task::global()->count();
-        $globalPendingCount = Task::global()->where('status', '!=', 'done')->count();
+        $globalDoneCount = Task::global()->done()->count();
+        $globalInProgressCount = Task::global()->inProgress()->count();
+        $globalPendingCount = Task::global()->pending()->count();
+        $globalTodoCount = Task::global()->todo()->count();
 
         return \Inertia\Inertia::render(
             'pages/TaskHubPage',
@@ -53,8 +67,10 @@ class TaskController extends Controller
                             'tone' => 'primary',
                             'featured' => true,
                             'stats' => [
-                                ['icon' => 'fas fa-list-check', 'label' => "{$globalTasksCount} tugas", 'tone' => 'secondary'],
-                                ['icon' => 'fas fa-clock', 'label' => "{$globalPendingCount} aktif", 'tone' => 'warning'],
+                                ['icon' => 'fas fa-check', 'label' => "{$globalDoneCount} selesai", 'tone' => 'success'],
+                                ['icon' => 'fas fa-spinner', 'label' => "{$globalInProgressCount} dikerjakan", 'tone' => 'primary'],
+                                ['icon' => 'fas fa-pause', 'label' => "{$globalPendingCount} tertunda", 'tone' => 'warning'],
+                                ['icon' => 'fas fa-list', 'label' => "{$globalTodoCount} belum mulai", 'tone' => 'secondary'],
                             ],
                         ],
                     ], $departments->map(fn ($department) => [
@@ -64,8 +80,10 @@ class TaskController extends Controller
                         'icon' => 'fas fa-building',
                         'tone' => 'info',
                         'stats' => [
-                            ['icon' => 'fas fa-list-check', 'label' => ($department->total_tasks ?? 0).' tugas', 'tone' => 'secondary'],
-                            ['icon' => 'fas fa-clock', 'label' => ($department->pending_tasks ?? 0).' aktif', 'tone' => 'warning'],
+                            ['icon' => 'fas fa-check', 'label' => ($department->done_tasks ?? 0).' selesai', 'tone' => 'success'],
+                            ['icon' => 'fas fa-spinner', 'label' => ($department->in_progress_tasks ?? 0).' dikerjakan', 'tone' => 'primary'],
+                            ['icon' => 'fas fa-pause', 'label' => ($department->pending_tasks ?? 0).' tertunda', 'tone' => 'warning'],
+                            ['icon' => 'fas fa-list', 'label' => ($department->todo_tasks ?? 0).' belum mulai', 'tone' => 'secondary'],
                         ],
                     ])->values()->all()),
                     'emptyState' => [
@@ -75,7 +93,7 @@ class TaskController extends Controller
                 ];
 
                 return $props;
-            })(compact('departments', 'globalTasksCount', 'globalPendingCount')),
+            })(compact('departments', 'globalTasksCount', 'globalDoneCount', 'globalInProgressCount', 'globalPendingCount', 'globalTodoCount')),
         );
     }
 
@@ -248,8 +266,10 @@ class TaskController extends Controller
         $programs = $department->programs()
             ->withCount([
                 'tasks as total_tasks',
-                'tasks as pending_tasks' => fn ($q) => $q->where('status', '!=', 'done'),
                 'tasks as done_tasks' => fn ($q) => $q->where('status', 'done'),
+                'tasks as in_progress_tasks' => fn ($q) => $q->where('status', 'in_progress'),
+                'tasks as pending_tasks' => fn ($q) => $q->where('status', 'pending'),
+                'tasks as todo_tasks' => fn ($q) => $q->where('status', 'todo'),
             ])
             ->orderBy('name')
             ->get();
@@ -306,7 +326,9 @@ class TaskController extends Controller
                         'progress' => $program->total_tasks > 0 ? round((($program->done_tasks ?? 0) / $program->total_tasks) * 100) : 0,
                         'stats' => [
                             ['icon' => 'fas fa-check', 'label' => ($program->done_tasks ?? 0).' selesai', 'tone' => 'success'],
-                            ['icon' => 'fas fa-clock', 'label' => ($program->pending_tasks ?? 0).' aktif', 'tone' => 'warning'],
+                            ['icon' => 'fas fa-spinner', 'label' => ($program->in_progress_tasks ?? 0).' dikerjakan', 'tone' => 'primary'],
+                            ['icon' => 'fas fa-pause', 'label' => ($program->pending_tasks ?? 0).' tertunda', 'tone' => 'warning'],
+                            ['icon' => 'fas fa-list', 'label' => ($program->todo_tasks ?? 0).' belum mulai', 'tone' => 'secondary'],
                         ],
                     ])->values()->all()),
                     'emptyState' => [
