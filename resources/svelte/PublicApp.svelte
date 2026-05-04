@@ -424,7 +424,7 @@
                     <Newspaper size={16} />
                     Arsip publik
                   </div>
-                  <p class="mt-3 max-w-[60ch] text-sm leading-8 text-muted-foreground">Publikasi baru akan muncul di sini.</p>
+                  <p class="mt-3 max-w-[60ch] text-sm leading-8 text-muted-foreground">Belum ada publikasi.</p>
                 </div>
               {/if}
 

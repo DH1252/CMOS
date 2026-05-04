@@ -143,7 +143,7 @@
     <section class="grid gap-8 rounded-[10px] border border-border bg-card px-6 py-8 lg:grid-cols-[minmax(0,1.1fr)_18rem] lg:items-start">
       <div class="space-y-4">
         <h2 class="max-w-[18ch] text-3xl leading-tight text-foreground md:text-4xl">Arsip publik belum terisi.</h2>
-        <p class="max-w-[58ch] text-sm leading-8 text-muted-foreground">Publikasi baru akan tampil di sini.</p>
+        <p class="max-w-[58ch] text-sm leading-8 text-muted-foreground">Belum ada publikasi.</p>
       </div>
 
       <div class="border-t border-border pt-4 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">

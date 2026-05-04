@@ -8,7 +8,7 @@
     rows = [],
     emptyState = {
       title: 'Belum ada data',
-      text: 'Data akan muncul di halaman ini setelah dibuat.',
+      text: 'Belum ada data.',
     },
     csrfToken = '',
     enableDataTable = false,

@@ -15,7 +15,7 @@
     periods = [],
     emptyState = {
       title: 'Belum ada evaluasi',
-      text: 'Riwayat evaluasi akan tampil di halaman ini setelah penilaian tersedia.',
+      text: 'Belum ada riwayat evaluasi.',
     },
   } = $props();
 

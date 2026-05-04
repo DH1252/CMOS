@@ -186,7 +186,7 @@
           {/each}
         </div>
       {:else}
-        <EmptyStatePanel title="Belum ada distribusi task" text="Statistik task akan tampil saat data aktivitas tersedia." icon="fas fa-chart-pie" tone="secondary" compact={true} />
+        <EmptyStatePanel title="Belum ada distribusi task" text="Belum ada data task." icon="fas fa-chart-pie" tone="secondary" compact={true} />
       {/if}
     </Card.Content>
   </Card.Root>
@@ -221,7 +221,7 @@
           {/each}
         </div>
       {:else}
-        <EmptyStatePanel title="Belum ada distribusi program" text="Status program akan muncul setelah portofolio proker tersedia." icon="fas fa-chart-simple" tone="secondary" compact={true} />
+        <EmptyStatePanel title="Belum ada distribusi program" text="Belum ada data program." icon="fas fa-chart-simple" tone="secondary" compact={true} />
       {/if}
     </Card.Content>
   </Card.Root>
@@ -239,7 +239,7 @@
         rows={departmentRows}
         emptyState={{
           title: 'Belum ada data departemen',
-          text: 'Data departemen akan tampil setelah struktur organisasi tersedia.',
+          text: 'Belum ada data departemen.',
           icon: 'fas fa-building-circle-xmark',
         }}
       />
@@ -267,7 +267,7 @@
           {/each}
         </div>
       {:else}
-        <EmptyStatePanel title="Belum ada data evaluasi" text="Top staff akan terisi setelah siklus evaluasi mulai berjalan." icon="fas fa-star-half-stroke" tone="secondary" compact={true} />
+        <EmptyStatePanel title="Belum ada data evaluasi" text="Belum ada evaluasi." icon="fas fa-star-half-stroke" tone="secondary" compact={true} />
       {/if}
     </Card.Content>
   </Card.Root>

@@ -14,7 +14,7 @@
     groups = [],
     emptyState = {
       title: 'Belum ada link',
-      text: 'Tautan organisasi akan muncul di halaman ini setelah ditambahkan.',
+      text: 'Belum ada tautan.',
     },
     csrfToken = '',
   } = $props();

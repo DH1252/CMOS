@@ -133,7 +133,7 @@
       </Card.Header>
       <Card.Content class="pt-5">
         {#if !pics.items?.length}
-          <EmptyStatePanel title="Belum ada PIC" text="Tambahkan PIC untuk menentukan penanggung jawab program ini." icon="fas fa-star-half-stroke" tone="secondary" compact={true} />
+          <EmptyStatePanel title="Belum ada PIC" text="Belum ada penanggung jawab." icon="fas fa-star-half-stroke" tone="secondary" compact={true} />
         {:else}
           <div class="detail-list">
             {#each pics.items as pic, index (pic.name || index)}
@@ -186,7 +186,7 @@
       </Card.Header>
       <Card.Content class="pt-5">
         {#if !team.members?.length}
-          <EmptyStatePanel title="Belum ada anggota tim" text="Tambahkan anggota untuk mulai berkolaborasi pada program ini." icon="fas fa-users-slash" tone="secondary" compact={true} />
+          <EmptyStatePanel title="Belum ada anggota tim" text="Belum ada anggota." icon="fas fa-users-slash" tone="secondary" compact={true} />
         {:else}
           <div class="detail-list">
             {#each team.members as member, index (member.name || index)}
@@ -260,7 +260,7 @@
           {csrfToken}
           emptyState={{
             title: 'Belum ada task',
-            text: 'Task program akan muncul di sini setelah ditambahkan.',
+            text: 'Belum ada task.',
             icon: 'fas fa-list-check',
           }}
         />
@@ -274,7 +274,7 @@
 
       <Card.Content class="pt-5">
         {#if !timelines.items?.length}
-          <EmptyStatePanel title="Belum ada timeline" text="Timeline program akan muncul setelah agenda dijadwalkan." icon="fas fa-calendar-xmark" tone="secondary" compact={true} />
+          <EmptyStatePanel title="Belum ada timeline" text="Belum ada agenda." icon="fas fa-calendar-xmark" tone="secondary" compact={true} />
         {:else}
           <div class="detail-list">
             {#each timelines.items as timeline, index (timeline.title || index)}

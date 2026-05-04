@@ -17,11 +17,11 @@
     departments = [],
     emptyRanking = {
       title: 'Belum ada data evaluasi',
-      text: 'Ranking akan muncul setelah evaluasi staff tersedia.',
+      text: 'Belum ada data evaluasi.',
     },
     emptyDepartments = {
       title: 'Belum ada departemen',
-      text: 'Departemen akan tampil di sini setelah data organisasi tersedia.',
+      text: 'Belum ada departemen.',
     },
   } = $props();
 
@@ -72,7 +72,7 @@
           <div class="space-y-3">
             <div class="text-sm text-muted-foreground">Periode aktif</div>
             <div class="text-2xl font-semibold text-foreground">{month?.label || 'Belum dipilih'}</div>
-            <p class="max-w-[58ch] text-sm leading-7 text-muted-foreground">Pilih periode evaluasi terlebih dahulu, lalu masuk ke departemen yang perlu ditinjau. Tujuannya agar penilai langsung paham siapa yang sudah selesai dinilai dan siapa yang masih menunggu tindak lanjut.</p>
+            <p class="max-w-[58ch] text-sm leading-7 text-muted-foreground">Pilih periode, lalu masuk ke departemen untuk meninjau evaluasi staff.</p>
           </div>
 
           <form method="GET" action={monthAction} bind:this={monthForm} class="grid gap-2">

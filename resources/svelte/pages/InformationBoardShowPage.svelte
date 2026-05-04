@@ -115,7 +115,7 @@
 
       <Card.Content class="latest-articles pt-5">
         {#if !latestArticles.length}
-          <EmptyStatePanel title="Belum ada artikel lain" text="Artikel terbaru lainnya akan muncul setelah dipublikasikan." icon="fas fa-stream" tone="secondary" compact={true} />
+          <EmptyStatePanel title="Belum ada artikel lain" text="Belum ada artikel lain." icon="fas fa-stream" tone="secondary" compact={true} />
         {:else}
           {#each latestArticles as item, index (item.href || index)}
             <a href={item.href} class="latest-article-item">

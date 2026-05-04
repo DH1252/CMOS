@@ -1157,7 +1157,7 @@
     <div class="relative z-10 w-full max-w-[38rem] rounded-[10px] border border-border bg-card shadow-lg" role="dialog" aria-modal="true" aria-labelledby="task-edit-title" transition:scale={{ duration: reduceMotion ? 0 : 180, start: 0.98, opacity: 0.45, easing: quintOut }}>
       <div class="flex justify-between items-start gap-4 p-5 border-b border-border/70">
         <div class="min-w-0 flex-1">
-          <PageHeader title="Edit Task" description="Perbarui detail task dan sinkronkan progresnya." icon="fas fa-pen-to-square" compact={true} headingTag="h4" />
+          <PageHeader title="Edit Task" description="Perbarui detail task." icon="fas fa-pen-to-square" compact={true} headingTag="h4" />
         </div>
         <Button type="button" variant="secondary" size="icon" class="w-8 h-8 shadow-none" aria-label="Tutup" onclick={closeEdit}>
           <i class="fas fa-times"></i>

@@ -464,7 +464,7 @@
 
       <div bind:this={messageViewport} class="messages-thread-body">
         {#if isLoadingConversation && !messages.length}
-          <EmptyStatePanel title="Memuat percakapan..." text="Riwayat pesan sedang disiapkan." icon="fas fa-spinner" tone="info" compact={true} />
+          <EmptyStatePanel title="Memuat percakapan..." text="Memuat..." icon="fas fa-spinner" tone="info" compact={true} />
         {:else if groupedMessages.length}
           {#each groupedMessages as group, groupIndex (group.date || groupIndex)}
             <div class="messages-date-chip">{group.date}</div>
@@ -506,7 +506,7 @@
       <div class="messages-thread-empty messages-thread-empty-full">
         <EmptyStatePanel
           title="Pilih kontak"
-          text="Pilih kontak di panel kiri untuk mulai berkomunikasi."
+            text="Pilih kontak untuk memulai chat."
           icon="fas fa-comments"
           tone="secondary"
           compact={true}

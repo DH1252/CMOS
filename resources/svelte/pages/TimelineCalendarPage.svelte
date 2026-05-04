@@ -269,7 +269,7 @@
       <EmptyStatePanel title="Kalender gagal dimuat" text={initError} icon="fas fa-calendar-xmark" tone="secondary" compact={true} />
     {:else}
       {#if isLoadingCalendar}
-        <EmptyStatePanel title="Memuat kalender" text="Aset kalender sedang disiapkan untuk tampilan ini." icon="fas fa-spinner fa-spin" tone="secondary" compact={true} />
+        <EmptyStatePanel title="Memuat kalender" text="Memuat..." icon="fas fa-spinner fa-spin" tone="secondary" compact={true} />
       {/if}
 
       <div class={`timeline-calendar-surface ${isLoadingCalendar ? 'timeline-calendar-surface-hidden' : ''}`} bind:this={calendarElement}></div>

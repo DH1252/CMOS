@@ -185,7 +185,7 @@
     <Card.Header class="border-b border-border pb-4">
       <PageHeader
         title="Fokus hari ini"
-        description="Mulai dari task yang mendesak, lalu cek agenda terdekat."
+        description="Task mendesak dan agenda terdekat."
         action={links?.tasksIndex ? { href: links.tasksIndex, label: 'Buka task', tone: 'secondary' } : null}
         compact={true}
         headingTag="h2"
@@ -227,7 +227,7 @@
     <Card.Header class="border-b border-border pb-4">
       <PageHeader
         title="Pergerakan task"
-        description="Ringkasan status dan perubahan terbaru."
+        description="Status dan perubahan terbaru."
         compact={true}
         headingTag="h3"
       />
@@ -252,7 +252,7 @@
 
       <div class="dashboard-list-surface">
         {#if recentTasks.length === 0}
-          <EmptyStatePanel title="Tidak ada task" text="Perubahan task akan tampil di sini setelah ada aktivitas baru." icon="fas fa-list-check" compact={true} />
+          <EmptyStatePanel title="Tidak ada task" text="Belum ada task." icon="fas fa-list-check" compact={true} />
         {:else}
           <div class="dashboard-list">
             {#each recentTasks.slice(0, 5) as task, index (`task-${task.id || task.title || index}-${index}`)}
@@ -278,7 +278,7 @@
     <Card.Header class="border-b border-border pb-4">
       <PageHeader
         title="Agenda terdekat"
-        description="Lihat jadwal yang paling dekat dari sekarang."
+        description="Jadwal mendatang."
         action={links?.timelinesCalendar ? { href: links.timelinesCalendar, label: 'Buka kalender', tone: 'secondary' } : null}
         compact={true}
         headingTag="h3"
@@ -294,7 +294,7 @@
       </div>
 
       {#if upcomingTimelines.length === 0}
-        <EmptyStatePanel title="Tidak ada agenda" text="Belum ada agenda mendatang yang terjadwal." icon="fas fa-calendar-xmark" compact={true} />
+        <EmptyStatePanel title="Tidak ada agenda" text="Belum ada agenda." icon="fas fa-calendar-xmark" compact={true} />
       {:else}
         <div class="grid gap-3">
           {#each upcomingTimelines.slice(0, 4) as timeline, index (`timeline-${timeline.id || timeline.title || index}-${index}`)}
@@ -320,7 +320,7 @@
       <Card.Header class="border-b border-border pb-4">
         <PageHeader
           title="Artikel terbaru"
-          description="Pembaruan informasi internal yang baru dipublikasikan."
+          description="Artikel internal terbaru."
           compact={true}
           headingTag="h3"
         />
@@ -344,7 +344,7 @@
           <Card.Header class="border-b border-border pb-4">
             <PageHeader
               title="Progress departemen"
-              description="Ringkasan penyelesaian task lintas departemen."
+              description="Penyelesaian task per departemen."
               compact={true}
               headingTag="h3"
             />
@@ -373,7 +373,7 @@
           <Card.Header class="border-b border-border pb-4">
             <PageHeader
               title="Peringkat staff"
-              description="Rata-rata evaluasi terbaru untuk staff aktif."
+              description="Evaluasi staff terbaru."
               compact={true}
               headingTag="h3"
             />
@@ -403,7 +403,7 @@
       <Card.Header class="border-b border-border pb-4">
         <PageHeader
           title="Tren bulanan"
-          description="Perbandingan task dibuat dan diselesaikan dalam enam bulan terakhir."
+          description="Task dibuat vs diselesaikan."
           compact={true}
           headingTag="h3"
         />
