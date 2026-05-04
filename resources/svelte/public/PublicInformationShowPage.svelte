@@ -1,5 +1,6 @@
 <script>
   import { ArrowRight } from 'lucide-svelte';
+  import OptimizedImage from '../components/OptimizedImage.svelte';
 
   let {
     homeUrl = '/',
@@ -55,7 +56,7 @@
 
   {#if article.coverImage}
     <div class="overflow-hidden rounded-[10px] border border-border bg-card">
-      <img src={article.coverImage} alt={article.title} class="max-h-[34rem] w-full object-cover" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1280px) 72rem, 100vw" onerror={handleImageError} />
+      <OptimizedImage src={article.coverImage} alt={article.title} class="max-h-[34rem] w-full object-cover" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1280px) 72rem, 100vw" onerror={handleImageError} />
     </div>
   {/if}
 

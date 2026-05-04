@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DriveController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\ImageController;
 use App\Http\Controllers\InformationBoardController;
 use App\Http\Controllers\LinkController;
 use App\Http\Controllers\MessageController;
@@ -65,7 +66,7 @@ Route::get('/', function () {
             'title' => $item->title,
             'excerpt' => $item->excerpt ?: Str::limit(strip_tags($item->content), 140),
             'publishedAtLabel' => optional($item->publishedAtLocal)?->locale('id')->translatedFormat('d M Y'),
-            'coverImage' => $item->cover_image_url,
+            'coverImage' => $item->cover_image_optimized,
             'category' => $item->categories->pluck('name')->implode(', ') ?: 'Papan Informasi',
             'url' => route('informasi.show', $item->slug),
         ])->values(),
@@ -73,6 +74,11 @@ Route::get('/', function () {
 })->name('home');
 Route::get('/informasi', [PublicInformationController::class, 'index'])->name('informasi.index');
 Route::get('/informasi/{informationBoard:slug}', [PublicInformationController::class, 'show'])->name('informasi.show');
+
+// Optimized image serving
+Route::get('/images/optimize/{path}', [ImageController::class, 'show'])
+    ->where('path', '.*')
+    ->name('images.optimize');
 
 // Guest Routes
 Route::middleware('guest')->group(function () {

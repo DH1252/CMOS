@@ -18,6 +18,10 @@ class HandleInertiaRequests extends Middleware
     {
         config(['inertia.ssr.enabled' => true]);
 
+        if ($request->routeIs('images.optimize')) {
+            return $next($request);
+        }
+
         return parent::handle($request, $next);
     }
 

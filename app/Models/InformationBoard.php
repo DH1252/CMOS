@@ -74,6 +74,26 @@ class InformationBoard extends Model
         return asset('storage/'.$this->cover_image);
     }
 
+    /**
+     * @return array{original: string|null, webp: string|null, avif: string|null}|null
+     */
+    public function getCoverImageOptimizedAttribute(): ?array
+    {
+        $original = $this->cover_image_url;
+
+        if ($original === null) {
+            return null;
+        }
+
+        $optimizeUrl = route('images.optimize', ['path' => $this->cover_image]);
+
+        return [
+            'original' => $original,
+            'webp' => $optimizeUrl.'?f=webp',
+            'avif' => $optimizeUrl.'?f=avif',
+        ];
+    }
+
     public function getPublishedAtLocalAttribute(): ?Carbon
     {
         return $this->published_at?->copy()->setTimezone(config('app.client_timezone', 'Asia/Jakarta'));

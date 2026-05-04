@@ -116,7 +116,7 @@ class PublicInformationController extends Controller
                 'featured' => $featuredArticle ? [
                     'title' => $featuredArticle->title,
                     'excerpt' => Str::limit(strip_tags($featuredArticle->excerpt ?: $featuredArticle->content), 220),
-                    'coverImage' => $featuredArticle->cover_image_url,
+                    'coverImage' => $featuredArticle->cover_image_optimized,
                     'categories' => $featuredArticle->categories->pluck('name')->values(),
                     'author' => $featuredArticle->user?->name ?? '-',
                     'dateLabel' => $this->formatPublicDate($featuredArticle->publishedAtLocal, includeTime: true),
@@ -125,7 +125,7 @@ class PublicInformationController extends Controller
                 'articles' => $remainingArticles->map(fn ($article) => [
                     'title' => $article->title,
                     'excerpt' => Str::limit(strip_tags($article->excerpt ?: $article->content), 150),
-                    'coverImage' => $article->cover_image_url,
+                    'coverImage' => $article->cover_image_optimized,
                     'categories' => $article->categories->pluck('name')->values(),
                     'author' => $article->user?->name ?? '-',
                     'dateLabel' => $this->formatPublicDate($article->publishedAtLocal, includeTime: true),
@@ -169,7 +169,7 @@ class PublicInformationController extends Controller
                     'seoTitle' => $article->seo_title,
                     'dateLabel' => $this->formatPublicDate($article->publishedAtLocal, includeTime: true),
                     'author' => $article->user?->name ?? '-',
-                    'coverImage' => $article->cover_image_url,
+                    'coverImage' => $article->cover_image_optimized,
                     'categories' => $article->categories->pluck('name')->values(),
                     'contentHtml' => $article->content,
                     'excerpt' => $article->seo_description,
