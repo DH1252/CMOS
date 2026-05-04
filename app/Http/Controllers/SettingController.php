@@ -136,7 +136,7 @@ class SettingController extends Controller
                         ),
                     ],
                     'colors' => ThemePalette::options(),
-                    'previewUrl' => route('home'),
+                    'previewUrl' => '/',
                     'errors' => collect(session('errors')?->messages() ?? [])->map(fn ($messages): string => $messages[0])->toArray(),
                 ];
 

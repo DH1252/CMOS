@@ -122,7 +122,7 @@ class SettingControllerTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->has('values.customCss')
             ->has('colors')
-            ->where('previewUrl', route('home'))
+            ->where('previewUrl', '/')
         );
     }
 

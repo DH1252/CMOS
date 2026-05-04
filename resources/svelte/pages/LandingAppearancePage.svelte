@@ -147,7 +147,7 @@
         <input type="hidden" name="_method" value={form.spoofMethod} />
 
         {#each landingCssKeys as { key } (key)}
-          <input type="hidden" name={key} value={typeof landingCss[key] === 'string' ? landingCss[key] : ''} />
+          <input type="hidden" name={key} value={landingCss[key] || ''} />
         {/each}
 
         <div class="grid gap-5">
