@@ -26,13 +26,9 @@ class TaskController extends Controller
             return redirect()->route('tasks.department', $user->department_id);
         }
 
-        // Admin and BPH: show all departments with full task counts (direct + program)
+        // Admin and BPH: show all departments with direct task counts only
         $departments = Department::with('cabinet')->get()->map(function ($department) {
-            $deptTaskQuery = Task::query()
-                ->where(function ($q) use ($department) {
-                    $q->where('department_id', $department->id)->whereNull('program_id');
-                })
-                ->orWhereHas('program', fn ($q) => $q->where('department_id', $department->id));
+            $deptTaskQuery = Task::forDepartment($department->id);
 
             $department->total_tasks = (clone $deptTaskQuery)->count();
             $department->done_tasks = (clone $deptTaskQuery)->done()->count();
@@ -274,11 +270,7 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        $departmentTasks = Task::query()
-            ->where(function ($q) use ($department) {
-                $q->where('department_id', $department->id)->whereNull('program_id');
-            })
-            ->orWhereHas('program', fn ($q) => $q->where('department_id', $department->id));
+        $departmentTasks = Task::forDepartment($department->id);
 
         $deptTasksCount = (clone $departmentTasks)->count();
         $deptTodoCount = (clone $departmentTasks)->todo()->count();
