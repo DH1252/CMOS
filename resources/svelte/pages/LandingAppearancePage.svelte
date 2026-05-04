@@ -268,7 +268,7 @@
           </div>
         </div>
 
-        <div class="lg:sticky lg:top-5 h-fit">
+        <div class="lg:sticky lg:top-5 self-start h-fit">
           <div class="text-sm font-medium text-brand-primary mb-2">Pratinjau</div>
           <h3 class="text-xl font-semibold text-foreground mb-3">Tampilan Landing Page</h3>
           <div class="rounded-[10px] border border-border bg-card p-1">
