@@ -129,6 +129,8 @@ class InformationBoardController extends Controller
     public function create()
     {
         $categories = InformationCategory::orderBy('name')->get();
+        $landingPageBg = Setting::query()->where('key', 'css_landing_page_bg')->value('value')
+            ?? ThemePalette::landingCssDefaults()['css_landing_page_bg'];
 
         return \Inertia\Inertia::render(
             'pages/InformationBoardEditorPage',
@@ -179,10 +181,11 @@ class InformationBoardController extends Controller
                         'icon' => 'fas fa-arrow-left',
                     ],
                     'editorId' => 'information-board-create-content',
+                    'backgroundColor' => $landingPageBg,
                 ];
 
                 return $props;
-            })(compact('categories')),
+            })(compact('categories', 'landingPageBg')),
         );
     }
 
@@ -322,6 +325,8 @@ class InformationBoardController extends Controller
         $this->authorizeEdit($informationBoard, request()->user());
         $categories = InformationCategory::orderBy('name')->get();
         $normalizedContent = $this->normalizeImageUrls($informationBoard->content);
+        $landingPageBg = Setting::query()->where('key', 'css_landing_page_bg')->value('value')
+            ?? ThemePalette::landingCssDefaults()['css_landing_page_bg'];
 
         return \Inertia\Inertia::render(
             'pages/InformationBoardEditorPage',
@@ -380,10 +385,11 @@ class InformationBoardController extends Controller
                         'confirmText' => "Hapus artikel {$informationBoard->title}?",
                     ],
                     'editorId' => 'information-board-edit-content',
+                    'backgroundColor' => $landingPageBg,
                 ];
 
                 return $props;
-            })(compact('informationBoard', 'categories', 'normalizedContent')),
+            })(compact('informationBoard', 'categories', 'normalizedContent', 'landingPageBg')),
         );
     }
 
