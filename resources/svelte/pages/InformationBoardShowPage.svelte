@@ -17,6 +17,7 @@
       editAction: null,
     },
     latestArticles = [],
+    backgroundColor = '',
   } = $props();
 
   const actionVariant = (action) => (action === article.editAction ? 'default' : 'secondary');
@@ -51,6 +52,10 @@
     event.currentTarget.src = fallbackImage;
   };
 </script>
+
+{#if backgroundColor}
+  {@html `<style>.page-content { background-color: ${backgroundColor} !important; }</style>`}
+{/if}
 
 <div class="row">
   <div class="col-12 col-lg-8">
