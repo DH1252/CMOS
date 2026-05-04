@@ -478,30 +478,69 @@ class InformationBoardController extends Controller
         $clean = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $content) ?? '';
         $clean = preg_replace('#<style\b[^>]*>.*?</style>#is', '', $clean) ?? '';
 
-        $allowedTags = '<p><br><strong><b><em><i><u><s><del><strike><ul><ol><li><a><h1><h2><h3><h4><h5><h6><blockquote><figure><figcaption><img><pre><code><hr><table><thead><tbody><tr><td><th><colgroup><col><span><mark><sup><sub><action-text-attachment>';
+        $allowedTags = '<p><br><strong><b><em><i><u><s><del><strike><ul><ol><li><a><h1><h2><h3><h4><h5><h6><blockquote><figure><figcaption><img><pre><code><hr><table><thead><tbody><tr><td><th><colgroup><col><span><mark><sup><sub><div><dl><dt><dd><action-text-attachment>';
         $clean = strip_tags($clean, $allowedTags);
 
+        $globalAttrs = ['class', 'style', 'id', 'dir', 'title', 'lang'];
+
         $allowedAttrs = [
-            'a' => ['href', 'title', 'target'],
-            'img' => ['src', 'alt', 'title', 'style', 'width', 'height', 'class'],
-            'p' => ['style'],
-            'h1' => ['style'], 'h2' => ['style'], 'h3' => ['style'],
-            'h4' => ['style'], 'h5' => ['style'], 'h6' => ['style'],
-            'span' => ['style'],
-            'mark' => ['style'],
-            'blockquote' => ['style'],
-            'ul' => ['style'],
-            'ol' => ['style'],
-            'li' => ['style'],
-            'table' => ['style'],
-            'td' => ['style'],
-            'th' => ['style'],
-            'tr' => ['style'],
-            'pre' => ['style', 'class'],
-            'code' => ['style', 'class'],
+            'a' => array_merge(['href', 'target', 'title', 'rel', 'download', 'hreflang'], $globalAttrs),
+            'img' => array_merge(['src', 'alt', 'title', 'width', 'height', 'loading', 'decoding'], $globalAttrs),
+            'table' => array_merge(['border', 'cellpadding', 'cellspacing', 'width', 'summary'], $globalAttrs),
+            'td' => array_merge(['colspan', 'rowspan', 'scope', 'headers', 'width', 'height', 'align', 'valign'], $globalAttrs),
+            'th' => array_merge(['colspan', 'rowspan', 'scope', 'headers', 'width', 'height', 'align', 'valign'], $globalAttrs),
+            'colgroup' => array_merge(['span', 'width'], $globalAttrs),
+            'col' => array_merge(['span', 'width'], $globalAttrs),
+            'hr' => array_merge(['width', 'size', 'align', 'noshade'], $globalAttrs),
+            'p' => $globalAttrs,
+            'h1' => $globalAttrs, 'h2' => $globalAttrs, 'h3' => $globalAttrs,
+            'h4' => $globalAttrs, 'h5' => $globalAttrs, 'h6' => $globalAttrs,
+            'div' => $globalAttrs,
+            'span' => $globalAttrs,
+            'mark' => $globalAttrs,
+            'blockquote' => array_merge(['cite'], $globalAttrs),
+            'ul' => $globalAttrs,
+            'ol' => array_merge(['start', 'type', 'reversed'], $globalAttrs),
+            'li' => array_merge(['value'], $globalAttrs),
+            'tr' => $globalAttrs,
+            'tbody' => $globalAttrs,
+            'thead' => $globalAttrs,
+            'pre' => $globalAttrs,
+            'code' => $globalAttrs,
+            'figure' => $globalAttrs,
+            'figcaption' => $globalAttrs,
+            'dl' => $globalAttrs,
+            'dt' => $globalAttrs,
+            'dd' => $globalAttrs,
+            'sup' => $globalAttrs,
+            'sub' => $globalAttrs,
+            'strong' => $globalAttrs,
+            'b' => $globalAttrs,
+            'em' => $globalAttrs,
+            'i' => $globalAttrs,
+            'u' => $globalAttrs,
+            's' => $globalAttrs,
+            'del' => array_merge(['cite', 'datetime'], $globalAttrs),
+            'strike' => $globalAttrs,
+            'br' => $globalAttrs,
         ];
 
-        $allowedCss = ['text-align', 'color', 'background-color', 'font-family', 'text-decoration', 'width', 'height', 'border-collapse', 'border', 'padding', 'margin', 'font-size'];
+        $allowedCss = [
+            'color', 'background-color',
+            'font-family', 'font-size', 'font-weight', 'font-style', 'line-height',
+            'text-align', 'text-decoration', 'text-transform', 'text-indent',
+            'letter-spacing', 'word-spacing', 'white-space', 'vertical-align',
+            'width', 'height', 'max-width', 'min-width', 'max-height', 'min-height',
+            'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+            'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+            'border', 'border-top', 'border-right', 'border-bottom', 'border-left',
+            'border-width', 'border-style', 'border-color', 'border-collapse', 'border-spacing', 'border-radius',
+            'box-sizing', 'overflow', 'overflow-x', 'overflow-y',
+            'display', 'float', 'clear', 'position',
+            'top', 'right', 'bottom', 'left',
+            'list-style-type', 'list-style-position', 'list-style-image',
+            'opacity', 'visibility', 'z-index',
+        ];
 
         $clean = preg_replace_callback(
             '#<([a-z][a-z0-9]*)\b([^>]*)>#i',
@@ -535,7 +574,9 @@ class InformationBoardController extends Controller
                     $safe[] = $attrName.'="'.htmlspecialchars($value, ENT_QUOTES, 'UTF-8').'"';
                 }
 
-                return '<'.$tag.($safe === [] ? '' : ' '.implode(' ', $safe)).'>';
+                $attrStr = $safe === [] ? '' : ' '.implode(' ', $safe);
+
+                return '<'.$tag.$attrStr.'>';
             },
             $clean
         );
@@ -568,6 +609,10 @@ class InformationBoardController extends Controller
                 || str_contains($lowerValue, '-moz-binding')
                 || str_contains($lowerValue, 'url(')
             ) {
+                continue;
+            }
+
+            if ($property === 'position' && in_array($lowerValue, ['fixed', 'absolute', 'sticky'], true)) {
                 continue;
             }
 

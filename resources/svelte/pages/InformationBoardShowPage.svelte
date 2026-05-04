@@ -251,6 +251,44 @@
     color: var(--text-soft);
   }
 
+  .article-content :global(.aligncenter),
+  .article-content :global(img.aligncenter) {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+
+  .article-content :global(.alignleft),
+  .article-content :global(img.alignleft) {
+    float: left;
+    margin-right: 1rem;
+    margin-bottom: 0.5rem;
+    text-align: left;
+  }
+
+  .article-content :global(.alignright),
+  .article-content :global(img.alignright) {
+    float: right;
+    margin-left: 1rem;
+    margin-bottom: 0.5rem;
+    text-align: right;
+  }
+
+  .article-content :global(.alignjustify) {
+    text-align: justify;
+  }
+
+  .article-content :global(p::after),
+  .article-content :global(h1::after),
+  .article-content :global(h2::after),
+  .article-content :global(h3::after),
+  .article-content :global(h4::after) {
+    content: '';
+    display: table;
+    clear: both;
+  }
+
   @media (max-width: 767px) {
     .article-topline {
       flex-direction: column;
