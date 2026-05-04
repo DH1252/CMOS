@@ -19,13 +19,6 @@
 
   let selectedColor = $state(null);
   let hasHydratedCustomColors = $state(false);
-  let customPrimary = $state('#7C3AED');
-  let customHover = $state('#6D28D9');
-  let customSoft = $state('#A78BFA');
-  let customLight = $state('#EDE9FE');
-  let customSecondary = $state('#5B2BA9');
-  let customSecondarySoft = $state('#E9E0F8');
-  let customPrimaryForeground = $state('#FFFFFF');
   let iframeRef = $state(null);
   let iframeLoaded = $state(false);
 
@@ -38,25 +31,25 @@
     () => colors.find((color) => color.name === activeColor) || colors[0] || null,
   );
 
-  const syncFromPreset = (name) => {
+  const syncLandingBrandFromPreset = (name) => {
     const preset = colors.find((color) => color.name === name);
 
     if (!preset) {
       return;
     }
 
-    customPrimary = preset.primary;
-    customHover = preset.hover;
-    customSoft = preset.soft;
-    customLight = preset.light;
-    customSecondary = preset.secondary;
-    customSecondarySoft = preset.secondarySoft;
-    customPrimaryForeground = preset.primaryForeground;
+    landingCss['css_landing_brand_primary'] = preset.primary;
+    landingCss['css_landing_brand_hover'] = preset.hover;
+    landingCss['css_landing_brand_soft'] = preset.soft;
+    landingCss['css_landing_brand_light'] = preset.light;
+    landingCss['css_landing_brand_secondary'] = preset.secondary;
+    landingCss['css_landing_brand_secondary_soft'] = preset.secondarySoft;
   };
 
   const selectPreset = (name) => {
     selectedColor = name;
-    syncFromPreset(name);
+    syncLandingBrandFromPreset(name);
+    injectPreviewStyles();
   };
 
   const landingCssKeys = [
@@ -118,16 +111,7 @@
       return;
     }
 
-    customPrimary = values.themePrimary || '#7C3AED';
-    customHover = values.themeHover || '#6D28D9';
-    customSoft = values.themeSoft || '#A78BFA';
-    customLight = values.themeLight || '#EDE9FE';
-    customSecondary = values.themeSecondary || '#5B2BA9';
-    customSecondarySoft = values.themeSecondarySoft || '#E9E0F8';
-    customPrimaryForeground = values.themePrimaryForeground || '#FFFFFF';
-
     landingCss = { ...(values.customCss || {}) };
-
     hasHydratedCustomColors = true;
   });
 
@@ -171,23 +155,14 @@
         <div class="grid gap-5">
           <section class="grid gap-5 rounded-[10px] border border-border bg-background px-5 py-5">
             <div>
-              <div class="text-sm font-medium text-brand-primary">Paleta warna</div>
-              <h3 class="mt-2 text-xl font-semibold text-foreground">Pilih warna utama</h3>
+              <div class="text-sm font-medium text-brand-primary">Paleta warna landing</div>
+              <h3 class="mt-2 text-xl font-semibold text-foreground">Pilih warna utama halaman publik</h3>
               <p class="mt-2 text-sm leading-7 text-muted-foreground">
-                Paleta dasar yang menjadi identitas brand. Warna ini juga digunakan di aplikasi internal.
+                Paleta ini hanya diterapkan pada landing page. Warna aplikasi internal tetap dikelola di Pengaturan Umum.
               </p>
             </div>
 
             <div class="grid gap-4">
-              <input type="hidden" name="theme_color" value={activeColor} />
-              <input type="hidden" name="theme_primary" value={customPrimary} />
-              <input type="hidden" name="theme_hover" value={customHover} />
-              <input type="hidden" name="theme_soft" value={customSoft} />
-              <input type="hidden" name="theme_light" value={customLight} />
-              <input type="hidden" name="theme_secondary" value={customSecondary} />
-              <input type="hidden" name="theme_secondary_soft" value={customSecondarySoft} />
-              <input type="hidden" name="theme_primary_foreground" value={customPrimaryForeground} />
-
               <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 {#each colors as color, index (color.name || index)}
                   <button
@@ -207,31 +182,27 @@
               <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-4">
                 <label class="grid gap-2 text-sm text-foreground">
                   <span class="font-medium">Primary</span>
-                  <input type="color" bind:value={customPrimary} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+                  <input type="color" bind:value={landingCss['css_landing_brand_primary']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
                 </label>
                 <label class="grid gap-2 text-sm text-foreground">
                   <span class="font-medium">Hover</span>
-                  <input type="color" bind:value={customHover} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+                  <input type="color" bind:value={landingCss['css_landing_brand_hover']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
                 </label>
                 <label class="grid gap-2 text-sm text-foreground">
                   <span class="font-medium">Soft</span>
-                  <input type="color" bind:value={customSoft} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+                  <input type="color" bind:value={landingCss['css_landing_brand_soft']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
                 </label>
                 <label class="grid gap-2 text-sm text-foreground">
                   <span class="font-medium">Light</span>
-                  <input type="color" bind:value={customLight} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+                  <input type="color" bind:value={landingCss['css_landing_brand_light']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
                 </label>
                 <label class="grid gap-2 text-sm text-foreground">
                   <span class="font-medium">Secondary</span>
-                  <input type="color" bind:value={customSecondary} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+                  <input type="color" bind:value={landingCss['css_landing_brand_secondary']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
                 </label>
                 <label class="grid gap-2 text-sm text-foreground">
                   <span class="font-medium">Secondary Soft</span>
-                  <input type="color" bind:value={customSecondarySoft} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
-                </label>
-                <label class="grid gap-2 text-sm text-foreground">
-                  <span class="font-medium">Primary Foreground</span>
-                  <input type="color" bind:value={customPrimaryForeground} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
+                  <input type="color" bind:value={landingCss['css_landing_brand_secondary_soft']} oninput={injectPreviewStyles} class="h-10 w-full rounded-[8px] border border-border bg-background p-1" />
                 </label>
               </div>
 
@@ -240,7 +211,7 @@
                   <div class="h-12 w-12 rounded-[10px]" style={`background:${selectedPalette.primary}`}></div>
                   <div>
                     <strong class="block text-sm text-foreground">{selectedPalette.label}</strong>
-                    <p class="mt-1 text-sm leading-6 text-muted-foreground">Warna dasar brand untuk seluruh situs.</p>
+                    <p class="mt-1 text-sm leading-6 text-muted-foreground">Warna brand khusus landing page. Tidak mempengaruhi tampilan aplikasi internal.</p>
                   </div>
                 </div>
               {/if}
