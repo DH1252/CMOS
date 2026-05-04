@@ -69,11 +69,8 @@ pnpm-debug.log*
 
 # Development artifacts
 *.sql
+!/docker/pgsql/create-testing-database.sql
 /extract-design.js
-/frontend-documentation.md
-/posthog-setup-report.md
-/reverb-start.sh
 /error_log
-/Dockerfile.coolify
 /lighthouse-desktop/
 /undefined:
