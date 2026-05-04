@@ -269,6 +269,8 @@ class InformationBoardController extends Controller
             ->get();
 
         $canManage = request()->user()?->isAdmin() || $informationBoard->user_id === auth()->id();
+        $landingPageBg = Setting::query()->where('key', 'css_landing_page_bg')->value('value')
+            ?? ThemePalette::landingCssDefaults()['css_landing_page_bg'];
 
         return \Inertia\Inertia::render(
             'pages/InformationBoardShowPage',
@@ -315,6 +317,7 @@ class InformationBoardController extends Controller
                         ?? $latest->created_at->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->toIso8601String(),
                     'href' => route('information-boards.show', $latest),
                 ])->values(),
+                'backgroundColor' => $landingPageBg,
             ], [
                 'pageTitle' => 'Papan Informasi',
                 'pageMeta' => '',
