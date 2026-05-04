@@ -58,22 +58,35 @@
     <div class="col-12 col-lg-8">
     <Card.Root class="article-meta-shell animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
       <Card.Content class="article-meta-body">
-        <div class="article-badges">
-          {#each article.badges || [] as badge, index (badge.label || index)}
-            <StatusBadge label={badge.label} icon={badge.icon || ''} tone={badge.tone || 'secondary'} />
-          {/each}
+        <div class="article-meta-top">
+          <div class="article-status-row">
+            {#each article.badges || [] as badge, index (badge.label || index)}
+              {#if index === 0}
+                <span class={`article-status-pill article-status-${badge.tone}`}>
+                  {#if badge.icon}
+                    <i class={badge.icon}></i>
+                  {/if}
+                  {badge.label}
+                </span>
+              {:else}
+                <span class="article-category-pill">{badge.label}</span>
+              {/if}
+            {/each}
+          </div>
+
+          <div class="article-metadata">
+            {#each article.metadata || [] as item, index (item.label || index)}
+              <span class="article-meta-item">
+                {#if item.icon}
+                  <i class={item.icon}></i>
+                {/if}
+                {item.icon === 'fas fa-calendar' ? formatDateTime(item.label) : item.label}
+              </span>
+            {/each}
+          </div>
         </div>
 
-        <div class="article-metadata">
-          {#each article.metadata || [] as item, index (item.label || index)}
-            <span>
-              {#if item.icon}
-                <i class={item.icon}></i>
-              {/if}
-              {item.icon === 'fas fa-calendar' ? formatDateTime(item.label) : item.label}
-            </span>
-          {/each}
-        </div>
+        <h1 class="article-title">{article.title}</h1>
       </Card.Content>
     </Card.Root>
 
@@ -83,8 +96,6 @@
 
     <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border shadow-none" style={backgroundColor ? `background-color: ${backgroundColor};` : ''}>
       <Card.Content class="article-body pt-5">
-        <PageHeader title={article.title} icon="fas fa-newspaper" headingTag="h2" compact={true} />
-
         {@html `<style>.article-content { ${tinymceBaseStyle.replace(/body\s*\{/g, '& {').replace(/@import[^;]+;/g, '')} } .article-content { ${tinymceAlignmentStyle} }</style>`}
         <div class="article-content">
           {@html article.contentHtml}
@@ -163,23 +174,97 @@
 
   .article-meta-body {
     display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: flex-start;
-    padding: 1rem 1.5rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
   }
 
-  .article-badges,
-  .article-metadata {
+  .article-meta-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .article-status-row {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.45rem;
   }
 
-  .article-metadata {
-    justify-content: flex-end;
+  .article-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .article-status-pill i {
+    font-size: 0.7rem;
+  }
+
+  .article-status-success {
+    background: color-mix(in srgb, var(--signal-success) 14%, transparent);
+    color: var(--signal-success);
+    border: 1px solid color-mix(in srgb, var(--signal-success) 24%, transparent);
+  }
+
+  .article-status-secondary {
+    background: color-mix(in srgb, var(--text-muted) 12%, transparent);
     color: var(--text-muted);
-    font-size: 0.88rem;
+    border: 1px solid color-mix(in srgb, var(--line-soft) 60%, transparent);
+  }
+
+  .article-status-info {
+    background: color-mix(in srgb, var(--signal-info) 14%, transparent);
+    color: var(--signal-info);
+    border: 1px solid color-mix(in srgb, var(--signal-info) 24%, transparent);
+  }
+
+  .article-category-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.375rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-soft);
+    background: var(--muted);
+    border: 1px solid var(--line-soft);
+  }
+
+  .article-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .article-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .article-meta-item i {
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .article-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--text-strong);
+    margin: 0;
   }
 
   .article-content {
@@ -241,12 +326,13 @@
   }
 
   @media (max-width: 767px) {
-    .article-meta-body {
+    .article-meta-top {
       flex-direction: column;
+      align-items: flex-start;
     }
 
-    .article-metadata {
-      justify-content: flex-start;
+    .article-title {
+      font-size: 1.35rem;
     }
   }
 </style>
