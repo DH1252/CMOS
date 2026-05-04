@@ -156,6 +156,17 @@ class SettingController extends Controller
     {
         $cssKeys = array_keys(ThemePalette::landingCssDefaults());
 
+        $themeKeys = [
+            'theme_color',
+            'theme_primary',
+            'theme_hover',
+            'theme_soft',
+            'theme_light',
+            'theme_secondary',
+            'theme_secondary_soft',
+            'theme_primary_foreground',
+        ];
+
         try {
             foreach ($request->validated() as $key => $value) {
                 if (in_array($key, $cssKeys, true) && ($value === null || $value === '')) {
@@ -165,6 +176,14 @@ class SettingController extends Controller
                 }
 
                 Setting::set($key, $value);
+            }
+
+            foreach ($themeKeys as $key) {
+                $value = $request->input($key);
+
+                if ($value !== null && $value !== '') {
+                    Setting::set($key, $value);
+                }
             }
         } catch (\Throwable $e) {
             report($e);

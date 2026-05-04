@@ -29,6 +29,9 @@
   let iframeRef = $state(null);
   let iframeLoaded = $state(false);
 
+  // Deep clone incoming customCss into reactive state so mutations work
+  let landingCss = $state({});
+
   const activeColor = $derived(selectedColor || values.themeColor || colors[0]?.name || 'purple');
 
   const selectedPalette = $derived.by(
@@ -77,7 +80,7 @@
     const vars = [];
 
     for (const { key, var: cssVar } of landingCssKeys) {
-      const value = values.customCss?.[key];
+      const value = landingCss[key];
       if (typeof value === 'string' && value.startsWith('#')) {
         vars.push(`  --${cssVar}: ${value};`);
       }
@@ -122,6 +125,9 @@
     customSecondary = values.themeSecondary || '#5B2BA9';
     customSecondarySoft = values.themeSecondarySoft || '#E9E0F8';
     customPrimaryForeground = values.themePrimaryForeground || '#FFFFFF';
+
+    landingCss = { ...(values.customCss || {}) };
+
     hasHydratedCustomColors = true;
   });
 
@@ -132,21 +138,16 @@
   });
 </script>
 
-{#snippet cssInput(name, label, rawValue)}
-  {@const safeValue = typeof rawValue === 'string' && rawValue.startsWith('#') ? rawValue : '#000000'}
+{#snippet cssInput(name, label)}
+  {@const safeValue = typeof landingCss[name] === 'string' && landingCss[name].startsWith('#') ? landingCss[name] : '#000000'}
   <label class="grid gap-2 text-sm text-foreground">
     <span class="font-medium">{label}</span>
     <div class="flex items-center gap-2">
       <input
         type="color"
         {name}
-        value={safeValue}
-        oninput={(e) => {
-          if (values.customCss) {
-            values.customCss[name] = e.currentTarget.value;
-            injectPreviewStyles();
-          }
-        }}
+        bind:value={landingCss[name]}
+        oninput={injectPreviewStyles}
         class="h-10 w-full rounded-[8px] border border-border bg-background p-1"
       />
       <span class="text-xs text-muted-foreground font-mono w-20">{safeValue}</span>
@@ -259,30 +260,30 @@
               <div>
                 <h4 class="text-sm font-semibold text-foreground mb-3">Teks</h4>
                 <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-3">
-                  {@render cssInput('css_landing_text_strong', 'Teks Utama', values.customCss?.css_landing_text_strong)}
-                  {@render cssInput('css_landing_text_soft', 'Teks Lembut', values.customCss?.css_landing_text_soft)}
-                  {@render cssInput('css_landing_text_muted', 'Teks Redup', values.customCss?.css_landing_text_muted)}
+                  {@render cssInput('css_landing_text_strong', 'Teks Utama')}
+                  {@render cssInput('css_landing_text_soft', 'Teks Lembut')}
+                  {@render cssInput('css_landing_text_muted', 'Teks Redup')}
                 </div>
               </div>
               <div>
                 <h4 class="text-sm font-semibold text-foreground mb-3">Latar & Permukaan</h4>
                 <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
-                  {@render cssInput('css_landing_page_bg', 'Latar Halaman', values.customCss?.css_landing_page_bg)}
-                  {@render cssInput('css_landing_page_bg_soft', 'Latar Halaman Lembut', values.customCss?.css_landing_page_bg_soft)}
-                  {@render cssInput('css_landing_panel_bg', 'Latar Panel', values.customCss?.css_landing_panel_bg)}
-                  {@render cssInput('css_landing_panel_muted', 'Panel Redup', values.customCss?.css_landing_panel_muted)}
-                  {@render cssInput('css_landing_line_soft', 'Garis Lembut', values.customCss?.css_landing_line_soft)}
+                  {@render cssInput('css_landing_page_bg', 'Latar Halaman')}
+                  {@render cssInput('css_landing_page_bg_soft', 'Latar Halaman Lembut')}
+                  {@render cssInput('css_landing_panel_bg', 'Latar Panel')}
+                  {@render cssInput('css_landing_panel_muted', 'Panel Redup')}
+                  {@render cssInput('css_landing_line_soft', 'Garis Lembut')}
                 </div>
               </div>
               <div>
                 <h4 class="text-sm font-semibold text-foreground mb-3">Brand</h4>
                 <div class="grid gap-4 rounded-[10px] border border-border bg-card px-4 py-4 md:grid-cols-2 lg:grid-cols-3">
-                  {@render cssInput('css_landing_brand_primary', 'Brand Primary', values.customCss?.css_landing_brand_primary)}
-                  {@render cssInput('css_landing_brand_hover', 'Brand Hover', values.customCss?.css_landing_brand_hover)}
-                  {@render cssInput('css_landing_brand_soft', 'Brand Soft', values.customCss?.css_landing_brand_soft)}
-                  {@render cssInput('css_landing_brand_light', 'Brand Light', values.customCss?.css_landing_brand_light)}
-                  {@render cssInput('css_landing_brand_secondary', 'Brand Secondary', values.customCss?.css_landing_brand_secondary)}
-                  {@render cssInput('css_landing_brand_secondary_soft', 'Brand Secondary Soft', values.customCss?.css_landing_brand_secondary_soft)}
+                  {@render cssInput('css_landing_brand_primary', 'Brand Primary')}
+                  {@render cssInput('css_landing_brand_hover', 'Brand Hover')}
+                  {@render cssInput('css_landing_brand_soft', 'Brand Soft')}
+                  {@render cssInput('css_landing_brand_light', 'Brand Light')}
+                  {@render cssInput('css_landing_brand_secondary', 'Brand Secondary')}
+                  {@render cssInput('css_landing_brand_secondary_soft', 'Brand Secondary Soft')}
                 </div>
               </div>
             </div>
