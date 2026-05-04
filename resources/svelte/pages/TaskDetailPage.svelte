@@ -135,7 +135,7 @@
             <StatusBadge label={assignee.roleLabel} tone={assignee.roleTone || 'secondary'} />
           </div>
         {:else}
-          <EmptyStatePanel title="Belum ada assignee" text="Task ini belum ditugaskan ke anggota tertentu." icon="fas fa-user-slash" tone="secondary" compact={true} />
+          <EmptyStatePanel title="Belum ada assignee" text="Belum ditugaskan." icon="fas fa-user-slash" tone="secondary" compact={true} />
         {/if}
       </Card.Content>
     </Card.Root>

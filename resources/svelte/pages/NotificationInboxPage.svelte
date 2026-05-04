@@ -289,7 +289,7 @@
       <Card.Content class="pt-5">
         <EmptyStatePanel
           title="Tidak ada notifikasi"
-          text="Semua pembaruan akan muncul di sini setelah aktivitas baru masuk."
+          text="Notifikasi akan muncul setelah ada aktivitas baru."
           icon="fas fa-bell-slash"
           tone="primary"
           compact={true}

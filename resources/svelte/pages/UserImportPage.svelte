@@ -216,7 +216,7 @@ Admin User,admin@example.com,securepass,bph,</pre>
     <Card.Content class="pt-5">
       <EmptyStatePanel
         title="Belum ada hasil impor"
-        text="Unggah file CSV untuk melihat ringkasan baris yang berhasil dan yang perlu diperbaiki."
+        text="Unggah file CSV untuk melihat hasil impor."
         icon="fas fa-file-import"
         tone="secondary"
         compact={true}

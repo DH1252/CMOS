@@ -15,7 +15,7 @@
     groups = [],
     emptyState = {
       title: 'Belum ada drive',
-      text: 'Akun Google Drive organisasi akan muncul di halaman ini setelah ditambahkan.',
+      text: 'Belum ada akun Google Drive.',
     },
     csrfToken = '',
   } = $props();

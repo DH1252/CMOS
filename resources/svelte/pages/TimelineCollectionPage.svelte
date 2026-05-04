@@ -18,7 +18,7 @@
     items = [],
     emptyState = {
       title: 'Belum ada timeline',
-      text: 'Timeline akan muncul di halaman ini setelah tersedia.',
+      text: 'Belum ada timeline.',
       action: null,
     },
   } = $props();

@@ -190,7 +190,7 @@
               class="mt-2"
               aria-invalid={Boolean(errors.notes)}
               rows="4"
-              placeholder="Tuliskan feedback yang spesifik, singkat, dan bisa ditindaklanjuti..."
+              placeholder="Tulis feedback..."
               value={values.notes || ''}
             />
             {#if errors.notes}

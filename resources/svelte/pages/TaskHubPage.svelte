@@ -14,7 +14,7 @@
     cards = [],
     emptyState = {
       title: 'Belum ada data',
-      text: 'Data akan muncul di halaman ini setelah tersedia.',
+      text: 'Belum ada data.',
     },
   } = $props();
 

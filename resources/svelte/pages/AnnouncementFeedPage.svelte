@@ -436,7 +436,7 @@
             rows="4"
             class="announcement-textarea"
             aria-invalid={Boolean(createForm.errors?.content)}
-            placeholder="Tulis pengumuman yang perlu dibaca kabinet..."
+            placeholder="Tulis pengumuman..."
             value={createForm.content || ''}
           />
           {#if createForm.errors?.content}
@@ -532,7 +532,7 @@
     <Card.Content class="pt-5">
       <EmptyStatePanel
         title="Belum ada pengumuman"
-        text="Jadilah yang pertama membuat pengumuman untuk organisasi."
+        text="Belum ada pengumuman."
         icon="fas fa-bullhorn"
         tone="primary"
       />

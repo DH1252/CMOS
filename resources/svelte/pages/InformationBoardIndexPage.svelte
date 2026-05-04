@@ -26,7 +26,7 @@
     pagination = null,
     emptyState = {
       title: 'Belum ada artikel',
-      text: 'Artikel informasi akan muncul di halaman ini setelah ditulis.',
+      text: 'Belum ada artikel.',
     },
     csrfToken = '',
   } = $props();
