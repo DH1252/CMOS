@@ -35,6 +35,11 @@ const applyThemeVariables = (variables = null) => {
 		return;
 	}
 
+	// Skip on public pages — the blade template manages its own CSS variables
+	if (document.documentElement.getAttribute("data-theme") === "public") {
+		return;
+	}
+
 	// Handle legacy flat variable format
 	if (!variables.customCss && !variables.light && !variables.dark) {
 		Object.entries(variables).forEach(([token, value]) => {
