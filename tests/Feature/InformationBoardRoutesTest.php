@@ -50,6 +50,8 @@ class InformationBoardRoutesTest extends TestCase
         $this->assertSame('pages/InformationBoardShowPage', $page['component']);
         $this->assertSame($article->title, $page['props']['article']['title']);
         $this->assertSame($article->content, $page['props']['article']['contentHtml']);
+        $this->assertArrayHasKey('previewTheme', $page['props']);
+        $this->assertNotSame('', $page['props']['previewTheme']['backgroundColor'] ?? '');
     }
 
     /**

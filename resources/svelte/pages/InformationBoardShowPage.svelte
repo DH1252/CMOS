@@ -4,7 +4,7 @@
   import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import StatusBadge from '../components/StatusBadge.svelte';
-  import { tinymceBaseStyle, tinymceAlignmentStyle } from '../lib/tinymceContentStyle.js';
+  import { buildScopedTinymceAlignmentStyle, buildScopedTinymceContentStyle } from '../lib/tinymceContentStyle.js';
 
   let {
     article = {
@@ -17,8 +17,12 @@
       editAction: null,
     },
     latestArticles = [],
-    backgroundColor = '',
+    previewTheme = {},
   } = $props();
+
+  const previewShellStyle = $derived(
+    previewTheme?.backgroundColor ? `background: ${previewTheme.backgroundColor} !important;` : '',
+  );
 
   const actionVariant = (action) => (action === article.editAction ? 'default' : 'secondary');
   const fallbackImage = '/images/logokabinet.png';
@@ -94,9 +98,9 @@
       <img src={article.coverImage} alt={article.title} class="article-cover" loading="lazy" decoding="async" onerror={handleImageError} />
     {/if}
 
-    <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border shadow-none" style={backgroundColor ? `background-color: ${backgroundColor};` : ''}>
+    <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border shadow-none" style={previewShellStyle}>
       <Card.Content class="article-body pt-5">
-        {@html `<style>.article-content { ${tinymceBaseStyle.replace(/body\s*\{/g, '& {').replace(/@import[^;]+;/g, '')} } .article-content { ${tinymceAlignmentStyle} }</style>`}
+        {@html `<style>${buildScopedTinymceContentStyle('.article-content', previewTheme)} ${buildScopedTinymceAlignmentStyle('.article-content')}</style>`}
         <div class="article-content">
           {@html article.contentHtml}
         </div>

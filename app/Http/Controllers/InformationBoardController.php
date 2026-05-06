@@ -131,8 +131,7 @@ class InformationBoardController extends Controller
     public function create()
     {
         $categories = InformationCategory::orderBy('name')->get();
-        $landingPageBg = Setting::query()->where('key', 'css_landing_page_bg')->value('value')
-            ?? ThemePalette::landingCssDefaults()['css_landing_page_bg'];
+        $previewTheme = $this->landingPreviewTheme();
 
         return \Inertia\Inertia::render(
             'pages/InformationBoardEditorPage',
@@ -183,11 +182,11 @@ class InformationBoardController extends Controller
                         'icon' => 'fas fa-arrow-left',
                     ],
                     'editorId' => 'information-board-create-content',
-                    'backgroundColor' => $landingPageBg,
+                    'previewTheme' => $previewTheme,
                 ];
 
                 return $props;
-            })(compact('categories', 'landingPageBg')),
+            })(compact('categories', 'previewTheme')),
         );
     }
 
@@ -269,8 +268,7 @@ class InformationBoardController extends Controller
             ->get();
 
         $canManage = request()->user()?->isAdmin() || $informationBoard->user_id === auth()->id();
-        $landingPageBg = Setting::query()->where('key', 'css_landing_page_bg')->value('value')
-            ?? ThemePalette::landingCssDefaults()['css_landing_page_bg'];
+        $previewTheme = $this->landingPreviewTheme();
 
         return \Inertia\Inertia::render(
             'pages/InformationBoardShowPage',
@@ -317,7 +315,7 @@ class InformationBoardController extends Controller
                         ?? $latest->created_at->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->toIso8601String(),
                     'href' => route('information-boards.show', $latest),
                 ])->values(),
-                'backgroundColor' => $landingPageBg,
+                'previewTheme' => $previewTheme,
             ], [
                 'pageTitle' => 'Papan Informasi',
                 'pageMeta' => '',
@@ -330,8 +328,7 @@ class InformationBoardController extends Controller
         $this->authorizeEdit($informationBoard, request()->user());
         $categories = InformationCategory::orderBy('name')->get();
         $normalizedContent = $this->normalizeImageUrls($informationBoard->content);
-        $landingPageBg = Setting::query()->where('key', 'css_landing_page_bg')->value('value')
-            ?? ThemePalette::landingCssDefaults()['css_landing_page_bg'];
+        $previewTheme = $this->landingPreviewTheme();
 
         return \Inertia\Inertia::render(
             'pages/InformationBoardEditorPage',
@@ -390,11 +387,11 @@ class InformationBoardController extends Controller
                         'confirmText' => "Hapus artikel {$informationBoard->title}?",
                     ],
                     'editorId' => 'information-board-edit-content',
-                    'backgroundColor' => $landingPageBg,
+                    'previewTheme' => $previewTheme,
                 ];
 
                 return $props;
-            })(compact('informationBoard', 'categories', 'normalizedContent', 'landingPageBg')),
+            })(compact('informationBoard', 'categories', 'normalizedContent', 'previewTheme')),
         );
     }
 
@@ -657,5 +654,27 @@ class InformationBoardController extends Controller
         }
 
         return str_replace(['src="../storage/', "src='../storage/"], ['src="/storage/', "src='/storage/"], $content);
+    }
+
+    /**
+     * @return array{backgroundColor: string, surfaceColor: string, textColor: string, headingColor: string, softColor: string, mutedColor: string, lineColor: string, linkColor: string}
+     */
+    private function landingPreviewTheme(): array
+    {
+        $settings = Setting::query()
+            ->whereIn('key', array_merge(['theme_color'], ThemePalette::cssVariableKeys()))
+            ->pluck('value', 'key');
+        $defaults = ThemePalette::landingCssDefaults();
+
+        return [
+            'backgroundColor' => (string) $settings->get('css_landing_terminal_bg', $defaults['css_landing_terminal_bg']),
+            'surfaceColor' => (string) $settings->get('css_landing_terminal_panel', $defaults['css_landing_terminal_panel']),
+            'textColor' => (string) $settings->get('css_landing_terminal_text', $defaults['css_landing_terminal_text']),
+            'headingColor' => (string) $settings->get('css_landing_terminal_heading', $defaults['css_landing_terminal_heading']),
+            'softColor' => (string) $settings->get('css_landing_terminal_soft', $defaults['css_landing_terminal_soft']),
+            'mutedColor' => (string) $settings->get('css_landing_terminal_muted', $defaults['css_landing_terminal_muted']),
+            'lineColor' => (string) $settings->get('css_landing_terminal_line', $defaults['css_landing_terminal_line']),
+            'linkColor' => (string) $settings->get('css_landing_terminal_interactive', $defaults['css_landing_terminal_interactive']),
+        ];
     }
 }
