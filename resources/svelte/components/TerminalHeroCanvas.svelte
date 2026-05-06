@@ -6,7 +6,7 @@
     title = 'ASCII hero',
     status = 'Ready',
     footerLeft = 'route /',
-    footerRight = 'asciify-image',
+    footerRight = 'image-to-ascii',
     class: className = '',
   } = $props();
 
@@ -19,9 +19,9 @@
     <span>{isReady ? status : 'Static'}</span>
   </div>
 
-  <div class="terminal-hero__viewport">
-    {#if isReady}
-      <pre class="terminal-hero__ascii" aria-label={alt}>{asciiArt}</pre>
+    <div class="terminal-hero__viewport">
+      {#if isReady}
+      <pre class="terminal-hero__ascii" aria-label={alt}>{@html asciiArt}</pre>
     {:else}
       {#if fallbackSrc}
         <img src={fallbackSrc} alt={alt} class="terminal-hero__fallback" loading="lazy" decoding="async" />
@@ -72,8 +72,8 @@
     display: grid;
     place-items: center;
     overflow: hidden;
-    aspect-ratio: 50 / 31;
-    min-height: 220px;
+    aspect-ratio: 50 / 34;
+    min-height: 236px;
     background: var(--landing-terminal-hero-bg-resolved, var(--landing-terminal-hero-bg, var(--landing-terminal-panel-resolved, var(--landing-terminal-panel))));
   }
 
@@ -95,13 +95,13 @@
     overflow: hidden;
     white-space: pre;
     font-family: 'JetBrains Mono', monospace;
-    font-size: clamp(0.28rem, 0.38vw, 0.48rem);
-    line-height: 0.8;
+    font-weight: 700;
+    font-size: clamp(0.24rem, 0.31vw, 0.38rem);
+    line-height: 0.9;
     letter-spacing: 0;
     color: var(--landing-terminal-frame-accent-resolved, var(--landing-terminal-frame-accent));
-    text-shadow: 0 0 10px color-mix(in srgb, var(--landing-terminal-frame-accent-resolved, var(--landing-terminal-frame-accent)) 22%, transparent);
-    transform: scaleY(0.88);
-    transform-origin: center;
+    filter: brightness(1.18) saturate(1.12);
+    text-shadow: 0 0 12px color-mix(in srgb, var(--landing-terminal-frame-accent-resolved, var(--landing-terminal-frame-accent)) 30%, transparent);
     user-select: none;
   }
 
@@ -134,12 +134,12 @@
       rgba(12, 10, 14, 0.18) 3px,
       rgba(12, 10, 14, 0.18) 4px
     );
-    opacity: 0.54;
+    opacity: 0.32;
     mix-blend-mode: multiply;
   }
 
   .terminal-hero__mask {
-    box-shadow: inset 0 0 0 1px rgba(217, 174, 67, 0.1), inset 0 0 48px rgba(9, 7, 10, 0.6);
+    box-shadow: inset 0 0 0 1px rgba(217, 174, 67, 0.12), inset 0 0 40px rgba(9, 7, 10, 0.4);
     animation: terminalFlicker 6s steps(3, end) infinite;
   }
 

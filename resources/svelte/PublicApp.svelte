@@ -306,7 +306,7 @@
   let menuDetails = $state(null);
   let activeNavId = $state(null);
 
-  const heroTitle = 'Portal resmi HIMATEKKOM ITS 2026 untuk arsip publik dan kerja kabinet.';
+  const heroTitleVariants = ['Kabinet Sentra Sinergi', 'HIMATEKKOM ITS'];
   const heroDescription = 'Kabinet Sentra Sinergi menjaga publikasi, dokumentasi, dan akses internal melalui satu sistem yang rapi dan mudah dipantau.';
 
 </script>
@@ -375,8 +375,10 @@
             <div class="grid gap-4">
               <TerminalTextReveal
                 tag="h1"
-                text={heroTitle}
-                textClass="max-w-[15ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl lg:text-[3.55rem]"
+                texts={heroTitleVariants}
+                cycle={true}
+                holdDuration={1000}
+                textClass="min-h-[2.45em] max-w-[18ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl lg:text-[3.55rem]"
               />
               <TerminalTextReveal
                 tag="p"
@@ -414,7 +416,7 @@
               title="Kabinet logo"
               status="ASCII ready"
               footerLeft="render /logo"
-              footerRight="asciify-image"
+              footerRight="image-to-ascii"
             />
           </aside>
         </div>
