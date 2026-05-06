@@ -63,6 +63,20 @@
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
+    @if ($isPublicRoute)
+    <script>
+        window.addEventListener('message', function (e) {
+            if (e.data && e.data.type === 'preview-css' && e.data.vars) {
+                var html = document.documentElement;
+                for (var key in e.data.vars) {
+                    if (e.data.vars.hasOwnProperty(key)) {
+                        html.style.setProperty(key, e.data.vars[key]);
+                    }
+                }
+            }
+        });
+    </script>
+    @endif
 </head>
 <body>
     <a href="#main-content" class="skip-link">Lewati ke konten utama</a>

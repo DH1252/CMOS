@@ -8,13 +8,14 @@
     textClass = '',
     wrapperClass = '',
     delay = 0,
+    animate = true,
     speed: userSpeed,
     frameRate: userFrameRate,
   } = $props();
 
   let wrapper = null;
   let isActive = $state(false);
-  let isComplete = $state(false);
+  let isComplete = $state(!animate);
   let typedText = $state('');
   let glitchGlyph = $state('');
 
@@ -30,10 +31,14 @@
 
   const computeFrameRate = (len) => {
     if (userFrameRate !== undefined) return userFrameRate;
-    return Math.max(8, Math.min(18, Math.round(8 + len / 25)));
+    return Math.max(18, Math.min(28, Math.round(18 + len / 25)));
   };
 
   onMount(() => {
+    if (!animate) {
+      return;
+    }
+
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       isComplete = true;
       return;
@@ -125,7 +130,7 @@
     this={tag}
     class={`terminal-reveal__base ${isComplete ? 'terminal-reveal__base--visible' : ''} ${textClass}`.trim()}
   >
-    {text}
+    {sourceText}
   </svelte:element>
 
   {#if isActive && !isComplete}

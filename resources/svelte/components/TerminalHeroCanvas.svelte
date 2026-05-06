@@ -73,7 +73,7 @@
 
     const initialize = async () => {
       if (!canvas || !frame || !source) {
-        fallbackReason = 'visual source unavailable';
+        fallbackReason = 'sumber gambar tidak tersedia';
 
         return;
       }
@@ -90,7 +90,7 @@
         const panelColor = resolveThemeColor(frame, '--landing-terminal-panel', '#151018');
 
         if (!nextSize) {
-          fallbackReason = 'terminal viewport unavailable';
+          fallbackReason = 'area render tidak tersedia';
 
           return;
         }
@@ -147,7 +147,7 @@
         scheduleCanvasResize();
         isReady = true;
       } catch (error) {
-        fallbackReason = error instanceof Error ? error.message : 'webgl2 unavailable';
+        fallbackReason = error instanceof Error ? error.message : 'renderer tidak tersedia';
         isReady = false;
       }
     };

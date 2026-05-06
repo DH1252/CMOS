@@ -30,19 +30,29 @@
 
   const landingCssKeys = [
     { key: 'css_landing_text_strong', var: 'text-strong', label: 'Teks Utama' },
-    { key: 'css_landing_text_soft', var: 'text-soft', label: 'Teks Lembut' },
+    { key: 'css_landing_text_soft', var: 'text-soft', label: 'Teks Deskripsi' },
     { key: 'css_landing_text_muted', var: 'text-muted', label: 'Teks Redup' },
     { key: 'css_landing_page_bg', var: 'page-bg', label: 'Latar Halaman' },
     { key: 'css_landing_page_bg_soft', var: 'page-bg-soft', label: 'Latar Halaman Lembut' },
     { key: 'css_landing_panel_bg', var: 'panel-bg', label: 'Latar Panel' },
     { key: 'css_landing_panel_muted', var: 'panel-muted', label: 'Panel Redup' },
-    { key: 'css_landing_line_soft', var: 'line-soft', label: 'Garis Lembut' },
-    { key: 'css_landing_brand_primary', var: 'brand-primary', label: 'Brand Primary' },
+    { key: 'css_landing_line_soft', var: 'line-soft', label: 'Garis Pembatas' },
+    { key: 'css_landing_brand_primary', var: 'brand-primary', label: 'Brand Utama' },
     { key: 'css_landing_brand_hover', var: 'brand-hover', label: 'Brand Hover' },
-    { key: 'css_landing_brand_soft', var: 'brand-soft', label: 'Brand Soft' },
-    { key: 'css_landing_brand_light', var: 'brand-light', label: 'Brand Light' },
-    { key: 'css_landing_brand_secondary', var: 'brand-secondary', label: 'Brand Secondary' },
-    { key: 'css_landing_brand_secondary_soft', var: 'brand-secondary-soft', label: 'Brand Secondary Soft' },
+    { key: 'css_landing_brand_soft', var: 'brand-soft', label: 'Brand Lembut' },
+    { key: 'css_landing_brand_light', var: 'brand-light', label: 'Brand Terang' },
+    { key: 'css_landing_brand_secondary', var: 'brand-secondary', label: 'Brand Sekunder' },
+    { key: 'css_landing_brand_secondary_soft', var: 'brand-secondary-soft', label: 'Brand Sekunder Lembut' },
+    { key: 'css_landing_terminal_bg', var: 'landing-terminal-bg', label: 'Latar Terminal' },
+    { key: 'css_landing_terminal_panel', var: 'landing-terminal-panel', label: 'Panel Terminal' },
+    { key: 'css_landing_terminal_panel_soft', var: 'landing-terminal-panel-soft', label: 'Panel Hover' },
+    { key: 'css_landing_terminal_line', var: 'landing-terminal-line', label: 'Garis Terminal' },
+    { key: 'css_landing_terminal_text', var: 'landing-terminal-text', label: 'Teks Judul' },
+    { key: 'css_landing_terminal_soft', var: 'landing-terminal-soft', label: 'Teks Isi' },
+    { key: 'css_landing_terminal_muted', var: 'landing-terminal-muted', label: 'Teks Metadata' },
+    { key: 'css_landing_terminal_accent', var: 'landing-terminal-accent', label: 'Aksen Utama' },
+    { key: 'css_landing_terminal_accent_soft', var: 'landing-terminal-accent-soft', label: 'Aksen Lembut' },
+    { key: 'css_landing_terminal_button_text', var: 'landing-terminal-button-text', label: 'Teks Tombol' },
   ];
 
   const initialValues = values.customCss || {};
@@ -109,10 +119,16 @@
   };
 
   onMount(() => {
-    iframeRef?.addEventListener('load', () => {
+    const onLoad = () => {
       iframeReady = true;
       sendPreview();
-    });
+    };
+
+    if (iframeRef?.contentDocument?.readyState === 'complete') {
+      onLoad();
+    } else {
+      iframeRef?.addEventListener('load', onLoad, { once: true });
+    }
   });
 </script>
 
@@ -209,6 +225,7 @@
               {@render colorGroup('Teks', ['css_landing_text_strong', 'css_landing_text_soft', 'css_landing_text_muted'])}
               {@render colorGroup('Latar & Permukaan', ['css_landing_page_bg', 'css_landing_page_bg_soft', 'css_landing_panel_bg', 'css_landing_panel_muted', 'css_landing_line_soft'])}
               {@render colorGroup('Brand', ['css_landing_brand_primary', 'css_landing_brand_hover', 'css_landing_brand_soft', 'css_landing_brand_light', 'css_landing_brand_secondary', 'css_landing_brand_secondary_soft'])}
+              {@render colorGroup('Terminal', ['css_landing_terminal_bg', 'css_landing_terminal_panel', 'css_landing_terminal_panel_soft', 'css_landing_terminal_line', 'css_landing_terminal_text', 'css_landing_terminal_soft', 'css_landing_terminal_muted', 'css_landing_terminal_accent', 'css_landing_terminal_accent_soft', 'css_landing_terminal_button_text'])}
             </div>
           </section>
 

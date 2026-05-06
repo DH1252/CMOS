@@ -8,8 +8,6 @@
   import TerminalTextReveal from './components/TerminalTextReveal.svelte';
   import {
     ArrowRight,
-    ArrowUpRight,
-    LayoutDashboard,
     LogIn,
     Menu,
   } from 'lucide-svelte';
@@ -31,31 +29,10 @@
 
   const isInfoIndex = $derived(page === 'info-index');
   const isInfoShow = $derived(page === 'info-show');
-  const latestArticles = $derived(latestInfo);
-
-  $effect(() => {
-    document.documentElement.setAttribute('data-brand', themeColor || 'purple');
-  });
-
-  $effect(() => {
-    if (!themeVariables || typeof themeVariables !== 'object') {
-      return;
-    }
-
-    Object.entries(themeVariables).forEach(([token, value]) => {
-      if (typeof token !== 'string' || typeof value !== 'string') {
-        return;
-      }
-
-      document.documentElement.style.setProperty(`--${token}`, value);
-    });
-  });
-
   const navigation = [
     { href: '#profil', label: 'Profil Organisasi' },
     { href: '#program-kerja', label: 'Program Kerja' },
     { href: '#informasi', label: 'Informasi' },
-    { href: '#cmos', label: 'CMOS' },
   ];
 
   const quickFacts = $derived([
@@ -80,7 +57,7 @@
       items: [
         {
           name: 'CMOS',
-          unit: 'Sistem Terintegrasi',
+          unit: 'Monitoring & Pelaporan',
           description: 'Sistem monitoring dan pelaporan program kerja untuk mendukung transparansi, akuntabilitas, dan manajemen organisasi berbasis data.',
         },
         {
@@ -117,17 +94,17 @@
       items: [
         {
           name: 'COD',
-          unit: 'PSDM',
+          unit: 'Pengembangan Karier',
           description: 'Program pengembangan karier melalui pelatihan CV, simulasi interview, dan penguatan personal branding mahasiswa.',
         },
         {
           name: 'BIOS',
-          unit: 'Risprof',
+          unit: 'Kajian & Riset',
           description: 'Forum kajian isu keprofesian Teknik Komputer untuk mendorong diskusi kritis dan solusi yang relevan.',
         },
         {
           name: 'TEKKOM Insight',
-          unit: 'Medfo',
+          unit: 'Media & Informasi',
           description: 'Media informasi dengan konten edukatif dan kreatif untuk meningkatkan literasi teknologi mahasiswa.',
         },
         {
@@ -162,29 +139,29 @@
     },
   ];
 
-  const cmosFeatures = [
-    'Monitoring program kerja secara real-time.',
-    'Timeline kegiatan dan dokumentasi kerja yang terpusat.',
-    'Evaluasi kinerja pengurus dan laporan organisasi.',
-    'Akses data organisasi yang lebih rapi untuk pengambilan keputusan.',
-  ];
-
   const footerSections = $derived([
     {
       title: 'Navigasi',
       links: [
         { href: '#profil', label: 'Profil Organisasi' },
         { href: '#program-kerja', label: 'Program Kerja' },
-        { href: '#informasi', label: 'Papan Informasi' },
+        { href: '#informasi', label: 'Informasi' },
       ],
     },
     {
       title: 'Akses',
       links: [
         { href: loginUrl, label: 'Masuk ke CMOS' },
-        { href: infoUrl, label: 'Lihat arsip informasi' },
+        { href: infoUrl, label: 'Arsip informasi' },
         { href: 'https://www.instagram.com/sentrasinergi/', label: 'Instagram resmi' },
       ],
+    },
+    {
+      title: 'Kanal pendukung',
+      links: supportLinks.map((item) => ({
+        href: item.href,
+        label: item.title,
+      })),
     },
   ]);
 
@@ -215,7 +192,8 @@
   });
 
   onMount(() => {
-    let observer;
+    let revealObserver;
+    let spyObserver;
 
     const setupLandingReveal = () => {
       if (page !== 'landing' || typeof document === 'undefined') {
@@ -236,9 +214,9 @@
         return;
       }
 
-      observer?.disconnect();
+      revealObserver?.disconnect();
 
-      observer = new IntersectionObserver(
+      revealObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (!entry.isIntersecting) {
@@ -246,7 +224,7 @@
             }
 
             entry.target.classList.add('is-revealed');
-            observer?.unobserve(entry.target);
+            revealObserver?.unobserve(entry.target);
           });
         },
         {
@@ -257,17 +235,70 @@
 
       targets.forEach((element) => {
         element.classList.remove('is-revealed');
-        observer.observe(element);
+        revealObserver.observe(element);
       });
     };
 
-    const frame = requestAnimationFrame(setupLandingReveal);
+    const setupScrollSpy = () => {
+      if (page !== 'landing' || typeof IntersectionObserver === 'undefined') {
+        return;
+      }
+
+      const sections = navigation
+        .map((item) => document.getElementById(item.href.replace('#', '')))
+        .filter(Boolean);
+
+      if (!sections.length) {
+        return;
+      }
+
+      spyObserver?.disconnect();
+
+      const ratios = new Map();
+
+      spyObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            ratios.set(entry.target, entry.intersectionRatio);
+          });
+
+          let maxRatio = 0;
+          let bestId = null;
+
+          ratios.forEach((ratio, target) => {
+            if (ratio > maxRatio) {
+              maxRatio = ratio;
+              bestId = `#${target.id}`;
+            }
+          });
+
+          if (bestId) {
+            activeNavId = bestId;
+          }
+        },
+        {
+          threshold: [0, 0.15, 0.3, 0.5, 0.75, 1],
+          rootMargin: '-12% 0px -60% 0px',
+        },
+      );
+
+      sections.forEach((section) => spyObserver.observe(section));
+    };
+
+    const frame = requestAnimationFrame(() => {
+      setupLandingReveal();
+      setupScrollSpy();
+    });
 
     return () => {
       cancelAnimationFrame(frame);
-      observer?.disconnect();
+      revealObserver?.disconnect();
+      spyObserver?.disconnect();
     };
   });
+
+  let menuDetails = $state(null);
+  let activeNavId = $state(null);
 
   const heroTitle = 'Portal resmi HIMATEKKOM ITS 2026 untuk arsip publik dan kerja kabinet.';
   const heroDescription = 'Kabinet Sentra Sinergi menjaga publikasi, dokumentasi, dan akses internal melalui satu sistem yang rapi dan mudah dipantau.';
@@ -281,6 +312,8 @@
 
 {#if page === 'landing'}
   <div class="landing-terminal min-h-screen">
+    <a href="#main-content" class="skip-link">Langsung ke konten</a>
+
     <header class="border-b border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-bg)]">
       <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8">
         <a href={homeUrl} class="flex min-w-0 items-center gap-3 text-inherit no-underline">
@@ -293,7 +326,12 @@
 
         <nav class="hidden items-center gap-6 md:flex">
           {#each navigation as item (item.href)}
-            <a href={item.href} class="text-sm text-[var(--landing-terminal-soft)] transition-colors duration-150 hover:text-[var(--landing-terminal-text)]">{item.label}</a>
+            <a
+              href={item.href}
+              class="text-sm transition-colors duration-200 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--landing-terminal-accent)] {activeNavId === item.href ? 'text-[var(--landing-terminal-accent)] font-medium' : 'text-[var(--landing-terminal-soft)] hover:text-[var(--landing-terminal-text)]'}"
+            >
+              {item.label}
+            </a>
           {/each}
         </nav>
 
@@ -303,15 +341,21 @@
             Masuk
           </a>
 
-          <details class="relative md:hidden">
-            <summary class="inline-flex h-10 w-10 cursor-pointer list-none items-center justify-center border border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-panel)] text-[var(--landing-terminal-text)] [&::-webkit-details-marker]:hidden">
+          <details class="relative md:hidden" bind:this={menuDetails}>
+            <summary class="inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center border border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-panel)] text-[var(--landing-terminal-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--landing-terminal-accent)] [&::-webkit-details-marker]:hidden">
               <Menu size={18} />
             </summary>
             <div class="absolute right-0 top-[calc(100%+0.75rem)] z-20 grid min-w-56 gap-1 border border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-panel)] p-3">
               {#each navigation as item (item.href)}
-                <a href={item.href} class="px-3 py-2 text-sm text-[var(--landing-terminal-soft)] transition-colors duration-150 hover:bg-[var(--landing-terminal-panel-soft)] hover:text-[var(--landing-terminal-text)]">{item.label}</a>
+                <a
+                  href={item.href}
+                  class={`px-3 py-2 text-sm transition-colors duration-200 hover:bg-[var(--landing-terminal-panel-soft)] ${activeNavId === item.href ? 'text-[var(--landing-terminal-accent)]' : 'text-[var(--landing-terminal-soft)] hover:text-[var(--landing-terminal-text)]'}`}
+                  onclick={() => { menuDetails.open = false; }}
+                >
+                  {item.label}
+                </a>
               {/each}
-              <a href={loginUrl} class="landing-button-secondary mt-1 justify-center">Masuk ke CMOS</a>
+              <a href={loginUrl} class="landing-button-secondary mt-1 justify-center" onclick={() => { menuDetails.open = false; }}>Masuk ke CMOS</a>
             </div>
           </details>
         </div>
@@ -349,26 +393,11 @@
             <div class="landing-command-block">
               {#each quickFacts as item, index (`${index}-${item}`)}
                 <div class="landing-command-row">
-                  <span class="landing-command-index">0{index + 1}</span>
+                  <span class="landing-command-index">$</span>
                   <TerminalTextReveal tag="p" text={item} textClass="text-sm leading-7 text-[var(--landing-terminal-soft)]" />
                 </div>
               {/each}
             </div>
-
-            <dl class="grid gap-3 md:grid-cols-3">
-              <div class="landing-meta-cell">
-                <dt>Organisasi</dt>
-                <dd>{organizationName}</dd>
-              </div>
-              <div class="landing-meta-cell">
-                <dt>Mode kerja</dt>
-                <dd>Arsip publik, koordinasi, dokumentasi</dd>
-              </div>
-              <div class="landing-meta-cell">
-                <dt>Akses internal</dt>
-                <dd>{appName} untuk pengurus kabinet</dd>
-              </div>
-            </dl>
           </div>
 
           <aside data-reveal style="--reveal-delay: 140ms;">
@@ -386,25 +415,26 @@
       <section id="profil" data-reveal style="--reveal-delay: 220ms;" class="scroll-mt-24 border-b border-[var(--landing-terminal-line)]">
         <div class="mx-auto grid max-w-[1180px] gap-6 px-5 py-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:px-8 lg:py-10">
           <section class="landing-panel px-5 py-5">
-            <TerminalTextReveal tag="h2" text="Profil organisasi" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
+            <TerminalTextReveal animate={false} tag="h2" text="Profil organisasi" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
             <TerminalTextReveal
+              animate={false}
               tag="p"
               text="HIMATEKKOM ITS 2026 menjalankan publikasi dan operasional kabinet dengan alur yang terstruktur, terdokumentasi, dan mudah dibaca oleh pengurus maupun publik."
               textClass="mt-4 max-w-[66ch] text-sm leading-7 text-[var(--landing-terminal-soft)]"
             />
             <div class="mt-6 border-t border-[var(--landing-terminal-line)] pt-4">
-              <TerminalTextReveal tag="div" text="Visi" textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
-              <TerminalTextReveal tag="p" text={vision} textClass="mt-3 max-w-[66ch] text-sm leading-8 text-[var(--landing-terminal-soft)]" />
+              <TerminalTextReveal animate={false} tag="div" text="Visi" textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
+              <TerminalTextReveal animate={false} tag="p" text={vision} textClass="mt-3 max-w-[66ch] text-sm leading-8 text-[var(--landing-terminal-soft)]" />
             </div>
           </section>
 
           <section class="landing-panel px-5 py-5">
-            <TerminalTextReveal tag="h2" text="Misi kerja" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
+            <TerminalTextReveal animate={false} tag="h2" text="Misi kerja" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
             <ol class="mt-5 divide-y divide-[var(--landing-terminal-line)] border-t border-[var(--landing-terminal-line)]">
               {#each missionItems as item, index (`${index}-${item}`)}
                 <li class="grid gap-3 py-4 md:grid-cols-[2.5rem_minmax(0,1fr)] md:items-start">
                   <div class="text-sm font-semibold text-[var(--landing-terminal-accent)]">0{index + 1}</div>
-                  <TerminalTextReveal tag="p" text={item} textClass="text-sm leading-8 text-[var(--landing-terminal-soft)]" />
+                  <TerminalTextReveal animate={false} tag="p" text={item} textClass="text-sm leading-8 text-[var(--landing-terminal-soft)]" />
                 </li>
               {/each}
             </ol>
@@ -412,29 +442,61 @@
         </div>
       </section>
 
-      <section id="program-kerja" data-reveal style="--reveal-delay: 320ms;" class="scroll-mt-24 border-b border-[var(--landing-terminal-line)]">
-        <div class="mx-auto max-w-[1180px] px-5 py-8 lg:px-8 lg:py-10">
+      <section data-reveal style="--reveal-delay: 280ms;" class="border-b border-[var(--landing-terminal-line)]">
+        <div class="mx-auto max-w-[1180px] px-5 py-6 lg:px-8 lg:py-8">
+          <div class="grid gap-3 md:grid-cols-3">
+            <figure class="landing-frame m-0">
+              <div class="landing-frame__media">
+                <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80" alt="Laptop mahasiswa Teknik Komputer di laboratorium" class="w-full h-48 object-cover" loading="lazy" decoding="async" />
+              </div>
+              <figcaption class="landing-frame__caption">
+                <span class="text-[var(--landing-terminal-muted)]">lab</span>
+                <span class="text-[var(--landing-terminal-accent)]">/workspace</span>
+              </figcaption>
+            </figure>
+            <figure class="landing-frame m-0">
+              <div class="landing-frame__media">
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129a71b?auto=format&fit=crop&w=800&q=80" alt="Mahasiswa berkolaborasi di ruang kerja" class="w-full h-48 object-cover" loading="lazy" decoding="async" />
+              </div>
+              <figcaption class="landing-frame__caption">
+                <span class="text-[var(--landing-terminal-muted)]">kolaborasi</span>
+                <span class="text-[var(--landing-terminal-accent)]">/tim</span>
+              </figcaption>
+            </figure>
+            <figure class="landing-frame m-0">
+              <div class="landing-frame__media">
+                <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80" alt="Ruang kerja dan laboratorium komputer" class="w-full h-48 object-cover" loading="lazy" decoding="async" />
+              </div>
+              <figcaption class="landing-frame__caption">
+                <span class="text-[var(--landing-terminal-muted)]">gedung</span>
+                <span class="text-[var(--landing-terminal-accent)]">/teknik komputer</span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="program-kerja" data-reveal style="--reveal-delay: 360ms;" class="scroll-mt-24 border-b border-[var(--landing-terminal-line)]">
+        <div class="mx-auto max-w-[1180px] px-5 py-10 lg:px-8 lg:py-14">
           <div class="max-w-[72ch]">
-            <TerminalTextReveal tag="h2" text="Program kerja kabinet" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
-            <TerminalTextReveal tag="p" text="Tiga rumpun kerja utama kabinet, disusun sebagai garis kerja yang saling melengkapi." textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+            <TerminalTextReveal animate={false} tag="h2" text="Program kerja kabinet" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
+            <TerminalTextReveal animate={false} tag="p" text="Tiga rumpun kerja utama kabinet, disusun sebagai garis kerja yang saling melengkapi." textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
           </div>
 
-          <div class="mt-6 border border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-panel)]">
+          <div class="mt-8 grid gap-8 lg:grid-cols-3">
             {#each programGroups as group, groupIndex (group.title)}
-              <section class={`grid gap-4 px-5 py-5 lg:grid-cols-[12rem_minmax(0,1fr)] ${groupIndex > 0 ? 'border-t border-[var(--landing-terminal-line)]' : ''}`}>
-                <div>
-                  <TerminalTextReveal tag="h3" text={group.title} textClass="text-xl leading-tight text-[var(--landing-terminal-text)]" />
-                  <TerminalTextReveal tag="p" text={group.description} textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
-                </div>
+              <section class="landing-panel px-5 py-5">
+                <TerminalTextReveal animate={false} tag="h3" text={group.title} textClass="text-xl leading-tight text-[var(--landing-terminal-text)]" />
+                <TerminalTextReveal animate={false} tag="p" text={group.description} textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
 
-                <div class="divide-y divide-[var(--landing-terminal-line)] border-t border-[var(--landing-terminal-line)] lg:border-t-0">
+                <div class="mt-5 divide-y divide-[var(--landing-terminal-line)] border-t border-[var(--landing-terminal-line)]">
                   {#each group.items as item, itemIndex (`${group.title}-${item.name}`)}
                     <article class={`py-4 ${itemIndex === 0 ? 'pt-0' : ''}`}>
                       <div class="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
-                        <TerminalTextReveal tag="div" text={item.name} textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
-                        <TerminalTextReveal tag="div" text={item.unit} textClass="text-xs text-[var(--landing-terminal-muted)]" />
+                        <TerminalTextReveal animate={false} tag="div" text={item.name} textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
+                        <TerminalTextReveal animate={false} tag="div" text={item.unit} textClass="text-xs text-[var(--landing-terminal-muted)]" />
                       </div>
-                      <TerminalTextReveal tag="p" text={item.description} textClass="mt-2 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+                      <TerminalTextReveal animate={false} tag="p" text={item.description} textClass="mt-2 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
                     </article>
                   {/each}
                 </div>
@@ -445,12 +507,12 @@
       </section>
 
       <section id="informasi" data-reveal style="--reveal-delay: 420ms;" class="scroll-mt-24 border-b border-[var(--landing-terminal-line)]">
-        <div class="mx-auto grid max-w-[1180px] gap-6 px-5 py-8 lg:grid-cols-[minmax(0,1.25fr)_22rem] lg:px-8 lg:py-10">
+        <div class="mx-auto max-w-[1180px] px-5 py-8 lg:px-8 lg:py-10">
           <section class="landing-panel px-5 py-5">
             <div class="flex flex-col gap-4 border-b border-[var(--landing-terminal-line)] pb-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <TerminalTextReveal tag="h2" text="Informasi terbaru" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
-                <TerminalTextReveal tag="p" text="Publikasi dan dokumentasi terbaru yang sudah terbit di kanal resmi HIMATEKKOM ITS." textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+                <TerminalTextReveal animate={false} tag="h2" text="Informasi terbaru" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
+                <TerminalTextReveal animate={false} tag="p" text="Publikasi dan dokumentasi terbaru yang sudah terbit di kanal resmi HIMATEKKOM ITS." textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
               </div>
               <a href={infoUrl} class="landing-inline-link inline-flex items-center gap-2 text-sm font-semibold">
                 Arsip lengkap
@@ -458,9 +520,9 @@
               </a>
             </div>
 
-            {#if latestArticles.length}
+            {#if latestInfo.length}
               <div class="divide-y divide-[var(--landing-terminal-line)]">
-                {#each latestArticles as article (article.url || article.title)}
+                {#each latestInfo as article (article.url || article.title)}
                   <a href={article.url} class="landing-article-row">
                     <div class="grid gap-3 lg:grid-cols-[9rem_minmax(0,1fr)] lg:items-start">
                       <div class="space-y-1 text-[0.73rem] text-[var(--landing-terminal-muted)]">
@@ -468,67 +530,51 @@
                         <div>{article.category}</div>
                       </div>
                       <div class="space-y-2">
-                        <TerminalTextReveal tag="h3" text={article.title} textClass="text-lg leading-snug text-[var(--landing-terminal-text)]" />
-                        <TerminalTextReveal tag="p" text={article.excerpt} textClass="max-w-[65ch] text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+                        <TerminalTextReveal animate={false} tag="h3" text={article.title} textClass="text-lg leading-snug text-[var(--landing-terminal-text)]" />
+                        <TerminalTextReveal animate={false} tag="p" text={article.excerpt} textClass="max-w-[65ch] text-sm leading-7 text-[var(--landing-terminal-soft)]" />
                       </div>
                     </div>
                   </a>
                 {/each}
               </div>
             {:else}
-              <TerminalTextReveal tag="div" text="Belum ada publikasi yang terbit di papan informasi." textClass="py-5 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+              <TerminalTextReveal animate={false} tag="div" text="Belum ada publikasi yang terbit di papan informasi." textClass="py-5 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
             {/if}
           </section>
-
-          <aside class="grid gap-4">
-            <section class="landing-panel px-5 py-5">
-              <TerminalTextReveal tag="h2" text="Kanal pendukung" textClass="text-xl leading-tight text-[var(--landing-terminal-text)]" />
-              <div class="mt-5 divide-y divide-[var(--landing-terminal-line)] border-t border-[var(--landing-terminal-line)]">
-                {#each supportLinks as item (item.href)}
-                  <a href={item.href} class="landing-support-row" target="_blank" rel="noreferrer">
-                    <div>
-                      <TerminalTextReveal tag="div" text={item.title} textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
-                      <TerminalTextReveal tag="p" text={item.description} textClass="mt-2 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
-                    </div>
-                    <ArrowUpRight class="mt-0.5 shrink-0 text-[var(--landing-terminal-muted)]" size={16} />
-                  </a>
-                {/each}
+        </div>
+      </section>
+      <section data-reveal style="--reveal-delay: 480ms;" class="border-b border-[var(--landing-terminal-line)]">
+        <div class="mx-auto max-w-[1180px] px-5 py-14 lg:px-8 lg:py-16">
+          <div class="landing-panel px-8 py-10 lg:px-14 lg:py-14 text-center">
+            <div class="mx-auto max-w-[48ch] space-y-5">
+              <TerminalTextReveal animate={false} tag="h2" text="Kabinet Sentra Sinergi" textClass="text-3xl leading-tight text-[var(--landing-terminal-text)] md:text-[3rem]" />
+              <TerminalTextReveal animate={false} tag="p" text="Satu sistem, satu kabinet. Transparansi dan dokumentasi kerja berjalan di satu tempat." textClass="text-[0.98rem] leading-7 text-[var(--landing-terminal-soft)]" />
+              <div class="flex flex-col gap-3 sm:flex-row sm:justify-center pt-2">
+                <a href="#informasi" class="landing-button-primary inline-flex items-center justify-center gap-2">
+                  Jelajahi arsip publik
+                  <ArrowRight size={16} />
+                </a>
               </div>
-            </section>
-
-            <section id="cmos" class="landing-panel px-5 py-5">
-              <TerminalTextReveal tag="h2" text="CMOS" textClass="text-xl leading-tight text-[var(--landing-terminal-text)]" />
-              <TerminalTextReveal
-                tag="p"
-                text="Computer Monitoring System digunakan pengurus untuk memantau program kerja, menyimpan dokumentasi, dan menjaga evaluasi kabinet tetap rapi dari hari ke hari."
-                textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]"
-              />
-              <div class="mt-5 divide-y divide-[var(--landing-terminal-line)] border-t border-[var(--landing-terminal-line)]">
-                {#each cmosFeatures as item (item)}
-                  <TerminalTextReveal tag="div" text={item} textClass="py-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
-                {/each}
-              </div>
-              <a href={loginUrl} class="landing-button-primary mt-5 inline-flex items-center gap-2">
-                Masuk ke CMOS
-                <LayoutDashboard size={16} />
-              </a>
-            </section>
-          </aside>
+              <p class="text-sm text-[var(--landing-terminal-muted)]">
+                Ikuti <a href="https://www.instagram.com/sentrasinergi/" target="_blank" rel="noreferrer" class="text-[var(--landing-terminal-accent)] hover:text-[var(--landing-terminal-text)] transition-colors">@sentrasinergi</a> di Instagram
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </main>
 
-    <footer data-reveal style="--reveal-delay: 520ms;" class="border-t border-[var(--landing-terminal-line)]">
+    <footer data-reveal style="--reveal-delay: 540ms;" class="border-t border-[var(--landing-terminal-line)]">
       <div class="mx-auto grid max-w-[1180px] gap-6 px-5 py-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.8fr)] lg:px-8">
         <div class="space-y-3">
-          <TerminalTextReveal tag="div" text={organizationName} textClass="text-lg font-semibold text-[var(--landing-terminal-text)]" />
-          <TerminalTextReveal tag="p" text="Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember." textClass="max-w-[60ch] text-sm leading-7 text-[var(--landing-terminal-soft)]" />
-          <TerminalTextReveal tag="p" text="Gedung Teknik Komputer, Kampus ITS Sukolilo, Surabaya." textClass="text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+          <TerminalTextReveal animate={false} tag="div" text={organizationName} textClass="text-lg font-semibold text-[var(--landing-terminal-text)]" />
+          <TerminalTextReveal animate={false} tag="p" text="Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember." textClass="max-w-[60ch] text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+          <TerminalTextReveal animate={false} tag="p" text="Gedung Teknik Komputer, Kampus ITS Sukolilo, Surabaya." textClass="text-sm leading-7 text-[var(--landing-terminal-soft)]" />
         </div>
 
         {#each footerSections as section (section.title)}
           <div>
-            <TerminalTextReveal tag="div" text={section.title} textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
+            <TerminalTextReveal animate={false} tag="div" text={section.title} textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
             <div class="mt-3 grid gap-2 text-sm text-[var(--landing-terminal-soft)]">
               {#each section.links as link (link.href)}
                 <a href={link.href} class="transition-colors duration-150 hover:text-[var(--landing-terminal-text)]">{link.label}</a>
@@ -574,30 +620,43 @@
 
 <style>
   .landing-terminal {
-    --landing-terminal-bg: color-mix(in oklch, oklch(0.18 0.01 304) 82%, var(--brand-secondary) 18%);
-    --landing-terminal-panel: color-mix(in oklch, oklch(0.22 0.012 304) 84%, var(--brand-secondary) 16%);
-    --landing-terminal-panel-soft: color-mix(in oklch, oklch(0.26 0.014 304) 78%, var(--brand-secondary) 22%);
-    --landing-terminal-line: color-mix(in oklch, oklch(0.5 0.026 82) 46%, var(--brand-primary) 54%);
-    --landing-terminal-text: oklch(0.86 0.03 92);
-    --landing-terminal-soft: color-mix(in oklch, oklch(0.74 0.02 92) 78%, var(--brand-light) 22%);
-    --landing-terminal-muted: color-mix(in oklch, oklch(0.62 0.018 88) 82%, var(--brand-secondary-soft) 18%);
-    --landing-terminal-accent: color-mix(in oklch, oklch(0.78 0.14 84) 78%, var(--brand-primary) 22%);
-    --landing-terminal-accent-soft: color-mix(in oklch, oklch(0.56 0.08 84) 62%, var(--brand-secondary) 38%);
+    --landing-terminal-bg: var(--landing-terminal-bg, color-mix(in oklch, oklch(0.18 0.01 304) 82%, var(--brand-secondary) 18%));
+    --landing-terminal-panel: var(--landing-terminal-panel, color-mix(in oklch, oklch(0.22 0.012 304) 84%, var(--brand-secondary) 16%));
+    --landing-terminal-panel-soft: var(--landing-terminal-panel-soft, color-mix(in oklch, oklch(0.26 0.014 304) 78%, var(--brand-secondary) 22%));
+    --landing-terminal-line: var(--landing-terminal-line, color-mix(in oklch, oklch(0.5 0.026 82) 46%, var(--brand-primary) 54%));
+    --landing-terminal-text: var(--landing-terminal-text, oklch(0.86 0.03 92));
+    --landing-terminal-soft: var(--landing-terminal-soft, color-mix(in oklch, oklch(0.74 0.02 92) 78%, var(--brand-light) 22%));
+    --landing-terminal-muted: var(--landing-terminal-muted, color-mix(in oklch, oklch(0.62 0.018 88) 82%, var(--brand-secondary-soft) 18%));
+    --landing-terminal-accent: var(--landing-terminal-accent, color-mix(in oklch, oklch(0.78 0.14 84) 78%, var(--brand-primary) 22%));
+    --landing-terminal-accent-soft: var(--landing-terminal-accent-soft, color-mix(in oklch, oklch(0.56 0.08 84) 62%, var(--brand-secondary) 38%));
     background: var(--landing-terminal-bg);
     color: var(--landing-terminal-text);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Public Sans', sans-serif;
   }
 
   .landing-terminal :global(h1),
   .landing-terminal :global(h2),
   .landing-terminal :global(h3) {
-    font-family: inherit;
+    font-family: 'JetBrains Mono', monospace;
     letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .landing-terminal header,
+  .landing-terminal header :global(*),
+  .landing-command-block,
+  .landing-command-block :global(*),
+  .landing-button-primary,
+  .landing-button-secondary {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .landing-terminal :global(p) {
+    line-height: 1.65;
   }
 
   .landing-panel,
-  .landing-command-block,
-  .landing-meta-cell {
+  .landing-command-block {
     border: 1px solid var(--landing-terminal-line);
     background: var(--landing-terminal-panel);
   }
@@ -617,7 +676,7 @@
   .landing-button-primary {
     background: var(--landing-terminal-accent);
     border-color: color-mix(in oklch, var(--landing-terminal-accent) 72%, var(--landing-terminal-line) 28%);
-    color: oklch(0.22 0.02 74);
+    color: var(--landing-terminal-button-text, oklch(0.22 0.02 74));
   }
 
   .landing-button-primary:hover {
@@ -631,7 +690,7 @@
   .landing-button-secondary:hover,
   .landing-inline-link:hover,
   .landing-article-row:hover,
-  .landing-support-row:hover {
+  .landing-article-row:hover {
     background: var(--landing-terminal-panel-soft);
   }
 
@@ -657,46 +716,53 @@
     font-weight: 600;
   }
 
-  .landing-meta-cell {
-    padding: 0.9rem 1rem;
-  }
-
-  .landing-meta-cell dt {
-    color: var(--landing-terminal-muted);
-    font-size: 0.76rem;
-  }
-
-  .landing-meta-cell dd {
-    margin: 0.5rem 0 0;
-    color: var(--landing-terminal-text);
-    font-size: 0.88rem;
-    line-height: 1.6;
-  }
-
   .landing-inline-link,
-  .landing-article-row,
-  .landing-support-row {
+  .landing-article-row {
     color: inherit;
     text-decoration: none;
     transition: background-color 180ms var(--ease-out-quart), color 180ms var(--ease-out-quart);
   }
 
-  .landing-article-row,
-  .landing-support-row {
+  .landing-article-row {
     display: block;
     padding: 1rem 0;
   }
 
-  .landing-support-row {
+  .landing-frame {
+    border: 1px solid var(--landing-terminal-line);
+    background: var(--landing-terminal-panel);
+  }
+
+  .landing-frame__media {
+    overflow: hidden;
+    border-bottom: 1px solid var(--landing-terminal-line);
+  }
+
+  .landing-frame__media img {
+    display: block;
+    transition: filter 320ms var(--ease-out-quart);
+    filter: grayscale(0.3) contrast(1.08);
+  }
+
+  .landing-frame__caption {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.75rem;
+    align-items: baseline;
+    gap: 0.25rem;
+    padding: 0.6rem 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
   }
 
   @media (max-width: 767px) {
     .landing-command-row {
       grid-template-columns: 2.4rem minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landing-terminal :global(*) {
+      transition-duration: 0ms !important;
+      animation-duration: 0ms !important;
     }
   }
 </style>
