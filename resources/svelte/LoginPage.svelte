@@ -30,7 +30,15 @@
       });
     }
 
-    emailInput?.focus();
+    if (window.matchMedia?.('(pointer: coarse)').matches) {
+      return;
+    }
+
+    try {
+      emailInput?.focus({ preventScroll: true });
+    } catch {
+      emailInput?.focus();
+    }
   });
 
   $effect(() => {
