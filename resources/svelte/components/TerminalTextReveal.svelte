@@ -3,13 +3,17 @@
 
   let {
     text = '',
+    texts = [],
     lines = [],
     tag = 'p',
     textClass = '',
     wrapperClass = '',
     delay = 0,
     animate = true,
+    cycle = false,
+    holdDuration = 1200,
     speed: userSpeed,
+    deleteSpeed: userDeleteSpeed,
     frameRate: userFrameRate,
   } = $props();
 
@@ -20,6 +24,18 @@
   let glitchGlyph = $state('');
 
   const sourceText = $derived(Array.isArray(lines) && lines.length ? lines.join('\n') : text);
+  const sequenceTexts = $derived.by(() => {
+    const normalized = Array.isArray(texts)
+      ? texts.filter((value) => typeof value === 'string' && value.trim().length)
+      : [];
+
+    if (normalized.length) {
+      return normalized;
+    }
+
+    return sourceText.trim() ? [sourceText] : [];
+  });
+  const baseText = $derived(sequenceTexts[0] ?? '');
   const renderStatic = $derived(!animate);
   const glitchChars = '._:=+/-[]{}<>|';
 
@@ -35,6 +51,11 @@
     return Math.max(18, Math.min(28, Math.round(18 + len / 25)));
   };
 
+  const computeDeleteSpeed = (len) => {
+    if (userDeleteSpeed !== undefined) return userDeleteSpeed;
+    return Math.max(2, computeSpeed(len));
+  };
+
   onMount(() => {
     if (!animate) {
       return;
@@ -48,41 +69,85 @@
     let cancelled = false;
     let started = false;
     let observer;
-    let progressTimer;
-    let progress = 0;
+    let frameTimeout;
 
-    const trimmed = sourceText.trim();
-    const len = trimmed.length;
-    const speed = computeSpeed(len);
-    const frameRate = computeFrameRate(len);
+    const queue = sequenceTexts;
+
+    const clearFrameTimeout = () => {
+      if (frameTimeout) {
+        window.clearTimeout(frameTimeout);
+        frameTimeout = undefined;
+      }
+    };
+
+    const scheduleFrame = (callback, ms) => {
+      clearFrameTimeout();
+      frameTimeout = window.setTimeout(callback, ms);
+    };
+
+    const runFrame = (index, mode, progress) => {
+      if (cancelled) {
+        return;
+      }
+
+      const currentText = queue[index] ?? '';
+      const len = currentText.length;
+      const speed = computeSpeed(len);
+      const deleteSpeed = computeDeleteSpeed(len);
+      const frameRate = computeFrameRate(len);
+      const frameDelay = Math.max(36, Math.floor(1000 / frameRate));
+
+      if (!currentText) {
+        isComplete = true;
+        return;
+      }
+
+      if (mode === 'typing') {
+        const nextProgress = Math.min(len, progress + speed);
+        typedText = currentText.slice(0, nextProgress);
+        glitchGlyph = nextProgress < len ? nextGlitchGlyph(nextProgress) : '';
+
+        if (nextProgress >= len) {
+          glitchGlyph = '';
+
+          if (cycle && queue.length > 1) {
+            scheduleFrame(() => runFrame(index, 'deleting', len), holdDuration);
+            return;
+          }
+
+          isComplete = true;
+          return;
+        }
+
+        scheduleFrame(() => runFrame(index, 'typing', nextProgress), frameDelay);
+        return;
+      }
+
+      const nextProgress = Math.max(0, progress - deleteSpeed);
+      typedText = currentText.slice(0, nextProgress);
+      glitchGlyph = nextProgress > 0 ? nextGlitchGlyph(nextProgress) : '';
+
+      if (nextProgress <= 0) {
+        glitchGlyph = '';
+        const nextIndex = (index + 1) % queue.length;
+        scheduleFrame(() => runFrame(nextIndex, 'typing', 0), Math.max(120, Math.floor(frameDelay * 1.5)));
+        return;
+      }
+
+      scheduleFrame(() => runFrame(index, 'deleting', nextProgress), frameDelay);
+    };
 
     const startAnimation = () => {
-      if (started || !wrapper || !trimmed) {
+      if (started || !wrapper || !queue.length) {
         return;
       }
 
       started = true;
       isActive = true;
+      isComplete = false;
       typedText = '';
       glitchGlyph = '';
-      progress = 0;
-
-      progressTimer = window.setInterval(() => {
-        if (cancelled) {
-          return;
-        }
-
-        progress = Math.min(len, progress + speed);
-        typedText = sourceText.slice(0, progress);
-        glitchGlyph = progress < len ? nextGlitchGlyph(progress) : '';
-
-        if (progress >= len) {
-          window.clearInterval(progressTimer);
-          progressTimer = undefined;
-          glitchGlyph = '';
-          isComplete = true;
-        }
-      }, Math.max(36, Math.floor(1000 / frameRate)));
+      runFrame(0, 'typing', 0);
     };
 
     if (typeof IntersectionObserver === 'undefined') {
@@ -91,9 +156,7 @@
       return () => {
         cancelled = true;
         window.clearTimeout(timeout);
-        if (progressTimer) {
-          window.clearInterval(progressTimer);
-        }
+        clearFrameTimeout();
       };
     }
 
@@ -118,9 +181,7 @@
 
     return () => {
       cancelled = true;
-      if (progressTimer) {
-        window.clearInterval(progressTimer);
-      }
+      clearFrameTimeout();
       observer?.disconnect();
     };
   });
@@ -131,7 +192,7 @@
     this={tag}
     class={`terminal-reveal__base ${isComplete || renderStatic ? 'terminal-reveal__base--visible' : ''} ${textClass}`.trim()}
   >
-    {sourceText}
+    {baseText}
   </svelte:element>
 
   {#if animate && isActive && !isComplete}
