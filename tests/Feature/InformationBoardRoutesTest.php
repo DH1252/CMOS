@@ -57,10 +57,10 @@ class InformationBoardRoutesTest extends TestCase
      */
     private function inertiaPage(string $html): array
     {
-        preg_match('/data-page="([^"]+)"/', $html, $matches);
+        preg_match('/<script data-page="app" type="application\/json">(.*?)<\/script>/s', $html, $matches);
 
         $this->assertNotEmpty($matches[1] ?? null);
 
-        return json_decode(html_entity_decode($matches[1], ENT_QUOTES), true, 512, JSON_THROW_ON_ERROR);
+        return json_decode($matches[1], true, 512, JSON_THROW_ON_ERROR);
     }
 }
