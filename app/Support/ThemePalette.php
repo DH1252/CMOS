@@ -83,6 +83,16 @@ class ThemePalette
         'css_landing_brand_light' => 'brand-light',
         'css_landing_brand_secondary' => 'brand-secondary',
         'css_landing_brand_secondary_soft' => 'brand-secondary-soft',
+        'css_landing_terminal_bg' => 'landing-terminal-bg',
+        'css_landing_terminal_panel' => 'landing-terminal-panel',
+        'css_landing_terminal_panel_soft' => 'landing-terminal-panel-soft',
+        'css_landing_terminal_line' => 'landing-terminal-line',
+        'css_landing_terminal_text' => 'landing-terminal-text',
+        'css_landing_terminal_soft' => 'landing-terminal-soft',
+        'css_landing_terminal_muted' => 'landing-terminal-muted',
+        'css_landing_terminal_accent' => 'landing-terminal-accent',
+        'css_landing_terminal_accent_soft' => 'landing-terminal-accent-soft',
+        'css_landing_terminal_button_text' => 'landing-terminal-button-text',
     ];
 
     /**
@@ -344,6 +354,16 @@ class ThemePalette
             'css_landing_brand_light' => '#EDE9FE',
             'css_landing_brand_secondary' => '#5B2BA9',
             'css_landing_brand_secondary_soft' => '#E9E0F8',
+            'css_landing_terminal_bg' => '#18141E',
+            'css_landing_terminal_panel' => '#221F2E',
+            'css_landing_terminal_panel_soft' => '#2C283A',
+            'css_landing_terminal_line' => '#8A7A3C',
+            'css_landing_terminal_text' => '#F0E6C8',
+            'css_landing_terminal_soft' => '#CABE9E',
+            'css_landing_terminal_muted' => '#9E9278',
+            'css_landing_terminal_accent' => '#D9AE43',
+            'css_landing_terminal_accent_soft' => '#8C7340',
+            'css_landing_terminal_button_text' => '#251C0A',
         ];
     }
 

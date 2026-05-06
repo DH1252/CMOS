@@ -57,6 +57,16 @@ class UpdateLandingAppearanceRequest extends FormRequest
             'css_landing_brand_light' => $hex,
             'css_landing_brand_secondary' => $hex,
             'css_landing_brand_secondary_soft' => $hex,
+            'css_landing_terminal_bg' => $hex,
+            'css_landing_terminal_panel' => $hex,
+            'css_landing_terminal_panel_soft' => $hex,
+            'css_landing_terminal_line' => $hex,
+            'css_landing_terminal_text' => $hex,
+            'css_landing_terminal_soft' => $hex,
+            'css_landing_terminal_muted' => $hex,
+            'css_landing_terminal_accent' => $hex,
+            'css_landing_terminal_accent_soft' => $hex,
+            'css_landing_terminal_button_text' => $hex,
         ];
     }
 }
