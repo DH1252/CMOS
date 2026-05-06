@@ -1,16 +1,17 @@
 <script>
+  import { onMount } from 'svelte';
   import brandLogo from '../images/logokabinet.png?enhanced&w=80;160';
-  import himatekkomBanner from '../images/himatekkom.jpg?enhanced&w=480;960;1440';
-  import OptimizedImage from './components/OptimizedImage.svelte';
+  import himatekkomTerminalImage from '../images/himatekkom.jpg';
   import PublicInformationIndexPage from './public/PublicInformationIndexPage.svelte';
   import PublicInformationShowPage from './public/PublicInformationShowPage.svelte';
+  import TerminalHeroCanvas from './components/TerminalHeroCanvas.svelte';
+  import TerminalTextReveal from './components/TerminalTextReveal.svelte';
   import {
     ArrowRight,
     ArrowUpRight,
     LayoutDashboard,
     LogIn,
     Menu,
-    Newspaper,
   } from 'lucide-svelte';
 
   let {
@@ -31,7 +32,6 @@
   const isInfoIndex = $derived(page === 'info-index');
   const isInfoShow = $derived(page === 'info-show');
   const latestArticles = $derived(latestInfo);
-  const fallbackImage = $derived(logoUrl || '/images/logokabinet.png');
 
   $effect(() => {
     document.documentElement.setAttribute('data-brand', themeColor || 'purple');
@@ -188,14 +188,6 @@
     },
   ]);
 
-  const handleImageError = (event) => {
-    if (event.currentTarget.src === fallbackImage) {
-      return;
-    }
-
-    event.currentTarget.src = fallbackImage;
-  };
-
   const pageTitle = $derived.by(() => {
     if (page === 'landing') {
       return 'Website Resmi HIMATEKKOM ITS 2026 | Kabinet Sentra Sinergi';
@@ -222,6 +214,64 @@
     return `Portal informasi resmi ${organizationName}. Artikel, pembaruan kegiatan, dan publikasi organisasi.`;
   });
 
+  onMount(() => {
+    let observer;
+
+    const setupLandingReveal = () => {
+      if (page !== 'landing' || typeof document === 'undefined') {
+        return;
+      }
+
+      const targets = Array.from(document.querySelectorAll('[data-reveal]'));
+
+      if (!targets.length) {
+        return;
+      }
+
+      if (typeof IntersectionObserver === 'undefined') {
+        targets.forEach((element) => {
+          element.classList.add('is-revealed');
+        });
+
+        return;
+      }
+
+      observer?.disconnect();
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+              return;
+            }
+
+            entry.target.classList.add('is-revealed');
+            observer?.unobserve(entry.target);
+          });
+        },
+        {
+          threshold: 0.18,
+          rootMargin: '0px 0px -10% 0px',
+        },
+      );
+
+      targets.forEach((element) => {
+        element.classList.remove('is-revealed');
+        observer.observe(element);
+      });
+    };
+
+    const frame = requestAnimationFrame(setupLandingReveal);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+    };
+  });
+
+  const heroTitle = 'Portal resmi HIMATEKKOM ITS 2026 untuk arsip publik dan kerja kabinet.';
+  const heroDescription = 'Kabinet Sentra Sinergi menjaga publikasi, dokumentasi, dan akses internal melalui satu sistem yang rapi dan mudah dipantau.';
+
 </script>
 
 <svelte:head>
@@ -230,41 +280,38 @@
 </svelte:head>
 
 {#if page === 'landing'}
-  <div class="min-h-screen bg-background text-foreground">
-    <header class="border-b border-border bg-background/96">
+  <div class="landing-terminal min-h-screen">
+    <header class="border-b border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-bg)]">
       <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8">
         <a href={homeUrl} class="flex min-w-0 items-center gap-3 text-inherit no-underline">
           <enhanced:img src={brandLogo} alt={organizationName} class="h-10 w-auto shrink-0" loading="eager" fetchpriority="high" sizes="40px" />
           <div class="min-w-0">
-            <div class="truncate text-sm font-semibold text-foreground">{organizationName}</div>
-            <div class="truncate text-sm text-muted-foreground">Kabinet Sentra Sinergi 2026</div>
+            <div class="truncate text-sm font-semibold text-[var(--landing-terminal-text)]">{organizationName}</div>
+            <div class="truncate text-xs text-[var(--landing-terminal-soft)]">Kabinet Sentra Sinergi 2026</div>
           </div>
         </a>
 
         <nav class="hidden items-center gap-6 md:flex">
           {#each navigation as item (item.href)}
-            <a href={item.href} class="text-sm text-muted-foreground transition-colors hover:text-foreground">{item.label}</a>
+            <a href={item.href} class="text-sm text-[var(--landing-terminal-soft)] transition-colors duration-150 hover:text-[var(--landing-terminal-text)]">{item.label}</a>
           {/each}
         </nav>
 
         <div class="flex items-center gap-2">
-          <a
-            href={loginUrl}
-            class="hidden items-center gap-2 rounded-[8px] border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted sm:inline-flex"
-          >
+          <a href={loginUrl} class="landing-button-secondary hidden items-center gap-2 sm:inline-flex">
             <LogIn size={16} />
             Masuk
           </a>
 
           <details class="relative md:hidden">
-            <summary class="inline-flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-[8px] border border-border bg-card text-foreground [&::-webkit-details-marker]:hidden">
+            <summary class="inline-flex h-10 w-10 cursor-pointer list-none items-center justify-center border border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-panel)] text-[var(--landing-terminal-text)] [&::-webkit-details-marker]:hidden">
               <Menu size={18} />
             </summary>
-            <div class="absolute right-0 top-[calc(100%+0.75rem)] z-20 grid min-w-56 gap-1 rounded-[10px] border border-border bg-background p-3 shadow-sm">
+            <div class="absolute right-0 top-[calc(100%+0.75rem)] z-20 grid min-w-56 gap-1 border border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-panel)] p-3">
               {#each navigation as item (item.href)}
-                <a href={item.href} class="rounded-[8px] px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-card hover:text-foreground">{item.label}</a>
+                <a href={item.href} class="px-3 py-2 text-sm text-[var(--landing-terminal-soft)] transition-colors duration-150 hover:bg-[var(--landing-terminal-panel-soft)] hover:text-[var(--landing-terminal-text)]">{item.label}</a>
               {/each}
-              <a href={loginUrl} class="mt-1 rounded-[8px] border border-border bg-card px-3 py-2 text-sm font-medium text-foreground">Masuk ke CMOS</a>
+              <a href={loginUrl} class="landing-button-secondary mt-1 justify-center">Masuk ke CMOS</a>
             </div>
           </details>
         </div>
@@ -272,107 +319,122 @@
     </header>
 
     <main id="main-content">
-      <section class="border-b border-border">
-        <div class="mx-auto grid max-w-[1180px] gap-10 px-5 py-14 lg:grid-cols-[minmax(0,1.05fr)_24rem] lg:px-8 lg:py-18">
-          <div class="space-y-6">
-            <h1 class="max-w-[14ch] text-4xl leading-tight text-foreground md:text-5xl lg:text-[3.5rem]">
-              Website resmi HIMATEKKOM ITS 2026 untuk informasi publik dan kerja kabinet.
-            </h1>
-            <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)] md:text-lg">Ringkasan publik dan kanal resmi HIMATEKKOM ITS.</p>
+      <section class="border-b border-[var(--landing-terminal-line)]">
+        <div class="mx-auto grid max-w-[1180px] gap-8 px-5 py-8 lg:grid-cols-[minmax(0,1fr)_30rem] lg:px-8 lg:py-10">
+          <div data-reveal style="--reveal-delay: 40ms;" class="grid gap-6">
+            <div class="grid gap-4">
+              <TerminalTextReveal
+                tag="h1"
+                text={heroTitle}
+                textClass="max-w-[15ch] text-4xl leading-tight text-[var(--landing-terminal-text)] md:text-5xl lg:text-[3.55rem]"
+              />
+              <TerminalTextReveal
+                tag="p"
+                text={heroDescription}
+                textClass="max-w-[66ch] text-[0.98rem] leading-7 text-[var(--landing-terminal-soft)]"
+              />
+            </div>
 
             <div class="flex flex-col gap-3 sm:flex-row">
-              <a href="#informasi" class="inline-flex items-center justify-center gap-2 rounded-[8px] bg-brand-primary px-4 py-2.5 text-sm font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-brand-hover">
-                Lihat informasi terbaru
+              <a href="#informasi" class="landing-button-primary inline-flex items-center justify-center gap-2">
+                Buka arsip publik
                 <ArrowRight size={16} />
               </a>
-              <a href="#profil" class="inline-flex items-center justify-center gap-2 rounded-[8px] border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+              <a href="#profil" class="landing-button-secondary inline-flex items-center justify-center gap-2">
                 Profil organisasi
                 <ArrowRight size={16} />
               </a>
             </div>
 
-            <div class="grid gap-4 border-t border-border pt-5 md:grid-cols-3">
-              <div>
-                <div class="text-sm font-semibold text-foreground">Kabinet</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">Tata kelola.</p>
-              </div>
-              <div>
-                <div class="text-sm font-semibold text-foreground">Arsip publik</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">Arsip publik.</p>
-              </div>
-              <div>
-                <div class="text-sm font-semibold text-foreground">Sistem internal</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">Sistem internal kabinet.</p>
-              </div>
+            <div class="landing-command-block">
+              {#each quickFacts as item, index (`${index}-${item}`)}
+                <div class="landing-command-row">
+                  <span class="landing-command-index">0{index + 1}</span>
+                  <TerminalTextReveal tag="p" text={item} textClass="text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+                </div>
+              {/each}
             </div>
+
+            <dl class="grid gap-3 md:grid-cols-3">
+              <div class="landing-meta-cell">
+                <dt>Organisasi</dt>
+                <dd>{organizationName}</dd>
+              </div>
+              <div class="landing-meta-cell">
+                <dt>Mode kerja</dt>
+                <dd>Arsip publik, koordinasi, dokumentasi</dd>
+              </div>
+              <div class="landing-meta-cell">
+                <dt>Akses internal</dt>
+                <dd>{appName} untuk pengurus kabinet</dd>
+              </div>
+            </dl>
           </div>
 
-          <aside class="overflow-hidden rounded-[8px] border border-border bg-card">
-            <enhanced:img
-              src={himatekkomBanner}
-              alt="Kabinet Sentra Sinergi"
-              class="w-full border-b border-border"
-              loading="eager"
-              fetchpriority="high"
-              sizes="(min-width: 1024px) 24rem, 100vw"
+          <aside data-reveal style="--reveal-delay: 140ms;">
+            <TerminalHeroCanvas
+              source={himatekkomTerminalImage}
+              fallbackSrc={himatekkomTerminalImage}
+              alt="Dokumentasi kabinet dalam tampilan terminal"
+              footerLeft="render /public"
+              footerRight="brand-tinted phosphor"
             />
-            <div class="grid gap-4 px-5 py-5">
-              <div>
-                <div class="text-lg font-semibold text-foreground">Kabinet Sentra Sinergi</div>
-                <p class="mt-2 text-sm leading-7 text-muted-foreground">Himpunan Mahasiswa Teknik Komputer Institut Teknologi Sepuluh Nopember.</p>
-              </div>
-
-              <div class="grid gap-3 border-t border-border pt-4">
-                {#each quickFacts as item (item)}
-                  <p class="text-sm leading-7 text-muted-foreground">{item}</p>
-                {/each}
-              </div>
-            </div>
           </aside>
         </div>
       </section>
 
-      <section id="profil" class="scroll-mt-24 border-b border-border">
-        <div class="mx-auto grid max-w-[1180px] gap-10 px-5 py-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8 lg:py-18">
-          <div class="space-y-5">
-            <h2 class="text-3xl leading-tight text-foreground md:text-4xl">Tentang HIMATEKKOM ITS 2026</h2>
-            <p class="max-w-[60ch] text-base leading-8 text-[var(--text-soft)]">Akses internal kabinet.</p>
-            <div class="border-t border-border pt-4">
-              <div class="text-sm font-semibold text-foreground">Visi organisasi</div>
-              <p class="mt-3 text-sm leading-8 text-muted-foreground">{vision}</p>
+      <section id="profil" data-reveal style="--reveal-delay: 220ms;" class="scroll-mt-24 border-b border-[var(--landing-terminal-line)]">
+        <div class="mx-auto grid max-w-[1180px] gap-6 px-5 py-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:px-8 lg:py-10">
+          <section class="landing-panel px-5 py-5">
+            <TerminalTextReveal tag="h2" text="Profil organisasi" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
+            <TerminalTextReveal
+              tag="p"
+              text="HIMATEKKOM ITS 2026 menjalankan publikasi dan operasional kabinet dengan alur yang terstruktur, terdokumentasi, dan mudah dibaca oleh pengurus maupun publik."
+              textClass="mt-4 max-w-[66ch] text-sm leading-7 text-[var(--landing-terminal-soft)]"
+            />
+            <div class="mt-6 border-t border-[var(--landing-terminal-line)] pt-4">
+              <TerminalTextReveal tag="div" text="Visi" textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
+              <TerminalTextReveal tag="p" text={vision} textClass="mt-3 max-w-[66ch] text-sm leading-8 text-[var(--landing-terminal-soft)]" />
             </div>
-          </div>
+          </section>
 
-          <div class="grid gap-4">
-            {#each missionItems as item, index (`${index}-${item}`)}
-              <article class="rounded-[8px] border border-border bg-card px-5 py-5">
-                <div class="text-sm font-semibold text-foreground">Misi {index + 1}</div>
-                <p class="mt-3 text-sm leading-8 text-muted-foreground">{item}</p>
-              </article>
-            {/each}
-          </div>
+          <section class="landing-panel px-5 py-5">
+            <TerminalTextReveal tag="h2" text="Misi kerja" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
+            <ol class="mt-5 divide-y divide-[var(--landing-terminal-line)] border-t border-[var(--landing-terminal-line)]">
+              {#each missionItems as item, index (`${index}-${item}`)}
+                <li class="grid gap-3 py-4 md:grid-cols-[2.5rem_minmax(0,1fr)] md:items-start">
+                  <div class="text-sm font-semibold text-[var(--landing-terminal-accent)]">0{index + 1}</div>
+                  <TerminalTextReveal tag="p" text={item} textClass="text-sm leading-8 text-[var(--landing-terminal-soft)]" />
+                </li>
+              {/each}
+            </ol>
+          </section>
         </div>
       </section>
 
-      <section id="program-kerja" class="scroll-mt-24 border-b border-border bg-muted/35">
-        <div class="mx-auto max-w-[1180px] px-5 py-14 lg:px-8 lg:py-18">
-          <div class="max-w-[64ch] space-y-4">
-            <h2 class="text-3xl leading-tight text-foreground md:text-4xl">Rangkaian program kerja kabinet</h2>
-            <p class="text-base leading-8 text-[var(--text-soft)]">Tiga rumpun kerja utama.</p>
+      <section id="program-kerja" data-reveal style="--reveal-delay: 320ms;" class="scroll-mt-24 border-b border-[var(--landing-terminal-line)]">
+        <div class="mx-auto max-w-[1180px] px-5 py-8 lg:px-8 lg:py-10">
+          <div class="max-w-[72ch]">
+            <TerminalTextReveal tag="h2" text="Program kerja kabinet" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
+            <TerminalTextReveal tag="p" text="Tiga rumpun kerja utama kabinet, disusun sebagai garis kerja yang saling melengkapi." textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
           </div>
 
-          <div class="mt-8 grid gap-6 lg:grid-cols-3">
-            {#each programGroups as group (group.title)}
-              <section class="rounded-[8px] border border-border bg-card px-5 py-5">
-                <h3 class="text-xl text-foreground">{group.title}</h3>
-                <p class="mt-3 text-sm leading-7 text-muted-foreground">{group.description}</p>
+          <div class="mt-6 border border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-panel)]">
+            {#each programGroups as group, groupIndex (group.title)}
+              <section class={`grid gap-4 px-5 py-5 lg:grid-cols-[12rem_minmax(0,1fr)] ${groupIndex > 0 ? 'border-t border-[var(--landing-terminal-line)]' : ''}`}>
+                <div>
+                  <TerminalTextReveal tag="h3" text={group.title} textClass="text-xl leading-tight text-[var(--landing-terminal-text)]" />
+                  <TerminalTextReveal tag="p" text={group.description} textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+                </div>
 
-                <div class="mt-5 grid gap-4 border-t border-border pt-4">
-                  {#each group.items as item (`${group.title}-${item.name}`)}
-                    <article class="border-b border-border pb-4 last:border-b-0 last:pb-0">
-                      <div class="text-sm font-semibold text-foreground">{item.name}</div>
-                      <div class="mt-1 text-sm text-muted-foreground">{item.unit}</div>
-                      <p class="mt-2 text-sm leading-7 text-muted-foreground">{item.description}</p>
+                <div class="divide-y divide-[var(--landing-terminal-line)] border-t border-[var(--landing-terminal-line)] lg:border-t-0">
+                  {#each group.items as item, itemIndex (`${group.title}-${item.name}`)}
+                    <article class={`py-4 ${itemIndex === 0 ? 'pt-0' : ''}`}>
+                      <div class="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
+                        <TerminalTextReveal tag="div" text={item.name} textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
+                        <TerminalTextReveal tag="div" text={item.unit} textClass="text-xs text-[var(--landing-terminal-muted)]" />
+                      </div>
+                      <TerminalTextReveal tag="p" text={item.description} textClass="mt-2 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
                     </article>
                   {/each}
                 </div>
@@ -382,115 +444,94 @@
         </div>
       </section>
 
-      <section id="informasi" class="scroll-mt-24 border-b border-border">
-        <div class="mx-auto max-w-[1180px] px-5 py-14 lg:px-8 lg:py-18">
-          <div class="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_20rem] lg:items-start">
-            <div class="space-y-6">
-              <div class="space-y-4">
-                <h2 class="text-3xl leading-tight text-foreground md:text-4xl">Informasi terbaru dan kanal publik resmi</h2>
-                <p class="max-w-[62ch] text-base leading-8 text-[var(--text-soft)]">Berita, pengumuman, dan dokumentasi.</p>
+      <section id="informasi" data-reveal style="--reveal-delay: 420ms;" class="scroll-mt-24 border-b border-[var(--landing-terminal-line)]">
+        <div class="mx-auto grid max-w-[1180px] gap-6 px-5 py-8 lg:grid-cols-[minmax(0,1.25fr)_22rem] lg:px-8 lg:py-10">
+          <section class="landing-panel px-5 py-5">
+            <div class="flex flex-col gap-4 border-b border-[var(--landing-terminal-line)] pb-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <TerminalTextReveal tag="h2" text="Informasi terbaru" textClass="text-2xl leading-tight text-[var(--landing-terminal-text)] md:text-[2rem]" />
+                <TerminalTextReveal tag="p" text="Publikasi dan dokumentasi terbaru yang sudah terbit di kanal resmi HIMATEKKOM ITS." textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
               </div>
-
-              {#if latestArticles.length}
-                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {#each latestArticles as article (article.url || article.title)}
-                    <a href={article.url} class="overflow-hidden rounded-[8px] border border-border bg-card text-inherit no-underline transition-colors hover:bg-muted/40">
-                      {#if article.coverImage}
-                        <OptimizedImage
-                          src={article.coverImage}
-                          alt={article.title}
-                          class="w-full border-b border-border"
-                          loading="lazy"
-                          decoding="async"
-                          sizes="(min-width: 1280px) 18rem, (min-width: 768px) 40vw, 100vw"
-                          onerror={handleImageError}
-                        />
-                      {:else}
-                        <div class="flex items-center justify-center border-b border-border bg-muted/40 px-5 py-12 text-sm text-muted-foreground">
-                          Publikasi resmi HIMATEKKOM ITS
-                        </div>
-                      {/if}
-                      <div class="grid gap-3 px-5 py-5">
-                        <div class="text-sm text-muted-foreground">{article.publishedAtLabel || 'Publikasi baru'}</div>
-                        <h3 class="text-xl leading-snug text-foreground">{article.title}</h3>
-                        <p class="text-sm leading-7 text-muted-foreground">{article.excerpt}</p>
-                        <div class="text-sm font-medium text-foreground">{article.category}</div>
-                      </div>
-                    </a>
-                  {/each}
-                </div>
-              {:else}
-                <div class="rounded-[8px] border border-border bg-card px-6 py-6">
-                  <div class="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <Newspaper size={16} />
-                    Arsip publik
-                  </div>
-                  <p class="mt-3 max-w-[60ch] text-sm leading-8 text-muted-foreground">Belum ada publikasi.</p>
-                </div>
-              {/if}
-
-              <a href={infoUrl} class="inline-flex items-center gap-2 text-sm font-semibold text-foreground transition-colors hover:text-brand-hover">
-                Buka seluruh papan informasi
+              <a href={infoUrl} class="landing-inline-link inline-flex items-center gap-2 text-sm font-semibold">
+                Arsip lengkap
                 <ArrowRight size={16} />
               </a>
             </div>
 
-            <aside class="grid gap-4">
-              {#each supportLinks as item (item.href)}
-                <a href={item.href} class="rounded-[8px] border border-border bg-card px-5 py-5 text-inherit no-underline transition-colors hover:bg-muted/40" target="_blank" rel="noreferrer">
-                  <div class="flex items-start justify-between gap-3">
-                    <div>
-                      <div class="text-base font-semibold text-foreground">{item.title}</div>
-                      <p class="mt-2 text-sm leading-7 text-muted-foreground">{item.description}</p>
+            {#if latestArticles.length}
+              <div class="divide-y divide-[var(--landing-terminal-line)]">
+                {#each latestArticles as article (article.url || article.title)}
+                  <a href={article.url} class="landing-article-row">
+                    <div class="grid gap-3 lg:grid-cols-[9rem_minmax(0,1fr)] lg:items-start">
+                      <div class="space-y-1 text-[0.73rem] text-[var(--landing-terminal-muted)]">
+                        <div>{article.publishedAtLabel || 'Publikasi baru'}</div>
+                        <div>{article.category}</div>
+                      </div>
+                      <div class="space-y-2">
+                        <TerminalTextReveal tag="h3" text={article.title} textClass="text-lg leading-snug text-[var(--landing-terminal-text)]" />
+                        <TerminalTextReveal tag="p" text={article.excerpt} textClass="max-w-[65ch] text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+                      </div>
                     </div>
-                    <ArrowUpRight class="mt-0.5 shrink-0 text-muted-foreground" size={16} />
-                  </div>
-                </a>
-              {/each}
-            </aside>
-          </div>
-        </div>
-      </section>
+                  </a>
+                {/each}
+              </div>
+            {:else}
+              <TerminalTextReveal tag="div" text="Belum ada publikasi yang terbit di papan informasi." textClass="py-5 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+            {/if}
+          </section>
 
-      <section id="cmos" class="scroll-mt-24">
-        <div class="mx-auto grid max-w-[1180px] gap-8 px-5 py-14 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:px-8 lg:py-18">
-          <div class="space-y-4">
-            <h2 class="text-3xl leading-tight text-foreground md:text-4xl">CMOS - Computer Monitoring System</h2>
-            <p class="max-w-[60ch] text-base leading-8 text-[var(--text-soft)]">
-              CMOS adalah sistem monitoring dan pelaporan program kerja yang dikembangkan untuk mendukung tata kelola organisasi HIMATEKKOM ITS 2026 secara akuntabel, transparan, dan berbasis data. Akses ini ditujukan untuk pengurus internal yang menjalankan operasional kabinet dari hari ke hari.
-            </p>
-            <a href={loginUrl} class="inline-flex items-center gap-2 rounded-[8px] bg-brand-primary px-4 py-2.5 text-sm font-semibold text-[var(--primary-foreground)] transition-colors hover:bg-brand-hover">
-              Masuk ke CMOS
-              <LayoutDashboard size={16} />
-            </a>
-          </div>
+          <aside class="grid gap-4">
+            <section class="landing-panel px-5 py-5">
+              <TerminalTextReveal tag="h2" text="Kanal pendukung" textClass="text-xl leading-tight text-[var(--landing-terminal-text)]" />
+              <div class="mt-5 divide-y divide-[var(--landing-terminal-line)] border-t border-[var(--landing-terminal-line)]">
+                {#each supportLinks as item (item.href)}
+                  <a href={item.href} class="landing-support-row" target="_blank" rel="noreferrer">
+                    <div>
+                      <TerminalTextReveal tag="div" text={item.title} textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
+                      <TerminalTextReveal tag="p" text={item.description} textClass="mt-2 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+                    </div>
+                    <ArrowUpRight class="mt-0.5 shrink-0 text-[var(--landing-terminal-muted)]" size={16} />
+                  </a>
+                {/each}
+              </div>
+            </section>
 
-          <div class="rounded-[8px] border border-border bg-card px-6 py-6">
-            <div class="text-sm font-semibold text-foreground">Yang tersedia di CMOS</div>
-            <div class="mt-4 grid gap-4 border-t border-border pt-4">
-              {#each cmosFeatures as item (item)}
-                <div class="border-b border-border pb-4 text-sm leading-7 text-muted-foreground last:border-b-0 last:pb-0">{item}</div>
-              {/each}
-            </div>
-          </div>
+            <section id="cmos" class="landing-panel px-5 py-5">
+              <TerminalTextReveal tag="h2" text="CMOS" textClass="text-xl leading-tight text-[var(--landing-terminal-text)]" />
+              <TerminalTextReveal
+                tag="p"
+                text="Computer Monitoring System digunakan pengurus untuk memantau program kerja, menyimpan dokumentasi, dan menjaga evaluasi kabinet tetap rapi dari hari ke hari."
+                textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft)]"
+              />
+              <div class="mt-5 divide-y divide-[var(--landing-terminal-line)] border-t border-[var(--landing-terminal-line)]">
+                {#each cmosFeatures as item (item)}
+                  <TerminalTextReveal tag="div" text={item} textClass="py-3 text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+                {/each}
+              </div>
+              <a href={loginUrl} class="landing-button-primary mt-5 inline-flex items-center gap-2">
+                Masuk ke CMOS
+                <LayoutDashboard size={16} />
+              </a>
+            </section>
+          </aside>
         </div>
       </section>
     </main>
 
-    <footer class="border-t border-border bg-background">
-      <div class="mx-auto grid max-w-[1180px] gap-8 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.55fr)_minmax(0,0.55fr)] lg:px-8">
+    <footer data-reveal style="--reveal-delay: 520ms;" class="border-t border-[var(--landing-terminal-line)]">
+      <div class="mx-auto grid max-w-[1180px] gap-6 px-5 py-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.8fr)] lg:px-8">
         <div class="space-y-3">
-          <div class="text-lg font-semibold text-foreground">{organizationName}</div>
-            <p class="max-w-[60ch] text-sm leading-7 text-muted-foreground">Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember.</p>
-          <p class="text-sm leading-7 text-muted-foreground">Gedung Teknik Komputer, Kampus ITS Sukolilo, Surabaya.</p>
+          <TerminalTextReveal tag="div" text={organizationName} textClass="text-lg font-semibold text-[var(--landing-terminal-text)]" />
+          <TerminalTextReveal tag="p" text="Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember." textClass="max-w-[60ch] text-sm leading-7 text-[var(--landing-terminal-soft)]" />
+          <TerminalTextReveal tag="p" text="Gedung Teknik Komputer, Kampus ITS Sukolilo, Surabaya." textClass="text-sm leading-7 text-[var(--landing-terminal-soft)]" />
         </div>
 
         {#each footerSections as section (section.title)}
           <div>
-            <div class="text-sm font-semibold text-foreground">{section.title}</div>
-            <div class="mt-3 grid gap-2 text-sm text-muted-foreground">
+            <TerminalTextReveal tag="div" text={section.title} textClass="text-sm font-semibold text-[var(--landing-terminal-text)]" />
+            <div class="mt-3 grid gap-2 text-sm text-[var(--landing-terminal-soft)]">
               {#each section.links as link (link.href)}
-                <a href={link.href} class="transition-colors hover:text-foreground">{link.label}</a>
+                <a href={link.href} class="transition-colors duration-150 hover:text-[var(--landing-terminal-text)]">{link.label}</a>
               {/each}
             </div>
           </div>
@@ -530,3 +571,132 @@
     </main>
   </div>
 {/if}
+
+<style>
+  .landing-terminal {
+    --landing-terminal-bg: color-mix(in oklch, oklch(0.18 0.01 304) 82%, var(--brand-secondary) 18%);
+    --landing-terminal-panel: color-mix(in oklch, oklch(0.22 0.012 304) 84%, var(--brand-secondary) 16%);
+    --landing-terminal-panel-soft: color-mix(in oklch, oklch(0.26 0.014 304) 78%, var(--brand-secondary) 22%);
+    --landing-terminal-line: color-mix(in oklch, oklch(0.5 0.026 82) 46%, var(--brand-primary) 54%);
+    --landing-terminal-text: oklch(0.86 0.03 92);
+    --landing-terminal-soft: color-mix(in oklch, oklch(0.74 0.02 92) 78%, var(--brand-light) 22%);
+    --landing-terminal-muted: color-mix(in oklch, oklch(0.62 0.018 88) 82%, var(--brand-secondary-soft) 18%);
+    --landing-terminal-accent: color-mix(in oklch, oklch(0.78 0.14 84) 78%, var(--brand-primary) 22%);
+    --landing-terminal-accent-soft: color-mix(in oklch, oklch(0.56 0.08 84) 62%, var(--brand-secondary) 38%);
+    background: var(--landing-terminal-bg);
+    color: var(--landing-terminal-text);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .landing-terminal :global(h1),
+  .landing-terminal :global(h2),
+  .landing-terminal :global(h3) {
+    font-family: inherit;
+    letter-spacing: -0.02em;
+  }
+
+  .landing-panel,
+  .landing-command-block,
+  .landing-meta-cell {
+    border: 1px solid var(--landing-terminal-line);
+    background: var(--landing-terminal-panel);
+  }
+
+  .landing-button-primary,
+  .landing-button-secondary {
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--landing-terminal-line);
+    color: var(--landing-terminal-text);
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 180ms var(--ease-out-quart), color 180ms var(--ease-out-quart), border-color 180ms var(--ease-out-quart);
+  }
+
+  .landing-button-primary {
+    background: var(--landing-terminal-accent);
+    border-color: color-mix(in oklch, var(--landing-terminal-accent) 72%, var(--landing-terminal-line) 28%);
+    color: oklch(0.22 0.02 74);
+  }
+
+  .landing-button-primary:hover {
+    background: color-mix(in oklch, var(--landing-terminal-accent) 84%, oklch(0.42 0.05 75) 16%);
+  }
+
+  .landing-button-secondary {
+    background: var(--landing-terminal-panel);
+  }
+
+  .landing-button-secondary:hover,
+  .landing-inline-link:hover,
+  .landing-article-row:hover,
+  .landing-support-row:hover {
+    background: var(--landing-terminal-panel-soft);
+  }
+
+  .landing-command-block {
+    display: grid;
+  }
+
+  .landing-command-row {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    padding: 0.95rem 1rem;
+    border-top: 1px solid var(--landing-terminal-line);
+  }
+
+  .landing-command-row:first-child {
+    border-top: none;
+  }
+
+  .landing-command-index {
+    color: var(--landing-terminal-accent);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .landing-meta-cell {
+    padding: 0.9rem 1rem;
+  }
+
+  .landing-meta-cell dt {
+    color: var(--landing-terminal-muted);
+    font-size: 0.76rem;
+  }
+
+  .landing-meta-cell dd {
+    margin: 0.5rem 0 0;
+    color: var(--landing-terminal-text);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .landing-inline-link,
+  .landing-article-row,
+  .landing-support-row {
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 180ms var(--ease-out-quart), color 180ms var(--ease-out-quart);
+  }
+
+  .landing-article-row,
+  .landing-support-row {
+    display: block;
+    padding: 1rem 0;
+  }
+
+  .landing-support-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 767px) {
+    .landing-command-row {
+      grid-template-columns: 2.4rem minmax(0, 1fr);
+    }
+  }
+</style>
