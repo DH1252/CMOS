@@ -601,31 +601,53 @@
     </footer>
   </div>
 {:else if isInfoIndex || isInfoShow}
-  <div class="min-h-screen bg-background text-foreground">
-    <header class="border-b border-border/80 bg-background/92 backdrop-blur-sm">
+  <div class="landing-terminal min-h-screen">
+    <a href="#main-content" class="skip-link">Langsung ke konten</a>
+
+    <header class="border-b border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-bg)]">
       <div class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8">
         <a href={homeUrl} class="flex min-w-0 items-center gap-3 text-inherit no-underline">
-          <enhanced:img src={brandLogo} alt={organizationName} class="h-10 w-auto shrink-0" loading="eager" sizes="40px" />
+          <enhanced:img src={brandLogo} alt={organizationName} class="h-10 w-auto shrink-0" loading="eager" fetchpriority="high" sizes="40px" />
           <div class="min-w-0">
-            <div class="truncate text-sm font-semibold text-foreground">{organizationName}</div>
-            <div class="truncate text-sm text-muted-foreground">Papan Informasi Publik</div>
+            <div class="truncate text-sm font-semibold text-[var(--landing-terminal-heading-resolved)]">{organizationName}</div>
+            <div class="truncate text-xs text-[var(--landing-terminal-soft-resolved)]">Papan Informasi Publik</div>
           </div>
         </a>
 
-        <div class="flex items-center gap-3">
-          <a href={homeUrl} class="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-flex">Beranda</a>
-          <a href={infoUrl} class="hidden text-sm text-muted-foreground transition-colors hover:text-foreground md:inline-flex">Arsip</a>
-          <a href={loginUrl} class="inline-flex items-center gap-2 rounded-[8px] border border-border bg-card px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+        <nav class="hidden items-center gap-6 md:flex">
+          <a href={homeUrl} class="text-sm text-[var(--landing-terminal-soft-resolved)] transition-colors duration-200 hover:text-[var(--landing-terminal-text-resolved)]">Beranda</a>
+          <a href={infoUrl} class="text-sm text-[var(--landing-terminal-interactive-resolved)] transition-colors duration-200 hover:text-[var(--landing-terminal-text-resolved)]">Arsip</a>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <a href={loginUrl} class="landing-button-secondary hidden items-center gap-2 sm:inline-flex">
             <LogIn size={16} />
             Masuk
           </a>
+
+          <details class="relative md:hidden" bind:this={menuDetails}>
+            <summary class="inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] text-[var(--landing-terminal-text-resolved)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--landing-terminal-interactive-resolved)] [&::-webkit-details-marker]:hidden">
+              <Menu size={18} />
+            </summary>
+            <div class="absolute right-0 top-[calc(100%+0.75rem)] z-20 grid min-w-56 gap-1 border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] p-3">
+              <a href={homeUrl} class="px-3 py-2 text-sm transition-colors duration-200 text-[var(--landing-terminal-soft-resolved)] hover:bg-[var(--landing-terminal-panel-soft-resolved)] hover:text-[var(--landing-terminal-text-resolved)]" onclick={() => { menuDetails.open = false; }}>
+                Beranda
+              </a>
+              <a href={infoUrl} class="px-3 py-2 text-sm transition-colors duration-200 text-[var(--landing-terminal-interactive-resolved)] hover:bg-[var(--landing-terminal-panel-soft-resolved)] hover:text-[var(--landing-terminal-text-resolved)]" onclick={() => { menuDetails.open = false; }}>
+                Arsip
+              </a>
+              <a href={loginUrl} class="landing-button-secondary mt-1 justify-center" onclick={() => { menuDetails.open = false; }}>
+                Masuk ke CMOS
+              </a>
+            </div>
+          </details>
         </div>
       </div>
     </header>
 
-    <main id="main-content" class="mx-auto max-w-[1180px] px-5 py-10 lg:px-8 lg:py-14">
+    <main id="main-content" class="mx-auto max-w-[1180px] px-5 py-8 lg:px-8 lg:py-10">
       {#if isInfoIndex}
-        <PublicInformationIndexPage {...infoIndex} homeUrl={homeUrl} />
+        <PublicInformationIndexPage {...infoIndex} homeUrl={homeUrl} infoUrl={infoUrl} />
       {:else if isInfoShow}
         <PublicInformationShowPage {...infoShow} homeUrl={homeUrl} infoUrl={infoUrl} />
       {/if}

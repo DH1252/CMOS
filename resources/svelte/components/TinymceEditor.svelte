@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import Editor from '@tinymce/tinymce-svelte';
-  import { tinymceBaseStyle } from '../lib/tinymceContentStyle.js';
+  import { buildTinymceContentStyle } from '../lib/tinymceContentStyle.js';
 
   let {
     id = 'tinymce-editor',
@@ -27,6 +27,7 @@
     error = false,
     disabled = false,
     backgroundColor = '',
+    previewTheme = {},
   } = $props();
 
   // svelte-ignore state_referenced_locally
@@ -179,7 +180,10 @@
     'Wingdings=wingdings,zapf dingbats',
   ].join('; ');
 
-  const contentStyle = tinymceBaseStyle;
+  const resolvedPreviewTheme = $derived({
+    ...previewTheme,
+    ...(backgroundColor ? { backgroundColor } : {}),
+  });
 
   const colorMap = [
     '000000', 'Black',
@@ -261,7 +265,7 @@
     color_map: colorMap,
     color_cols: 7,
     custom_colors: true,
-    content_style: backgroundColor ? `${contentStyle} body { background-color: ${backgroundColor}; }` : contentStyle,
+    content_style: buildTinymceContentStyle(resolvedPreviewTheme),
   });
 
   onMount(() => {
@@ -311,7 +315,7 @@
   });
 </script>
 
-<div bind:this={containerRef} class="tinymce-shell" class:is-invalid={Boolean(error)}>
+  <div bind:this={containerRef} class="tinymce-shell" class:is-invalid={Boolean(error)} style={resolvedPreviewTheme.backgroundColor ? `background: ${resolvedPreviewTheme.backgroundColor} !important;` : ''}>
   {#if isVisible}
     <Editor
       {id}
