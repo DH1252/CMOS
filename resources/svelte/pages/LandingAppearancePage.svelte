@@ -29,33 +29,27 @@
   );
 
   const landingCssKeys = [
-    { key: 'css_landing_text_strong', var: 'text-strong', label: 'Teks Utama' },
-    { key: 'css_landing_text_soft', var: 'text-soft', label: 'Teks Deskripsi' },
-    { key: 'css_landing_text_muted', var: 'text-muted', label: 'Teks Redup' },
-    { key: 'css_landing_page_bg', var: 'page-bg', label: 'Latar Halaman' },
-    { key: 'css_landing_page_bg_soft', var: 'page-bg-soft', label: 'Latar Halaman Lembut' },
-    { key: 'css_landing_panel_bg', var: 'panel-bg', label: 'Latar Panel' },
-    { key: 'css_landing_panel_muted', var: 'panel-muted', label: 'Panel Redup' },
-    { key: 'css_landing_line_soft', var: 'line-soft', label: 'Garis Pembatas' },
-    { key: 'css_landing_brand_primary', var: 'brand-primary', label: 'Brand Utama' },
-    { key: 'css_landing_brand_hover', var: 'brand-hover', label: 'Brand Hover' },
-    { key: 'css_landing_brand_soft', var: 'brand-soft', label: 'Brand Lembut' },
-    { key: 'css_landing_brand_light', var: 'brand-light', label: 'Brand Terang' },
-    { key: 'css_landing_brand_secondary', var: 'brand-secondary', label: 'Brand Sekunder' },
-    { key: 'css_landing_brand_secondary_soft', var: 'brand-secondary-soft', label: 'Brand Sekunder Lembut' },
     { key: 'css_landing_terminal_bg', var: 'landing-terminal-bg', label: 'Latar Terminal' },
-    { key: 'css_landing_terminal_panel', var: 'landing-terminal-panel', label: 'Panel Terminal' },
-    { key: 'css_landing_terminal_panel_soft', var: 'landing-terminal-panel-soft', label: 'Panel Hover' },
-    { key: 'css_landing_terminal_line', var: 'landing-terminal-line', label: 'Garis Terminal' },
-    { key: 'css_landing_terminal_text', var: 'landing-terminal-text', label: 'Teks Judul' },
+    { key: 'css_landing_terminal_hero_bg', var: 'landing-terminal-hero-bg', label: 'Latar Gambar Hero' },
+    { key: 'css_landing_terminal_panel', var: 'landing-terminal-panel', label: 'Latar Panel Terminal' },
+    { key: 'css_landing_terminal_panel_soft', var: 'landing-terminal-panel-soft', label: 'Latar Hover Panel' },
+    { key: 'css_landing_terminal_line', var: 'landing-terminal-line', label: 'Garis dan Border' },
+    { key: 'css_landing_terminal_text', var: 'landing-terminal-text', label: 'Teks Kuat Umum' },
+    { key: 'css_landing_terminal_heading', var: 'landing-terminal-heading', label: 'Judul Halaman dan Bagian' },
     { key: 'css_landing_terminal_soft', var: 'landing-terminal-soft', label: 'Teks Isi' },
     { key: 'css_landing_terminal_muted', var: 'landing-terminal-muted', label: 'Teks Metadata' },
-    { key: 'css_landing_terminal_accent', var: 'landing-terminal-accent', label: 'Aksen Utama' },
-    { key: 'css_landing_terminal_accent_soft', var: 'landing-terminal-accent-soft', label: 'Aksen Lembut' },
-    { key: 'css_landing_terminal_button_text', var: 'landing-terminal-button-text', label: 'Teks Tombol' },
+    { key: 'css_landing_terminal_accent', var: 'landing-terminal-accent', label: 'Latar Tombol Utama' },
+    { key: 'css_landing_terminal_interactive', var: 'landing-terminal-interactive', label: 'Link Aktif dan Fokus' },
+    { key: 'css_landing_terminal_command', var: 'landing-terminal-command', label: 'Prompt dan Kursor' },
+    { key: 'css_landing_terminal_frame_accent', var: 'landing-terminal-frame-accent', label: 'Aksen Hero dan Foto' },
+    { key: 'css_landing_terminal_icon', var: 'landing-terminal-icon', label: 'Ikon Kategori Program' },
+    { key: 'css_landing_terminal_button_text', var: 'landing-terminal-button-text', label: 'Teks Tombol Utama' },
+    { key: 'css_landing_terminal_button_hover', var: 'landing-terminal-button-hover', label: 'Latar Hover Tombol Utama' },
+    { key: 'css_landing_terminal_button_secondary_text', var: 'landing-terminal-button-secondary-text', label: 'Teks Tombol Sekunder' },
+    { key: 'css_landing_terminal_button_secondary_hover', var: 'landing-terminal-button-secondary-hover', label: 'Latar Hover Tombol Sekunder' },
   ];
 
-  const initialValues = values.customCss || {};
+  const initialValues = $derived(values.customCss || {});
 
   const getFormValue = (key) => {
     const input = document.querySelector(`input[data-css-key="${key}"]`);
@@ -98,12 +92,15 @@
     if (!preset) return;
 
     const brandMap = {
-      css_landing_brand_primary: preset.primary,
-      css_landing_brand_hover: preset.hover,
-      css_landing_brand_soft: preset.soft,
-      css_landing_brand_light: preset.light,
-      css_landing_brand_secondary: preset.secondary,
-      css_landing_brand_secondary_soft: preset.secondarySoft,
+      css_landing_terminal_line: preset.secondary,
+      css_landing_terminal_accent: preset.primary,
+      css_landing_terminal_interactive: preset.hover,
+      css_landing_terminal_command: preset.soft,
+      css_landing_terminal_frame_accent: preset.secondary,
+      css_landing_terminal_icon: preset.primary,
+      css_landing_terminal_button_text: preset.primaryForeground,
+      css_landing_terminal_button_hover: preset.hover,
+      css_landing_terminal_button_secondary_hover: preset.secondarySoft,
     };
 
     for (const [key, value] of Object.entries(brandMap)) {
@@ -179,7 +176,7 @@
                   <div class="h-12 w-12 rounded-[10px]" style={`background:${selectedPalette.primary}`}></div>
                   <div>
                     <strong class="block text-sm text-foreground">{selectedPalette.label}</strong>
-                    <p class="mt-1 text-sm leading-6 text-muted-foreground">Warna brand khusus landing page. Tidak mempengaruhi tampilan aplikasi internal.</p>
+                    <p class="mt-1 text-sm leading-6 text-muted-foreground">Preset ini menata border, tombol utama, link aktif, prompt, dan aksen hero pada landing page terminal.</p>
                   </div>
                 </div>
               {/if}
@@ -188,12 +185,12 @@
 
           <section class="grid gap-5 rounded-[10px] border border-border bg-background px-5 py-5">
             <div>
-              <div class="text-sm font-medium text-brand-primary">Warna Landing Page</div>
-              <h3 class="mt-2 text-xl font-semibold text-foreground">Override warna khusus halaman publik</h3>
-              <p class="mt-2 text-sm leading-7 text-muted-foreground">
-                Atur warna teks, latar, panel, dan brand yang hanya diterapkan pada landing page. Kosongkan untuk menggunakan nilai default.
-              </p>
-            </div>
+               <div class="text-sm font-medium text-brand-primary">Warna Landing Page</div>
+               <h3 class="mt-2 text-xl font-semibold text-foreground">Override warna terminal landing page</h3>
+               <p class="mt-2 text-sm leading-7 text-muted-foreground">
+                 Hanya kontrol yang benar-benar dipakai landing page ditampilkan di sini. Kosongkan untuk kembali ke nilai default.
+               </p>
+             </div>
 
             {#snippet colorGroup(heading, keys)}
               <div>
@@ -222,10 +219,7 @@
             {/snippet}
 
             <div class="grid gap-5">
-              {@render colorGroup('Teks', ['css_landing_text_strong', 'css_landing_text_soft', 'css_landing_text_muted'])}
-              {@render colorGroup('Latar & Permukaan', ['css_landing_page_bg', 'css_landing_page_bg_soft', 'css_landing_panel_bg', 'css_landing_panel_muted', 'css_landing_line_soft'])}
-              {@render colorGroup('Brand', ['css_landing_brand_primary', 'css_landing_brand_hover', 'css_landing_brand_soft', 'css_landing_brand_light', 'css_landing_brand_secondary', 'css_landing_brand_secondary_soft'])}
-              {@render colorGroup('Terminal', ['css_landing_terminal_bg', 'css_landing_terminal_panel', 'css_landing_terminal_panel_soft', 'css_landing_terminal_line', 'css_landing_terminal_text', 'css_landing_terminal_soft', 'css_landing_terminal_muted', 'css_landing_terminal_accent', 'css_landing_terminal_accent_soft', 'css_landing_terminal_button_text'])}
+              {@render colorGroup('Terminal Landing Page', ['css_landing_terminal_bg', 'css_landing_terminal_hero_bg', 'css_landing_terminal_panel', 'css_landing_terminal_panel_soft', 'css_landing_terminal_line', 'css_landing_terminal_text', 'css_landing_terminal_heading', 'css_landing_terminal_soft', 'css_landing_terminal_muted', 'css_landing_terminal_accent', 'css_landing_terminal_interactive', 'css_landing_terminal_command', 'css_landing_terminal_frame_accent', 'css_landing_terminal_icon', 'css_landing_terminal_button_text', 'css_landing_terminal_button_hover', 'css_landing_terminal_button_secondary_text', 'css_landing_terminal_button_secondary_hover'])}
             </div>
           </section>
 

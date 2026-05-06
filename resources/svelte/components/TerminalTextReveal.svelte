@@ -15,11 +15,12 @@
 
   let wrapper = null;
   let isActive = $state(false);
-  let isComplete = $state(!animate);
+  let isComplete = $state(false);
   let typedText = $state('');
   let glitchGlyph = $state('');
 
   const sourceText = $derived(Array.isArray(lines) && lines.length ? lines.join('\n') : text);
+  const renderStatic = $derived(!animate);
   const glitchChars = '._:=+/-[]{}<>|';
 
   const nextGlitchGlyph = (seed) => glitchChars[Math.abs(seed) % glitchChars.length];
@@ -128,12 +129,12 @@
 <div bind:this={wrapper} class={`terminal-reveal ${wrapperClass}`.trim()}>
   <svelte:element
     this={tag}
-    class={`terminal-reveal__base ${isComplete ? 'terminal-reveal__base--visible' : ''} ${textClass}`.trim()}
+    class={`terminal-reveal__base ${isComplete || renderStatic ? 'terminal-reveal__base--visible' : ''} ${textClass}`.trim()}
   >
     {sourceText}
   </svelte:element>
 
-  {#if isActive && !isComplete}
+  {#if animate && isActive && !isComplete}
     <svelte:element
       this={tag}
       class={`terminal-reveal__overlay ${textClass}`.trim()}
@@ -170,13 +171,13 @@
   }
 
   .terminal-reveal__glitch {
-    color: color-mix(in srgb, currentColor 72%, var(--landing-terminal-accent) 28%);
+    color: color-mix(in srgb, currentColor 72%, var(--landing-terminal-command-resolved, var(--landing-terminal-command, var(--landing-terminal-accent-resolved, var(--landing-terminal-accent)))) 28%);
   }
 
   .terminal-reveal__cursor {
     display: inline-block;
     margin-left: 0.02em;
-    color: var(--landing-terminal-accent);
+    color: var(--landing-terminal-command-resolved, var(--landing-terminal-command, var(--landing-terminal-accent-resolved, var(--landing-terminal-accent))));
     animation: terminalCursorBlink 720ms steps(1, end) infinite;
   }
 

@@ -1,166 +1,16 @@
 <script>
-  import { onMount } from 'svelte';
-  import { resolveThemeColor } from '../lib/textmode-theme.js';
-
   let {
-    source = '',
+    asciiArt = '',
     fallbackSrc = '',
     alt = '',
-    title = 'Public terminal',
+    title = 'ASCII hero',
     status = 'Ready',
     footerLeft = 'route /',
-    footerRight = 'textmode.js',
+    footerRight = 'asciify-image',
     class: className = '',
   } = $props();
 
-  let canvas = null;
-  let frame = null;
-  let isReady = $state(false);
-  let fallbackReason = $state('initializing renderer');
-
-  const characterSet = " .'`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczmwqpdbkhao*#MW&8%B@$";
-
-  const resizeCanvas = (textmodeInstance) => {
-    if (!frame || !textmodeInstance) {
-      return null;
-    }
-
-    const width = Math.max(320, Math.floor(frame.clientWidth || 720));
-    const measuredHeight = Math.floor(frame.clientHeight || 0);
-    const height = Math.max(220, measuredHeight || Math.round(width * 0.62));
-
-    return { width, height };
-  };
-
-  onMount(() => {
-    let cancelled = false;
-    let resizeObserver;
-    let textmodeInstance;
-    let resizeFrame = 0;
-    let lastWidth = 0;
-    let lastHeight = 0;
-
-    const syncCanvasSize = () => {
-      if (!textmodeInstance || cancelled) {
-        return;
-      }
-
-      const nextSize = resizeCanvas(textmodeInstance);
-
-      if (!nextSize) {
-        return;
-      }
-
-      if (nextSize.width === lastWidth && nextSize.height === lastHeight) {
-        return;
-      }
-
-      lastWidth = nextSize.width;
-      lastHeight = nextSize.height;
-      textmodeInstance.resizeCanvas(nextSize.width, nextSize.height);
-
-      if (typeof textmodeInstance.redraw === 'function') {
-        textmodeInstance.redraw(1);
-      }
-    };
-
-    const scheduleCanvasResize = () => {
-      cancelAnimationFrame(resizeFrame);
-      resizeFrame = requestAnimationFrame(() => {
-        syncCanvasSize();
-      });
-    };
-
-    const initialize = async () => {
-      if (!canvas || !frame || !source) {
-        fallbackReason = 'sumber gambar tidak tersedia';
-
-        return;
-      }
-
-      try {
-        const { textmode } = await import('textmode.js');
-
-        if (cancelled) {
-          return;
-        }
-
-        const nextSize = resizeCanvas();
-        const accentColor = resolveThemeColor(frame, '--landing-terminal-accent', '#D9AE43');
-        const panelColor = resolveThemeColor(frame, '--landing-terminal-panel', '#151018');
-
-        if (!nextSize) {
-          fallbackReason = 'area render tidak tersedia';
-
-          return;
-        }
-
-        lastWidth = nextSize.width;
-        lastHeight = nextSize.height;
-
-        textmodeInstance = textmode.create({
-          canvas,
-          width: nextSize.width,
-          height: nextSize.height,
-          fontSize: 12,
-          frameRate: 12,
-        });
-
-        await textmodeInstance.setup(async () => {
-          const image = await textmodeInstance.loadImage(source);
-
-          image
-            .characters(characterSet)
-            .charColorMode('fixed')
-            .charColor(accentColor)
-            .cellColorMode('fixed')
-            .cellColor(panelColor)
-            .background(panelColor);
-
-          textmodeInstance.draw(() => {
-            if (!textmodeInstance?.grid) {
-              return;
-            }
-
-            textmodeInstance.background(panelColor);
-            textmodeInstance.image(
-              image,
-              Math.max(18, textmodeInstance.grid.cols - 4),
-              Math.max(12, textmodeInstance.grid.rows - 4),
-            );
-          });
-
-          if (typeof textmodeInstance.noLoop === 'function') {
-            textmodeInstance.noLoop();
-          }
-
-          if (typeof textmodeInstance.redraw === 'function') {
-            textmodeInstance.redraw(1);
-          }
-        });
-
-        resizeObserver = new ResizeObserver(() => {
-          scheduleCanvasResize();
-        });
-
-        resizeObserver.observe(frame);
-        scheduleCanvasResize();
-        isReady = true;
-      } catch (error) {
-        fallbackReason = error instanceof Error ? error.message : 'renderer tidak tersedia';
-        isReady = false;
-      }
-    };
-
-    void initialize();
-
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(resizeFrame);
-      resizeObserver?.disconnect();
-      textmodeInstance?.destroy();
-    };
-  });
+  const isReady = $derived(Boolean(asciiArt.trim()));
 </script>
 
 <div class={`terminal-hero ${className}`.trim()}>
@@ -169,12 +19,12 @@
     <span>{isReady ? status : 'Static'}</span>
   </div>
 
-  <div class="terminal-hero__viewport" bind:this={frame}>
-    <canvas bind:this={canvas} class:terminal-hero__canvas-hidden={!isReady} aria-hidden={!isReady}></canvas>
-
-    {#if !isReady}
-      {#if fallbackSrc || source}
-        <img src={fallbackSrc || source} alt={alt} class="terminal-hero__fallback" loading="lazy" decoding="async" />
+  <div class="terminal-hero__viewport">
+    {#if isReady}
+      <pre class="terminal-hero__ascii" aria-label={alt}>{asciiArt}</pre>
+    {:else}
+      {#if fallbackSrc}
+        <img src={fallbackSrc} alt={alt} class="terminal-hero__fallback" loading="lazy" decoding="async" />
       {:else}
         <div class="terminal-hero__placeholder">visual pending</div>
       {/if}
@@ -186,7 +36,7 @@
 
   <div class="terminal-hero__foot">
     <span>{footerLeft}</span>
-    <span>{isReady ? footerRight : fallbackReason}</span>
+    <span>{isReady ? footerRight : 'fallback image'}</span>
   </div>
 </div>
 
@@ -194,8 +44,8 @@
   .terminal-hero {
     display: grid;
     gap: 0;
-    border: 1px solid var(--landing-terminal-line);
-    background: var(--landing-terminal-panel);
+    border: 1px solid var(--landing-terminal-line-resolved, var(--landing-terminal-line));
+    background: var(--landing-terminal-panel-resolved, var(--landing-terminal-panel));
   }
 
   .terminal-hero__head,
@@ -204,14 +54,14 @@
     justify-content: space-between;
     gap: 1rem;
     padding: 0.75rem 0.9rem;
-    border-bottom: 1px solid var(--landing-terminal-line);
-    color: var(--landing-terminal-soft);
+    border-bottom: 1px solid var(--landing-terminal-line-resolved, var(--landing-terminal-line));
+    color: var(--landing-terminal-soft-resolved, var(--landing-terminal-soft));
     font-size: 0.72rem;
     letter-spacing: 0.03em;
   }
 
   .terminal-hero__foot {
-    border-top: 1px solid var(--landing-terminal-line);
+    border-top: 1px solid var(--landing-terminal-line-resolved, var(--landing-terminal-line));
     border-bottom: none;
     letter-spacing: 0.02em;
     text-transform: none;
@@ -219,13 +69,15 @@
 
   .terminal-hero__viewport {
     position: relative;
+    display: grid;
+    place-items: center;
     overflow: hidden;
     aspect-ratio: 50 / 31;
     min-height: 220px;
-    background: var(--landing-terminal-panel);
+    background: var(--landing-terminal-hero-bg-resolved, var(--landing-terminal-hero-bg, var(--landing-terminal-panel-resolved, var(--landing-terminal-panel))));
   }
 
-  canvas,
+  .terminal-hero__ascii,
   .terminal-hero__fallback,
   .terminal-hero__placeholder {
     display: block;
@@ -233,13 +85,24 @@
     height: 100%;
   }
 
-  canvas {
-    image-rendering: crisp-edges;
-    filter: brightness(0.95) contrast(1.08);
-  }
-
-  .terminal-hero__canvas-hidden {
-    display: none;
+  .terminal-hero__ascii {
+    margin: 0;
+    padding: 0.6rem 0.8rem;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    white-space: pre;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.28rem, 0.38vw, 0.48rem);
+    line-height: 0.8;
+    letter-spacing: 0;
+    color: var(--landing-terminal-frame-accent-resolved, var(--landing-terminal-frame-accent));
+    text-shadow: 0 0 10px color-mix(in srgb, var(--landing-terminal-frame-accent-resolved, var(--landing-terminal-frame-accent)) 22%, transparent);
+    transform: scaleY(0.88);
+    transform-origin: center;
+    user-select: none;
   }
 
   .terminal-hero__fallback,
@@ -251,7 +114,7 @@
   .terminal-hero__placeholder {
     display: grid;
     place-items: center;
-    color: var(--landing-terminal-soft);
+    color: var(--landing-terminal-soft-resolved, var(--landing-terminal-soft));
     font-size: 0.88rem;
     letter-spacing: 0.03em;
   }

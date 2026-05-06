@@ -6,6 +6,21 @@ import laravel from "laravel-vite-plugin";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+	build: {
+		rollupOptions: {
+			onwarn(warning, defaultHandler) {
+				if (
+					warning.message?.includes("isSameUrlWithoutQueryOrHash") &&
+					warning.message?.includes("@inertiajs/core") &&
+					warning.message?.includes("Deferred.svelte")
+				) {
+					return;
+				}
+
+				defaultHandler(warning);
+			},
+		},
+	},
 	plugins: [
 		enhancedImages(),
 		svelte(),
