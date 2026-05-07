@@ -10,7 +10,7 @@ const pages = {
 };
 
 const isPublicPage = (name) =>
-	name === "PublicApp" || name.startsWith("public/");
+	name === "LandingPage" || name === "PublicApp" || name.startsWith("public/");
 const isGuestPage = (name) => name === "LoginPage";
 
 createServer((page) =>

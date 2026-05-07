@@ -1,8 +1,28 @@
 import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
-import "./bootstrap";
-import AuthLayout from "../svelte/layouts/AuthLayout.svelte";
 import { loadExternalScript } from "../svelte/lib/external-assets.js";
+
+let AuthLayout = null;
+let bootstrapModulePromise = null;
+
+const ensureAuthLayout = async () => {
+	if (AuthLayout) {
+		return AuthLayout;
+	}
+
+	const module = await import("../svelte/layouts/AuthLayout.svelte");
+	AuthLayout = module.default;
+
+	return AuthLayout;
+};
+
+const ensureBootstrapModule = async () => {
+	if (!bootstrapModulePromise) {
+		bootstrapModulePromise = import("./bootstrap");
+	}
+
+	return bootstrapModulePromise;
+};
 
 const applyBrandTheme = (themeName) => {
 	if (typeof document === "undefined") {
@@ -208,7 +228,7 @@ const resolveInitialPage = (payload) => {
 };
 
 const isPublicPage = (name) =>
-	name === "PublicApp" || name.startsWith("public/");
+	name === "LandingPage" || name === "PublicApp" || name.startsWith("public/");
 const isGuestPage = (name) => name === "LoginPage";
 
 let loginFallbackMounted = false;
@@ -249,6 +269,37 @@ const initialInertiaPage =
 	resolveInitialPage(inertiaPagePayload) ||
 	resolveInitialPage(inertiaScriptPagePayload);
 
+const deferBootstrapForLanding = (initialPage) => {
+	if (typeof window === "undefined") {
+		return;
+	}
+
+	const loadBootstrap = () => {
+		void ensureBootstrapModule().then(() => {
+			capturePostHogPageview(initialPage);
+		});
+	};
+
+	if (document.readyState === "complete") {
+		const idleCallback =
+			window.requestIdleCallback ||
+			((callback) => window.setTimeout(callback, 350));
+		idleCallback(loadBootstrap);
+		return;
+	}
+
+	window.addEventListener(
+		"load",
+		() => {
+			const idleCallback =
+				window.requestIdleCallback ||
+				((callback) => window.setTimeout(callback, 350));
+			idleCallback(loadBootstrap);
+		},
+		{ once: true },
+	);
+};
+
 if (typeof document !== "undefined") {
 	const rootBrand = document.documentElement.getAttribute("data-brand");
 	const pageBrand =
@@ -270,7 +321,14 @@ if (typeof document !== "undefined") {
 
 	applyBrandTheme(pageBrand);
 	applyThemeVariables({ ...themeVariables, customCss: themeCustomCss });
-	capturePostHogPageview(initialInertiaPage);
+
+	if (initialInertiaPage?.component === "LandingPage") {
+		deferBootstrapForLanding(initialInertiaPage);
+	} else {
+		void ensureBootstrapModule().then(() => {
+			capturePostHogPageview(initialInertiaPage);
+		});
+	}
 
 	router.on("navigate", (event) => {
 		capturePostHogPageview(event?.detail?.page || null);
@@ -287,68 +345,77 @@ if (shouldBootStandaloneLogin) {
 }
 
 if (inertiaRoot && initialInertiaPage && !shouldBootStandaloneLogin) {
-	void createInertiaApp({
-		page: initialInertiaPage,
-		resolve: async (name) => {
-			const importer = pages[`../svelte/${name}.svelte`];
+	void (async () => {
+		if (
+			!isPublicPage(initialInertiaPage.component) &&
+			!isGuestPage(initialInertiaPage.component)
+		) {
+			await ensureAuthLayout();
+		}
 
-			if (!importer) {
-				throw new Error(`Unknown Inertia page: ${name}`);
-			}
+		return createInertiaApp({
+			page: initialInertiaPage,
+			resolve: async (name) => {
+				const importer = pages[`../svelte/${name}.svelte`];
 
-			const page = await importer();
+				if (!importer) {
+					throw new Error(`Unknown Inertia page: ${name}`);
+				}
 
-			return page;
-		},
-		layout: (name, page) => {
-			if (isPublicPage(name) || isGuestPage(name)) {
-				return undefined;
-			}
+				const page = await importer();
 
-			return [
-				AuthLayout,
-				{
-					shell: page.props.shell,
-					flash: page.props.flash,
-					errors: page.props.errors,
-					pageTitle: page.props.pageTitle,
-					pageMeta: page.props.pageMeta,
-					title: page.props.title,
-					description: page.props.description,
-				},
-			];
-		},
-		setup({ el, App, props }) {
-			const brandFromProps =
-				props?.initialPage?.props?.themeColor ||
-				props?.initialPage?.props?.shell?.themeColor ||
-				props?.initialPage?.props?.theme?.color ||
-				"purple";
-			const variablesFromProps =
-				props?.initialPage?.props?.themeVariables ||
-				props?.initialPage?.props?.shell?.themeVariables ||
-				props?.initialPage?.props?.theme?.variables ||
-				null;
-			const customCssFromProps =
-				props?.initialPage?.props?.themeCustomCss ||
-				props?.initialPage?.props?.shell?.themeCustomCss ||
-				props?.initialPage?.props?.theme?.customCss ||
-				null;
-			applyBrandTheme(brandFromProps);
-			applyThemeVariables({
-				...variablesFromProps,
-				customCss: customCssFromProps,
-			});
+				return page;
+			},
+			layout: (name, page) => {
+				if (isPublicPage(name) || isGuestPage(name)) {
+					return undefined;
+				}
 
-			if (el?.hasAttribute("data-server-rendered")) {
-				hydrate(App, { target: el, props });
+				return [
+					AuthLayout,
+					{
+						shell: page.props.shell,
+						flash: page.props.flash,
+						errors: page.props.errors,
+						pageTitle: page.props.pageTitle,
+						pageMeta: page.props.pageMeta,
+						title: page.props.title,
+						description: page.props.description,
+					},
+				];
+			},
+			setup({ el, App, props }) {
+				const brandFromProps =
+					props?.initialPage?.props?.themeColor ||
+					props?.initialPage?.props?.shell?.themeColor ||
+					props?.initialPage?.props?.theme?.color ||
+					"purple";
+				const variablesFromProps =
+					props?.initialPage?.props?.themeVariables ||
+					props?.initialPage?.props?.shell?.themeVariables ||
+					props?.initialPage?.props?.theme?.variables ||
+					null;
+				const customCssFromProps =
+					props?.initialPage?.props?.themeCustomCss ||
+					props?.initialPage?.props?.shell?.themeCustomCss ||
+					props?.initialPage?.props?.theme?.customCss ||
+					null;
+				applyBrandTheme(brandFromProps);
+				applyThemeVariables({
+					...variablesFromProps,
+					customCss: customCssFromProps,
+				});
 
-				return;
-			}
+				if (el?.hasAttribute("data-server-rendered")) {
+					hydrate(App, { target: el, props });
 
-			mount(App, { target: el, props });
-		},
-	}).catch((error) => {
+					return;
+				}
+
+				mount(App, { target: el, props });
+			},
+		});
+	})().catch((error) => {
 		console.error("Failed to boot Inertia app.", error);
 
 		void mountLoginFallback(initialInertiaPage?.props || {});
