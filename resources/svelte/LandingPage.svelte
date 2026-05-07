@@ -411,7 +411,7 @@
               tag="h1"
               texts={heroTitleVariants}
               cycle={true}
-              holdDuration={1000}
+              holdDuration={3000}
               textClass="min-h-[2.45em] max-w-[18ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl lg:text-[3.55rem]"
             />
             <TerminalTextReveal
