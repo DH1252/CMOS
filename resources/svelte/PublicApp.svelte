@@ -693,8 +693,8 @@
   .landing-terminal header :global(*),
   .landing-command-block,
   .landing-command-block :global(*),
-  .landing-button-primary,
-  .landing-button-secondary {
+  :global(.landing-button-primary),
+  :global(.landing-button-secondary) {
     font-family: 'JetBrains Mono', monospace;
   }
 
@@ -702,14 +702,14 @@
     line-height: 1.65;
   }
 
-  .landing-panel,
+  :global(.landing-panel),
   .landing-command-block {
     border: 1px solid var(--landing-terminal-line-resolved);
     background: var(--landing-terminal-panel-resolved);
   }
 
-  .landing-button-primary,
-  .landing-button-secondary {
+  :global(.landing-button-primary),
+  :global(.landing-button-secondary) {
     min-height: 2.75rem;
     padding: 0.65rem 1rem;
     border: 1px solid var(--landing-terminal-line-resolved);
@@ -719,28 +719,28 @@
     transition: background-color 180ms var(--ease-out-quart), color 180ms var(--ease-out-quart), border-color 180ms var(--ease-out-quart);
   }
 
-  .landing-button-primary {
+  :global(.landing-button-primary) {
     background: var(--landing-terminal-accent-resolved);
     border-color: color-mix(in oklch, var(--landing-terminal-accent-resolved) 72%, var(--landing-terminal-line-resolved) 28%);
     color: var(--landing-terminal-button-text-resolved);
   }
 
-  .landing-button-primary:hover {
+  :global(.landing-button-primary:hover) {
     background: var(--landing-terminal-button-hover-resolved);
   }
 
-  .landing-button-secondary {
+  :global(.landing-button-secondary) {
     background: var(--landing-terminal-panel-resolved);
     color: var(--landing-terminal-button-secondary-text-resolved);
   }
 
-  .landing-button-secondary:hover,
-  .landing-inline-link:hover,
-  .landing-article-row:hover {
+  :global(.landing-button-secondary:hover),
+  :global(.landing-inline-link:hover),
+  :global(.landing-article-row:hover) {
     background: var(--landing-terminal-panel-soft-resolved);
   }
 
-  .landing-button-secondary:hover {
+  :global(.landing-button-secondary:hover) {
     background: var(--landing-terminal-button-secondary-hover-resolved);
   }
 
@@ -766,35 +766,54 @@
     font-weight: 600;
   }
 
-  .landing-inline-link,
-  .landing-article-row {
+  :global(.landing-inline-link),
+  :global(.landing-article-row) {
     color: inherit;
     text-decoration: none;
     transition: background-color 180ms var(--ease-out-quart), color 180ms var(--ease-out-quart);
   }
 
-  .landing-article-row {
-    display: block;
-    padding: 1rem 0;
+  :global(.landing-inline-link) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.35rem;
+    margin: -0.2rem -0.35rem;
   }
 
-  .landing-frame {
+  :global(.landing-article-row) {
+    display: block;
+    padding: 1rem 0.85rem;
+    margin-inline: -0.85rem;
+  }
+
+  :global(.landing-frame) {
     border: 1px solid var(--landing-terminal-line-resolved);
     background: var(--landing-terminal-panel-resolved);
+    transition: background-color 180ms var(--ease-out-quart), border-color 180ms var(--ease-out-quart);
   }
 
-  .landing-frame__media {
+  :global(.landing-frame__media) {
     overflow: hidden;
     border-bottom: 1px solid var(--landing-terminal-line-resolved);
   }
 
-  .landing-frame__media img {
+  :global(.landing-frame__media img) {
     display: block;
     transition: filter 320ms var(--ease-out-quart);
     filter: grayscale(0.3) contrast(1.08);
   }
 
-  .landing-frame__caption {
+  :global(.landing-feature-link:hover),
+  :global(.landing-frame:hover) {
+    background: var(--landing-terminal-panel-soft-resolved);
+  }
+
+  :global(.landing-frame:hover .landing-frame__media img) {
+    filter: grayscale(0) contrast(1.02);
+  }
+
+  :global(.landing-frame__caption) {
     display: flex;
     align-items: baseline;
     gap: 0.25rem;
