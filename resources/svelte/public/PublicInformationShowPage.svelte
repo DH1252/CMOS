@@ -30,9 +30,9 @@
 
 <article class="space-y-8">
   <nav class="flex flex-wrap items-center gap-2 text-sm text-[var(--landing-terminal-soft-resolved)]">
-    <a href={homeUrl} class="transition-colors hover:text-[var(--landing-terminal-text-resolved)]">Beranda</a>
+    <a href={homeUrl} class="landing-inline-link transition-colors hover:text-[var(--landing-terminal-text-resolved)]">Beranda</a>
     <span>/</span>
-    <a href={infoUrl} class="transition-colors hover:text-[var(--landing-terminal-text-resolved)]">Arsip Informasi</a>
+    <a href={infoUrl} class="landing-inline-link transition-colors hover:text-[var(--landing-terminal-text-resolved)]">Arsip Informasi</a>
     <span>/</span>
     <span class="text-[var(--landing-terminal-heading-resolved)]">{article.title}</span>
   </nav>
@@ -56,13 +56,15 @@
 
   {#if article.coverImage}
     <div class="landing-frame overflow-hidden">
-      <OptimizedImage src={article.coverImage} alt={article.title} class="w-full" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1280px) 72rem, 100vw" onerror={handleImageError} />
+      <div class="landing-frame__media">
+        <OptimizedImage src={article.coverImage} alt={article.title} class="w-full" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1280px) 72rem, 100vw" onerror={handleImageError} />
+      </div>
     </div>
   {/if}
 
   <div class="grid gap-8 lg:grid-cols-[minmax(0,1.12fr)_18rem] lg:items-start">
     <section class="min-w-0">
-      <div class="landing-panel public-article-content max-w-[72ch] px-5 py-5 text-[1.02rem] leading-8 text-[var(--landing-terminal-text-resolved)]">
+      <div class="public-article-content public-article-content-shell max-w-[72ch] px-5 py-5 text-[1.02rem] leading-8 text-[var(--landing-terminal-text-resolved)]">
         {@html article.contentHtml}
       </div>
     </section>
@@ -71,7 +73,7 @@
       <div class="landing-panel px-5 py-5">
         <div class="text-sm font-semibold text-[var(--landing-terminal-heading-resolved)]">Arsip publik</div>
         <p class="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]">Pengumuman dan dokumentasi resmi.</p>
-        <a href={infoUrl} class="mt-5 inline-flex items-center gap-2 text-sm font-medium text-[var(--landing-terminal-interactive-resolved)] transition-colors hover:text-[var(--landing-terminal-text-resolved)]">
+        <a href={infoUrl} class="landing-inline-link mt-5 inline-flex items-center gap-2 text-sm font-medium text-[var(--landing-terminal-interactive-resolved)] hover:text-[var(--landing-terminal-text-resolved)]">
           Kembali ke arsip
           <ArrowRight size={16} />
         </a>
@@ -85,7 +87,7 @@
         {:else}
           <div class="mt-4 grid gap-4">
             {#each latestArticles as latest (latest.href)}
-              <a href={latest.href} class="border-t border-[var(--landing-terminal-line-resolved)] pt-4 text-inherit no-underline transition-colors hover:text-[var(--landing-terminal-interactive-resolved)] first:border-t-0 first:pt-0">
+              <a href={latest.href} class="landing-article-row border-t border-[var(--landing-terminal-line-resolved)] pt-4 text-inherit no-underline hover:text-[var(--landing-terminal-interactive-resolved)] first:border-t-0 first:pt-0">
                 <strong class="block text-base leading-7 text-[var(--landing-terminal-heading-resolved)]">{latest.title}</strong>
                 <span class="mt-1 block text-sm text-[var(--landing-terminal-muted-resolved)]">{latest.dateLabel || '-'}</span>
               </a>
@@ -98,6 +100,11 @@
 </article>
 
 <style>
+  .public-article-content-shell {
+    border: 1px solid var(--landing-terminal-line-resolved);
+    background: var(--landing-terminal-bg-resolved);
+  }
+
   .public-article-content :global(h1),
   .public-article-content :global(h2),
   .public-article-content :global(h3),

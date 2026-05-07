@@ -104,8 +104,10 @@
 {#if featured}
   <section class="grid gap-6 border-b border-[var(--landing-terminal-line-resolved)] py-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
     {#if featured.coverImage}
-      <a href={featured.href} class="landing-frame block overflow-hidden">
-        <OptimizedImage src={featured.coverImage} alt={featured.title} class="w-full" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1024px) 12rem, 100vw" onerror={handleImageError} />
+      <a href={featured.href} class="landing-frame landing-feature-link block overflow-hidden text-inherit no-underline">
+        <div class="landing-frame__media">
+          <OptimizedImage src={featured.coverImage} alt={featured.title} class="w-full" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1024px) 12rem, 100vw" onerror={handleImageError} />
+        </div>
       </a>
     {:else}
       <div class="landing-panel flex items-center justify-center px-6 py-16 text-sm text-[var(--landing-terminal-soft-resolved)]">Tanpa sampul</div>
@@ -113,7 +115,7 @@
 
     <div class="space-y-4">
       <div class="text-sm font-semibold text-[var(--landing-terminal-command-resolved)]">Artikel unggulan</div>
-      <a href={featured.href} class="block text-inherit no-underline">
+      <a href={featured.href} class="landing-inline-link inline-block text-inherit no-underline">
         <h2 class="max-w-[16ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl">{featured.title}</h2>
       </a>
       <div class="flex flex-wrap gap-3 text-sm text-[var(--landing-terminal-muted-resolved)]">
