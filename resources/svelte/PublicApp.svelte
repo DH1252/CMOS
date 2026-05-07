@@ -200,8 +200,6 @@
   onMount(() => {
     let revealObserver;
     let spyObserver;
-    let resetScrollTimeout;
-    let removeUserIntentListeners = () => {};
 
     const setupLandingReveal = () => {
       if (page !== 'landing' || typeof document === 'undefined') {
@@ -298,63 +296,8 @@
       setupScrollSpy();
     });
 
-    const stabilizeInitialMobileScroll = () => {
-      if (page !== 'landing' || typeof window === 'undefined') {
-        return;
-      }
-
-      if (window.location.hash || !window.matchMedia?.('(pointer: coarse)').matches) {
-        return;
-      }
-
-      const navigationEntry = performance.getEntriesByType?.('navigation')?.[0];
-
-      if (navigationEntry?.type && navigationEntry.type !== 'navigate') {
-        return;
-      }
-
-      let userInteracted = false;
-
-      const markUserIntent = () => {
-        userInteracted = true;
-      };
-
-      const resetScroll = () => {
-        if (userInteracted || window.scrollY <= 8) {
-          return;
-        }
-
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-      };
-
-      const userIntentEvents = ['touchstart', 'pointerdown', 'keydown'];
-
-      userIntentEvents.forEach((eventName) => {
-        window.addEventListener(eventName, markUserIntent, { passive: true });
-      });
-
-      removeUserIntentListeners = () => {
-        userIntentEvents.forEach((eventName) => {
-          window.removeEventListener(eventName, markUserIntent);
-        });
-      };
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(resetScroll);
-      });
-
-      window.addEventListener('load', resetScroll, { once: true });
-      resetScrollTimeout = window.setTimeout(resetScroll, 420);
-    };
-
-    stabilizeInitialMobileScroll();
-
     return () => {
       cancelAnimationFrame(frame);
-      if (resetScrollTimeout) {
-        window.clearTimeout(resetScrollTimeout);
-      }
-      removeUserIntentListeners();
       revealObserver?.disconnect();
       spyObserver?.disconnect();
     };
