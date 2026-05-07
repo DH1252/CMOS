@@ -102,18 +102,16 @@
 </section>
 
 {#if featured}
-  <section class="grid gap-6 border-b border-[var(--landing-terminal-line-resolved)] py-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start">
+  <section class={`grid gap-6 border-b border-[var(--landing-terminal-line-resolved)] py-8 ${featured.coverImage ? 'lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start' : ''}`}>
     {#if featured.coverImage}
       <a href={featured.href} class="landing-frame landing-feature-link block overflow-hidden text-inherit no-underline">
         <div class="landing-frame__media">
           <OptimizedImage src={featured.coverImage} alt={featured.title} class="w-full" loading="eager" decoding="async" fetchpriority="high" sizes="(min-width: 1024px) 12rem, 100vw" onerror={handleImageError} />
         </div>
       </a>
-    {:else}
-      <div class="landing-panel flex items-center justify-center px-6 py-16 text-sm text-[var(--landing-terminal-soft-resolved)]">Tanpa sampul</div>
     {/if}
 
-    <div class="space-y-4">
+    <div class={featured.coverImage ? 'space-y-4' : 'space-y-3'}>
       <div class="text-sm font-semibold text-[var(--landing-terminal-command-resolved)]">Artikel unggulan</div>
       <a href={featured.href} class="landing-inline-link inline-block text-inherit no-underline">
         <h2 class="max-w-[16ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl">{featured.title}</h2>
@@ -157,14 +155,12 @@
   <section class="space-y-0 border-b border-[var(--landing-terminal-line-resolved)] py-2">
     {#each articles as article, index (article.href)}
       <a href={article.href} class={`landing-article-row ${index === 0 ? 'border-t-0 pt-0' : ''}`}>
-        <div class="grid gap-4 md:grid-cols-[12rem_minmax(0,1fr)] md:items-start">
+        <div class={article.coverImage ? 'grid gap-4 md:grid-cols-[12rem_minmax(0,1fr)] md:items-start' : 'grid gap-3'}>
           {#if article.coverImage}
             <OptimizedImage src={article.coverImage} alt={article.title} class="w-full rounded-[8px] border border-[var(--landing-terminal-line-resolved)]" loading="lazy" decoding="async" sizes="12rem" onerror={handleImageError} />
-          {:else}
-            <div class="landing-panel flex items-center justify-center px-5 py-12 text-sm text-[var(--landing-terminal-soft-resolved)]">Tanpa sampul</div>
           {/if}
 
-          <div class="min-w-0 space-y-3">
+          <div class={article.coverImage ? 'min-w-0 space-y-3' : 'min-w-0 space-y-2.5'}>
             <div class="flex flex-wrap gap-3 text-sm text-[var(--landing-terminal-muted-resolved)]">
               <span>{article.dateLabel || '-'}</span>
               <span>{article.author}</span>
