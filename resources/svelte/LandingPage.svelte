@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import brandLogo from '../images/logokabinet.png?enhanced&w=80;160';
+  import OptimizedImage from './components/OptimizedImage.svelte';
   import TerminalHeroCanvas from './components/TerminalHeroCanvas.svelte';
   import TerminalTextReveal from './components/TerminalTextReveal.svelte';
   import { logokabinetAscii } from './lib/logokabinet-ascii.js';
@@ -172,6 +173,14 @@
 
   const heroTitleVariants = ['Kabinet Sentra Sinergi', 'HIMATEKKOM ITS'];
   const heroDescription = 'Kabinet Sentra Sinergi menjaga publikasi, dokumentasi, dan akses internal melalui satu sistem yang rapi dan mudah dipantau.';
+
+  const handleImageError = (event) => {
+    if (event.currentTarget.src.endsWith(logoUrl)) {
+      return;
+    }
+
+    event.currentTarget.src = logoUrl;
+  };
 
   onMount(() => {
     let revealObserver;
@@ -564,7 +573,22 @@
             <div class="divide-y divide-[var(--landing-terminal-line-resolved)]">
               {#each latestInfo as article (article.url || article.title)}
                 <a href={article.url} class="landing-article-row">
-                  <div class="grid gap-3 lg:grid-cols-[9rem_minmax(0,1fr)] lg:items-start">
+                  <div class={article.coverImage ? 'grid gap-3 lg:grid-cols-[11rem_8rem_minmax(0,1fr)] lg:items-start' : 'grid gap-3 lg:grid-cols-[9rem_minmax(0,1fr)] lg:items-start'}>
+                    {#if article.coverImage}
+                      <div class="landing-frame overflow-hidden">
+                        <div class="landing-frame__media border-b-0">
+                          <OptimizedImage
+                            src={article.coverImage}
+                            alt={article.title}
+                            class="h-28 w-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            sizes="11rem"
+                            onerror={handleImageError}
+                          />
+                        </div>
+                      </div>
+                    {/if}
                     <div class="space-y-1 text-[0.73rem] text-[var(--landing-terminal-muted-resolved)]">
                       <div>{article.publishedAtLabel || 'Publikasi baru'}</div>
                       <div>{article.category}</div>
