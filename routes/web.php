@@ -53,7 +53,7 @@ Route::get('/', function () {
             ->get();
     }
 
-    return Inertia::render('PublicApp', [
+    return Inertia::render('LandingPage', [
         'page' => 'landing',
         'appName' => $appName,
         'organizationName' => $organizationName,

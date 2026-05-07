@@ -28,7 +28,7 @@ class PublicPageSsrTest extends TestCase
 
         $page = $this->inertiaPage($response->getContent());
 
-        $this->assertSame('PublicApp', $page['component']);
+        $this->assertSame('LandingPage', $page['component']);
         $this->assertSame('landing', $page['props']['page']);
         $this->assertSame('purple', $page['props']['themeColor']);
         $this->assertArrayHasKey('brand-primary-base', $page['props']['themeVariables']);
