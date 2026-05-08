@@ -1,5 +1,6 @@
 <script>
   import { Button } from "$lib/components/ui/button/index.js";
+  import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import * as Card from "$lib/components/ui/card/index.js";
   import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
   import PageHeader from "../components/PageHeader.svelte";
@@ -31,8 +32,7 @@
 
   const actionVariant = (action) =>
     action === article.editAction ? "default" : "secondary";
-  const fallbackImage = "/images/logokabinet.png";
-
+  const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
   const formatDateTime = (value) => {
     if (!value) {
       return "-";

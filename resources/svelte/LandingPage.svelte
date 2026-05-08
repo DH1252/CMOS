@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import flareImage from "../images/flare.jpg?enhanced&w=720;1080";
   import brandLogo from "../images/logokabinet.png?enhanced&w=80;160";
   import himatekkomGallery from "../images/himatekkom.jpg?enhanced&w=720;1080";
   import logoGallery from "../images/logokabinet.png?enhanced&w=720;1080";
@@ -25,7 +26,7 @@
     loginUrl = "/login",
     infoUrl = "/informasi",
     latestInfo = [],
-    logoUrl = "/images/logokabinet.png",
+    logoUrl = brandLogo.original ?? brandLogo,
     navigation = null,
     hero = null,
     quickFacts = null,
@@ -693,12 +694,13 @@
           </figure>
           <figure class="landing-frame m-0">
             <div class="landing-frame__media">
-              <img
-                src="/images/flare.jpg"
+              <OptimizedImage
+                src={flareImage}
                 alt="Aksen visual identitas publikasi HIMATEKKOM ITS"
                 class="h-48 w-full object-cover"
                 loading="lazy"
                 decoding="async"
+                sizes="(min-width: 768px) 33vw, 100vw"
               />
             </div>
             <figcaption class="landing-frame__caption">

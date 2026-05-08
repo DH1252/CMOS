@@ -1,10 +1,70 @@
+import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { brotliCompressSync, constants as zlibConstants } from "node:zlib";
 import inertia from "@inertiajs/vite";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
 import laravel from "laravel-vite-plugin";
 import { defineConfig } from "vite";
+
+const brotliAssetPattern = /\.(?:css|html|js|json|map|mjs|svg|txt|wasm|xml)$/i;
+
+const viteBrotliAssets = () => {
+	/** @type {import("vite").ResolvedConfig | null} */
+	let resolvedConfig = null;
+
+	return {
+		name: "vite-brotli-assets",
+		apply: "build",
+		configResolved(config) {
+			resolvedConfig = config;
+		},
+		writeBundle(outputOptions, bundle) {
+			if (resolvedConfig?.build.ssr) {
+				return;
+			}
+
+			const outputDir = outputOptions.dir || resolvedConfig?.build.outDir;
+
+			if (!outputDir) {
+				return;
+			}
+
+			for (const [fileName, artifact] of Object.entries(bundle)) {
+				if (!brotliAssetPattern.test(fileName)) {
+					continue;
+				}
+
+				const source =
+					artifact.type === "asset" ? artifact.source : artifact.code;
+				const sourceBuffer =
+					source instanceof Uint8Array
+						? Buffer.from(source)
+						: Buffer.from(String(source), "utf8");
+
+				if (sourceBuffer.byteLength < 1024) {
+					continue;
+				}
+
+				const targetFilePath = path.resolve(outputDir, `${fileName}.br`);
+				mkdirSync(path.dirname(targetFilePath), { recursive: true });
+				writeFileSync(
+					targetFilePath,
+					brotliCompressSync(sourceBuffer, {
+						params: {
+							[zlibConstants.BROTLI_PARAM_MODE]:
+								zlibConstants.BROTLI_MODE_GENERIC,
+							[zlibConstants.BROTLI_PARAM_QUALITY]:
+								zlibConstants.BROTLI_MAX_QUALITY,
+							[zlibConstants.BROTLI_PARAM_SIZE_HINT]: sourceBuffer.byteLength,
+						},
+					}),
+				);
+			}
+		},
+	};
+};
 
 export default defineConfig({
 	build: {
@@ -21,10 +81,12 @@ export default defineConfig({
 				defaultHandler(warning);
 			},
 		},
+		reportCompressedSize: true,
 	},
 	plugins: [
 		enhancedImages(),
 		svelte(),
+		viteBrotliAssets(),
 		laravel({
 			input: [
 				"resources/css/app.css",

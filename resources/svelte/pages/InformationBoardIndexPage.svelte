@@ -1,5 +1,6 @@
 <script>
   import { Button } from "$lib/components/ui/button/index.js";
+  import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import {
     shouldSkipFormConfirmation,
     submitConfirmedForm,
@@ -34,7 +35,7 @@
     csrfToken = "",
   } = $props();
 
-  const fallbackImage = "/images/logokabinet.png";
+  const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
 
   const formatDateTime = (value) => {
     if (!value) {

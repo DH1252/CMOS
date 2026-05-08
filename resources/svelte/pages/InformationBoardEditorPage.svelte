@@ -1,5 +1,6 @@
 <script>
   import * as Card from "$lib/components/ui/card/index.js";
+  import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
@@ -40,7 +41,7 @@
 
   const isSelected = (value) =>
     article.categoryIds?.map(String).includes(String(value));
-  const fallbackImage = "/images/logokabinet.png";
+  const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
   let formStateInitialized = $state(false);
   let statusValue = $state("draft");
   let publishModeValue = $state("immediately");

@@ -1,5 +1,6 @@
 <script>
   import { ArrowRight } from "lucide-svelte";
+  import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import OptimizedImage from "../components/OptimizedImage.svelte";
   import TerminalTextReveal from "../components/TerminalTextReveal.svelte";
 
@@ -19,11 +20,11 @@
     featured = null,
     articles = [],
     pagination = null,
-  } = $props();
+	  } = $props();
 
-  const hasActiveFilters = $derived(Boolean(filters.query || filters.category));
-  const fallbackImage = "/images/logokabinet.png";
-  const archiveSummary = $derived.by(() => {
+	  const hasActiveFilters = $derived(Boolean(filters.query || filters.category));
+	  const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
+	  const archiveSummary = $derived.by(() => {
     if (!stats.length) {
       return "";
     }
