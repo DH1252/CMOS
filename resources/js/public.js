@@ -3,6 +3,7 @@ import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
 import LandingPage from "../svelte/LandingPage.svelte";
 import PublicApp from "../svelte/PublicApp.svelte";
+import * as bootstrapModule from "./bootstrap";
 
 const pages = {
 	LandingPage: { default: LandingPage },
@@ -59,7 +60,7 @@ let bootstrapModulePromise = null;
 
 const ensureBootstrapModule = async () => {
 	if (!bootstrapModulePromise) {
-		bootstrapModulePromise = import("./bootstrap");
+		bootstrapModulePromise = Promise.resolve(bootstrapModule);
 	}
 
 	return bootstrapModulePromise;
