@@ -1,3 +1,4 @@
+import "vite/modulepreload-polyfill";
 import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
 
