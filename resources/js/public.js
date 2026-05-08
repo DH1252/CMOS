@@ -1,23 +1,21 @@
 import "vite/modulepreload-polyfill";
 import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
-import LandingPage from "../svelte/LandingPage.svelte";
-import PublicApp from "../svelte/PublicApp.svelte";
 import * as bootstrapModule from "./bootstrap";
 
 const pages = {
-	LandingPage: { default: LandingPage },
-	PublicApp: { default: PublicApp },
+	...import.meta.glob("../svelte/LandingPage.svelte"),
+	...import.meta.glob("../svelte/PublicApp.svelte"),
 };
 
-const resolvePublicPage = (name) => {
-	const page = pages[name];
+const resolvePublicPage = async (name) => {
+	const importer = pages[`../svelte/${name}.svelte`];
 
-	if (!page) {
+	if (!importer) {
 		throw new Error(`Unknown Inertia page: ${name}`);
 	}
 
-	return page;
+	return importer();
 };
 
 const applyBrandTheme = (themeName) => {
