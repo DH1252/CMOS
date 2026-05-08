@@ -1,5 +1,6 @@
 <script>
   import brandLogo from "../images/logokabinet.png?enhanced&w=80;160";
+  import OptimizedImage from "./components/OptimizedImage.svelte";
   import PublicInformationIndexPage from "./public/PublicInformationIndexPage.svelte";
   import PublicInformationShowPage from "./public/PublicInformationShowPage.svelte";
   import { LogIn, Menu } from "lucide-svelte";
@@ -56,7 +57,7 @@
         href={homeUrl}
         class="flex min-w-0 items-center gap-3 text-inherit no-underline"
       >
-        <enhanced:img
+        <OptimizedImage
           src={brandLogo}
           alt={organizationName}
           class="h-10 w-auto shrink-0"
