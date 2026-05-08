@@ -1,5 +1,6 @@
 import path from "node:path";
 import { brotliCompressSync, constants as zlibConstants } from "node:zlib";
+import inertia from "@inertiajs/vite";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
@@ -86,6 +87,13 @@ export default defineConfig({
 			],
 			ssr: "resources/js/ssr.js",
 			refresh: true,
+		}),
+		inertia({
+			ssr: {
+				entry: "resources/js/ssr.js",
+				host: "127.0.0.1",
+				port: 13714,
+			},
 		}),
 		tailwindcss(),
 	],
