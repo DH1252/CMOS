@@ -453,7 +453,7 @@
         href={homeUrl}
         class="flex min-w-0 items-center gap-3 text-inherit no-underline"
       >
-        <enhanced:img
+        <OptimizedImage
           src={brandLogo}
           alt={organizationName}
           class="h-10 w-auto shrink-0"
