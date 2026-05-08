@@ -1,5 +1,6 @@
 <script>
   import { ArrowRight } from "lucide-svelte";
+  import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import OptimizedImage from "../components/OptimizedImage.svelte";
   import TerminalTextReveal from "../components/TerminalTextReveal.svelte";
 
@@ -17,7 +18,7 @@
     latestArticles = [],
   } = $props();
 
-  const fallbackImage = "/images/logokabinet.png";
+  const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
 
   const handleImageError = (event) => {
     if (event.currentTarget.src.endsWith(fallbackImage)) {

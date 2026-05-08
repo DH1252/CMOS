@@ -3,7 +3,17 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    <IfModule mod_mime.c>
+        AddEncoding br .br
+    </IfModule>
+
     RewriteEngine On
+
+    # Serve precompressed Brotli assets when available.
+    RewriteCond %{HTTP:Accept-Encoding} \bbr\b
+    RewriteCond %{REQUEST_URI} !\.br$
+    RewriteCond %{REQUEST_FILENAME}.br -f
+    RewriteRule ^(.+)$ $1.br [L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
