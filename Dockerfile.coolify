@@ -63,12 +63,19 @@ RUN chmod +x /usr/local/bin/prepare-runtime /usr/local/bin/start-all /usr/local/
 
 COPY . .
 
-RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache \
-    && composer install --no-dev --optimize-autoloader --no-interaction \
-    && npm ci \
-    && npm run build \
-    && chmod -R 775 storage bootstrap/cache
+RUN set -eux; \
+    cleanup_build_artifacts() { \
+        rm -rf public/build bootstrap/ssr; \
+        rm -f bootstrap/cache/*.php; \
+        rm -rf storage/framework/views/*; \
+    }; \
+    mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache; \
+    cleanup_build_artifacts; \
+    chmod -R 775 storage bootstrap/cache; \
+    composer install --no-dev --optimize-autoloader --no-interaction; \
+    npm ci; \
+    npm run build; \
+    chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8080
 
