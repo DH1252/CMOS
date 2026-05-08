@@ -1,9 +1,21 @@
 import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
 
-const pages = {
-	...import.meta.glob("../svelte/LandingPage.svelte"),
-	...import.meta.glob("../svelte/PublicApp.svelte"),
+const pages = import.meta.glob("../svelte/*.svelte");
+const publicPages = new Set(["LandingPage", "PublicApp"]);
+
+const resolvePublicPage = (name) => {
+	if (!publicPages.has(name)) {
+		throw new Error(`Unknown Inertia page: ${name}`);
+	}
+
+	const importer = pages[`../svelte/${name}.svelte`];
+
+	if (!importer) {
+		throw new Error(`Missing Inertia page importer: ${name}`);
+	}
+
+	return importer();
 };
 
 const applyBrandTheme = (themeName) => {
@@ -148,15 +160,7 @@ const bootPublicInertiaApp = () => {
 	if (!publicAppBootPromise) {
 		publicAppBootPromise = createInertiaApp({
 			page: initialInertiaPage,
-			resolve: async (name) => {
-				const importer = pages[`../svelte/${name}.svelte`];
-
-				if (!importer) {
-					throw new Error(`Unknown Inertia page: ${name}`);
-				}
-
-				return await importer();
-			},
+			resolve: resolvePublicPage,
 			layout: () => undefined,
 			setup({ el, App, props }) {
 				if (el?.hasAttribute("data-server-rendered")) {
