@@ -7,8 +7,14 @@
     $isHome = request()->routeIs('home');
     $isInfoIndex = request()->routeIs('informasi.index');
     $isInfoShow = request()->routeIs('informasi.show');
+    $resolvedAppName = isset($appName) && is_string($appName) && $appName !== ''
+        ? $appName
+        : Setting::get('app_name', 'CMOS');
     $landingProps = $isHome && is_array($page['props'] ?? null) ? $page['props'] : [];
-    $organizationName = $landingProps['organizationName'] ?? ($organizationName ?? Setting::get('organization_name', 'HIMATEKKOM ITS'));
+    $organizationName = isset($organizationName) && is_string($organizationName) && $organizationName !== ''
+        ? $organizationName
+        : Setting::get('organization_name', 'HIMATEKKOM ITS');
+    $organizationName = $landingProps['organizationName'] ?? $organizationName;
     $archiveArticles = collect();
     $currentArticle = null;
     $relatedArticles = collect();
@@ -29,7 +35,7 @@
     $landingQuickFacts = collect($landingProps['quickFacts'] ?? [
         'Website resmi HIMATEKKOM ITS 2026.',
         'Kabinet Sentra Sinergi menjaga transparansi, dokumentasi, dan kolaborasi organisasi.',
-        sprintf('%s dipakai pengurus untuk kerja operasional sehari-hari.', $appName),
+        sprintf('%s dipakai pengurus untuk kerja operasional sehari-hari.', $resolvedAppName),
     ]);
     $landingProfileSection = $landingProps['profileSection'] ?? [
         'title' => 'Profil organisasi',
@@ -108,9 +114,9 @@
     <header class="no-js-header">
         <div class="no-js-header-inner">
             <a href="{{ route('home') }}" class="no-js-brand">
-                <img src="{{ asset('images/logokabinet.png') }}" alt="{{ $appName }}">
+                <img src="{{ asset('images/logokabinet.png') }}" alt="{{ $resolvedAppName }}">
                 <div class="no-js-brand-copy">
-                    <span class="no-js-brand-title">{{ $appName }}</span>
+                    <span class="no-js-brand-title">{{ $resolvedAppName }}</span>
                     <span class="no-js-brand-subtitle">HIMATEKKOM ITS</span>
                 </div>
             </a>
