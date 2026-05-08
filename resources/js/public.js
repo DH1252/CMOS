@@ -3,12 +3,12 @@ import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
 
 const pages = {
-	LandingPage: () => import("../svelte/LandingPage.svelte"),
-	PublicApp: () => import("../svelte/PublicApp.svelte"),
+	...import.meta.glob("../svelte/LandingPage.svelte"),
+	...import.meta.glob("../svelte/PublicApp.svelte"),
 };
 
 const resolvePublicPage = async (name) => {
-	const importer = pages[name];
+	const importer = pages[`../svelte/${name}.svelte`];
 
 	if (!importer) {
 		throw new Error(`Unknown Inertia page: ${name}`);
