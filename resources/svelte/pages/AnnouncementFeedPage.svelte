@@ -1,30 +1,33 @@
 <script>
-  import { onDestroy, onMount } from 'svelte';
-  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import { Input } from '$lib/components/ui/input/index.js';
-  import { Label } from '$lib/components/ui/label/index.js';
-  import { Textarea } from '$lib/components/ui/textarea/index.js';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { onDestroy, onMount } from "svelte";
+  import { subscribeToLiveUpdates } from "$lib/live-updates.js";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import {
+    shouldSkipFormConfirmation,
+    submitConfirmedForm,
+  } from "$lib/confirmable-form.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import { Label } from "$lib/components/ui/label/index.js";
+  import { Textarea } from "$lib/components/ui/textarea/index.js";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Pengumuman',
-    description = '',
-    csrfToken = '',
-    refreshUrl = '',
-    realtimeSnapshot = '',
+    title = "Pengumuman",
+    description = "",
+    csrfToken = "",
+    refreshUrl = "",
+    realtimeSnapshot = "",
     createForm = {
-      action: '#',
-      avatar: '',
-      content: '',
+      action: "#",
+      avatar: "",
+      content: "",
       hasPoll: false,
-      pollQuestion: '',
-      pollDuration: '24',
-      pollOptions: ['', ''],
+      pollQuestion: "",
+      pollDuration: "24",
+      pollOptions: ["", ""],
       errors: {},
     },
     posts = [],
@@ -32,16 +35,16 @@
   } = $props();
 
   const reactionCatalog = [
-    { type: 'like', emoji: '👍' },
-    { type: 'love', emoji: '❤️' },
-    { type: 'haha', emoji: '😂' },
-    { type: 'wow', emoji: '😮' },
-    { type: 'sad', emoji: '😢' },
-    { type: 'angry', emoji: '😡' },
+    { type: "like", emoji: "👍" },
+    { type: "love", emoji: "❤️" },
+    { type: "haha", emoji: "😂" },
+    { type: "wow", emoji: "😮" },
+    { type: "sad", emoji: "😢" },
+    { type: "angry", emoji: "😡" },
   ];
 
   let pollOpen = $state(false);
-  let pollOptions = $state(['', '']);
+  let pollOptions = $state(["", ""]);
   let postsState = $state([]);
   let paginationState = $state(null);
   let initialized = $state(false);
@@ -49,10 +52,13 @@
 
   const decoratePosts = (nextPosts) => {
     const postStateMap = new Map(
-      postsState.map((post) => [post.id, {
-        reactionsOpen: Boolean(post.reactionsOpen),
-        commentsOpen: Boolean(post.commentsOpen),
-      }]),
+      postsState.map((post) => [
+        post.id,
+        {
+          reactionsOpen: Boolean(post.reactionsOpen),
+          commentsOpen: Boolean(post.commentsOpen),
+        },
+      ]),
     );
 
     return nextPosts.map((post) => ({
@@ -71,17 +77,19 @@
   $effect(() => {
     if (!initialized) {
       pollOpen = Boolean(createForm.hasPoll);
-      pollOptions = createForm.pollOptions?.length ? [...createForm.pollOptions] : ['', ''];
+      pollOptions = createForm.pollOptions?.length
+        ? [...createForm.pollOptions]
+        : ["", ""];
       postsState = decoratePosts(posts);
       initialized = true;
     }
   });
 
-  const notify = (notifyTitle, text, icon = 'success') => {
+  const notify = (notifyTitle, text, icon = "success") => {
     if (window.Swal) {
       window.Swal.fire({
         toast: true,
-        position: 'top-end',
+        position: "top-end",
         icon,
         title: notifyTitle,
         text,
@@ -91,18 +99,18 @@
       return;
     }
 
-    if (icon === 'error') {
+    if (icon === "error") {
       window.alert(text);
     }
   };
 
   const addPollOption = () => {
     if (pollOptions.length >= 6) {
-      notify('Batas tercapai', 'Maksimal 6 opsi polling.', 'error');
+      notify("Batas tercapai", "Maksimal 6 opsi polling.", "error");
       return;
     }
 
-    pollOptions = [...pollOptions, ''];
+    pollOptions = [...pollOptions, ""];
   };
 
   const removePollOption = (index) => {
@@ -114,12 +122,16 @@
   };
 
   const updatePollOption = (index, value) => {
-    pollOptions = pollOptions.map((option, optionIndex) => (optionIndex === index ? value : option));
+    pollOptions = pollOptions.map((option, optionIndex) =>
+      optionIndex === index ? value : option,
+    );
   };
 
   const toggleReactions = (postId) => {
     postsState = postsState.map((post) =>
-      post.id === postId ? { ...post, reactionsOpen: !post.reactionsOpen } : post,
+      post.id === postId
+        ? { ...post, reactionsOpen: !post.reactionsOpen }
+        : post,
     );
   };
 
@@ -130,11 +142,11 @@
   };
 
   const confirmSubmission = async (event, payload) => {
-		const form = event.currentTarget;
+    const form = event.currentTarget;
 
-		if (shouldSkipFormConfirmation(form)) {
-			return;
-		}
+    if (shouldSkipFormConfirmation(form)) {
+      return;
+    }
 
     if (!payload?.confirm) {
       return;
@@ -142,35 +154,41 @@
 
     event.preventDefault();
 
-    const text = payload.confirmText || `Lanjutkan tindakan untuk ${payload.confirm}?`;
+    const text =
+      payload.confirmText || `Lanjutkan tindakan untuk ${payload.confirm}?`;
 
     if (window.Swal) {
       const result = await window.Swal.fire({
-        title: payload.confirmTitle || 'Konfirmasi',
+        title: payload.confirmTitle || "Konfirmasi",
         text,
-        icon: payload.confirmIcon || 'warning',
+        icon: payload.confirmIcon || "warning",
         showCancelButton: true,
-        confirmButtonText: payload.confirmButtonText || 'Lanjutkan',
-        cancelButtonText: 'Batal',
+        confirmButtonText: payload.confirmButtonText || "Lanjutkan",
+        cancelButtonText: "Batal",
       });
 
       if (result.isConfirmed) {
-			submitConfirmedForm(form);
+        submitConfirmedForm(form);
       }
 
       return;
     }
 
     if (window.confirm(text)) {
-			submitConfirmedForm(form);
+      submitConfirmedForm(form);
     }
   };
 
   const updateReactionSummary = (summary, previousType, nextType) => {
-    const counts = new Map((summary || []).map((item) => [item.type, item.count]));
+    const counts = new Map(
+      (summary || []).map((item) => [item.type, item.count]),
+    );
 
     if (previousType) {
-      counts.set(previousType, Math.max((counts.get(previousType) || 1) - 1, 0));
+      counts.set(
+        previousType,
+        Math.max((counts.get(previousType) || 1) - 1, 0),
+      );
     }
 
     if (nextType) {
@@ -194,11 +212,11 @@
 
     try {
       const response = await fetch(post.reactUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-CSRF-TOKEN": csrfToken,
         },
         body: JSON.stringify({ type }),
       });
@@ -206,7 +224,11 @@
       const data = await response.json();
 
       if (!response.ok) {
-        notify('Gagal memperbarui reaksi', data.error || 'Terjadi kesalahan.', 'error');
+        notify(
+          "Gagal memperbarui reaksi",
+          data.error || "Terjadi kesalahan.",
+          "error",
+        );
         return;
       }
 
@@ -218,12 +240,20 @@
           ? {
               ...item,
               userReaction: nextType,
-              reactionSummary: updateReactionSummary(item.reactionSummary, previousType, nextType),
+              reactionSummary: updateReactionSummary(
+                item.reactionSummary,
+                previousType,
+                nextType,
+              ),
             }
           : item,
       );
     } catch (error) {
-      notify('Gagal memperbarui reaksi', 'Periksa koneksi lalu coba lagi.', 'error');
+      notify(
+        "Gagal memperbarui reaksi",
+        "Periksa koneksi lalu coba lagi.",
+        "error",
+      );
     }
   };
 
@@ -235,11 +265,11 @@
 
     try {
       const response = await fetch(post.voteUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-CSRF-TOKEN": csrfToken,
         },
         body: JSON.stringify({ option_id: optionId }),
       });
@@ -247,7 +277,11 @@
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        notify('Voting gagal', data.error || 'Tidak bisa mengirim pilihan.', 'error');
+        notify(
+          "Voting gagal",
+          data.error || "Tidak bisa mengirim pilihan.",
+          "error",
+        );
         return;
       }
 
@@ -261,7 +295,9 @@
                 userVoteOptionId: optionId,
                 totalVotes: data.total_votes,
                 options: item.poll.options.map((option) => {
-                  const updated = data.options.find((candidate) => candidate.id === option.id);
+                  const updated = data.options.find(
+                    (candidate) => candidate.id === option.id,
+                  );
                   return updated
                     ? {
                         ...option,
@@ -275,7 +311,7 @@
           : item,
       );
     } catch (error) {
-      notify('Voting gagal', 'Periksa koneksi lalu coba lagi.', 'error');
+      notify("Voting gagal", "Periksa koneksi lalu coba lagi.", "error");
     }
   };
 
@@ -287,10 +323,10 @@
     try {
       const response = await fetch(refreshUrl, {
         headers: {
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
         },
-        cache: 'no-store',
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -302,14 +338,15 @@
       postsState = decoratePosts(Array.isArray(data.posts) ? data.posts : []);
       paginationState = data.pagination || paginationState;
     } catch (error) {
-      console.error('Failed to refresh announcement feed', error);
+      console.error("Failed to refresh announcement feed", error);
     }
   };
 
-  const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
+  const fallbackAvatar = (name = "User") =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "User")}&background=251d39&color=f5c518&bold=true`;
 
   const handleImageError = (event) => {
-    const nextSrc = fallbackAvatar(event.currentTarget.alt || 'User');
+    const nextSrc = fallbackAvatar(event.currentTarget.alt || "User");
 
     if (event.currentTarget.src === nextSrc) {
       return;
@@ -320,7 +357,7 @@
 
   const formatRelativeTime = (value) => {
     if (!value) {
-      return '-';
+      return "-";
     }
 
     const date = new Date(value);
@@ -332,34 +369,34 @@
     const diffMinutes = Math.round((date.getTime() - Date.now()) / 60000);
 
     if (Math.abs(diffMinutes) < 1) {
-      return 'baru saja';
+      return "baru saja";
     }
 
-    const formatter = new Intl.RelativeTimeFormat('id-ID', { numeric: 'auto' });
+    const formatter = new Intl.RelativeTimeFormat("id-ID", { numeric: "auto" });
 
     if (Math.abs(diffMinutes) < 60) {
-      return formatter.format(diffMinutes, 'minute');
+      return formatter.format(diffMinutes, "minute");
     }
 
     const diffHours = Math.round(diffMinutes / 60);
 
     if (Math.abs(diffHours) < 24) {
-      return formatter.format(diffHours, 'hour');
+      return formatter.format(diffHours, "hour");
     }
 
     const diffDays = Math.round(diffHours / 24);
 
     if (Math.abs(diffDays) < 30) {
-      return formatter.format(diffDays, 'day');
+      return formatter.format(diffDays, "day");
     }
 
     const diffMonths = Math.round(diffDays / 30);
 
     if (Math.abs(diffMonths) < 12) {
-      return formatter.format(diffMonths, 'month');
+      return formatter.format(diffMonths, "month");
     }
 
-    return formatter.format(Math.round(diffDays / 365), 'year');
+    return formatter.format(Math.round(diffDays / 365), "year");
   };
 
   const formatPollEnds = (value) => {
@@ -375,7 +412,7 @@
 
     return date.getTime() > Date.now()
       ? `Berakhir ${formatRelativeTime(value)}`
-      : 'Sudah berakhir';
+      : "Sudah berakhir";
   };
 
   const reactionTotal = (summary = []) =>
@@ -389,7 +426,7 @@
     liveUpdatesCleanup = subscribeToLiveUpdates(
       realtimeSnapshot,
       async ({ changed }) => {
-        if (!changed.includes('announcements')) {
+        if (!changed.includes("announcements")) {
           return;
         }
 
@@ -404,32 +441,56 @@
   });
 </script>
 
-<Card.Root class="animate-fadeIn announcement-intro rounded-[10px] border border-border bg-card shadow-none">
+<Card.Root
+  class="animate-fadeIn announcement-intro rounded-[10px] border border-border bg-card shadow-none"
+>
   <Card.Header class="announcement-intro-head border-b border-border/70 pb-4">
-    <PageHeader {title} description="Pengumuman internal dan polling kabinet." icon="fas fa-bullhorn" />
+    <PageHeader
+      {title}
+      description="Pengumuman internal dan polling kabinet."
+      icon="fas fa-bullhorn"
+    />
   </Card.Header>
   <Card.Content class="pt-5">
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <div class="announcement-summary-card announcement-summary-primary rounded-[10px] border px-4 py-4">
+      <div
+        class="announcement-summary-card announcement-summary-primary rounded-[10px] border px-4 py-4"
+      >
         <div class="text-sm text-muted-foreground">Publikasi aktif</div>
-        <div class="mt-2 text-2xl font-semibold text-foreground">{paginationState?.total || postsState.length}</div>
+        <div class="mt-2 text-2xl font-semibold text-foreground">
+          {paginationState?.total || postsState.length}
+        </div>
       </div>
-      <div class="announcement-summary-card announcement-summary-warning rounded-[10px] border px-4 py-4">
+      <div
+        class="announcement-summary-card announcement-summary-warning rounded-[10px] border px-4 py-4"
+      >
         <div class="text-sm text-muted-foreground">Polling terbuka</div>
-        <div class="mt-2 text-2xl font-semibold text-foreground">{postsState.filter((post) => post.poll?.isActive).length}</div>
+        <div class="mt-2 text-2xl font-semibold text-foreground">
+          {postsState.filter((post) => post.poll?.isActive).length}
+        </div>
       </div>
     </div>
   </Card.Content>
 </Card.Root>
 
-<Card.Root class="announcement-composer animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+<Card.Root
+  class="announcement-composer animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+>
   <Card.Content class="pt-5">
     <form action={createForm.action} method="POST">
       <input type="hidden" name="_token" value={csrfToken} />
-      <input type="hidden" name="has_poll" value={pollOpen ? '1' : '0'} />
+      <input type="hidden" name="has_poll" value={pollOpen ? "1" : "0"} />
 
       <div class="announcement-composer-row">
-        <img src={createForm.avatar || fallbackAvatar('Avatar')} alt="Avatar" class="avatar-md" width="48" height="48" decoding="async" onerror={handleImageError} />
+        <img
+          src={createForm.avatar || fallbackAvatar("Avatar")}
+          alt="Avatar"
+          class="avatar-md"
+          width="48"
+          height="48"
+          decoding="async"
+          onerror={handleImageError}
+        />
         <div class="announcement-composer-main">
           <Textarea
             name="content"
@@ -437,10 +498,12 @@
             class="announcement-textarea"
             aria-invalid={Boolean(createForm.errors?.content)}
             placeholder="Tulis pengumuman..."
-            value={createForm.content || ''}
+            value={createForm.content || ""}
           />
           {#if createForm.errors?.content}
-            <div class="announcement-error" role="alert">{createForm.errors.content}</div>
+            <div class="announcement-error" role="alert">
+              {createForm.errors.content}
+            </div>
           {/if}
 
           {#if pollOpen}
@@ -453,11 +516,13 @@
                   name="poll_question"
                   class="announcement-input"
                   aria-invalid={Boolean(createForm.errors?.poll_question)}
-                  value={createForm.pollQuestion || ''}
+                  value={createForm.pollQuestion || ""}
                   placeholder="Pertanyaan polling..."
                 />
                 {#if createForm.errors?.poll_question}
-                  <div class="announcement-error" role="alert">{createForm.errors.poll_question}</div>
+                  <div class="announcement-error" role="alert">
+                    {createForm.errors.poll_question}
+                  </div>
                 {/if}
               </div>
 
@@ -468,12 +533,23 @@
                       type="text"
                       name="poll_options[]"
                       class="announcement-input"
-                      aria-invalid={Boolean(createForm.errors?.poll_options || createForm.errors?.poll_options_items)}
+                      aria-invalid={Boolean(
+                        createForm.errors?.poll_options ||
+                        createForm.errors?.poll_options_items,
+                      )}
                       value={option}
                       placeholder={`Opsi ${index + 1}`}
-                      oninput={(event) => updatePollOption(index, event.currentTarget.value)}
+                      oninput={(event) =>
+                        updatePollOption(index, event.currentTarget.value)}
                     />
-                    <Button type="button" variant="secondary" size="icon-sm" aria-label="Hapus opsi" title="Hapus opsi" onclick={() => removePollOption(index)}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon-sm"
+                      aria-label="Hapus opsi"
+                      title="Hapus opsi"
+                      onclick={() => removePollOption(index)}
+                    >
                       <i class="fas fa-times"></i>
                     </Button>
                   </div>
@@ -481,14 +557,23 @@
               </div>
 
               {#if createForm.errors?.poll_options}
-                <div class="announcement-error" role="alert">{createForm.errors.poll_options}</div>
+                <div class="announcement-error" role="alert">
+                  {createForm.errors.poll_options}
+                </div>
               {/if}
               {#if createForm.errors?.poll_options_items}
-                <div class="announcement-error" role="alert">{createForm.errors.poll_options_items}</div>
+                <div class="announcement-error" role="alert">
+                  {createForm.errors.poll_options_items}
+                </div>
               {/if}
 
               <div class="announcement-poll-footer">
-                <Button type="button" variant="secondary" size="sm" onclick={addPollOption}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onclick={addPollOption}
+                >
                   <i class="fas fa-plus"></i>
                   <span>Tambah Opsi</span>
                 </Button>
@@ -498,22 +583,41 @@
                   class="announcement-select announcement-poll-duration"
                   aria-invalid={Boolean(createForm.errors?.poll_duration)}
                 >
-                  <option value="24" selected={String(createForm.pollDuration) === '24'}>1 Hari</option>
-                  <option value="72" selected={String(createForm.pollDuration) === '72'}>3 Hari</option>
-                  <option value="168" selected={String(createForm.pollDuration) === '168'}>7 Hari</option>
+                  <option
+                    value="24"
+                    selected={String(createForm.pollDuration) === "24"}
+                    >1 Hari</option
+                  >
+                  <option
+                    value="72"
+                    selected={String(createForm.pollDuration) === "72"}
+                    >3 Hari</option
+                  >
+                  <option
+                    value="168"
+                    selected={String(createForm.pollDuration) === "168"}
+                    >7 Hari</option
+                  >
                 </select>
               </div>
 
               {#if createForm.errors?.poll_duration}
-                <div class="announcement-error" role="alert">{createForm.errors.poll_duration}</div>
+                <div class="announcement-error" role="alert">
+                  {createForm.errors.poll_duration}
+                </div>
               {/if}
             </div>
           {/if}
 
           <div class="announcement-composer-actions">
-            <Button type="button" variant="secondary" size="sm" onclick={() => (pollOpen = !pollOpen)}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onclick={() => (pollOpen = !pollOpen)}
+            >
               <i class="fas fa-chart-simple"></i>
-              <span>{pollOpen ? 'Tutup Poll' : 'Tambah Poll'}</span>
+              <span>{pollOpen ? "Tutup Poll" : "Tambah Poll"}</span>
             </Button>
 
             <Button type="submit">
@@ -528,7 +632,9 @@
 </Card.Root>
 
 {#if !postsState.length}
-  <Card.Root class="mt-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn mt-4 rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Content class="pt-5">
       <EmptyStatePanel
         title="Belum ada pengumuman"
@@ -541,14 +647,27 @@
 {:else}
   <div class="announcement-feed">
     {#each postsState as post, index (post.id || index)}
-      <Card.Root class="animate-fadeIn announcement-post rounded-[10px] border border-border bg-card shadow-none">
+      <Card.Root
+        class="animate-fadeIn announcement-post rounded-[10px] border border-border bg-card shadow-none"
+      >
         <Card.Content class="pt-5">
           <div class="announcement-post-head">
             <div class="announcement-post-head-main">
-              <img src={post.author.avatar || fallbackAvatar(post.author.name)} alt={post.author.name} class="avatar-md" width="48" height="48" loading="lazy" decoding="async" onerror={handleImageError} />
+              <img
+                src={post.author.avatar || fallbackAvatar(post.author.name)}
+                alt={post.author.name}
+                class="avatar-md"
+                width="48"
+                height="48"
+                loading="lazy"
+                decoding="async"
+                onerror={handleImageError}
+              />
               <div>
                 <div class="announcement-post-author">{post.author.name}</div>
-                <div class="announcement-post-time">{formatRelativeTime(post.createdAt)}</div>
+                <div class="announcement-post-time">
+                  {formatRelativeTime(post.createdAt)}
+                </div>
               </div>
             </div>
 
@@ -557,10 +676,21 @@
                 <StatusBadge label="Polling" tone="secondary" />
               {/if}
               {#if post.canDelete}
-                <form method="POST" action={post.deleteAction} class="announcement-delete-form" onsubmit={(event) => confirmSubmission(event, post.deletePayload)}>
+                <form
+                  method="POST"
+                  action={post.deleteAction}
+                  class="announcement-delete-form"
+                  onsubmit={(event) =>
+                    confirmSubmission(event, post.deletePayload)}
+                >
                   <input type="hidden" name="_token" value={csrfToken} />
                   <input type="hidden" name="_method" value="DELETE" />
-                  <Button type="submit" variant="ghost" size="sm" aria-label="Hapus">
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Hapus"
+                  >
                     <i class="fas fa-trash"></i>
                     <span>Hapus</span>
                   </Button>
@@ -573,18 +703,23 @@
 
           {#if post.poll}
             <section class="announcement-poll">
-               <div class="announcement-poll-question">Polling internal: {post.poll.question}</div>
+              <div class="announcement-poll-question">
+                Polling internal: {post.poll.question}
+              </div>
 
               <div class="announcement-poll-options-view">
                 {#each post.poll.options as option, optionIndex (option.id || optionIndex)}
                   <button
                     type="button"
-                    class={`announcement-poll-choice ${post.poll.hasVoted ? 'announcement-poll-choice-voted' : ''} ${post.poll.userVoteOptionId === option.id ? 'announcement-poll-choice-selected' : ''}`.trim()}
+                    class={`announcement-poll-choice ${post.poll.hasVoted ? "announcement-poll-choice-voted" : ""} ${post.poll.userVoteOptionId === option.id ? "announcement-poll-choice-selected" : ""}`.trim()}
                     onclick={() => votePoll(post.id, option.id)}
                     disabled={post.poll.hasVoted || !post.poll.isActive}
                   >
                     {#if post.poll.hasVoted}
-                      <div class="announcement-poll-bar" style={`width:${option.percentage}%`}></div>
+                      <div
+                        class="announcement-poll-bar"
+                        style={`width:${option.percentage}%`}
+                      ></div>
                     {/if}
                     <div class="announcement-poll-copy">
                       <span>{option.text}</span>
@@ -615,7 +750,7 @@
               {#each reactionCatalog as reaction, reactionIndex (reaction.type || reactionIndex)}
                 <button
                   type="button"
-                  class={`announcement-reaction-button ${post.userReaction === reaction.type ? 'announcement-reaction-button-active' : ''}`.trim()}
+                  class={`announcement-reaction-button ${post.userReaction === reaction.type ? "announcement-reaction-button-active" : ""}`.trim()}
                   onclick={() => react(post.id, reaction.type)}
                 >
                   {reaction.emoji}
@@ -625,11 +760,19 @@
           {/if}
 
           <div class="announcement-post-actions">
-            <Button type="button" variant="ghost" onclick={() => toggleReactions(post.id)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onclick={() => toggleReactions(post.id)}
+            >
               <i class="far fa-thumbs-up"></i>
               <span>Tanggapan</span>
             </Button>
-            <Button type="button" variant="ghost" onclick={() => toggleComments(post.id)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onclick={() => toggleComments(post.id)}
+            >
               <i class="far fa-comment"></i>
               <span>Diskusi ({post.comments.length})</span>
             </Button>
@@ -639,19 +782,50 @@
             <section class="announcement-comments">
               {#each post.comments as comment, commentIndex (comment.createdAt || commentIndex)}
                 <div class="announcement-comment">
-                  <img src={comment.user.avatar || fallbackAvatar(comment.user.name)} alt={comment.user.name} class="avatar-sm" width="32" height="32" loading="lazy" decoding="async" onerror={handleImageError} />
+                  <img
+                    src={comment.user.avatar ||
+                      fallbackAvatar(comment.user.name)}
+                    alt={comment.user.name}
+                    class="avatar-sm"
+                    width="32"
+                    height="32"
+                    loading="lazy"
+                    decoding="async"
+                    onerror={handleImageError}
+                  />
                   <div class="announcement-comment-body">
-                    <div class="announcement-comment-name">{comment.user.name}</div>
-                    <div class="announcement-comment-text">{comment.content}</div>
-                    <div class="announcement-comment-time">{formatRelativeTime(comment.createdAt)}</div>
+                    <div class="announcement-comment-name">
+                      {comment.user.name}
+                    </div>
+                    <div class="announcement-comment-text">
+                      {comment.content}
+                    </div>
+                    <div class="announcement-comment-time">
+                      {formatRelativeTime(comment.createdAt)}
+                    </div>
                   </div>
                 </div>
               {/each}
 
-              <form method="POST" action={post.commentAction} class="announcement-comment-form">
+              <form
+                method="POST"
+                action={post.commentAction}
+                class="announcement-comment-form"
+              >
                 <input type="hidden" name="_token" value={csrfToken} />
-                <Input type="text" name="content" class="announcement-comment-input" placeholder="Tulis komentar..." required />
-                <Button type="submit" size="icon-sm" aria-label="Kirim komentar" title="Kirim komentar">
+                <Input
+                  type="text"
+                  name="content"
+                  class="announcement-comment-input"
+                  placeholder="Tulis komentar..."
+                  required
+                />
+                <Button
+                  type="submit"
+                  size="icon-sm"
+                  aria-label="Kirim komentar"
+                  title="Kirim komentar"
+                >
                   <i class="fas fa-paper-plane"></i>
                 </Button>
               </form>
@@ -664,11 +838,19 @@
 {/if}
 
 {#if paginationState && paginationState.total > 0}
-  <Card.Root class="announcement-pagination-card animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="announcement-pagination-card animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Content class="announcement-pagination pt-5">
-      <p class="announcement-pagination-copy">Menampilkan {paginationState.from} - {paginationState.to} dari {paginationState.total} pengumuman</p>
+      <p class="announcement-pagination-copy">
+        Menampilkan {paginationState.from} - {paginationState.to} dari {paginationState.total}
+        pengumuman
+      </p>
       <div class="announcement-pagination-actions">
-        <StatusBadge label={`Halaman ${paginationState.currentPage} / ${paginationState.lastPage}`} tone="secondary" />
+        <StatusBadge
+          label={`Halaman ${paginationState.currentPage} / ${paginationState.lastPage}`}
+          tone="secondary"
+        />
         {#if paginationState.prevUrl}
           <Button href={paginationState.prevUrl} variant="secondary" size="sm">
             <i class="fas fa-arrow-left"></i>
@@ -699,13 +881,25 @@
   }
 
   .announcement-summary-primary {
-    border-color: color-mix(in srgb, var(--brand-primary) 24%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 24%,
+      var(--line-soft)
+    );
     background: color-mix(in srgb, var(--brand-light) 20%, var(--background));
   }
 
   .announcement-summary-warning {
-    border-color: color-mix(in srgb, var(--signal-warning) 22%, var(--line-soft));
-    background: color-mix(in srgb, var(--signal-warning) 10%, var(--background));
+    border-color: color-mix(
+      in srgb,
+      var(--signal-warning) 22%,
+      var(--line-soft)
+    );
+    background: color-mix(
+      in srgb,
+      var(--signal-warning) 10%,
+      var(--background)
+    );
   }
 
   .announcement-summary-info {
@@ -733,7 +927,8 @@
     padding: 1rem;
     border-radius: 0.625rem;
     background: color-mix(in srgb, var(--brand-light) 14%, var(--background));
-    border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, var(--line-soft));
+    border: 1px solid
+      color-mix(in srgb, var(--brand-primary) 18%, var(--line-soft));
   }
 
   .announcement-field {
@@ -779,12 +974,15 @@
     background: var(--background);
     color: var(--text-strong);
     outline: none;
-    transition: border-color 160ms ease, box-shadow 160ms ease;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
   }
 
   .announcement-select:focus {
     border-color: color-mix(in srgb, var(--brand-primary) 32%, white);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 15%, transparent);
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--brand-primary) 15%, transparent);
   }
 
   .announcement-poll-duration {
@@ -879,7 +1077,11 @@
   }
 
   .announcement-poll-choice-selected {
-    border-color: color-mix(in srgb, var(--brand-primary) 32%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 32%,
+      var(--line-soft)
+    );
     background: color-mix(in srgb, var(--brand-light) 12%, var(--background));
   }
 
@@ -929,7 +1131,11 @@
   }
 
   .announcement-reaction-button-active {
-    border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 34%,
+      var(--line-soft)
+    );
     background: color-mix(in srgb, var(--brand-light) 20%, var(--background));
     color: color-mix(in srgb, var(--brand-hover) 72%, black);
   }

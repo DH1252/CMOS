@@ -1,23 +1,26 @@
 <script>
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import { Input } from '$lib/components/ui/input/index.js';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { Button } from "$lib/components/ui/button/index.js";
+  import {
+    shouldSkipFormConfirmation,
+    submitConfirmedForm,
+  } from "$lib/confirmable-form.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Google Drive Organisasi',
-    description = '',
-    icon = 'fab fa-google-drive',
+    title = "Google Drive Organisasi",
+    description = "",
+    icon = "fab fa-google-drive",
     primaryAction = null,
     groups = [],
     emptyState = {
-      title: 'Belum ada drive',
-      text: 'Belum ada akun Google Drive.',
+      title: "Belum ada drive",
+      text: "Belum ada akun Google Drive.",
     },
-    csrfToken = '',
+    csrfToken = "",
   } = $props();
 
   let credentialPanel = $state(null);
@@ -33,7 +36,10 @@
     );
 
   const drives = $derived.by(() => flattenedDrives());
-  const activeDrive = $derived.by(() => drives.find((drive) => drive.id === activeDriveId) || drives[0] || null);
+  const activeDrive = $derived.by(
+    () =>
+      drives.find((drive) => drive.id === activeDriveId) || drives[0] || null,
+  );
 
   const confirmSubmission = async (event, action) => {
     const form = event.currentTarget;
@@ -48,16 +54,17 @@
 
     event.preventDefault();
 
-    const text = action.confirmText || `Lanjutkan tindakan untuk ${action.confirm}?`;
+    const text =
+      action.confirmText || `Lanjutkan tindakan untuk ${action.confirm}?`;
 
     if (window.Swal) {
       const result = await window.Swal.fire({
-        title: action.confirmTitle || 'Konfirmasi',
+        title: action.confirmTitle || "Konfirmasi",
         text,
-        icon: action.confirmIcon || 'warning',
+        icon: action.confirmIcon || "warning",
         showCancelButton: true,
-        confirmButtonText: action.confirmButtonText || 'Lanjutkan',
-        cancelButtonText: 'Batal',
+        confirmButtonText: action.confirmButtonText || "Lanjutkan",
+        cancelButtonText: "Batal",
       });
 
       if (result.isConfirmed) {
@@ -72,11 +79,11 @@
     }
   };
 
-  const notify = (titleText, text, icon = 'success') => {
+  const notify = (titleText, text, icon = "success") => {
     if (window.Swal) {
       window.Swal.fire({
         toast: true,
-        position: 'top-end',
+        position: "top-end",
         icon,
         title: titleText,
         text,
@@ -94,29 +101,35 @@
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
       } else {
-        const input = document.createElement('input');
+        const input = document.createElement("input");
         input.value = value;
         document.body.appendChild(input);
         input.select();
-        document.execCommand('copy');
+        document.execCommand("copy");
         input.remove();
       }
 
-      notify('Disalin', `${label} berhasil disalin.`);
+      notify("Disalin", `${label} berhasil disalin.`);
     } catch (error) {
-      notify('Gagal menyalin', `Tidak bisa menyalin ${label.toLowerCase()}.`, 'error');
+      notify(
+        "Gagal menyalin",
+        `Tidak bisa menyalin ${label.toLowerCase()}.`,
+        "error",
+      );
     }
   };
 
   const selectDrive = (drive) => {
     activeDriveId = drive.id;
     requestAnimationFrame(() => {
-      credentialPanel?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+      credentialPanel?.scrollIntoView?.({ behavior: "smooth", block: "start" });
     });
   };
 </script>
 
-<Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+<Card.Root
+  class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+>
   <Card.Header class="directory-intro-head border-b border-border/70 pb-4">
     <div class="directory-intro-copy-wrap">
       <PageHeader {title} {description} {icon} />
@@ -134,14 +147,24 @@
 </Card.Root>
 
 {#if !groups.length}
-  <Card.Root class="mt-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn mt-4 rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Content class="pt-5">
-      <EmptyStatePanel title={emptyState.title} text={emptyState.text} icon="fab fa-google-drive" tone="secondary" />
+      <EmptyStatePanel
+        title={emptyState.title}
+        text={emptyState.text}
+        icon="fab fa-google-drive"
+        tone="secondary"
+      />
     </Card.Content>
   </Card.Root>
 {:else}
   {#if activeDrive}
-    <Card.Root bind:this={credentialPanel} class="access-stage animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Root
+      bind:this={credentialPanel}
+      class="access-stage animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Content class="pt-5">
         <div class="access-stage-head">
           <div>
@@ -152,7 +175,11 @@
 
           <div class="access-stage-badges">
             {#each activeDrive.badges || [] as badge, index (badge.label || index)}
-              <StatusBadge label={badge.label} icon={badge.icon || ''} tone={badge.tone || 'secondary'} />
+              <StatusBadge
+                label={badge.label}
+                icon={badge.icon || ""}
+                tone={badge.tone || "secondary"}
+              />
             {/each}
           </div>
         </div>
@@ -161,8 +188,19 @@
           <div class="access-stage-field">
             <label for="drive-access-email">Email Google</label>
             <div class="access-stage-input">
-              <Input id="drive-access-email" type="text" class="access-stage-control" value={activeDrive.email} readonly />
-              <Button type="button" variant="secondary" size="sm" onclick={() => copyValue(activeDrive.email, 'Email')}>
+              <Input
+                id="drive-access-email"
+                type="text"
+                class="access-stage-control"
+                value={activeDrive.email}
+                readonly
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onclick={() => copyValue(activeDrive.email, "Email")}
+              >
                 <i class="fas fa-copy"></i>
                 <span>Salin</span>
               </Button>
@@ -172,8 +210,19 @@
           <div class="access-stage-field">
             <label for="drive-access-password">Password</label>
             <div class="access-stage-input">
-              <Input id="drive-access-password" type="text" class="access-stage-control" value={activeDrive.password} readonly />
-              <Button type="button" variant="secondary" size="sm" onclick={() => copyValue(activeDrive.password, 'Password')}>
+              <Input
+                id="drive-access-password"
+                type="text"
+                class="access-stage-control"
+                value={activeDrive.password}
+                readonly
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onclick={() => copyValue(activeDrive.password, "Password")}
+              >
                 <i class="fas fa-copy"></i>
                 <span>Salin</span>
               </Button>
@@ -183,7 +232,8 @@
 
         <div class="access-stage-foot">
           <p>
-            Gunakan kredensial ini untuk masuk ke Google Drive organisasi, lalu buka folder yang sesuai dengan kebutuhan kerja departemen.
+            Gunakan kredensial ini untuk masuk ke Google Drive organisasi, lalu
+            buka folder yang sesuai dengan kebutuhan kerja departemen.
           </p>
           <Button href={activeDrive.href} target="_blank" rel="noreferrer">
             <i class="fab fa-google-drive"></i>
@@ -214,7 +264,9 @@
 
         <div class="directory-grid">
           {#each group.cards as card, cardIndex (card.id || cardIndex)}
-            <Card.Root class={`directory-card ${activeDrive?.id === card.id ? 'directory-card-active' : ''}`.trim()}>
+            <Card.Root
+              class={`directory-card ${activeDrive?.id === card.id ? "directory-card-active" : ""}`.trim()}
+            >
               <Card.Content class="pt-5">
                 <div class="directory-card-top">
                   <div class="directory-card-icon">
@@ -224,7 +276,11 @@
                   {#if card.badges?.length}
                     <div class="directory-card-badges">
                       {#each card.badges as badge, badgeIndex (badge.label || badgeIndex)}
-                        <StatusBadge label={badge.label} icon={badge.icon || ''} tone={badge.tone || 'secondary'} />
+                        <StatusBadge
+                          label={badge.label}
+                          icon={badge.icon || ""}
+                          tone={badge.tone || "secondary"}
+                        />
                       {/each}
                     </div>
                   {/if}
@@ -239,31 +295,64 @@
                   {#if card.meta?.length}
                     <div class="directory-card-meta">
                       {#each card.meta as line, lineIndex (line.text || lineIndex)}
-                        <div class={line.muted ? 'text-muted fs-sm' : 'fs-sm'}>{line.text}</div>
+                        <div class={line.muted ? "fs-sm text-muted" : "fs-sm"}>
+                          {line.text}
+                        </div>
                       {/each}
                     </div>
                   {/if}
                 </div>
 
                 <div class="directory-card-actions">
-                  <Button type="button" variant={activeDrive?.id === card.id ? 'secondary' : 'default'} size="sm" onclick={() => selectDrive(card)}>
+                  <Button
+                    type="button"
+                    variant={activeDrive?.id === card.id
+                      ? "secondary"
+                      : "default"}
+                    size="sm"
+                    onclick={() => selectDrive(card)}
+                  >
                     <i class="fas fa-key"></i>
-                    <span>{activeDrive?.id === card.id ? 'Terpilih' : 'Lihat Kredensial'}</span>
+                    <span
+                      >{activeDrive?.id === card.id
+                        ? "Terpilih"
+                        : "Lihat Kredensial"}</span
+                    >
                   </Button>
 
                   {#if card.editHref}
-                    <Button href={card.editHref} variant="secondary" size="icon-sm" title="Edit" aria-label="Edit">
+                    <Button
+                      href={card.editHref}
+                      variant="secondary"
+                      size="icon-sm"
+                      title="Edit"
+                      aria-label="Edit"
+                    >
                       <i class="fas fa-pen"></i>
                     </Button>
                   {/if}
 
                   {#if card.deleteAction}
-                    <form method="POST" action={card.deleteAction} onsubmit={(event) => confirmSubmission(event, card)}>
+                    <form
+                      method="POST"
+                      action={card.deleteAction}
+                      onsubmit={(event) => confirmSubmission(event, card)}
+                    >
                       <input type="hidden" name="_token" value={csrfToken} />
                       {#if card.deleteMethod}
-                        <input type="hidden" name="_method" value={card.deleteMethod} />
+                        <input
+                          type="hidden"
+                          name="_method"
+                          value={card.deleteMethod}
+                        />
                       {/if}
-                      <Button type="submit" variant="destructive" size="icon-sm" title="Hapus" aria-label="Hapus">
+                      <Button
+                        type="submit"
+                        variant="destructive"
+                        size="icon-sm"
+                        title="Hapus"
+                        aria-label="Hapus"
+                      >
                         <i class="fas fa-trash"></i>
                       </Button>
                     </form>
@@ -429,11 +518,18 @@
   }
 
   .directory-card {
-    transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease;
   }
 
   .directory-card-active {
-    border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 34%,
+      var(--line-soft)
+    );
     box-shadow: none;
     background: color-mix(in srgb, var(--brand-light) 10%, var(--card));
   }

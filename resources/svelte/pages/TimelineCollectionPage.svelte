@@ -1,24 +1,27 @@
 <script>
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import Breadcrumbs from '../components/Breadcrumbs.svelte';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { Button } from "$lib/components/ui/button/index.js";
+  import {
+    shouldSkipFormConfirmation,
+    submitConfirmedForm,
+  } from "$lib/confirmable-form.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import Breadcrumbs from "../components/Breadcrumbs.svelte";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Timeline',
-    description = '',
-    icon = 'fas fa-calendar-alt',
+    title = "Timeline",
+    description = "",
+    icon = "fas fa-calendar-alt",
     breadcrumbs = [],
     actions = [],
     summary = [],
     sidebar = null,
     items = [],
     emptyState = {
-      title: 'Belum ada timeline',
-      text: 'Belum ada timeline.',
+      title: "Belum ada timeline",
+      text: "Belum ada timeline.",
       action: null,
     },
   } = $props();
@@ -28,34 +31,35 @@
       return action.variant;
     }
 
-    if (action?.tone === 'danger') {
-      return 'destructive';
+    if (action?.tone === "danger") {
+      return "destructive";
     }
 
-    if (action?.tone === 'secondary') {
-      return 'secondary';
+    if (action?.tone === "secondary") {
+      return "secondary";
     }
 
-    if (action?.tone === 'outline') {
-      return 'outline';
+    if (action?.tone === "outline") {
+      return "outline";
     }
 
-    return 'default';
+    return "default";
   };
 
   const buttonSize = (action) => {
     if (action?.iconOnly) {
-      return 'icon-sm';
+      return "icon-sm";
     }
 
-    if (action?.size === 'sm') {
-      return 'sm';
+    if (action?.size === "sm") {
+      return "sm";
     }
 
-    return 'default';
+    return "default";
   };
 
-  const buttonClass = (action) => `timeline-card-action-button ${action?.iconOnly ? 'timeline-card-action-button-icon' : ''}`.trim();
+  const buttonClass = (action) =>
+    `timeline-card-action-button ${action?.iconOnly ? "timeline-card-action-button-icon" : ""}`.trim();
 
   const confirmSubmission = async (event, action) => {
     const form = event.currentTarget;
@@ -70,17 +74,18 @@
 
     event.preventDefault();
 
-    const title = action.confirmTitle || 'Konfirmasi';
-    const text = action.confirmText || `Lanjutkan tindakan untuk ${action.confirm}?`;
+    const title = action.confirmTitle || "Konfirmasi";
+    const text =
+      action.confirmText || `Lanjutkan tindakan untuk ${action.confirm}?`;
 
     if (window.Swal) {
       const result = await window.Swal.fire({
         title,
         text,
-        icon: action.confirmIcon || 'warning',
+        icon: action.confirmIcon || "warning",
         showCancelButton: true,
-        confirmButtonText: action.confirmButtonText || 'Lanjutkan',
-        cancelButtonText: action.cancelButtonText || 'Batal',
+        confirmButtonText: action.confirmButtonText || "Lanjutkan",
+        cancelButtonText: action.cancelButtonText || "Batal",
       });
 
       if (result.isConfirmed) {
@@ -98,15 +103,19 @@
 
 <Breadcrumbs items={breadcrumbs} />
 
-<div class={`timeline-collection ${sidebar ? 'timeline-collection-with-sidebar' : ''}`.trim()}>
+<div
+  class={`timeline-collection ${sidebar ? "timeline-collection-with-sidebar" : ""}`.trim()}
+>
   {#if sidebar}
     <aside class="timeline-sidebar">
-      <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+      <Card.Root
+        class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+      >
         <Card.Header class="border-b border-border/70 pb-4">
           <PageHeader
             title={sidebar.title}
-            description={sidebar.description || ''}
-            icon={sidebar.icon || 'fas fa-filter'}
+            description={sidebar.description || ""}
+            icon={sidebar.icon || "fas fa-filter"}
             compact={true}
             headingTag="h3"
           />
@@ -114,7 +123,10 @@
 
         <Card.Content class="timeline-sidebar-body pt-5">
           {#each sidebar.items || [] as option, optionIndex (option.href || option.label || optionIndex)}
-            <a href={option.href} class={`timeline-sidebar-link ${option.active ? 'timeline-sidebar-link-active' : ''}`.trim()}>
+            <a
+              href={option.href}
+              class={`timeline-sidebar-link ${option.active ? "timeline-sidebar-link-active" : ""}`.trim()}
+            >
               <span>{option.label}</span>
               {#if option.meta}
                 <small>{option.meta}</small>
@@ -127,7 +139,9 @@
   {/if}
 
   <section class="timeline-main">
-    <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Root
+      class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Header class="timeline-head border-b border-border/70 pb-4">
         <div class="timeline-head-copy">
           <PageHeader {title} {description} {icon} />
@@ -136,7 +150,11 @@
         {#if actions.length}
           <div class="timeline-head-actions">
             {#each actions as action, index (action.href || action.label || index)}
-              <Button href={action.href} variant={buttonVariant(action)} size={buttonSize(action)}>
+              <Button
+                href={action.href}
+                variant={buttonVariant(action)}
+                size={buttonSize(action)}
+              >
                 {#if action.icon}
                   <i class={action.icon}></i>
                 {/if}
@@ -168,10 +186,16 @@
                     <div class="timeline-card-copy">
                       <div class="timeline-card-badges">
                         {#if item.scope}
-                          <StatusBadge label={item.scope.label} tone={item.scope.tone || 'secondary'} />
+                          <StatusBadge
+                            label={item.scope.label}
+                            tone={item.scope.tone || "secondary"}
+                          />
                         {/if}
                         {#if item.status}
-                          <StatusBadge label={item.status.label} tone={item.status.tone || 'secondary'} />
+                          <StatusBadge
+                            label={item.status.label}
+                            tone={item.status.tone || "secondary"}
+                          />
                         {/if}
                       </div>
 
@@ -188,13 +212,22 @@
                               action={action.href}
                               class="d-inline-flex"
                               data-native="true"
-                              onsubmit={(event) => confirmSubmission(event, action)}
+                              onsubmit={(event) =>
+                                confirmSubmission(event, action)}
                             >
                               {#if action.csrfToken}
-                                <input type="hidden" name="_token" value={action.csrfToken} />
+                                <input
+                                  type="hidden"
+                                  name="_token"
+                                  value={action.csrfToken}
+                                />
                               {/if}
                               {#if action.spoofMethod}
-                                <input type="hidden" name="_method" value={action.spoofMethod} />
+                                <input
+                                  type="hidden"
+                                  name="_method"
+                                  value={action.spoofMethod}
+                                />
                               {/if}
                               <Button
                                 type="submit"
@@ -292,12 +325,19 @@
     border: 1px solid var(--line-soft);
     color: inherit;
     text-decoration: none;
-    transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease;
   }
 
   .timeline-sidebar-link:hover {
     background: var(--muted);
-    border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 18%,
+      var(--line-soft)
+    );
     box-shadow: none;
   }
 
@@ -307,7 +347,11 @@
 
   .timeline-sidebar-link-active {
     background: color-mix(in srgb, var(--brand-light) 14%, var(--background));
-    border-color: color-mix(in srgb, var(--brand-primary) 24%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 24%,
+      var(--line-soft)
+    );
   }
 
   .timeline-head {

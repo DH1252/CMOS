@@ -1,11 +1,12 @@
 <script>
-	import { Dialog as DialogPrimitive } from "bits-ui";
+  import { Dialog as DialogPrimitive } from "bits-ui";
 
-	let {
-		ref = $bindable(null),
-		type = "button",
-		...restProps
-	} = $props();
+  let { ref = $bindable(null), type = "button", ...restProps } = $props();
 </script>
 
-<DialogPrimitive.Close bind:ref data-slot="dialog-close" {type} {...restProps} />
+<DialogPrimitive.Close
+  bind:ref
+  data-slot="dialog-close"
+  {type}
+  {...restProps}
+/>

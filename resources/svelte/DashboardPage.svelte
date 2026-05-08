@@ -1,8 +1,8 @@
 <script>
-  import { onDestroy, onMount } from 'svelte';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import EmptyStatePanel from './components/EmptyStatePanel.svelte';
-  import PageHeader from './components/PageHeader.svelte';
+  import { onDestroy, onMount } from "svelte";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import EmptyStatePanel from "./components/EmptyStatePanel.svelte";
+  import PageHeader from "./components/PageHeader.svelte";
 
   let {
     stats = {},
@@ -39,61 +39,82 @@
   });
 
   onDestroy(() => {
-    if (typeof window !== 'undefined' && clockInterval) {
+    if (typeof window !== "undefined" && clockInterval) {
       window.clearInterval(clockInterval);
     }
   });
 
   const totalTaskCount = $derived.by(
-    () => Number(tasksByStatus.todo || 0) + Number(tasksByStatus.in_progress || 0) + Number(tasksByStatus.done || 0),
+    () =>
+      Number(tasksByStatus.todo || 0) +
+      Number(tasksByStatus.in_progress || 0) +
+      Number(tasksByStatus.done || 0),
   );
 
   const completionRate = $derived.by(() =>
-    totalTaskCount ? Math.round((Number(tasksByStatus.done || 0) / totalTaskCount) * 100) : 0,
+    totalTaskCount
+      ? Math.round((Number(tasksByStatus.done || 0) / totalTaskCount) * 100)
+      : 0,
   );
 
   const overdueTaskCount = $derived.by(() => Number(stats.overdueTasks || 0));
   const nextTimeline = $derived.by(() => upcomingTimelines?.[0] || null);
 
-  const quickActions = $derived.by(
-    () =>
-      [
-        links?.tasksIndex ? { href: links.tasksIndex, label: 'Buka task' } : null,
-        links?.timelinesIndex ? { href: links.timelinesIndex, label: 'Buka timeline' } : null,
-      ].filter(Boolean),
+  const quickActions = $derived.by(() =>
+    [
+      links?.tasksIndex ? { href: links.tasksIndex, label: "Buka task" } : null,
+      links?.timelinesIndex
+        ? { href: links.timelinesIndex, label: "Buka timeline" }
+        : null,
+    ].filter(Boolean),
   );
 
   const summaryItems = $derived.by(() => [
     {
-      label: 'Task terlambat',
-      value: overdueTaskCount.toLocaleString('id-ID'),
-      detail: overdueTaskCount > 0 ? 'Cek lebih dulu.' : 'Tidak ada yang terlewat.',
-      tone: overdueTaskCount > 0 ? 'danger' : 'success',
+      label: "Task terlambat",
+      value: overdueTaskCount.toLocaleString("id-ID"),
+      detail:
+        overdueTaskCount > 0 ? "Cek lebih dulu." : "Tidak ada yang terlewat.",
+      tone: overdueTaskCount > 0 ? "danger" : "success",
       href: links?.tasksIndex || null,
-      actionLabel: 'Buka task',
+      actionLabel: "Buka task",
     },
     {
-      label: 'Agenda terdekat',
-      value: nextTimeline ? formatShortDate(nextTimeline.start_date) : '-',
-      detail: nextTimeline?.title || 'Belum ada agenda dekat.',
-      tone: 'secondary',
+      label: "Agenda terdekat",
+      value: nextTimeline ? formatShortDate(nextTimeline.start_date) : "-",
+      detail: nextTimeline?.title || "Belum ada agenda dekat.",
+      tone: "secondary",
       href: links?.timelinesIndex || null,
-      actionLabel: 'Buka timeline',
+      actionLabel: "Buka timeline",
     },
     {
-      label: 'Penyelesaian',
+      label: "Penyelesaian",
       value: `${completionRate}%`,
-      detail: totalTaskCount ? `${totalTaskCount} task tercatat.` : 'Belum ada task tercatat.',
-      tone: 'primary',
+      detail: totalTaskCount
+        ? `${totalTaskCount} task tercatat.`
+        : "Belum ada task tercatat.",
+      tone: "primary",
       href: links?.tasksIndex || null,
-      actionLabel: 'Lihat task',
+      actionLabel: "Lihat task",
     },
   ]);
 
   const statusRows = $derived.by(() => [
-    { label: 'Todo', value: Number(tasksByStatus.todo || 0), href: links?.tasksIndex || null },
-    { label: 'Berjalan', value: Number(tasksByStatus.in_progress || 0), href: links?.tasksIndex || null },
-    { label: 'Selesai', value: Number(tasksByStatus.done || 0), href: links?.tasksIndex || null },
+    {
+      label: "Todo",
+      value: Number(tasksByStatus.todo || 0),
+      href: links?.tasksIndex || null,
+    },
+    {
+      label: "Berjalan",
+      value: Number(tasksByStatus.in_progress || 0),
+      href: links?.tasksIndex || null,
+    },
+    {
+      label: "Selesai",
+      value: Number(tasksByStatus.done || 0),
+      href: links?.tasksIndex || null,
+    },
   ]);
 
   const taskDetailHref = (task) => {
@@ -101,83 +122,110 @@
       return null;
     }
 
-    return `${String(links.tasksIndex).replace(/\/$/, '')}/${task.id}`;
+    return `${String(links.tasksIndex).replace(/\/$/, "")}/${task.id}`;
   };
 
   const formatShortDate = (value) => {
     if (!value) {
-      return '-';
+      return "-";
     }
 
     const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) {
-      return '-';
+      return "-";
     }
 
-    return date.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short' });
+    return date.toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
+    });
   };
 
   const formatLongDate = (value) => {
     if (!value) {
-      return '-';
+      return "-";
     }
 
     const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) {
-      return '-';
+      return "-";
     }
 
-    return date.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
-  const formatWeekday = (value) => value.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long' });
-  const formatMonthYear = (value) => value.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', month: 'long', year: 'numeric' });
-  const formatClock = (value) => value.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
-  const formatDayNumber = (value) => value.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit' });
-  const progressValue = (value) => Math.max(0, Math.min(100, Number(value) || 0));
+  const formatWeekday = (value) =>
+    value.toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      weekday: "long",
+    });
+  const formatMonthYear = (value) =>
+    value.toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      month: "long",
+      year: "numeric",
+    });
+  const formatClock = (value) =>
+    value.toLocaleTimeString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  const formatDayNumber = (value) =>
+    value.toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+    });
+  const progressValue = (value) =>
+    Math.max(0, Math.min(100, Number(value) || 0));
 
   const toneValueClass = (tone) => {
-    if (tone === 'danger') {
-      return 'text-[var(--signal-danger)]';
+    if (tone === "danger") {
+      return "text-[var(--signal-danger)]";
     }
 
-    if (tone === 'success') {
-      return 'text-[var(--signal-success)]';
+    if (tone === "success") {
+      return "text-[var(--signal-success)]";
     }
 
-    return 'text-foreground';
+    return "text-foreground";
   };
 
   const statusLabel = (status) => {
-    if (status === 'in_progress') {
-      return 'Berjalan';
+    if (status === "in_progress") {
+      return "Berjalan";
     }
 
-    if (status === 'done') {
-      return 'Selesai';
+    if (status === "done") {
+      return "Selesai";
     }
 
-    return 'Todo';
+    return "Todo";
   };
 
   const statusTone = (statusBadge, status) => {
-    if (statusBadge === 'success' || status === 'done') {
-      return 'success';
+    if (statusBadge === "success" || status === "done") {
+      return "success";
     }
 
-    if (statusBadge === 'warning' || status === 'in_progress') {
-      return 'warning';
+    if (statusBadge === "warning" || status === "in_progress") {
+      return "warning";
     }
 
-    if (statusBadge === 'danger') {
-      return 'danger';
+    if (statusBadge === "danger") {
+      return "danger";
     }
 
-    return 'secondary';
+    return "secondary";
   };
-
 </script>
 
 <section class="grid gap-4">
@@ -186,7 +234,9 @@
       <PageHeader
         title="Fokus hari ini"
         description="Task mendesak dan agenda terdekat."
-        action={links?.tasksIndex ? { href: links.tasksIndex, label: 'Buka task', tone: 'secondary' } : null}
+        action={links?.tasksIndex
+          ? { href: links.tasksIndex, label: "Buka task", tone: "secondary" }
+          : null}
         compact={true}
         headingTag="h2"
       />
@@ -195,17 +245,36 @@
       <div class="grid gap-3 md:grid-cols-3">
         {#each summaryItems as item, index (item.label || index)}
           {#if item.href}
-            <a href={item.href} class="block rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
+            <a
+              href={item.href}
+              class="block rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70"
+            >
               <div class="text-sm text-muted-foreground">{item.label}</div>
-              <div class={`mt-2 text-2xl font-semibold leading-none ${toneValueClass(item.tone)}`}>{item.value}</div>
-              <p class="mt-2 text-sm leading-6 text-muted-foreground">{item.detail}</p>
-              <div class="dashboard-link-action mt-3 text-sm font-medium">{item.actionLabel}</div>
+              <div
+                class={`mt-2 text-2xl leading-none font-semibold ${toneValueClass(item.tone)}`}
+              >
+                {item.value}
+              </div>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                {item.detail}
+              </p>
+              <div class="dashboard-link-action mt-3 text-sm font-medium">
+                {item.actionLabel}
+              </div>
             </a>
           {:else}
-            <section class="rounded-[10px] border border-border bg-background px-4 py-4">
+            <section
+              class="rounded-[10px] border border-border bg-background px-4 py-4"
+            >
               <div class="text-sm text-muted-foreground">{item.label}</div>
-              <div class={`mt-2 text-2xl font-semibold leading-none ${toneValueClass(item.tone)}`}>{item.value}</div>
-              <p class="mt-2 text-sm leading-6 text-muted-foreground">{item.detail}</p>
+              <div
+                class={`mt-2 text-2xl leading-none font-semibold ${toneValueClass(item.tone)}`}
+              >
+                {item.value}
+              </div>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                {item.detail}
+              </p>
             </section>
           {/if}
         {/each}
@@ -214,7 +283,10 @@
       {#if quickActions.length > 1}
         <div class="flex flex-wrap gap-2 border-t border-border pt-5">
           {#each quickActions as action, index (action.href || index)}
-            <a href={action.href} class="dashboard-toolbar-link inline-flex items-center justify-center rounded-[10px] border border-border bg-background px-3.5 py-2.5 text-sm font-medium text-foreground no-underline transition-colors hover:border-brand-primary hover:bg-muted">
+            <a
+              href={action.href}
+              class="dashboard-toolbar-link inline-flex items-center justify-center rounded-[10px] border border-border bg-background px-3.5 py-2.5 text-sm font-medium text-foreground no-underline transition-colors hover:border-brand-primary hover:bg-muted"
+            >
               {action.label}
             </a>
           {/each}
@@ -236,15 +308,26 @@
       <div class="grid gap-3 sm:grid-cols-3">
         {#each statusRows as item, index (item.label || index)}
           {#if item.href}
-            <a href={item.href} class="dashboard-quick-action block rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
+            <a
+              href={item.href}
+              class="dashboard-quick-action block rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70"
+            >
               <div class="text-sm text-muted-foreground">{item.label}</div>
-              <div class="mt-2 text-2xl font-semibold text-foreground">{item.value}</div>
-              <div class="dashboard-link-action mt-3 text-sm font-medium">Buka daftar task</div>
+              <div class="mt-2 text-2xl font-semibold text-foreground">
+                {item.value}
+              </div>
+              <div class="dashboard-link-action mt-3 text-sm font-medium">
+                Buka daftar task
+              </div>
             </a>
           {:else}
-            <div class="rounded-[10px] border border-border bg-background px-4 py-4">
+            <div
+              class="rounded-[10px] border border-border bg-background px-4 py-4"
+            >
               <div class="text-sm text-muted-foreground">{item.label}</div>
-              <div class="mt-2 text-2xl font-semibold text-foreground">{item.value}</div>
+              <div class="mt-2 text-2xl font-semibold text-foreground">
+                {item.value}
+              </div>
             </div>
           {/if}
         {/each}
@@ -252,19 +335,43 @@
 
       <div class="dashboard-list-surface">
         {#if recentTasks.length === 0}
-          <EmptyStatePanel title="Tidak ada task" text="Belum ada task." icon="fas fa-list-check" compact={true} />
+          <EmptyStatePanel
+            title="Tidak ada task"
+            text="Belum ada task."
+            icon="fas fa-list-check"
+            compact={true}
+          />
         {:else}
           <div class="dashboard-list">
             {#each recentTasks.slice(0, 5) as task, index (`task-${task.id || task.title || index}-${index}`)}
-              <a href={taskDetailHref(task) || links?.tasksIndex || '#'} class="dashboard-list-item">
+              <a
+                href={taskDetailHref(task) || links?.tasksIndex || "#"}
+                class="dashboard-list-item"
+              >
                 <div class="dashboard-list-main">
-                  <strong class="dashboard-list-title">{(task.title || '').length > 42 ? `${task.title.slice(0, 42)}...` : task.title || '-'}</strong>
-                  <span class="dashboard-list-meta">{task.program?.name || '-'}</span>
+                  <strong class="dashboard-list-title"
+                    >{(task.title || "").length > 42
+                      ? `${task.title.slice(0, 42)}...`
+                      : task.title || "-"}</strong
+                  >
+                  <span class="dashboard-list-meta"
+                    >{task.program?.name || "-"}</span
+                  >
                 </div>
                 <div class="dashboard-list-side">
-                  <span class={`dashboard-pill dashboard-pill-${statusTone(task.status_badge, task.status)}`}>{statusLabel(task.status)}</span>
-                  <span class="dashboard-list-progress">{progressValue(task.progress)}%</span>
-                  <span class={`dashboard-list-meta ${task.is_overdue ? 'text-[var(--signal-danger)]' : ''}`}>{task.is_overdue ? `Terlambat - ${formatShortDate(task.deadline)}` : formatShortDate(task.deadline)}</span>
+                  <span
+                    class={`dashboard-pill dashboard-pill-${statusTone(task.status_badge, task.status)}`}
+                    >{statusLabel(task.status)}</span
+                  >
+                  <span class="dashboard-list-progress"
+                    >{progressValue(task.progress)}%</span
+                  >
+                  <span
+                    class={`dashboard-list-meta ${task.is_overdue ? "text-[var(--signal-danger)]" : ""}`}
+                    >{task.is_overdue
+                      ? `Terlambat - ${formatShortDate(task.deadline)}`
+                      : formatShortDate(task.deadline)}</span
+                  >
                 </div>
               </a>
             {/each}
@@ -279,7 +386,13 @@
       <PageHeader
         title="Agenda terdekat"
         description="Jadwal mendatang."
-        action={links?.timelinesCalendar ? { href: links.timelinesCalendar, label: 'Buka kalender', tone: 'secondary' } : null}
+        action={links?.timelinesCalendar
+          ? {
+              href: links.timelinesCalendar,
+              label: "Buka kalender",
+              tone: "secondary",
+            }
+          : null}
         compact={true}
         headingTag="h3"
       />
@@ -288,25 +401,48 @@
       <div class="grid gap-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
         <div>
           <div class="text-sm text-muted-foreground">Waktu lokal</div>
-          <div class="mt-2 text-3xl font-semibold leading-none text-foreground">{formatClock(currentDateTime)}</div>
+          <div class="mt-2 text-3xl leading-none font-semibold text-foreground">
+            {formatClock(currentDateTime)}
+          </div>
         </div>
-        <p class="text-sm leading-6 text-muted-foreground">{formatWeekday(currentDateTime)}, {formatDayNumber(currentDateTime)} {formatMonthYear(currentDateTime)}</p>
+        <p class="text-sm leading-6 text-muted-foreground">
+          {formatWeekday(currentDateTime)}, {formatDayNumber(currentDateTime)}
+          {formatMonthYear(currentDateTime)}
+        </p>
       </div>
 
       {#if upcomingTimelines.length === 0}
-        <EmptyStatePanel title="Tidak ada agenda" text="Belum ada agenda." icon="fas fa-calendar-xmark" compact={true} />
+        <EmptyStatePanel
+          title="Tidak ada agenda"
+          text="Belum ada agenda."
+          icon="fas fa-calendar-xmark"
+          compact={true}
+        />
       {:else}
         <div class="grid gap-3">
           {#each upcomingTimelines.slice(0, 4) as timeline, index (`timeline-${timeline.id || timeline.title || index}-${index}`)}
             {#if links?.timelinesCalendar}
-              <a href={links.timelinesCalendar} class="rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70">
-                <strong class="block text-sm text-foreground">{timeline.title}</strong>
-                <div class="mt-2 text-sm text-muted-foreground">{formatLongDate(timeline.start_date)}</div>
+              <a
+                href={links.timelinesCalendar}
+                class="rounded-[10px] border border-border bg-background px-4 py-4 text-inherit no-underline transition-colors hover:border-brand-primary hover:bg-muted/70"
+              >
+                <strong class="block text-sm text-foreground"
+                  >{timeline.title}</strong
+                >
+                <div class="mt-2 text-sm text-muted-foreground">
+                  {formatLongDate(timeline.start_date)}
+                </div>
               </a>
             {:else}
-              <div class="rounded-[10px] border border-border bg-background px-4 py-4">
-                <strong class="block text-sm text-foreground">{timeline.title}</strong>
-                <div class="mt-2 text-sm text-muted-foreground">{formatLongDate(timeline.start_date)}</div>
+              <div
+                class="rounded-[10px] border border-border bg-background px-4 py-4"
+              >
+                <strong class="block text-sm text-foreground"
+                  >{timeline.title}</strong
+                >
+                <div class="mt-2 text-sm text-muted-foreground">
+                  {formatLongDate(timeline.start_date)}
+                </div>
               </div>
             {/if}
           {/each}
@@ -329,8 +465,12 @@
         {#each latestInformationBoards.slice(0, 4) as article, index (`latest-${article.href || article.title || index}-${index}`)}
           <a href={article.href} class="dashboard-link-card">
             <strong class="dashboard-link-card-title">{article.title}</strong>
-            <p class="dashboard-link-card-copy">{article.excerpt || 'Buka artikel untuk melihat detail lengkap.'}</p>
-            <span class="dashboard-link-card-meta">{formatLongDate(article.publishedAt)}</span>
+            <p class="dashboard-link-card-copy">
+              {article.excerpt || "Buka artikel untuk melihat detail lengkap."}
+            </p>
+            <span class="dashboard-link-card-meta"
+              >{formatLongDate(article.publishedAt)}</span
+            >
           </a>
         {/each}
       </Card.Content>
@@ -340,7 +480,9 @@
   {#if departmentProgress.length > 0 || staffRanking.length > 0}
     <div class="grid gap-4 xl:grid-cols-2">
       {#if departmentProgress.length > 0}
-        <Card.Root class="rounded-[10px] border border-border bg-card shadow-none">
+        <Card.Root
+          class="rounded-[10px] border border-border bg-card shadow-none"
+        >
           <Card.Header class="border-b border-border pb-4">
             <PageHeader
               title="Progress departemen"
@@ -354,12 +496,22 @@
               {#each departmentProgress as department, index (`dept-${department.name || index}-${index}`)}
                 <section class="dashboard-list-item dashboard-list-item-static">
                   <div class="dashboard-list-main">
-                    <strong class="dashboard-list-title">{department.name || '-'}</strong>
-                    <span class="dashboard-list-meta">{Number(department.total || 0)} task tercatat</span>
+                    <strong class="dashboard-list-title"
+                      >{department.name || "-"}</strong
+                    >
+                    <span class="dashboard-list-meta"
+                      >{Number(department.total || 0)} task tercatat</span
+                    >
                   </div>
                   <div class="dashboard-list-side">
-                    <span class="dashboard-list-progress">{Number(department.percentage || 0)}%</span>
-                    <span class="dashboard-list-meta">{Number(department.done || 0)} / {Number(department.total || 0)} selesai</span>
+                    <span class="dashboard-list-progress"
+                      >{Number(department.percentage || 0)}%</span
+                    >
+                    <span class="dashboard-list-meta"
+                      >{Number(department.done || 0)} / {Number(
+                        department.total || 0,
+                      )} selesai</span
+                    >
                   </div>
                 </section>
               {/each}
@@ -369,7 +521,9 @@
       {/if}
 
       {#if staffRanking.length > 0}
-        <Card.Root class="rounded-[10px] border border-border bg-card shadow-none">
+        <Card.Root
+          class="rounded-[10px] border border-border bg-card shadow-none"
+        >
           <Card.Header class="border-b border-border pb-4">
             <PageHeader
               title="Peringkat staff"
@@ -383,11 +537,19 @@
               {#each staffRanking as staff, index (`staff-${staff.name || index}-${index}`)}
                 <section class="dashboard-list-item dashboard-list-item-static">
                   <div class="dashboard-list-main">
-                    <strong class="dashboard-list-title">{staff.name || '-'}</strong>
-                    <span class="dashboard-list-meta">{staff.department || 'Tanpa departemen'}</span>
+                    <strong class="dashboard-list-title"
+                      >{staff.name || "-"}</strong
+                    >
+                    <span class="dashboard-list-meta"
+                      >{staff.department || "Tanpa departemen"}</span
+                    >
                   </div>
                   <div class="dashboard-list-side">
-                    <span class="dashboard-list-progress">{Number(staff.score || 0).toLocaleString('id-ID', { maximumFractionDigits: 1 })}</span>
+                    <span class="dashboard-list-progress"
+                      >{Number(staff.score || 0).toLocaleString("id-ID", {
+                        maximumFractionDigits: 1,
+                      })}</span
+                    >
                   </div>
                 </section>
               {/each}
@@ -414,11 +576,17 @@
             <div class="dashboard-stat-card-label">{trend.month}</div>
             <div class="dashboard-stat-card-grid">
               <div>
-                <div class="dashboard-stat-card-value">{Number(trend.created || 0).toLocaleString('id-ID')}</div>
+                <div class="dashboard-stat-card-value">
+                  {Number(trend.created || 0).toLocaleString("id-ID")}
+                </div>
                 <div class="dashboard-stat-card-copy">Task dibuat</div>
               </div>
               <div>
-                <div class="dashboard-stat-card-value text-[var(--signal-success)]">{Number(trend.completed || 0).toLocaleString('id-ID')}</div>
+                <div
+                  class="dashboard-stat-card-value text-[var(--signal-success)]"
+                >
+                  {Number(trend.completed || 0).toLocaleString("id-ID")}
+                </div>
                 <div class="dashboard-stat-card-copy">Task selesai</div>
               </div>
             </div>
@@ -439,7 +607,9 @@
     background: var(--background);
     text-decoration: none;
     color: inherit;
-    transition: border-color 160ms ease, background 160ms ease;
+    transition:
+      border-color 160ms ease,
+      background 160ms ease;
   }
 
   .dashboard-link-card:hover {

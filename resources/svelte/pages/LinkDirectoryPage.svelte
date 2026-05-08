@@ -1,22 +1,25 @@
 <script>
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { Button } from "$lib/components/ui/button/index.js";
+  import {
+    shouldSkipFormConfirmation,
+    submitConfirmedForm,
+  } from "$lib/confirmable-form.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Kumpulan Link',
-    description = '',
-    icon = 'fas fa-link',
+    title = "Kumpulan Link",
+    description = "",
+    icon = "fas fa-link",
     primaryAction = null,
     groups = [],
     emptyState = {
-      title: 'Belum ada link',
-      text: 'Belum ada tautan.',
+      title: "Belum ada link",
+      text: "Belum ada tautan.",
     },
-    csrfToken = '',
+    csrfToken = "",
   } = $props();
 
   const confirmSubmission = async (event, action) => {
@@ -32,16 +35,17 @@
 
     event.preventDefault();
 
-    const text = action.confirmText || `Lanjutkan tindakan untuk ${action.confirm}?`;
+    const text =
+      action.confirmText || `Lanjutkan tindakan untuk ${action.confirm}?`;
 
     if (window.Swal) {
       const result = await window.Swal.fire({
-        title: action.confirmTitle || 'Konfirmasi',
+        title: action.confirmTitle || "Konfirmasi",
         text,
-        icon: action.confirmIcon || 'warning',
+        icon: action.confirmIcon || "warning",
         showCancelButton: true,
-        confirmButtonText: action.confirmButtonText || 'Lanjutkan',
-        cancelButtonText: 'Batal',
+        confirmButtonText: action.confirmButtonText || "Lanjutkan",
+        cancelButtonText: "Batal",
       });
 
       if (result.isConfirmed) {
@@ -57,7 +61,9 @@
   };
 </script>
 
-<Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+<Card.Root
+  class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+>
   <Card.Header class="directory-intro-head border-b border-border/70 pb-4">
     <div class="directory-intro-copy-wrap">
       <PageHeader {title} {description} {icon} />
@@ -75,9 +81,16 @@
 </Card.Root>
 
 {#if !groups.length}
-  <Card.Root class="mt-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn mt-4 rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Content class="pt-5">
-      <EmptyStatePanel title={emptyState.title} text={emptyState.text} icon="fas fa-link" tone="secondary" />
+      <EmptyStatePanel
+        title={emptyState.title}
+        text={emptyState.text}
+        icon="fas fa-link"
+        tone="secondary"
+      />
     </Card.Content>
   </Card.Root>
 {:else}
@@ -101,7 +114,9 @@
 
         <div class="directory-grid">
           {#each group.cards as card, cardIndex (card.href || cardIndex)}
-            <Card.Root class="directory-card rounded-[10px] border border-border bg-card shadow-none">
+            <Card.Root
+              class="directory-card rounded-[10px] border border-border bg-card shadow-none"
+            >
               <Card.Content class="pt-5">
                 <div class="directory-card-top">
                   <div class="directory-card-icon">
@@ -111,7 +126,11 @@
                   {#if card.badges?.length}
                     <div class="directory-card-badges">
                       {#each card.badges as badge, badgeIndex (badge.label || badgeIndex)}
-                        <StatusBadge label={badge.label} icon={badge.icon || ''} tone={badge.tone || 'secondary'} />
+                        <StatusBadge
+                          label={badge.label}
+                          icon={badge.icon || ""}
+                          tone={badge.tone || "secondary"}
+                        />
                       {/each}
                     </div>
                   {/if}
@@ -126,31 +145,58 @@
                   {#if card.meta?.length}
                     <div class="directory-card-meta">
                       {#each card.meta as line, lineIndex (line.text || lineIndex)}
-                        <div class={line.muted ? 'text-muted fs-sm' : 'fs-sm'}>{line.text}</div>
+                        <div class={line.muted ? "fs-sm text-muted" : "fs-sm"}>
+                          {line.text}
+                        </div>
                       {/each}
                     </div>
                   {/if}
                 </div>
 
                 <div class="directory-card-actions">
-                  <Button href={card.href} target="_blank" rel="noreferrer" size="sm">
+                  <Button
+                    href={card.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    size="sm"
+                  >
                     <i class="fas fa-arrow-up-right-from-square"></i>
-                    <span>{card.primaryLabel || 'Buka Link'}</span>
+                    <span>{card.primaryLabel || "Buka Link"}</span>
                   </Button>
 
                   {#if card.editHref}
-                    <Button href={card.editHref} variant="secondary" size="icon-sm" title="Edit" aria-label="Edit">
+                    <Button
+                      href={card.editHref}
+                      variant="secondary"
+                      size="icon-sm"
+                      title="Edit"
+                      aria-label="Edit"
+                    >
                       <i class="fas fa-pen"></i>
                     </Button>
                   {/if}
 
                   {#if card.deleteAction}
-                    <form method="POST" action={card.deleteAction} onsubmit={(event) => confirmSubmission(event, card)}>
+                    <form
+                      method="POST"
+                      action={card.deleteAction}
+                      onsubmit={(event) => confirmSubmission(event, card)}
+                    >
                       <input type="hidden" name="_token" value={csrfToken} />
                       {#if card.deleteMethod}
-                        <input type="hidden" name="_method" value={card.deleteMethod} />
+                        <input
+                          type="hidden"
+                          name="_method"
+                          value={card.deleteMethod}
+                        />
                       {/if}
-                      <Button type="submit" variant="destructive" size="icon-sm" title="Hapus" aria-label="Hapus">
+                      <Button
+                        type="submit"
+                        variant="destructive"
+                        size="icon-sm"
+                        title="Hapus"
+                        aria-label="Hapus"
+                      >
                         <i class="fas fa-trash"></i>
                       </Button>
                     </form>

@@ -1,13 +1,13 @@
 <script>
   let {
-    asciiArt = '',
-    fallbackSrc = '',
-    alt = '',
-    title = 'ASCII hero',
-    status = 'Ready',
-    footerLeft = 'route /',
-    footerRight = 'image-to-ascii',
-    class: className = '',
+    asciiArt = "",
+    fallbackSrc = "",
+    alt = "",
+    title = "ASCII hero",
+    status = "Ready",
+    footerLeft = "route /",
+    footerRight = "image-to-ascii",
+    class: className = "",
   } = $props();
 
   const isReady = $derived(Boolean(asciiArt.trim()));
@@ -16,18 +16,22 @@
 <div class={`terminal-hero ${className}`.trim()}>
   <div class="terminal-hero__head">
     <span>{title}</span>
-    <span>{isReady ? status : 'Static'}</span>
+    <span>{isReady ? status : "Static"}</span>
   </div>
 
-    <div class="terminal-hero__viewport">
-      {#if isReady}
+  <div class="terminal-hero__viewport">
+    {#if isReady}
       <pre class="terminal-hero__ascii" aria-label={alt}>{@html asciiArt}</pre>
+    {:else if fallbackSrc}
+      <img
+        src={fallbackSrc}
+        {alt}
+        class="terminal-hero__fallback"
+        loading="lazy"
+        decoding="async"
+      />
     {:else}
-      {#if fallbackSrc}
-        <img src={fallbackSrc} alt={alt} class="terminal-hero__fallback" loading="lazy" decoding="async" />
-      {:else}
-        <div class="terminal-hero__placeholder">visual pending</div>
-      {/if}
+      <div class="terminal-hero__placeholder">visual pending</div>
     {/if}
 
     <div class="terminal-hero__scanlines" aria-hidden="true"></div>
@@ -36,7 +40,7 @@
 
   <div class="terminal-hero__foot">
     <span>{footerLeft}</span>
-    <span>{isReady ? footerRight : 'fallback image'}</span>
+    <span>{isReady ? footerRight : "fallback image"}</span>
   </div>
 </div>
 
@@ -44,8 +48,12 @@
   .terminal-hero {
     display: grid;
     gap: 0;
-    border: 1px solid var(--landing-terminal-line-resolved, var(--landing-terminal-line));
-    background: var(--landing-terminal-panel-resolved, var(--landing-terminal-panel));
+    border: 1px solid
+      var(--landing-terminal-line-resolved, var(--landing-terminal-line));
+    background: var(
+      --landing-terminal-panel-resolved,
+      var(--landing-terminal-panel)
+    );
   }
 
   .terminal-hero__head,
@@ -54,14 +62,16 @@
     justify-content: space-between;
     gap: 1rem;
     padding: 0.75rem 0.9rem;
-    border-bottom: 1px solid var(--landing-terminal-line-resolved, var(--landing-terminal-line));
+    border-bottom: 1px solid
+      var(--landing-terminal-line-resolved, var(--landing-terminal-line));
     color: var(--landing-terminal-soft-resolved, var(--landing-terminal-soft));
     font-size: 0.72rem;
     letter-spacing: 0.03em;
   }
 
   .terminal-hero__foot {
-    border-top: 1px solid var(--landing-terminal-line-resolved, var(--landing-terminal-line));
+    border-top: 1px solid
+      var(--landing-terminal-line-resolved, var(--landing-terminal-line));
     border-bottom: none;
     letter-spacing: 0.02em;
     text-transform: none;
@@ -74,7 +84,13 @@
     overflow: hidden;
     aspect-ratio: 50 / 34;
     min-height: 236px;
-    background: var(--landing-terminal-hero-bg-resolved, var(--landing-terminal-hero-bg, var(--landing-terminal-panel-resolved, var(--landing-terminal-panel))));
+    background: var(
+      --landing-terminal-hero-bg-resolved,
+      var(
+        --landing-terminal-hero-bg,
+        var(--landing-terminal-panel-resolved, var(--landing-terminal-panel))
+      )
+    );
   }
 
   .terminal-hero__ascii,
@@ -94,14 +110,26 @@
     max-height: 100%;
     overflow: hidden;
     white-space: pre;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "JetBrains Mono", monospace;
     font-weight: 700;
     font-size: clamp(0.24rem, 0.31vw, 0.38rem);
     line-height: 0.9;
     letter-spacing: 0;
-    color: var(--landing-terminal-frame-accent-resolved, var(--landing-terminal-frame-accent));
+    color: var(
+      --landing-terminal-frame-accent-resolved,
+      var(--landing-terminal-frame-accent)
+    );
     filter: brightness(1.18) saturate(1.12);
-    text-shadow: 0 0 12px color-mix(in srgb, var(--landing-terminal-frame-accent-resolved, var(--landing-terminal-frame-accent)) 30%, transparent);
+    text-shadow: 0 0 12px
+      color-mix(
+        in srgb,
+        var(
+            --landing-terminal-frame-accent-resolved,
+            var(--landing-terminal-frame-accent)
+          )
+          30%,
+        transparent
+      );
     user-select: none;
   }
 
@@ -139,7 +167,9 @@
   }
 
   .terminal-hero__mask {
-    box-shadow: inset 0 0 0 1px rgba(217, 174, 67, 0.12), inset 0 0 40px rgba(9, 7, 10, 0.4);
+    box-shadow:
+      inset 0 0 0 1px rgba(217, 174, 67, 0.12),
+      inset 0 0 40px rgba(9, 7, 10, 0.4);
     animation: terminalFlicker 6s steps(3, end) infinite;
   }
 

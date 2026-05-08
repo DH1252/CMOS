@@ -22,9 +22,8 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\UserController;
+use App\Support\LandingPageData;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 /*
@@ -35,42 +34,7 @@ use Inertia\Inertia;
 
 // Public Landing Page
 Route::get('/', function () {
-    $settings = \App\Models\Setting::query()
-        ->whereIn('key', array_merge(['app_name', 'organization_name', 'theme_color'], \App\Support\ThemePalette::settingKeys()))
-        ->pluck('value', 'key');
-
-    $appName = $settings->get('app_name', 'CMOS');
-    $organizationName = $settings->get('organization_name', 'HIMATEKKOM ITS');
-    $theme = \App\Support\ThemePalette::payloadFromSettings($settings->all());
-    $latestInfo = collect();
-
-    if (Schema::hasTable('information_boards')) {
-        $latestInfo = \App\Models\InformationBoard::published()
-            ->select(['id', 'title', 'slug', 'excerpt', 'content', 'cover_image', 'published_at'])
-            ->with('categories:id,name')
-            ->latest('published_at')
-            ->take(3)
-            ->get();
-    }
-
-    return Inertia::render('LandingPage', [
-        'page' => 'landing',
-        'appName' => $appName,
-        'organizationName' => $organizationName,
-        'themeColor' => $theme['color'],
-        'themeVariables' => $theme['variables'],
-        'loginUrl' => route('login'),
-        'infoUrl' => route('informasi.index'),
-        'logoUrl' => asset('images/logokabinet.png'),
-        'latestInfo' => $latestInfo->map(fn ($item) => [
-            'title' => $item->title,
-            'excerpt' => $item->excerpt ?: Str::limit(strip_tags($item->content), 140),
-            'publishedAtLabel' => optional($item->publishedAtLocal)?->locale('id')->translatedFormat('d M Y'),
-            'coverImage' => $item->cover_image_optimized,
-            'category' => $item->categories->pluck('name')->implode(', ') ?: 'Papan Informasi',
-            'url' => route('informasi.show', $item->slug),
-        ])->values(),
-    ]);
+    return Inertia::render('LandingPage', app(LandingPageData::class)->props());
 })->name('home');
 Route::get('/informasi', [PublicInformationController::class, 'index'])->name('informasi.index');
 Route::get('/informasi/{informationBoard:slug}', [PublicInformationController::class, 'show'])->name('informasi.show');

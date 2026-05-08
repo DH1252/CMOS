@@ -1,32 +1,45 @@
 <script>
-  import { onMount } from 'svelte';
-  import Editor from '@tinymce/tinymce-svelte';
-  import { buildTinymceContentStyle } from '../lib/tinymceContentStyle.js';
+  import { onMount } from "svelte";
+  import Editor from "@tinymce/tinymce-svelte";
+  import { buildTinymceContentStyle } from "../lib/tinymceContentStyle.js";
 
   let {
-    id = 'tinymce-editor',
-    name = 'content',
-    content = '',
+    id = "tinymce-editor",
+    name = "content",
+    content = "",
     tools = [
-      'undo', 'redo',
-      'fontFamily',
-      'heading',
-      'bold', 'italic', 'underline', 'strike',
-      'textColor', 'highlight',
-      'subscript', 'superscript',
-      'clearFormat',
-      'alignLeft', 'alignCenter', 'alignRight', 'alignJustify',
-      'bulletList', 'orderedList',
-      'blockquote', 'codeBlock',
-      'link', 'image', 'horizontalRule',
-      'table',
+      "undo",
+      "redo",
+      "fontFamily",
+      "heading",
+      "bold",
+      "italic",
+      "underline",
+      "strike",
+      "textColor",
+      "highlight",
+      "subscript",
+      "superscript",
+      "clearFormat",
+      "alignLeft",
+      "alignCenter",
+      "alignRight",
+      "alignJustify",
+      "bulletList",
+      "orderedList",
+      "blockquote",
+      "codeBlock",
+      "link",
+      "image",
+      "horizontalRule",
+      "table",
     ],
-    uploadUrl = '',
-    csrfToken = '',
-    placeholder = '',
+    uploadUrl = "",
+    csrfToken = "",
+    placeholder = "",
     error = false,
     disabled = false,
-    backgroundColor = '',
+    backgroundColor = "",
     previewTheme = {},
   } = $props();
 
@@ -36,80 +49,96 @@
   let containerRef = $state(null);
 
   const toolMap = {
-    undo: 'undo',
-    redo: 'redo',
-    fontFamily: 'fontfamily',
-    heading: 'blocks',
-    bold: 'bold',
-    italic: 'italic',
-    underline: 'underline',
-    strike: 'strikethrough',
-    textColor: 'forecolor',
-    highlight: 'backcolor',
-    subscript: 'subscript',
-    superscript: 'superscript',
-    clearFormat: 'removeformat',
-    alignLeft: 'alignleft',
-    alignCenter: 'aligncenter',
-    alignRight: 'alignright',
-    alignJustify: 'alignjustify',
-    bulletList: 'bullist',
-    orderedList: 'numlist',
-    blockquote: 'blockquote',
-    codeBlock: 'codesample',
-    link: 'link',
-    image: 'image',
-    horizontalRule: 'hr',
-    table: 'table',
+    undo: "undo",
+    redo: "redo",
+    fontFamily: "fontfamily",
+    heading: "blocks",
+    bold: "bold",
+    italic: "italic",
+    underline: "underline",
+    strike: "strikethrough",
+    textColor: "forecolor",
+    highlight: "backcolor",
+    subscript: "subscript",
+    superscript: "superscript",
+    clearFormat: "removeformat",
+    alignLeft: "alignleft",
+    alignCenter: "aligncenter",
+    alignRight: "alignright",
+    alignJustify: "alignjustify",
+    bulletList: "bullist",
+    orderedList: "numlist",
+    blockquote: "blockquote",
+    codeBlock: "codesample",
+    link: "link",
+    image: "image",
+    horizontalRule: "hr",
+    table: "table",
   };
 
   const buildToolbar = (toolList) => {
     const groups = [
-      ['undo', 'redo'],
-      ['fontFamily', 'heading'],
-      ['bold', 'italic', 'underline', 'strike'],
-      ['textColor', 'highlight'],
-      ['subscript', 'superscript', 'clearFormat'],
-      ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify'],
-      ['bulletList', 'orderedList'],
-      ['blockquote', 'codeBlock'],
-      ['link', 'image', 'horizontalRule'],
-      ['table'],
+      ["undo", "redo"],
+      ["fontFamily", "heading"],
+      ["bold", "italic", "underline", "strike"],
+      ["textColor", "highlight"],
+      ["subscript", "superscript", "clearFormat"],
+      ["alignLeft", "alignCenter", "alignRight", "alignJustify"],
+      ["bulletList", "orderedList"],
+      ["blockquote", "codeBlock"],
+      ["link", "image", "horizontalRule"],
+      ["table"],
     ];
 
     return groups
-      .map((group) => group.filter((t) => toolList.includes(t)).map((t) => toolMap[t]).join(' '))
-      .filter((g) => g !== '')
-      .join(' | ');
+      .map((group) =>
+        group
+          .filter((t) => toolList.includes(t))
+          .map((t) => toolMap[t])
+          .join(" "),
+      )
+      .filter((g) => g !== "")
+      .join(" | ");
   };
 
   const buildPlugins = (toolList) => {
-    const base = ['lists', 'link', 'image', 'table', 'codesample', 'autolink', 'charmap', 'code', 'help', 'wordcount'];
+    const base = [
+      "lists",
+      "link",
+      "image",
+      "table",
+      "codesample",
+      "autolink",
+      "charmap",
+      "code",
+      "help",
+      "wordcount",
+    ];
 
-    if (toolList.includes('bulletList') || toolList.includes('orderedList')) {
-      base.push('advlist');
+    if (toolList.includes("bulletList") || toolList.includes("orderedList")) {
+      base.push("advlist");
     }
 
-    return [...new Set(base)].join(' ');
+    return [...new Set(base)].join(" ");
   };
 
   const imagesUploadHandler = (blobInfo, progress) => {
     return new Promise((resolve, reject) => {
       if (!uploadUrl || !csrfToken) {
-        reject('Upload not configured');
+        reject("Upload not configured");
         return;
       }
 
       const xhr = new XMLHttpRequest();
       xhr.withCredentials = false;
-      xhr.open('POST', uploadUrl);
-      xhr.setRequestHeader('Accept', 'application/json');
-      xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
-      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+      xhr.open("POST", uploadUrl);
+      xhr.setRequestHeader("Accept", "application/json");
+      xhr.setRequestHeader("X-CSRF-TOKEN", csrfToken);
+      xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
-          progress(e.loaded / e.total * 100);
+          progress((e.loaded / e.total) * 100);
         }
       };
 
@@ -128,57 +157,57 @@
         }
 
         if (!json?.url) {
-          reject(json?.message || 'Upload failed: No URL returned');
+          reject(json?.message || "Upload failed: No URL returned");
           return;
         }
 
         resolve(json.url);
       };
 
-      xhr.onerror = () => reject('Upload failed (network error)');
-      xhr.onabort = () => reject('Upload aborted');
+      xhr.onerror = () => reject("Upload failed (network error)");
+      xhr.onabort = () => reject("Upload aborted");
 
       const formData = new FormData();
-      formData.append('attachment', blobInfo.blob(), blobInfo.filename());
+      formData.append("attachment", blobInfo.blob(), blobInfo.filename());
       xhr.send(formData);
     });
   };
 
   const isDarkMode = () => {
-    if (typeof document === 'undefined') {
+    if (typeof document === "undefined") {
       return false;
     }
-    return document.documentElement.getAttribute('data-theme') === 'dark';
+    return document.documentElement.getAttribute("data-theme") === "dark";
   };
 
-  let skin = $state(isDarkMode() ? 'oxide-dark' : 'oxide');
+  let skin = $state(isDarkMode() ? "oxide-dark" : "oxide");
 
   const fontFamilyFormats = [
-    'Andale Mono=andale mono,times',
-    'Arial=arial,helvetica,sans-serif',
-    'Arial Black=arial black,avant garde',
-    'Book Antiqua=book antiqua,palatino',
-    'Comic Sans MS=comic sans ms,sans-serif',
-    'Courier New=courier new,courier',
-    'Georgia=georgia,palatino',
-    'Helvetica=helvetica',
-    'Impact=impact,chicago',
-    'Inter=inter,sans-serif',
-    'Lato=lato,sans-serif',
-    'Montserrat=montserrat,sans-serif',
-    'Open Sans=open sans,sans-serif',
-    'Poppins=poppins,sans-serif',
-    'Public Sans=public sans,sans-serif',
-    'Roboto=roboto,sans-serif',
-    'Symbol=symbol',
-    'Tahoma=tahoma,arial,helvetica,sans-serif',
-    'Terminal=terminal,monaco',
-    'Times New Roman=times new roman,times',
-    'Trebuchet MS=trebuchet ms,geneva',
-    'Verdana=verdana,geneva',
-    'Webdings=webdings',
-    'Wingdings=wingdings,zapf dingbats',
-  ].join('; ');
+    "Andale Mono=andale mono,times",
+    "Arial=arial,helvetica,sans-serif",
+    "Arial Black=arial black,avant garde",
+    "Book Antiqua=book antiqua,palatino",
+    "Comic Sans MS=comic sans ms,sans-serif",
+    "Courier New=courier new,courier",
+    "Georgia=georgia,palatino",
+    "Helvetica=helvetica",
+    "Impact=impact,chicago",
+    "Inter=inter,sans-serif",
+    "Lato=lato,sans-serif",
+    "Montserrat=montserrat,sans-serif",
+    "Open Sans=open sans,sans-serif",
+    "Poppins=poppins,sans-serif",
+    "Public Sans=public sans,sans-serif",
+    "Roboto=roboto,sans-serif",
+    "Symbol=symbol",
+    "Tahoma=tahoma,arial,helvetica,sans-serif",
+    "Terminal=terminal,monaco",
+    "Times New Roman=times new roman,times",
+    "Trebuchet MS=trebuchet ms,geneva",
+    "Verdana=verdana,geneva",
+    "Webdings=webdings",
+    "Wingdings=wingdings,zapf dingbats",
+  ].join("; ");
 
   const resolvedPreviewTheme = $derived({
     ...previewTheme,
@@ -186,32 +215,58 @@
   });
 
   const colorMap = [
-    '000000', 'Black',
-    '4B5563', 'Gray',
-    '9CA3AF', 'Light Gray',
-    'E5E7EB', 'Silver',
-    'FFFFFF', 'White',
-    'EF4444', 'Red',
-    'F97316', 'Orange',
-    'F59E0B', 'Amber',
-    '84CC16', 'Lime',
-    '22C55E', 'Green',
-    '14B8A6', 'Teal',
-    '06B6D4', 'Cyan',
-    '3B82F6', 'Blue',
-    '6366F1', 'Indigo',
-    '8B5CF6', 'Violet',
-    'A855F7', 'Purple',
-    'D946EF', 'Fuchsia',
-    'EC4899', 'Pink',
-    'F43F5E', 'Rose',
-    '78350F', 'Brown',
-    'B45309', 'Dark Orange',
-    '1E3A5F', 'Navy',
-    '064E3B', 'Dark Green',
-    '7F1D1D', 'Dark Red',
-    '312E81', 'Dark Indigo',
-    '701A75', 'Dark Purple',
+    "000000",
+    "Black",
+    "4B5563",
+    "Gray",
+    "9CA3AF",
+    "Light Gray",
+    "E5E7EB",
+    "Silver",
+    "FFFFFF",
+    "White",
+    "EF4444",
+    "Red",
+    "F97316",
+    "Orange",
+    "F59E0B",
+    "Amber",
+    "84CC16",
+    "Lime",
+    "22C55E",
+    "Green",
+    "14B8A6",
+    "Teal",
+    "06B6D4",
+    "Cyan",
+    "3B82F6",
+    "Blue",
+    "6366F1",
+    "Indigo",
+    "8B5CF6",
+    "Violet",
+    "A855F7",
+    "Purple",
+    "D946EF",
+    "Fuchsia",
+    "EC4899",
+    "Pink",
+    "F43F5E",
+    "Rose",
+    "78350F",
+    "Brown",
+    "B45309",
+    "Dark Orange",
+    "1E3A5F",
+    "Navy",
+    "064E3B",
+    "Dark Green",
+    "7F1D1D",
+    "Dark Red",
+    "312E81",
+    "Dark Indigo",
+    "701A75",
+    "Dark Purple",
   ];
 
   const conf = $derived({
@@ -221,46 +276,49 @@
     statusbar: true,
     branding: false,
     promotion: false,
-    license_key: 'gpl',
+    license_key: "gpl",
     skin,
     plugins: buildPlugins(tools),
     toolbar: buildToolbar(tools),
-    block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4',
+    block_formats:
+      "Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4",
     font_family_formats: fontFamilyFormats,
-    font_size_formats: '8pt 9pt 10pt 11pt 12pt 14pt 16pt 18pt 20pt 22pt 24pt 26pt 28pt 36pt 48pt 72pt',
+    font_size_formats:
+      "8pt 9pt 10pt 11pt 12pt 14pt 16pt 18pt 20pt 22pt 24pt 26pt 28pt 36pt 48pt 72pt",
     placeholder,
     automatic_uploads: true,
     images_upload_handler: imagesUploadHandler,
-    images_file_types: 'jpeg,jpg,png,gif,webp',
+    images_file_types: "jpeg,jpg,png,gif,webp",
     image_title: true,
     image_advtab: true,
     image_dimensions: true,
     image_description: true,
     image_caption: true,
-    object_resizing: 'img',
+    object_resizing: "img",
     relative_urls: false,
     remove_script_host: false,
     convert_urls: false,
     link_title: true,
-    link_default_target: '_blank',
+    link_default_target: "_blank",
     link_context_toolbar: true,
     table_use_colgroups: true,
     table_default_attributes: {},
-    table_default_styles: { 'border-collapse': 'collapse', width: '100%' },
-    table_toolbar: 'tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol | cellprops mergecells splitcells',
+    table_default_styles: { "border-collapse": "collapse", width: "100%" },
+    table_toolbar:
+      "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol | cellprops mergecells splitcells",
     codesample_languages: [
-      { text: 'HTML/XML', value: 'markup' },
-      { text: 'JavaScript', value: 'javascript' },
-      { text: 'CSS', value: 'css' },
-      { text: 'PHP', value: 'php' },
-      { text: 'Ruby', value: 'ruby' },
-      { text: 'Python', value: 'python' },
-      { text: 'Java', value: 'java' },
-      { text: 'C', value: 'c' },
-      { text: 'C++', value: 'cpp' },
-      { text: 'C#', value: 'csharp' },
-      { text: 'SQL', value: 'sql' },
-      { text: 'Bash', value: 'bash' },
+      { text: "HTML/XML", value: "markup" },
+      { text: "JavaScript", value: "javascript" },
+      { text: "CSS", value: "css" },
+      { text: "PHP", value: "php" },
+      { text: "Ruby", value: "ruby" },
+      { text: "Python", value: "python" },
+      { text: "Java", value: "java" },
+      { text: "C", value: "c" },
+      { text: "C++", value: "cpp" },
+      { text: "C#", value: "csharp" },
+      { text: "SQL", value: "sql" },
+      { text: "Bash", value: "bash" },
     ],
     color_map: colorMap,
     color_cols: 7,
@@ -273,7 +331,7 @@
       return;
     }
 
-    if ('IntersectionObserver' in window) {
+    if ("IntersectionObserver" in window) {
       const observer = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
@@ -283,7 +341,7 @@
             }
           }
         },
-        { rootMargin: '200px 0px' }
+        { rootMargin: "200px 0px" },
       );
 
       observer.observe(containerRef);
@@ -296,12 +354,15 @@
 
   onMount(() => {
     const handleThemeChange = () => {
-      skin = isDarkMode() ? 'oxide-dark' : 'oxide';
+      skin = isDarkMode() ? "oxide-dark" : "oxide";
     };
 
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+        if (
+          mutation.type === "attributes" &&
+          mutation.attributeName === "data-theme"
+        ) {
           handleThemeChange();
         }
       }
@@ -315,7 +376,14 @@
   });
 </script>
 
-  <div bind:this={containerRef} class="tinymce-shell" class:is-invalid={Boolean(error)} style={resolvedPreviewTheme.backgroundColor ? `background: ${resolvedPreviewTheme.backgroundColor} !important;` : ''}>
+<div
+  bind:this={containerRef}
+  class="tinymce-shell"
+  class:is-invalid={Boolean(error)}
+  style={resolvedPreviewTheme.backgroundColor
+    ? `background: ${resolvedPreviewTheme.backgroundColor} !important;`
+    : ""}
+>
   {#if isVisible}
     <Editor
       {id}
@@ -326,16 +394,26 @@
       {disabled}
     />
   {:else}
-    <div class="tinymce-placeholder" aria-busy="true" aria-label="Memuat editor artikel...">
+    <div
+      class="tinymce-placeholder"
+      aria-busy="true"
+      aria-label="Memuat editor artikel..."
+    >
       <div class="placeholder-toolbar">
         <div class="placeholder-toolbar-row">
           {#each Array(8) as _, i}
-            <div class="placeholder-btn" style="width: {1.5 + (i % 3) * 0.5}rem"></div>
+            <div
+              class="placeholder-btn"
+              style="width: {1.5 + (i % 3) * 0.5}rem"
+            ></div>
           {/each}
         </div>
         <div class="placeholder-toolbar-row">
           {#each Array(10) as _, i}
-            <div class="placeholder-btn" style="width: {1.5 + (i % 4) * 0.5}rem"></div>
+            <div
+              class="placeholder-btn"
+              style="width: {1.5 + (i % 4) * 0.5}rem"
+            ></div>
           {/each}
         </div>
       </div>
@@ -344,7 +422,10 @@
           <span class="placeholder-text">{placeholder}</span>
         {:else}
           {#each Array(6) as _, i}
-            <div class="placeholder-line" style="width: {85 - (i % 3) * 20}%;"></div>
+            <div
+              class="placeholder-line"
+              style="width: {85 - (i % 3) * 20}%;"
+            ></div>
           {/each}
         {/if}
       </div>
@@ -449,7 +530,12 @@
   }
 
   @keyframes shimmer {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 0.85; }
+    0%,
+    100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 0.85;
+    }
   }
 </style>

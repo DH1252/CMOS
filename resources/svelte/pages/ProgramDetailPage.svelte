@@ -1,13 +1,16 @@
 <script>
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import { Label } from '$lib/components/ui/label/index.js';
-  import { Progress } from '$lib/components/ui/progress/index.js';
-  import DataTable from '../components/DataTable.svelte';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { Button } from "$lib/components/ui/button/index.js";
+  import {
+    shouldSkipFormConfirmation,
+    submitConfirmedForm,
+  } from "$lib/confirmable-form.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { Label } from "$lib/components/ui/label/index.js";
+  import { Progress } from "$lib/components/ui/progress/index.js";
+  import DataTable from "../components/DataTable.svelte";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
     summary = {},
@@ -15,15 +18,15 @@
     team = {},
     tasks = {},
     timelines = {},
-    csrfToken = '',
+    csrfToken = "",
   } = $props();
 
   const submitRemoval = async (event, memberName) => {
-		const form = event.currentTarget;
+    const form = event.currentTarget;
 
-		if (shouldSkipFormConfirmation(form)) {
-			return;
-		}
+    if (shouldSkipFormConfirmation(form)) {
+      return;
+    }
 
     event.preventDefault();
 
@@ -31,22 +34,22 @@
 
     if (window.Swal) {
       const result = await window.Swal.fire({
-        title: 'Konfirmasi',
+        title: "Konfirmasi",
         text,
-        icon: 'warning',
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonText: 'Hapus',
-        cancelButtonText: 'Batal',
+        confirmButtonText: "Hapus",
+        cancelButtonText: "Batal",
       });
 
       if (result.isConfirmed) {
-			submitConfirmedForm(form);
+        submitConfirmedForm(form);
       }
       return;
     }
 
     if (window.confirm(text)) {
-			submitConfirmedForm(form);
+      submitConfirmedForm(form);
     }
   };
 
@@ -55,21 +58,22 @@
       return action.variant;
     }
 
-    if (action?.tone === 'primary') {
-      return 'default';
+    if (action?.tone === "primary") {
+      return "default";
     }
 
-    if (action?.tone === 'danger') {
-      return 'destructive';
+    if (action?.tone === "danger") {
+      return "destructive";
     }
 
-    return 'secondary';
+    return "secondary";
   };
 
-  const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
+  const fallbackAvatar = (name = "User") =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "User")}&background=251d39&color=f5c518&bold=true`;
 
   const handleImageError = (event) => {
-    const nextSrc = fallbackAvatar(event.currentTarget.alt || 'User');
+    const nextSrc = fallbackAvatar(event.currentTarget.alt || "User");
 
     if (event.currentTarget.src === nextSrc) {
       return;
@@ -80,8 +84,10 @@
 </script>
 
 <div class="row">
-  <div class="col-12 col-lg-4">
-    <Card.Root class="mb-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <div class="col-lg-4 col-12">
+    <Card.Root
+      class="animate-fadeIn mb-4 rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Content class="pt-5">
         <div class="detail-summary-head">
           <div class="detail-summary-icon">
@@ -89,7 +95,10 @@
           </div>
           <div>
             <h3 class="detail-summary-title">{summary.name}</h3>
-            <StatusBadge label={summary.statusLabel} tone={summary.statusTone || 'secondary'} />
+            <StatusBadge
+              label={summary.statusLabel}
+              tone={summary.statusTone || "secondary"}
+            />
           </div>
         </div>
 
@@ -111,12 +120,19 @@
             <span>Progress</span>
             <strong>{summary.progress || 0}%</strong>
           </div>
-          <Progress value={Number(summary.progress || 0)} class={`program-progress-bar ${Number(summary.progress || 0) >= 100 ? 'success' : ''}`.trim()} />
+          <Progress
+            value={Number(summary.progress || 0)}
+            class={`program-progress-bar ${Number(summary.progress || 0) >= 100 ? "success" : ""}`.trim()}
+          />
         </div>
 
         <div class="program-summary-actions">
           {#each summary.actions || [] as action, index (action.href || action.label || index)}
-            <Button href={action.href} variant={actionVariant(action)} class="flex-1">
+            <Button
+              href={action.href}
+              variant={actionVariant(action)}
+              class="flex-1"
+            >
               {#if action.icon}
                 <i class={action.icon}></i>
               {/if}
@@ -127,29 +143,56 @@
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="mb-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Root
+      class="animate-fadeIn mb-4 rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Header class="border-b border-border/70 pb-4">
-        <PageHeader title="PIC Program" icon="fas fa-star" compact={true} headingTag="h3" />
+        <PageHeader
+          title="PIC Program"
+          icon="fas fa-star"
+          compact={true}
+          headingTag="h3"
+        />
       </Card.Header>
       <Card.Content class="pt-5">
         {#if !pics.items?.length}
-          <EmptyStatePanel title="Belum ada PIC" text="Belum ada penanggung jawab." icon="fas fa-star-half-stroke" tone="secondary" compact={true} />
+          <EmptyStatePanel
+            title="Belum ada PIC"
+            text="Belum ada penanggung jawab."
+            icon="fas fa-star-half-stroke"
+            tone="secondary"
+            compact={true}
+          />
         {:else}
           <div class="detail-list">
             {#each pics.items as pic, index (pic.name || index)}
               <div class="program-member">
                 <div class="program-member-main">
-                  <img src={pic.avatar || fallbackAvatar(pic.name)} alt={pic.name} class="avatar-sm" onerror={handleImageError} />
+                  <img
+                    src={pic.avatar || fallbackAvatar(pic.name)}
+                    alt={pic.name}
+                    class="avatar-sm"
+                    onerror={handleImageError}
+                  />
                   <div class="program-member-copy">
                     <div class="fw-semibold">{pic.name}</div>
                     <StatusBadge label="PIC" tone="primary" />
                   </div>
                 </div>
                 {#if pic.removeAction}
-                  <form method="POST" action={pic.removeAction} onsubmit={(event) => submitRemoval(event, pic.name)}>
+                  <form
+                    method="POST"
+                    action={pic.removeAction}
+                    onsubmit={(event) => submitRemoval(event, pic.name)}
+                  >
                     <input type="hidden" name="_token" value={csrfToken} />
                     <input type="hidden" name="_method" value="DELETE" />
-                    <Button type="submit" variant="destructive" size="icon-sm" aria-label={`Hapus ${pic.name}`}>
+                    <Button
+                      type="submit"
+                      variant="destructive"
+                      size="icon-sm"
+                      aria-label={`Hapus ${pic.name}`}
+                    >
                       <i class="fas fa-xmark"></i>
                     </Button>
                   </form>
@@ -160,11 +203,20 @@
         {/if}
 
         {#if pics.addAction}
-          <form method="POST" action={pics.addAction} class="program-inline-form">
+          <form
+            method="POST"
+            action={pics.addAction}
+            class="program-inline-form"
+          >
             <input type="hidden" name="_token" value={csrfToken} />
             <div class="program-inline-field">
               <Label for="pic_user_id">Tambah PIC</Label>
-              <select id="pic_user_id" name="user_id" class="program-select" required>
+              <select
+                id="pic_user_id"
+                name="user_id"
+                class="program-select"
+                required
+              >
                 <option value="">-- Pilih User --</option>
                 {#each pics.availableUsers || [] as user, index (user.value || index)}
                   <option value={user.value}>{user.label}</option>
@@ -180,29 +232,59 @@
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Root
+      class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Header class="border-b border-border/70 pb-4">
-        <PageHeader title="Tim Program" icon="fas fa-users" compact={true} headingTag="h3" />
+        <PageHeader
+          title="Tim Program"
+          icon="fas fa-users"
+          compact={true}
+          headingTag="h3"
+        />
       </Card.Header>
       <Card.Content class="pt-5">
         {#if !team.members?.length}
-          <EmptyStatePanel title="Belum ada anggota tim" text="Belum ada anggota." icon="fas fa-users-slash" tone="secondary" compact={true} />
+          <EmptyStatePanel
+            title="Belum ada anggota tim"
+            text="Belum ada anggota."
+            icon="fas fa-users-slash"
+            tone="secondary"
+            compact={true}
+          />
         {:else}
           <div class="detail-list">
             {#each team.members as member, index (member.name || index)}
               <div class="program-member">
                 <div class="program-member-main">
-                  <img src={member.avatar || fallbackAvatar(member.name)} alt={member.name} class="avatar-sm" onerror={handleImageError} />
+                  <img
+                    src={member.avatar || fallbackAvatar(member.name)}
+                    alt={member.name}
+                    class="avatar-sm"
+                    onerror={handleImageError}
+                  />
                   <div class="program-member-copy">
                     <div class="fw-semibold">{member.name}</div>
-                    <StatusBadge label={member.roleLabel} tone={member.roleTone || 'secondary'} />
+                    <StatusBadge
+                      label={member.roleLabel}
+                      tone={member.roleTone || "secondary"}
+                    />
                   </div>
                 </div>
                 {#if member.removeAction}
-                  <form method="POST" action={member.removeAction} onsubmit={(event) => submitRemoval(event, member.name)}>
+                  <form
+                    method="POST"
+                    action={member.removeAction}
+                    onsubmit={(event) => submitRemoval(event, member.name)}
+                  >
                     <input type="hidden" name="_token" value={csrfToken} />
                     <input type="hidden" name="_method" value="DELETE" />
-                    <Button type="submit" variant="destructive" size="icon-sm" aria-label={`Hapus ${member.name}`}>
+                    <Button
+                      type="submit"
+                      variant="destructive"
+                      size="icon-sm"
+                      aria-label={`Hapus ${member.name}`}
+                    >
                       <i class="fas fa-xmark"></i>
                     </Button>
                   </form>
@@ -213,11 +295,20 @@
         {/if}
 
         {#if team.addAction}
-          <form method="POST" action={team.addAction} class="program-inline-form">
+          <form
+            method="POST"
+            action={team.addAction}
+            class="program-inline-form"
+          >
             <input type="hidden" name="_token" value={csrfToken} />
             <div class="program-inline-field">
               <Label for="user_id">Tambah anggota</Label>
-              <select id="user_id" name="user_id" class="program-select" required>
+              <select
+                id="user_id"
+                name="user_id"
+                class="program-select"
+                required
+              >
                 <option value="">-- Pilih User --</option>
                 {#each team.availableUsers || [] as user, index (user.value || index)}
                   <option value={user.value}>{user.label}</option>
@@ -241,13 +332,22 @@
     </Card.Root>
   </div>
 
-  <div class="col-12 col-lg-8">
-    <Card.Root class="mb-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <div class="col-lg-8 col-12">
+    <Card.Root
+      class="animate-fadeIn mb-4 rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Header class="border-b border-border/70 pb-4">
         <PageHeader
           title="Task Program"
           icon="fas fa-list-check"
-          action={tasks.createAction ? { href: tasks.createAction, label: 'Tambah Task', icon: 'fas fa-plus', tone: 'primary' } : null}
+          action={tasks.createAction
+            ? {
+                href: tasks.createAction,
+                label: "Tambah Task",
+                icon: "fas fa-plus",
+                tone: "primary",
+              }
+            : null}
           compact={true}
           headingTag="h3"
         />
@@ -259,27 +359,43 @@
           rows={tasks.rows || []}
           {csrfToken}
           emptyState={{
-            title: 'Belum ada task',
-            text: 'Belum ada task.',
-            icon: 'fas fa-list-check',
+            title: "Belum ada task",
+            text: "Belum ada task.",
+            icon: "fas fa-list-check",
           }}
         />
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Root
+      class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Header class="border-b border-border/70 pb-4">
-        <PageHeader title="Timeline Program" icon="fas fa-calendar-days" compact={true} headingTag="h3" />
+        <PageHeader
+          title="Timeline Program"
+          icon="fas fa-calendar-days"
+          compact={true}
+          headingTag="h3"
+        />
       </Card.Header>
 
       <Card.Content class="pt-5">
         {#if !timelines.items?.length}
-          <EmptyStatePanel title="Belum ada timeline" text="Belum ada agenda." icon="fas fa-calendar-xmark" tone="secondary" compact={true} />
+          <EmptyStatePanel
+            title="Belum ada timeline"
+            text="Belum ada agenda."
+            icon="fas fa-calendar-xmark"
+            tone="secondary"
+            compact={true}
+          />
         {:else}
           <div class="detail-list">
             {#each timelines.items as timeline, index (timeline.title || index)}
               <div class="program-timeline">
-                <div class="program-timeline-color" style={`background:${timeline.color}`}></div>
+                <div
+                  class="program-timeline-color"
+                  style={`background:${timeline.color}`}
+                ></div>
                 <div class="program-timeline-copy">
                   <div class="fw-semibold">{timeline.title}</div>
                   <div class="fs-sm text-muted">{timeline.range}</div>
@@ -367,11 +483,11 @@
     color: var(--brand-primary);
   }
 
-  .program-progress-bar :global([data-slot='progress-indicator']) {
+  .program-progress-bar :global([data-slot="progress-indicator"]) {
     background: var(--brand-primary);
   }
 
-  .program-progress-bar.success :global([data-slot='progress-indicator']) {
+  .program-progress-bar.success :global([data-slot="progress-indicator"]) {
     background: color-mix(in srgb, var(--signal-success) 78%, black);
   }
 
@@ -432,12 +548,15 @@
     background: var(--background);
     color: var(--text-strong);
     outline: none;
-    transition: border-color 160ms ease, box-shadow 160ms ease;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
   }
 
   .program-select:focus {
     border-color: color-mix(in srgb, var(--brand-primary) 32%, white);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 15%, transparent);
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--brand-primary) 15%, transparent);
   }
 
   .program-timeline {

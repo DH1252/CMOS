@@ -1,33 +1,34 @@
 <script>
-  import { Button } from '$lib/components/ui/button/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import { Label } from '$lib/components/ui/label/index.js';
-  import Breadcrumbs from '../components/Breadcrumbs.svelte';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { Label } from "$lib/components/ui/label/index.js";
+  import Breadcrumbs from "../components/Breadcrumbs.svelte";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Evaluasi Staff',
-    description = '',
+    title = "Evaluasi Staff",
+    description = "",
     breadcrumbs = [],
-    month = { value: '', label: '' },
+    month = { value: "", label: "" },
     months = [],
-    monthAction = '',
-    monthParam = 'month',
+    monthAction = "",
+    monthParam = "month",
     staff = [],
     emptyState = {
-      title: 'Tidak ada staff',
-      text: 'Departemen ini belum memiliki staff aktif.',
+      title: "Tidak ada staff",
+      text: "Departemen ini belum memiliki staff aktif.",
     },
   } = $props();
 
   let monthForm = $state(null);
-  let selectedMonth = $state('');
-  const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
+  let selectedMonth = $state("");
+  const fallbackAvatar = (name = "User") =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "User")}&background=251d39&color=f5c518&bold=true`;
 
   $effect(() => {
-    selectedMonth = month?.value || '';
+    selectedMonth = month?.value || "";
   });
 
   const submitMonth = () => {
@@ -39,23 +40,23 @@
       return action.variant;
     }
 
-    if (action?.tone === 'secondary') {
-      return 'secondary';
+    if (action?.tone === "secondary") {
+      return "secondary";
     }
 
-    if (action?.tone === 'danger') {
-      return 'destructive';
+    if (action?.tone === "danger") {
+      return "destructive";
     }
 
-    if (action?.tone === 'outline') {
-      return 'outline';
+    if (action?.tone === "outline") {
+      return "outline";
     }
 
-    return 'default';
+    return "default";
   };
 
   const handleImageError = (event) => {
-    const nextSrc = fallbackAvatar(event.currentTarget.alt || 'User');
+    const nextSrc = fallbackAvatar(event.currentTarget.alt || "User");
 
     if (event.currentTarget.src === nextSrc) {
       return;
@@ -67,14 +68,23 @@
 
 <Breadcrumbs items={breadcrumbs} />
 
-<Card.Root class="evaluation-staff-intro animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+<Card.Root
+  class="evaluation-staff-intro animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+>
   <Card.Header class="evaluation-staff-head border-b border-border/70 pb-4">
     <div class="evaluation-staff-head-copy">
-      <PageHeader title={title} description={description} icon="fas fa-users" />
+      <PageHeader {title} {description} icon="fas fa-users" />
     </div>
 
-    <form method="GET" action={monthAction} bind:this={monthForm} class="evaluation-month-form">
-      <Label class="evaluation-month-label" for="evaluation-month-select">Periode</Label>
+    <form
+      method="GET"
+      action={monthAction}
+      bind:this={monthForm}
+      class="evaluation-month-form"
+    >
+      <Label class="evaluation-month-label" for="evaluation-month-select"
+        >Periode</Label
+      >
       <select
         id="evaluation-month-select"
         name={monthParam}
@@ -93,31 +103,51 @@
 {#if staff.length}
   <div class="evaluation-staff-grid">
     {#each staff as member, index (member.email || member.name || index)}
-      <Card.Root class={`evaluation-staff-card animate-fadeIn rounded-[10px] border border-border bg-card shadow-none ${member.hasEvaluated ? 'evaluation-staff-card-complete' : ''}`.trim()}>
+      <Card.Root
+        class={`evaluation-staff-card animate-fadeIn rounded-[10px] border border-border bg-card shadow-none ${member.hasEvaluated ? "evaluation-staff-card-complete" : ""}`.trim()}
+      >
         <Card.Content class="space-y-4 pt-4">
           <div class="evaluation-staff-top">
-            <img src={member.avatar || fallbackAvatar(member.name)} alt={member.name} class="evaluation-staff-avatar" onerror={handleImageError} />
+            <img
+              src={member.avatar || fallbackAvatar(member.name)}
+              alt={member.name}
+              class="evaluation-staff-avatar"
+              onerror={handleImageError}
+            />
 
             <div class="evaluation-staff-copy">
               <h4>{member.name}</h4>
               <p>{member.email}</p>
             </div>
 
-            <StatusBadge label={member.statusLabel} tone={member.statusTone || 'secondary'} />
+            <StatusBadge
+              label={member.statusLabel}
+              tone={member.statusTone || "secondary"}
+            />
           </div>
 
           {#if member.evaluation}
             <div class="evaluation-score-grid">
               <div class="evaluation-score-item">
                 <span>Kabinet</span>
-                <strong class={member.evaluation.hasKabinet ? '' : 'evaluation-score-muted'}>
-                  {member.evaluation.hasKabinet ? member.evaluation.kabinetScore : '-'}
+                <strong
+                  class={member.evaluation.hasKabinet
+                    ? ""
+                    : "evaluation-score-muted"}
+                >
+                  {member.evaluation.hasKabinet
+                    ? member.evaluation.kabinetScore
+                    : "-"}
                 </strong>
               </div>
               <div class="evaluation-score-item">
                 <span>BPH</span>
-                <strong class={member.evaluation.hasBph ? '' : 'evaluation-score-muted'}>
-                  {member.evaluation.hasBph ? member.evaluation.bphScore : '-'}
+                <strong
+                  class={member.evaluation.hasBph
+                    ? ""
+                    : "evaluation-score-muted"}
+                >
+                  {member.evaluation.hasBph ? member.evaluation.bphScore : "-"}
                 </strong>
               </div>
             </div>
@@ -129,7 +159,10 @@
               </div>
 
               {#if member.evaluation.grade}
-                <span class="evaluation-grade-pill" style={`--grade-color:${member.evaluation.grade.color};`}>
+                <span
+                  class="evaluation-grade-pill"
+                  style={`--grade-color:${member.evaluation.grade.color};`}
+                >
                   {member.evaluation.grade.label}
                 </span>
               {/if}
@@ -143,14 +176,22 @@
 
           <div class="evaluation-staff-actions">
             {#if member.primaryAction}
-              <Button href={member.primaryAction.href} variant={actionVariant(member.primaryAction)} size="sm">
+              <Button
+                href={member.primaryAction.href}
+                variant={actionVariant(member.primaryAction)}
+                size="sm"
+              >
                 <i class={member.primaryAction.icon}></i>
                 <span>{member.primaryAction.label}</span>
               </Button>
             {/if}
 
             {#if member.secondaryAction}
-              <Button href={member.secondaryAction.href} variant={actionVariant(member.secondaryAction)} size="sm">
+              <Button
+                href={member.secondaryAction.href}
+                variant={actionVariant(member.secondaryAction)}
+                size="sm"
+              >
                 <i class={member.secondaryAction.icon}></i>
                 <span>{member.secondaryAction.label}</span>
               </Button>
@@ -161,9 +202,17 @@
     {/each}
   </div>
 {:else}
-  <Card.Root class="mt-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn mt-4 rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Content class="pt-5">
-      <EmptyStatePanel title={emptyState.title} text={emptyState.text} icon="fas fa-users" tone="primary" compact={true} />
+      <EmptyStatePanel
+        title={emptyState.title}
+        text={emptyState.text}
+        icon="fas fa-users"
+        tone="primary"
+        compact={true}
+      />
     </Card.Content>
   </Card.Root>
 {/if}
@@ -204,12 +253,15 @@
     background: var(--background);
     color: var(--text-strong);
     outline: none;
-    transition: border-color 160ms ease, box-shadow 160ms ease;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
   }
 
   .evaluation-month-select:focus {
     border-color: color-mix(in srgb, var(--brand-primary) 32%, white);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 15%, transparent);
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--brand-primary) 15%, transparent);
   }
 
   .evaluation-staff-grid {
@@ -220,8 +272,7 @@
   }
 
   .evaluation-staff-card-complete {
-    background:
-      color-mix(in srgb, var(--signal-success) 8%, var(--card));
+    background: color-mix(in srgb, var(--signal-success) 8%, var(--card));
   }
 
   .evaluation-staff-top {

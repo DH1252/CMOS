@@ -25,6 +25,8 @@ class PublicPageSsrTest extends TestCase
         $response->assertSee('id="app"', false);
         $response->assertSee('data-page=', false);
         $response->assertDontSee('id="svelte-public-root"', false);
+        $response->assertSee('Profil organisasi');
+        $response->assertSee('Program kerja kabinet');
 
         $page = $this->inertiaPage($response->getContent());
 

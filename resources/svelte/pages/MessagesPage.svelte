@@ -1,27 +1,28 @@
 <script>
-  import { onDestroy, onMount, tick } from 'svelte';
-  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
-  import { Button } from '$lib/components/ui/button/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import { Input } from '$lib/components/ui/input/index.js';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { onDestroy, onMount, tick } from "svelte";
+  import { subscribeToLiveUpdates } from "$lib/live-updates.js";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Pesan Internal',
-    description = '',
-    csrfToken = '',
+    title = "Pesan Internal",
+    description = "",
+    csrfToken = "",
     contacts = [],
     conversations = [],
     endpoints = {},
     initialUserId = null,
   } = $props();
 
-  const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
+  const fallbackAvatar = (name = "User") =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "User")}&background=251d39&color=f5c518&bold=true`;
 
   const handleImageError = (event) => {
-    const nextSrc = fallbackAvatar(event.currentTarget.alt || 'User');
+    const nextSrc = fallbackAvatar(event.currentTarget.alt || "User");
 
     if (event.currentTarget.src === nextSrc) {
       return;
@@ -30,8 +31,8 @@
     event.currentTarget.src = nextSrc;
   };
 
-  let search = $state('');
-  let draft = $state('');
+  let search = $state("");
+  let draft = $state("");
   let activeUserId = $state(null);
   let activeUser = $state(null);
   let contactDirectory = $state([]);
@@ -56,11 +57,13 @@
 
   $effect(() => {
     if (!activeUserId) {
-      activeUserId = initialUserId || conversations[0]?.id || contacts[0]?.id || null;
+      activeUserId =
+        initialUserId || conversations[0]?.id || contacts[0]?.id || null;
     }
   });
 
-  const endpointFor = (base, id) => `${String(base || '').replace(/\/$/, '')}/${id}`;
+  const endpointFor = (base, id) =>
+    `${String(base || "").replace(/\/$/, "")}/${id}`;
 
   const sortContacts = (items) =>
     [...items].sort((left, right) => {
@@ -68,18 +71,30 @@
         return right.unreadCount - left.unreadCount;
       }
 
-      const leftTime = left.lastMessageAt ? new Date(left.lastMessageAt).getTime() : 0;
-      const rightTime = right.lastMessageAt ? new Date(right.lastMessageAt).getTime() : 0;
+      const leftTime = left.lastMessageAt
+        ? new Date(left.lastMessageAt).getTime()
+        : 0;
+      const rightTime = right.lastMessageAt
+        ? new Date(right.lastMessageAt).getTime()
+        : 0;
 
       if (leftTime !== rightTime) {
         return rightTime - leftTime;
       }
 
-      return String(left.name || 'Kontak').localeCompare(String(right.name || 'Kontak'), 'id');
+      return String(left.name || "Kontak").localeCompare(
+        String(right.name || "Kontak"),
+        "id",
+      );
     });
 
   const buildContacts = () => {
-    const summaryMap = new Map((conversationSummaries || []).map((summary) => [Number(summary.id), summary]));
+    const summaryMap = new Map(
+      (conversationSummaries || []).map((summary) => [
+        Number(summary.id),
+        summary,
+      ]),
+    );
 
     return sortContacts(
       contactDirectory.map((contact) => {
@@ -87,9 +102,9 @@
         return {
           ...contact,
           unreadCount: summary.unreadCount || 0,
-          lastMessage: summary.lastMessage || '',
+          lastMessage: summary.lastMessage || "",
           lastMessageAt: summary.lastMessageAt || null,
-          lastMessageLabel: summary.lastMessageLabel || '',
+          lastMessageLabel: summary.lastMessageLabel || "",
         };
       }),
     );
@@ -99,20 +114,21 @@
     const allContacts = buildContacts();
     const keyword = search.trim().toLowerCase();
 
-    if (keyword === '') {
+    if (keyword === "") {
       return allContacts;
     }
 
     return allContacts.filter((contact) => {
-      const haystack = `${contact.name} ${contact.role || ''} ${contact.department || ''}`.toLowerCase();
+      const haystack =
+        `${contact.name} ${contact.role || ""} ${contact.department || ""}`.toLowerCase();
 
       return haystack.includes(keyword);
     });
   });
 
-  const formatMessageTime = (value, fallbackDateLabel = '') => {
+  const formatMessageTime = (value, fallbackDateLabel = "") => {
     if (!value) {
-      return '';
+      return "";
     }
 
     const date = new Date(value);
@@ -123,54 +139,54 @@
     }
 
     const dayKey = (input) =>
-      new Intl.DateTimeFormat('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
+      new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       }).format(input);
 
     const yearKey = (input) =>
-      new Intl.DateTimeFormat('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        year: 'numeric',
+      new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
       }).format(input);
 
     if (dayKey(date) === dayKey(now)) {
-      return date.toLocaleTimeString('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        hour: '2-digit',
-        minute: '2-digit',
+      return date.toLocaleTimeString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     }
 
     if (yearKey(date) === yearKey(now)) {
-      return date.toLocaleString('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
+      return date.toLocaleString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     }
 
-    return date.toLocaleString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const formatMessageDay = (value, fallbackDateLabel = '') => {
+  const formatMessageDay = (value, fallbackDateLabel = "") => {
     if (fallbackDateLabel) {
       return fallbackDateLabel;
     }
 
     if (!value) {
-      return '';
+      return "";
     }
 
     const date = new Date(value);
@@ -179,17 +195,17 @@
       return value;
     }
 
-    return date.toLocaleDateString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
+    return date.toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
     });
   };
 
   const groupedMessages = $derived.by(() =>
     messages.reduce((groups, message) => {
       const sourceValue = message.created_at_raw || message.created_at;
-      const groupDate = formatMessageDay(sourceValue, message.date || '');
+      const groupDate = formatMessageDay(sourceValue, message.date || "");
       const lastGroup = groups[groups.length - 1];
       if (!lastGroup || lastGroup.date !== groupDate) {
         groups.push({
@@ -205,7 +221,7 @@
   );
 
   const previewText = (item) => {
-    const text = item.lastMessage || 'Belum ada pesan';
+    const text = item.lastMessage || "Belum ada pesan";
     return text.length > 52 ? `${text.slice(0, 51)}...` : text;
   };
 
@@ -220,7 +236,10 @@
     const activeConversationId = activeUserId;
     const viewport = messageViewport;
     const totalMessages = messages.length;
-    const lastMessageKey = messages[totalMessages - 1]?.id || messages[totalMessages - 1]?.created_at || null;
+    const lastMessageKey =
+      messages[totalMessages - 1]?.id ||
+      messages[totalMessages - 1]?.created_at ||
+      null;
 
     if (!activeConversationId || !viewport) {
       return;
@@ -232,25 +251,40 @@
 
   const syncSummary = (userId, payload) => {
     const lastMessage = payload[payload.length - 1] || null;
-    const existing = conversationSummaries.find((item) => Number(item.id) === Number(userId));
-    const contact = contactDirectory.find((item) => Number(item.id) === Number(userId));
+    const existing = conversationSummaries.find(
+      (item) => Number(item.id) === Number(userId),
+    );
+    const contact = contactDirectory.find(
+      (item) => Number(item.id) === Number(userId),
+    );
     const nextSummary = {
       ...(contact || {}),
       ...(existing || {}),
       id: Number(userId),
-      name: existing?.name || contact?.name || activeUser?.name || 'Kontak',
+      name: existing?.name || contact?.name || activeUser?.name || "Kontak",
       avatar: existing?.avatar || contact?.avatar || activeUser?.avatar || null,
-      role: existing?.role || contact?.role || activeUser?.role || '',
-      department: existing?.department || contact?.department || activeUser?.department || null,
-      lastMessage: lastMessage?.content || existing?.lastMessage || '',
-      lastMessageAt: lastMessage?.created_at_raw || lastMessage?.created_at || existing?.lastMessageAt || null,
-      lastMessageLabel: lastMessage?.created_at || existing?.lastMessageLabel || '',
+      role: existing?.role || contact?.role || activeUser?.role || "",
+      department:
+        existing?.department ||
+        contact?.department ||
+        activeUser?.department ||
+        null,
+      lastMessage: lastMessage?.content || existing?.lastMessage || "",
+      lastMessageAt:
+        lastMessage?.created_at_raw ||
+        lastMessage?.created_at ||
+        existing?.lastMessageAt ||
+        null,
+      lastMessageLabel:
+        lastMessage?.created_at || existing?.lastMessageLabel || "",
       unreadCount: 0,
     };
 
     conversationSummaries = sortContacts([
       nextSummary,
-      ...conversationSummaries.filter((item) => Number(item.id) !== Number(userId)),
+      ...conversationSummaries.filter(
+        (item) => Number(item.id) !== Number(userId),
+      ),
     ]);
   };
 
@@ -262,11 +296,14 @@
     isLoadingConversation = true;
 
     try {
-      const response = await fetch(endpointFor(endpoints.conversationBase, userId), {
-        headers: {
-          Accept: 'application/json',
+      const response = await fetch(
+        endpointFor(endpoints.conversationBase, userId),
+        {
+          headers: {
+            Accept: "application/json",
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         return;
@@ -275,7 +312,9 @@
       const data = await response.json();
       activeUserId = Number(userId);
       activeUser = {
-        ...(contactDirectory.find((contact) => Number(contact.id) === Number(userId)) || {}),
+        ...(contactDirectory.find(
+          (contact) => Number(contact.id) === Number(userId),
+        ) || {}),
         ...(data.user || {}),
       };
       messages = Array.isArray(data.messages) ? data.messages : [];
@@ -285,7 +324,7 @@
         await scrollToBottom();
       }
     } catch (error) {
-      console.error('Failed to load conversation', error);
+      console.error("Failed to load conversation", error);
     } finally {
       isLoadingConversation = false;
     }
@@ -299,10 +338,10 @@
     try {
       const response = await fetch(endpoints.sidebarData, {
         headers: {
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
         },
-        cache: 'no-store',
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -318,7 +357,7 @@
         ? sortContacts(data.conversations.map((item) => ({ ...item })))
         : [];
     } catch (error) {
-      console.error('Failed to refresh message sidebar', error);
+      console.error("Failed to refresh message sidebar", error);
     }
   };
 
@@ -330,26 +369,29 @@
     isSending = true;
 
     try {
-      const response = await fetch(endpointFor(endpoints.sendBase, activeUserId), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
+      const response = await fetch(
+        endpointFor(endpoints.sendBase, activeUserId),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-CSRF-TOKEN": csrfToken,
+          },
+          body: JSON.stringify({
+            content: draft.trim(),
+          }),
         },
-        body: JSON.stringify({
-          content: draft.trim(),
-        }),
-      });
+      );
 
       if (!response.ok) {
         return;
       }
 
-      draft = '';
+      draft = "";
       await loadConversation(activeUserId);
     } catch (error) {
-      console.error('Failed to send message', error);
+      console.error("Failed to send message", error);
     } finally {
       isSending = false;
     }
@@ -368,7 +410,7 @@
       liveUpdatesCleanup = subscribeToLiveUpdates(
         endpoints.realtimeSnapshot,
         async ({ changed }) => {
-          if (!changed.includes('messages')) {
+          if (!changed.includes("messages")) {
             return;
           }
 
@@ -377,7 +419,6 @@
           if (activeUserId) {
             await loadConversation(activeUserId, false);
           }
-
         },
       );
     }
@@ -388,14 +429,18 @@
   });
 </script>
 
-<Card.Root class="animate-fadeIn messages-intro rounded-[10px] border border-border bg-card shadow-none">
+<Card.Root
+  class="animate-fadeIn messages-intro rounded-[10px] border border-border bg-card shadow-none"
+>
   <Card.Header class="border-b border-border/70 pb-4">
     <PageHeader {title} {description} icon="fas fa-comments" />
   </Card.Header>
 </Card.Root>
 
 <div class="messages-layout">
-  <Card.Root class="animate-fadeIn messages-sidebar rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn messages-sidebar rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Header class="border-b border-border/70 pb-4">
       <PageHeader
         title="Kontak Organisasi"
@@ -421,18 +466,31 @@
           {#each visibleContacts as contact, index (contact.id || index)}
             <button
               type="button"
-              class={`messages-contact ${Number(activeUserId) === Number(contact.id) ? 'messages-contact-active' : ''}`.trim()}
+              class={`messages-contact ${Number(activeUserId) === Number(contact.id) ? "messages-contact-active" : ""}`.trim()}
               onclick={() => loadConversation(contact.id)}
             >
-              <img src={contact.avatar || fallbackAvatar(contact.name)} alt={contact.name} class="avatar-md" onerror={handleImageError} />
+              <img
+                src={contact.avatar || fallbackAvatar(contact.name)}
+                alt={contact.name}
+                class="avatar-md"
+                onerror={handleImageError}
+              />
               <div class="messages-contact-copy">
                 <div class="messages-contact-topline">
                   <strong>{contact.name}</strong>
                   {#if contact.unreadCount > 0}
-                    <StatusBadge label={String(contact.unreadCount)} tone="primary" className="messages-count-badge" />
+                    <StatusBadge
+                      label={String(contact.unreadCount)}
+                      tone="primary"
+                      className="messages-count-badge"
+                    />
                   {/if}
                 </div>
-                <span>{contact.role}{contact.department ? ` • ${contact.department}` : ''}</span>
+                <span
+                  >{contact.role}{contact.department
+                    ? ` • ${contact.department}`
+                    : ""}</span
+                >
                 <p>{previewText(contact)}</p>
               </div>
             </button>
@@ -450,29 +508,57 @@
     </Card.Content>
   </Card.Root>
 
-  <Card.Root class="animate-fadeIn messages-conversation rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn messages-conversation rounded-[10px] border border-border bg-card shadow-none"
+  >
     {#if activeUser}
       <div class="messages-thread-head">
         <div class="messages-thread-user">
-          <img src={activeUser.avatar || fallbackAvatar(activeUser.name)} alt={activeUser.name} class="avatar-md" onerror={handleImageError} />
+          <img
+            src={activeUser.avatar || fallbackAvatar(activeUser.name)}
+            alt={activeUser.name}
+            class="avatar-md"
+            onerror={handleImageError}
+          />
           <div>
             <strong>{activeUser.name}</strong>
-            <span>{activeUser.role}{activeUser.department ? ` • ${activeUser.department}` : ''}</span>
+            <span
+              >{activeUser.role}{activeUser.department
+                ? ` • ${activeUser.department}`
+                : ""}</span
+            >
           </div>
         </div>
       </div>
 
       <div bind:this={messageViewport} class="messages-thread-body">
         {#if isLoadingConversation && !messages.length}
-          <EmptyStatePanel title="Memuat percakapan..." text="Memuat..." icon="fas fa-spinner" tone="info" compact={true} />
+          <EmptyStatePanel
+            title="Memuat percakapan..."
+            text="Memuat..."
+            icon="fas fa-spinner"
+            tone="info"
+            compact={true}
+          />
         {:else if groupedMessages.length}
           {#each groupedMessages as group, groupIndex (group.date || groupIndex)}
             <div class="messages-date-chip">{group.date}</div>
 
             {#each group.items as message, messageIndex (message.id || `${groupIndex}-${messageIndex}`)}
-              <article class={`messages-bubble ${message.is_mine ? 'messages-bubble-mine' : 'messages-bubble-theirs'}`.trim()}>
+              <article
+                class={`messages-bubble ${message.is_mine ? "messages-bubble-mine" : "messages-bubble-theirs"}`.trim()}
+              >
                 <p>{message.content}</p>
-                <span>{formatMessageTime(message.created_at_raw || message.created_at, message.date || '')}{message.is_mine ? message.is_read ? ' • Dibaca' : ' • Terkirim' : ''}</span>
+                <span
+                  >{formatMessageTime(
+                    message.created_at_raw || message.created_at,
+                    message.date || "",
+                  )}{message.is_mine
+                    ? message.is_read
+                      ? " • Dibaca"
+                      : " • Terkirim"
+                    : ""}</span
+                >
               </article>
             {/each}
           {/each}
@@ -487,10 +573,13 @@
         {/if}
       </div>
 
-      <form class="messages-composer" onsubmit={(event) => {
-        event.preventDefault();
-        void sendMessage();
-      }}>
+      <form
+        class="messages-composer"
+        onsubmit={(event) => {
+          event.preventDefault();
+          void sendMessage();
+        }}
+      >
         <Input
           type="text"
           class="messages-composer-input"
@@ -499,14 +588,14 @@
         />
         <Button type="submit" disabled={!draft.trim() || isSending}>
           <i class="fas fa-paper-plane"></i>
-          <span>{isSending ? 'Mengirim...' : 'Kirim'}</span>
+          <span>{isSending ? "Mengirim..." : "Kirim"}</span>
         </Button>
       </form>
     {:else}
       <div class="messages-thread-empty messages-thread-empty-full">
         <EmptyStatePanel
           title="Pilih kontak"
-            text="Pilih kontak untuk memulai chat."
+          text="Pilih kontak untuk memulai chat."
           icon="fas fa-comments"
           tone="secondary"
           compact={true}
@@ -581,12 +670,18 @@
     text-align: left;
     color: inherit;
     cursor: pointer;
-    transition: background 160ms ease, border-color 160ms ease;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease;
   }
 
   .messages-contact:hover {
     background: var(--muted);
-    border-color: color-mix(in srgb, var(--brand-primary) 20%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 20%,
+      var(--line-soft)
+    );
   }
 
   .messages-contact:focus-visible {
@@ -596,7 +691,11 @@
 
   .messages-contact-active {
     background: color-mix(in srgb, var(--brand-light) 18%, var(--background));
-    border-color: color-mix(in srgb, var(--brand-primary) 24%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 24%,
+      var(--line-soft)
+    );
   }
 
   .messages-contact-copy {
@@ -749,7 +848,7 @@
       align-items: stretch;
     }
 
-    .messages-composer :global([data-slot='button']) {
+    .messages-composer :global([data-slot="button"]) {
       width: 100%;
     }
 

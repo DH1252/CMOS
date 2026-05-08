@@ -1,23 +1,23 @@
 <script>
-  import * as Table from '$lib/components/ui/table/index.js';
-  import EmptyStatePanel from './EmptyStatePanel.svelte';
-  import TableCell from './TableCell.svelte';
+  import * as Table from "$lib/components/ui/table/index.js";
+  import EmptyStatePanel from "./EmptyStatePanel.svelte";
+  import TableCell from "./TableCell.svelte";
 
   let {
     columns = [],
     rows = [],
     emptyState = {
-      title: 'Belum ada data',
-      text: 'Belum ada data.',
+      title: "Belum ada data",
+      text: "Belum ada data.",
     },
-    csrfToken = '',
+    csrfToken = "",
     enableDataTable = false,
-    tableClass = '',
+    tableClass = "",
   } = $props();
 
   const pageSizeOptions = [10, 25, 50, -1];
 
-  let searchQuery = $state('');
+  let searchQuery = $state("");
   let pageSize = $state(10);
   let currentPage = $state(1);
 
@@ -25,14 +25,19 @@
     const columnCount = columns.length;
 
     return (rows || []).map((row, rowIndex) => {
-      const providedCells = Array.isArray(row?.cells) ? row.cells.slice(0, columnCount) : [];
+      const providedCells = Array.isArray(row?.cells)
+        ? row.cells.slice(0, columnCount)
+        : [];
       const missingCellCount = Math.max(columnCount - providedCells.length, 0);
 
-      const fillerCells = Array.from({ length: missingCellCount }, (_, fillerIndex) => ({
-        id: `filler-${row?.id || rowIndex}-${fillerIndex}`,
-        text: '',
-        muted: true,
-      }));
+      const fillerCells = Array.from(
+        { length: missingCellCount },
+        (_, fillerIndex) => ({
+          id: `filler-${row?.id || rowIndex}-${fillerIndex}`,
+          text: "",
+          muted: true,
+        }),
+      );
 
       return {
         ...row,
@@ -43,28 +48,35 @@
 
   const extractCellText = (value) => {
     if (value == null) {
-      return '';
+      return "";
     }
 
-    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
       return String(value);
     }
 
     if (Array.isArray(value)) {
-      return value.map(extractCellText).join(' ');
+      return value.map(extractCellText).join(" ");
     }
 
-    if (typeof value === 'object') {
-      return Object.values(value).map(extractCellText).join(' ');
+    if (typeof value === "object") {
+      return Object.values(value).map(extractCellText).join(" ");
     }
 
-    return '';
+    return "";
   };
 
   const searchableRows = $derived.by(() =>
     normalizedRows.map((row) => ({
       ...row,
-      searchText: row.cells.map((cell) => extractCellText(cell)).join(' ').toLowerCase(),
+      searchText: row.cells
+        .map((cell) => extractCellText(cell))
+        .join(" ")
+        .toLowerCase(),
     })),
   );
 
@@ -75,7 +87,7 @@
 
     const keyword = searchQuery.trim().toLowerCase();
 
-    if (keyword === '') {
+    if (keyword === "") {
       return searchableRows;
     }
 
@@ -94,8 +106,12 @@
     return pageSize;
   });
 
-  const totalPages = $derived.by(() => Math.max(1, Math.ceil(filteredRows.length / effectivePageSize)));
-  const activePage = $derived.by(() => Math.min(Math.max(currentPage, 1), totalPages));
+  const totalPages = $derived.by(() =>
+    Math.max(1, Math.ceil(filteredRows.length / effectivePageSize)),
+  );
+  const activePage = $derived.by(() =>
+    Math.min(Math.max(currentPage, 1), totalPages),
+  );
 
   const paginatedRows = $derived.by(() => {
     if (!enableDataTable) {
@@ -106,7 +122,9 @@
     return filteredRows.slice(start, start + effectivePageSize);
   });
 
-  const currentRows = $derived.by(() => (enableDataTable ? paginatedRows : filteredRows));
+  const currentRows = $derived.by(() =>
+    enableDataTable ? paginatedRows : filteredRows,
+  );
 
   const rangeStart = $derived.by(() => {
     if (filteredRows.length === 0) {
@@ -121,7 +139,9 @@
       return 0;
     }
 
-    return enableDataTable ? Math.min(rangeStart + effectivePageSize - 1, filteredRows.length) : filteredRows.length;
+    return enableDataTable
+      ? Math.min(rangeStart + effectivePageSize - 1, filteredRows.length)
+      : filteredRows.length;
   });
 
   const handleSearchInput = (event) => {
@@ -151,9 +171,13 @@
 
       <label class="cn-data-table-control cn-data-table-control-small">
         <span>Tampilkan</span>
-        <select class="form-select" value={pageSize} onchange={handlePageSizeChange}>
+        <select
+          class="form-select"
+          value={pageSize}
+          onchange={handlePageSizeChange}
+        >
           {#each pageSizeOptions as option (option)}
-            <option value={option}>{option === -1 ? 'Semua' : option}</option>
+            <option value={option}>{option === -1 ? "Semua" : option}</option>
           {/each}
         </select>
       </label>
@@ -165,7 +189,7 @@
       <EmptyStatePanel
         title={emptyState.title}
         text={emptyState.text}
-        icon={emptyState.icon || 'fas fa-inbox'}
+        icon={emptyState.icon || "fas fa-inbox"}
         action={emptyState.action || null}
         compact={true}
       />
@@ -176,7 +200,10 @@
         <Table.Header>
           <Table.Row class="border-border bg-muted hover:bg-muted">
             {#each columns as column, columnIndex (column.key || column.label || columnIndex)}
-              <Table.Head style={column.width ? `width:${column.width}` : undefined} class={column.className || ''}>
+              <Table.Head
+                style={column.width ? `width:${column.width}` : undefined}
+                class={column.className || ""}
+              >
                 {column.label}
               </Table.Head>
             {/each}
@@ -187,7 +214,7 @@
           {#each currentRows as row, rowIndex (row.id || rowIndex)}
             <Table.Row class="border-border/70 hover:bg-muted/50">
               {#each row.cells as cell, cellIndex (cell.id || `${rowIndex}-${cellIndex}`)}
-                <Table.Cell class={cell.align === 'right' ? 'text-right' : ''}>
+                <Table.Cell class={cell.align === "right" ? "text-right" : ""}>
                   <TableCell {cell} {csrfToken} />
                 </Table.Cell>
               {/each}
@@ -202,7 +229,9 @@
         <article class="cn-data-table-card">
           {#each row.cells as cell, cellIndex (cell.id || `${rowIndex}-${cellIndex}`)}
             <div class="cn-data-table-card-row">
-              <div class="cn-data-table-card-label">{columns[cellIndex]?.label || `Kolom ${cellIndex + 1}`}</div>
+              <div class="cn-data-table-card-label">
+                {columns[cellIndex]?.label || `Kolom ${cellIndex + 1}`}
+              </div>
               <div class="cn-data-table-card-value">
                 <TableCell {cell} {csrfToken} />
               </div>
@@ -220,11 +249,23 @@
       </div>
 
       <div class="cn-data-table-pagination">
-        <button type="button" class="btn btn-secondary btn-sm" onclick={() => (currentPage = Math.max(1, activePage - 1))} disabled={activePage === 1}>
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          onclick={() => (currentPage = Math.max(1, activePage - 1))}
+          disabled={activePage === 1}
+        >
           Sebelumnya
         </button>
-        <span class="cn-data-table-page">Halaman {activePage} / {totalPages}</span>
-        <button type="button" class="btn btn-secondary btn-sm" onclick={() => (currentPage = Math.min(totalPages, activePage + 1))} disabled={activePage === totalPages}>
+        <span class="cn-data-table-page"
+          >Halaman {activePage} / {totalPages}</span
+        >
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          onclick={() => (currentPage = Math.min(totalPages, activePage + 1))}
+          disabled={activePage === totalPages}
+        >
           Selanjutnya
         </button>
       </div>
@@ -272,14 +313,14 @@
     min-width: 9rem;
   }
 
-    .cn-data-table-desktop {
-      display: block;
-      overflow-x: auto;
-    }
+  .cn-data-table-desktop {
+    display: block;
+    overflow-x: auto;
+  }
 
-    .cn-data-table-table {
-      width: 100%;
-    }
+  .cn-data-table-table {
+    width: 100%;
+  }
 
   .cn-data-table-mobile {
     display: none;

@@ -1,45 +1,48 @@
 <script>
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { Progress } from '$lib/components/ui/progress/index.js';
-  import { shouldSkipFormConfirmation, submitConfirmedForm } from '$lib/confirmable-form.js';
-  import StatusBadge from './StatusBadge.svelte';
+  import { Button } from "$lib/components/ui/button/index.js";
+  import { Progress } from "$lib/components/ui/progress/index.js";
+  import {
+    shouldSkipFormConfirmation,
+    submitConfirmedForm,
+  } from "$lib/confirmable-form.js";
+  import StatusBadge from "./StatusBadge.svelte";
 
-  let {
-    cell = {},
-    csrfToken = '',
-  } = $props();
+  let { cell = {}, csrfToken = "" } = $props();
 
   const badgeTone = (tone) => {
-    if (tone === 'danger') return 'danger';
-    if (tone === 'success') return 'success';
-    if (tone === 'warning') return 'warning';
-    if (tone === 'info') return 'info';
-    if (tone === 'primary') return 'primary';
-    return 'secondary';
+    if (tone === "danger") return "danger";
+    if (tone === "success") return "success";
+    if (tone === "warning") return "warning";
+    if (tone === "info") return "info";
+    if (tone === "primary") return "primary";
+    return "secondary";
   };
 
   const buttonVariant = (tone) => {
-    if (tone === 'primary') return 'default';
-    if (tone === 'danger') return 'destructive';
-    return 'outline';
+    if (tone === "primary") return "default";
+    if (tone === "danger") return "destructive";
+    return "outline";
   };
 
   const buttonToneClass = (tone) => {
-    if (tone === 'success') return 'table-action-button success';
-    if (tone === 'info') return 'table-action-button info';
-    return 'table-action-button';
+    if (tone === "success") return "table-action-button success";
+    if (tone === "info") return "table-action-button info";
+    return "table-action-button";
   };
 
-  const progressClass = (tone) => (tone === 'success' ? 'table-progress success' : 'table-progress');
-  const fallbackAvatar = (name = 'User') => {
-    const initial = (name || 'User').trim().charAt(0).toUpperCase() || 'U';
+  const progressClass = (tone) =>
+    tone === "success" ? "table-progress success" : "table-progress";
+  const fallbackAvatar = (name = "User") => {
+    const initial = (name || "User").trim().charAt(0).toUpperCase() || "U";
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="#251d39"/><text x="50%" y="50%" dy=".35em" fill="#f5c518" font-family="Public Sans, Arial, sans-serif" font-size="28" font-weight="700" text-anchor="middle">${initial}</text></svg>`;
 
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   };
 
   const handleImageError = (event) => {
-    const nextSrc = fallbackAvatar(event.currentTarget.alt || cell.title || 'User');
+    const nextSrc = fallbackAvatar(
+      event.currentTarget.alt || cell.title || "User",
+    );
 
     if (event.currentTarget.src === nextSrc) {
       return;
@@ -61,17 +64,18 @@
 
     event.preventDefault();
 
-    const title = item.confirmTitle || 'Konfirmasi';
-    const text = item.confirmText || `Lanjutkan tindakan untuk ${item.confirm}?`;
+    const title = item.confirmTitle || "Konfirmasi";
+    const text =
+      item.confirmText || `Lanjutkan tindakan untuk ${item.confirm}?`;
 
     if (window.Swal) {
       const result = await window.Swal.fire({
         title,
         text,
-        icon: item.confirmIcon || 'warning',
+        icon: item.confirmIcon || "warning",
         showCancelButton: true,
-        confirmButtonText: item.confirmButtonText || 'Lanjutkan',
-        cancelButtonText: 'Batal',
+        confirmButtonText: item.confirmButtonText || "Lanjutkan",
+        cancelButtonText: "Batal",
       });
 
       if (result.isConfirmed) {
@@ -86,14 +90,20 @@
   };
 </script>
 
-{#if cell.type === 'avatar'}
-  <div class={`table-avatar ${cell.className || ''}`.trim()}>
+{#if cell.type === "avatar"}
+  <div class={`table-avatar ${cell.className || ""}`.trim()}>
     {#if cell.image}
-      <img src={cell.image} alt={cell.title || 'avatar'} class={cell.size === 'md' ? 'avatar-md' : 'avatar-sm'} onerror={handleImageError} />
+      <img
+        src={cell.image}
+        alt={cell.title || "avatar"}
+        class={cell.size === "md" ? "avatar-md" : "avatar-sm"}
+        onerror={handleImageError}
+      />
     {/if}
     <div class="table-avatar-copy">
       {#if cell.href}
-        <a href={cell.href} class="table-link table-link-strong">{cell.title}</a>
+        <a href={cell.href} class="table-link table-link-strong">{cell.title}</a
+        >
       {:else}
         <div class="table-link-strong">{cell.title}</div>
       {/if}
@@ -102,30 +112,48 @@
       {/if}
     </div>
   </div>
-{:else if cell.type === 'stack'}
-  <div class={`table-stack ${cell.className || ''}`.trim()}>
+{:else if cell.type === "stack"}
+  <div class={`table-stack ${cell.className || ""}`.trim()}>
     {#each cell.lines || [] as line, index (index)}
       {#if line.href}
-        <a href={line.href} class={`${line.className || ''} ${line.muted ? 'table-subtle-text' : 'table-link-strong'}`.trim()}>{line.text}</a>
+        <a
+          href={line.href}
+          class={`${line.className || ""} ${line.muted ? "table-subtle-text" : "table-link-strong"}`.trim()}
+          >{line.text}</a
+        >
       {:else}
-        <div class={`${line.className || ''} ${line.muted ? 'table-subtle-text' : ''}`.trim()}>{line.text}</div>
+        <div
+          class={`${line.className || ""} ${line.muted ? "table-subtle-text" : ""}`.trim()}
+        >
+          {line.text}
+        </div>
       {/if}
     {/each}
   </div>
-{:else if cell.type === 'badge'}
-  <StatusBadge label={cell.label} icon={cell.icon} tone={badgeTone(cell.tone)} />
-{:else if cell.type === 'badges'}
+{:else if cell.type === "badge"}
+  <StatusBadge
+    label={cell.label}
+    icon={cell.icon}
+    tone={badgeTone(cell.tone)}
+  />
+{:else if cell.type === "badges"}
   <div class="table-badges">
     {#each cell.items || [] as badge, badgeIndex (badgeIndex)}
-      <StatusBadge label={badge.label} icon={badge.icon} tone={badgeTone(badge.tone)} />
+      <StatusBadge
+        label={badge.label}
+        icon={badge.icon}
+        tone={badgeTone(badge.tone)}
+      />
     {/each}
   </div>
-{:else if cell.type === 'progress'}
+{:else if cell.type === "progress"}
   <div class="table-progress-wrap">
     <Progress value={cell.value || 0} class={progressClass(cell.tone)} />
-    <span class="table-progress-label">{cell.label || `${cell.value || 0}%`}</span>
+    <span class="table-progress-label"
+      >{cell.label || `${cell.value || 0}%`}</span
+    >
   </div>
-{:else if cell.type === 'actions'}
+{:else if cell.type === "actions"}
   <div class="table-actions">
     {#each cell.items || [] as item, itemIndex (itemIndex)}
       {#if item.href}
@@ -140,7 +168,11 @@
           <i class={item.icon}></i>
         </Button>
       {:else if item.action}
-        <form method="POST" action={item.action} onsubmit={(event) => confirmSubmission(event, item)}>
+        <form
+          method="POST"
+          action={item.action}
+          onsubmit={(event) => confirmSubmission(event, item)}
+        >
           <input type="hidden" name="_token" value={csrfToken} />
           {#if item.method}
             <input type="hidden" name="_method" value={item.method} />
@@ -159,12 +191,17 @@
       {/if}
     {/each}
   </div>
+{:else if cell.href}
+  <a
+    href={cell.href}
+    class={`${cell.className || ""} ${cell.muted ? "table-subtle-text" : "table-link-strong"}`.trim()}
+    >{cell.text}</a
+  >
 {:else}
-  {#if cell.href}
-    <a href={cell.href} class={`${cell.className || ''} ${cell.muted ? 'table-subtle-text' : 'table-link-strong'}`.trim()}>{cell.text}</a>
-  {:else}
-    <span class={`${cell.className || ''} ${cell.muted ? 'table-subtle-text' : ''}`.trim()}>{cell.text}</span>
-  {/if}
+  <span
+    class={`${cell.className || ""} ${cell.muted ? "table-subtle-text" : ""}`.trim()}
+    >{cell.text}</span
+  >
 {/if}
 
 <style>
@@ -198,15 +235,15 @@
     min-width: 10rem;
   }
 
-  .table-progress-wrap :global([data-slot='progress']) {
+  .table-progress-wrap :global([data-slot="progress"]) {
     flex: 1;
   }
 
-  .table-progress :global([data-slot='progress-indicator']) {
+  .table-progress :global([data-slot="progress-indicator"]) {
     background: color-mix(in srgb, var(--brand-primary) 78%, black);
   }
 
-  .table-progress.success :global([data-slot='progress-indicator']) {
+  .table-progress.success :global([data-slot="progress-indicator"]) {
     background: color-mix(in srgb, var(--signal-success) 78%, black);
   }
 
