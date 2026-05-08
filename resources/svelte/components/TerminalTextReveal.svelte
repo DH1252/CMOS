@@ -1,13 +1,13 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount } from "svelte";
 
   let {
-    text = '',
+    text = "",
     texts = [],
     lines = [],
-    tag = 'p',
-    textClass = '',
-    wrapperClass = '',
+    tag = "p",
+    textClass = "",
+    wrapperClass = "",
     delay = 0,
     animate = true,
     cycle = false,
@@ -20,13 +20,17 @@
   let wrapper = null;
   let isActive = $state(false);
   let isComplete = $state(false);
-  let typedText = $state('');
-  let glitchGlyph = $state('');
+  let typedText = $state("");
+  let glitchGlyph = $state("");
 
-  const sourceText = $derived(Array.isArray(lines) && lines.length ? lines.join('\n') : text);
+  const sourceText = $derived(
+    Array.isArray(lines) && lines.length ? lines.join("\n") : text,
+  );
   const sequenceTexts = $derived.by(() => {
     const normalized = Array.isArray(texts)
-      ? texts.filter((value) => typeof value === 'string' && value.trim().length)
+      ? texts.filter(
+          (value) => typeof value === "string" && value.trim().length,
+        )
       : [];
 
     if (normalized.length) {
@@ -35,11 +39,12 @@
 
     return sourceText.trim() ? [sourceText] : [];
   });
-  const baseText = $derived(sequenceTexts[0] ?? '');
+  const baseText = $derived(sequenceTexts[0] ?? "");
   const renderStatic = $derived(!animate);
-  const glitchChars = '._:=+/-[]{}<>|';
+  const glitchChars = "._:=+/-[]{}<>|";
 
-  const nextGlitchGlyph = (seed) => glitchChars[Math.abs(seed) % glitchChars.length];
+  const nextGlitchGlyph = (seed) =>
+    glitchChars[Math.abs(seed) % glitchChars.length];
 
   const computeSpeed = (len) => {
     if (userSpeed !== undefined) return userSpeed;
@@ -61,7 +66,10 @@
       return;
     }
 
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       isComplete = true;
       return;
     }
@@ -90,7 +98,7 @@
         return;
       }
 
-      const currentText = queue[index] ?? '';
+      const currentText = queue[index] ?? "";
       const len = currentText.length;
       const speed = computeSpeed(len);
       const deleteSpeed = computeDeleteSpeed(len);
@@ -102,16 +110,16 @@
         return;
       }
 
-      if (mode === 'typing') {
+      if (mode === "typing") {
         const nextProgress = Math.min(len, progress + speed);
         typedText = currentText.slice(0, nextProgress);
-        glitchGlyph = nextProgress < len ? nextGlitchGlyph(nextProgress) : '';
+        glitchGlyph = nextProgress < len ? nextGlitchGlyph(nextProgress) : "";
 
         if (nextProgress >= len) {
-          glitchGlyph = '';
+          glitchGlyph = "";
 
           if (cycle && queue.length > 1) {
-            scheduleFrame(() => runFrame(index, 'deleting', len), holdDuration);
+            scheduleFrame(() => runFrame(index, "deleting", len), holdDuration);
             return;
           }
 
@@ -119,22 +127,31 @@
           return;
         }
 
-        scheduleFrame(() => runFrame(index, 'typing', nextProgress), frameDelay);
+        scheduleFrame(
+          () => runFrame(index, "typing", nextProgress),
+          frameDelay,
+        );
         return;
       }
 
       const nextProgress = Math.max(0, progress - deleteSpeed);
       typedText = currentText.slice(0, nextProgress);
-      glitchGlyph = nextProgress > 0 ? nextGlitchGlyph(nextProgress) : '';
+      glitchGlyph = nextProgress > 0 ? nextGlitchGlyph(nextProgress) : "";
 
       if (nextProgress <= 0) {
-        glitchGlyph = '';
+        glitchGlyph = "";
         const nextIndex = (index + 1) % queue.length;
-        scheduleFrame(() => runFrame(nextIndex, 'typing', 0), Math.max(120, Math.floor(frameDelay * 1.5)));
+        scheduleFrame(
+          () => runFrame(nextIndex, "typing", 0),
+          Math.max(120, Math.floor(frameDelay * 1.5)),
+        );
         return;
       }
 
-      scheduleFrame(() => runFrame(index, 'deleting', nextProgress), frameDelay);
+      scheduleFrame(
+        () => runFrame(index, "deleting", nextProgress),
+        frameDelay,
+      );
     };
 
     const startAnimation = () => {
@@ -145,12 +162,12 @@
       started = true;
       isActive = true;
       isComplete = false;
-      typedText = '';
-      glitchGlyph = '';
-      runFrame(0, 'typing', 0);
+      typedText = "";
+      glitchGlyph = "";
+      runFrame(0, "typing", 0);
     };
 
-    if (typeof IntersectionObserver === 'undefined') {
+    if (typeof IntersectionObserver === "undefined") {
       const timeout = window.setTimeout(startAnimation, delay);
 
       return () => {
@@ -173,7 +190,7 @@
       },
       {
         threshold: 0.2,
-        rootMargin: '0px 0px 0px 0px',
+        rootMargin: "0px 0px 0px 0px",
       },
     );
 
@@ -190,7 +207,7 @@
 <div bind:this={wrapper} class={`terminal-reveal ${wrapperClass}`.trim()}>
   <svelte:element
     this={tag}
-    class={`terminal-reveal__base ${isComplete || renderStatic ? 'terminal-reveal__base--visible' : ''} ${textClass}`.trim()}
+    class={`terminal-reveal__base ${isComplete || renderStatic ? "terminal-reveal__base--visible" : ""} ${textClass}`.trim()}
   >
     {baseText}
   </svelte:element>
@@ -201,7 +218,9 @@
       class={`terminal-reveal__overlay ${textClass}`.trim()}
       aria-hidden="true"
     >
-      {typedText}<span class="terminal-reveal__glitch">{glitchGlyph}</span><span class="terminal-reveal__cursor">_</span>
+      {typedText}<span class="terminal-reveal__glitch">{glitchGlyph}</span><span
+        class="terminal-reveal__cursor">_</span
+      >
     </svelte:element>
   {/if}
 </div>
@@ -232,13 +251,33 @@
   }
 
   .terminal-reveal__glitch {
-    color: color-mix(in srgb, currentColor 72%, var(--landing-terminal-command-resolved, var(--landing-terminal-command, var(--landing-terminal-accent-resolved, var(--landing-terminal-accent)))) 28%);
+    color: color-mix(
+      in srgb,
+      currentColor 72%,
+      var(
+          --landing-terminal-command-resolved,
+          var(
+            --landing-terminal-command,
+            var(
+              --landing-terminal-accent-resolved,
+              var(--landing-terminal-accent)
+            )
+          )
+        )
+        28%
+    );
   }
 
   .terminal-reveal__cursor {
     display: inline-block;
     margin-left: 0.02em;
-    color: var(--landing-terminal-command-resolved, var(--landing-terminal-command, var(--landing-terminal-accent-resolved, var(--landing-terminal-accent))));
+    color: var(
+      --landing-terminal-command-resolved,
+      var(
+        --landing-terminal-command,
+        var(--landing-terminal-accent-resolved, var(--landing-terminal-accent))
+      )
+    );
     animation: terminalCursorBlink 720ms steps(1, end) infinite;
   }
 

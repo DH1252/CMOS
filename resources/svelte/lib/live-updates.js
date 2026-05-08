@@ -9,269 +9,269 @@ let scheduledBootHandle = null;
 let scheduledBootType = null;
 
 const parseAuthProps = () => {
-	if (typeof window === "undefined") {
-		return {};
-	}
+  if (typeof window === "undefined") {
+    return {};
+  }
 
-	if (window.__CMOS_AUTH_PROPS__) {
-		return window.__CMOS_AUTH_PROPS__;
-	}
+  if (window.__CMOS_AUTH_PROPS__) {
+    return window.__CMOS_AUTH_PROPS__;
+  }
 
-	return {};
+  return {};
 };
 
 const emit = (event) => {
-	listeners.forEach((listener) => {
-		listener(event);
-	});
+  listeners.forEach((listener) => {
+    listener(event);
+  });
 };
 
 const discardEcho = (echo = null) => {
-	const activeEcho = echo || window.Echo || null;
+  const activeEcho = echo || window.Echo || null;
 
-	activeEcho?.disconnect?.();
+  activeEcho?.disconnect?.();
 
-	if (typeof window !== "undefined" && window.Echo === activeEcho) {
-		window.Echo = null;
-	}
+  if (typeof window !== "undefined" && window.Echo === activeEcho) {
+    window.Echo = null;
+  }
 };
 
 const cancelScheduledBoot = () => {
-	if (scheduledBootHandle === null || typeof window === "undefined") {
-		return;
-	}
+  if (scheduledBootHandle === null || typeof window === "undefined") {
+    return;
+  }
 
-	if (
-		scheduledBootType === "idle" &&
-		typeof window.cancelIdleCallback === "function"
-	) {
-		window.cancelIdleCallback(scheduledBootHandle);
-	} else {
-		window.clearTimeout(scheduledBootHandle);
-	}
+  if (
+    scheduledBootType === "idle" &&
+    typeof window.cancelIdleCallback === "function"
+  ) {
+    window.cancelIdleCallback(scheduledBootHandle);
+  } else {
+    window.clearTimeout(scheduledBootHandle);
+  }
 
-	scheduledBootHandle = null;
-	scheduledBootType = null;
+  scheduledBootHandle = null;
+  scheduledBootType = null;
 };
 
 const teardownConnection = () => {
-	cancelScheduledBoot();
-	cleanupRealtimeChannels?.();
-	cleanupRealtimeChannels = null;
-	currentUserId = null;
-	bootPromise = null;
+  cancelScheduledBoot();
+  cleanupRealtimeChannels?.();
+  cleanupRealtimeChannels = null;
+  currentUserId = null;
+  bootPromise = null;
 
-	if (typeof window !== "undefined") {
-		discardEcho();
-	}
+  if (typeof window !== "undefined") {
+    discardEcho();
+  }
 };
 
 const scheduleBoot = () => {
-	if (
-		typeof window === "undefined" ||
-		listeners.size === 0 ||
-		cleanupRealtimeChannels ||
-		bootPromise ||
-		scheduledBootHandle !== null ||
-		!pageIsActive
-	) {
-		return;
-	}
+  if (
+    typeof window === "undefined" ||
+    listeners.size === 0 ||
+    cleanupRealtimeChannels ||
+    bootPromise ||
+    scheduledBootHandle !== null ||
+    !pageIsActive
+  ) {
+    return;
+  }
 
-	const run = () => {
-		scheduledBootHandle = null;
-		scheduledBootType = null;
+  const run = () => {
+    scheduledBootHandle = null;
+    scheduledBootType = null;
 
-		if (listeners.size > 0) {
-			void boot();
-		}
-	};
+    if (listeners.size > 0) {
+      void boot();
+    }
+  };
 
-	if (typeof window.requestIdleCallback === "function") {
-		scheduledBootType = "idle";
-		scheduledBootHandle = window.requestIdleCallback(run, { timeout: 1500 });
-		return;
-	}
+  if (typeof window.requestIdleCallback === "function") {
+    scheduledBootType = "idle";
+    scheduledBootHandle = window.requestIdleCallback(run, { timeout: 1500 });
+    return;
+  }
 
-	scheduledBootType = "timeout";
-	scheduledBootHandle = window.setTimeout(run, 1000);
+  scheduledBootType = "timeout";
+  scheduledBootHandle = window.setTimeout(run, 1000);
 };
 
 const bindLifecycleListeners = () => {
-	if (
-		lifecycleListenersBound ||
-		typeof window === "undefined" ||
-		typeof document === "undefined"
-	) {
-		return;
-	}
+  if (
+    lifecycleListenersBound ||
+    typeof window === "undefined" ||
+    typeof document === "undefined"
+  ) {
+    return;
+  }
 
-	window.addEventListener("pagehide", () => {
-		pageIsActive = false;
-		teardownConnection();
-	});
+  window.addEventListener("pagehide", () => {
+    pageIsActive = false;
+    teardownConnection();
+  });
 
-	window.addEventListener("pageshow", () => {
-		pageIsActive = true;
+  window.addEventListener("pageshow", () => {
+    pageIsActive = true;
 
-		if (listeners.size > 0) {
-			scheduleBoot();
-		}
-	});
+    if (listeners.size > 0) {
+      scheduleBoot();
+    }
+  });
 
-	lifecycleListenersBound = true;
+  lifecycleListenersBound = true;
 };
 
 const ensureEcho = async () => {
-	if (typeof window === "undefined") {
-		return null;
-	}
+  if (typeof window === "undefined") {
+    return null;
+  }
 
-	if (window.Echo) {
-		return window.Echo;
-	}
+  if (window.Echo) {
+    return window.Echo;
+  }
 
-	try {
-		const { initEcho } = await import("../../js/echo");
+  try {
+    const { initEcho } = await import("../../js/echo");
 
-		return initEcho();
-	} catch (error) {
-		console.error("Failed to load realtime websocket client", error);
-		return null;
-	}
+    return initEcho();
+  } catch (error) {
+    console.error("Failed to load realtime websocket client", error);
+    return null;
+  }
 };
 
 const organizationCallback = (payload = {}) => {
-	emit({
-		type: "realtime.channels.updated",
-		currentUserId,
-		changed: Array.isArray(payload.changed) ? payload.changed : [],
-		payload: payload.snapshot || {},
-		context: payload.context || {},
-		scope: payload.scope || "organization",
-		raw: payload,
-	});
+  emit({
+    type: "realtime.channels.updated",
+    currentUserId,
+    changed: Array.isArray(payload.changed) ? payload.changed : [],
+    payload: payload.snapshot || {},
+    context: payload.context || {},
+    scope: payload.scope || "organization",
+    raw: payload,
+  });
 };
 
 const userCallback = (payload = {}) => {
-	const context = payload.context || {};
-	const readByUserId = Number(context.readByUserId || 0) || null;
-	const participantId = Number(context.participantId || 0) || null;
-	const unreadCount = Number(
-		payload.snapshot?.messages?.unreadCount ||
-			payload.snapshot?.messages?.unread_count ||
-			0,
-	);
+  const context = payload.context || {};
+  const readByUserId = Number(context.readByUserId || 0) || null;
+  const participantId = Number(context.participantId || 0) || null;
+  const unreadCount = Number(
+    payload.snapshot?.messages?.unreadCount ||
+      payload.snapshot?.messages?.unread_count ||
+      0,
+  );
 
-	emit({
-		type: "realtime.channels.updated",
-		currentUserId,
-		changed: Array.isArray(payload.changed) ? payload.changed : [],
-		payload: {
-			...(payload.snapshot || {}),
-			messages: {
-				...(payload.snapshot?.messages || {}),
-				unreadCount,
-				readByUserId,
-				participantId,
-			},
-		},
-		context: payload.context || {},
-		scope: payload.scope || "user",
-		raw: payload,
-	});
+  emit({
+    type: "realtime.channels.updated",
+    currentUserId,
+    changed: Array.isArray(payload.changed) ? payload.changed : [],
+    payload: {
+      ...(payload.snapshot || {}),
+      messages: {
+        ...(payload.snapshot?.messages || {}),
+        unreadCount,
+        readByUserId,
+        participantId,
+      },
+    },
+    context: payload.context || {},
+    scope: payload.scope || "user",
+    raw: payload,
+  });
 };
 
 const chatCallback = (payload = {}) => {
-	const senderId = Number(payload.message?.senderId || 0);
-	const receiverId = Number(payload.message?.receiverId || 0);
-	const participantId = senderId === currentUserId ? receiverId : senderId;
-	const unreadCount = Number(
-		payload.unreadCounts?.[String(currentUserId)] || 0,
-	);
+  const senderId = Number(payload.message?.senderId || 0);
+  const receiverId = Number(payload.message?.receiverId || 0);
+  const participantId = senderId === currentUserId ? receiverId : senderId;
+  const unreadCount = Number(
+    payload.unreadCounts?.[String(currentUserId)] || 0,
+  );
 
-	emit({
-		type: "chat.message.sent",
-		currentUserId,
-		changed: ["messages"],
-		payload: {
-			messages: {
-				unreadCount,
-			},
-		},
-		participantId,
-		message: payload.message || null,
-		raw: payload,
-	});
+  emit({
+    type: "chat.message.sent",
+    currentUserId,
+    changed: ["messages"],
+    payload: {
+      messages: {
+        unreadCount,
+      },
+    },
+    participantId,
+    message: payload.message || null,
+    raw: payload,
+  });
 };
 
 const boot = async () => {
-	if (cleanupRealtimeChannels) {
-		return window.Echo || null;
-	}
+  if (cleanupRealtimeChannels) {
+    return window.Echo || null;
+  }
 
-	if (bootPromise) {
-		return bootPromise;
-	}
+  if (bootPromise) {
+    return bootPromise;
+  }
 
-	const authProps = parseAuthProps();
-	currentUserId = Number(authProps.user?.id || 0) || null;
+  const authProps = parseAuthProps();
+  currentUserId = Number(authProps.user?.id || 0) || null;
 
-	if (!currentUserId) {
-		return null;
-	}
+  if (!currentUserId) {
+    return null;
+  }
 
-	bootPromise = ensureEcho()
-		.then((echo) => {
-			if (!echo || !pageIsActive) {
-				discardEcho(echo);
-				return null;
-			}
+  bootPromise = ensureEcho()
+    .then((echo) => {
+      if (!echo || !pageIsActive) {
+        discardEcho(echo);
+        return null;
+      }
 
-			const userId = currentUserId;
+      const userId = currentUserId;
 
-			echo
-				.private(`users.${userId}`)
-				.listen(".realtime.channels.updated", userCallback)
-				.listen(".chat.message.sent", chatCallback);
+      echo
+        .private(`users.${userId}`)
+        .listen(".realtime.channels.updated", userCallback)
+        .listen(".chat.message.sent", chatCallback);
 
-			echo
-				.private("organization")
-				.listen(".realtime.channels.updated", organizationCallback);
+      echo
+        .private("organization")
+        .listen(".realtime.channels.updated", organizationCallback);
 
-			cleanupRealtimeChannels = () => {
-				echo.leave(`users.${userId}`);
-				echo.leave("organization");
-				discardEcho(echo);
-			};
+      cleanupRealtimeChannels = () => {
+        echo.leave(`users.${userId}`);
+        echo.leave("organization");
+        discardEcho(echo);
+      };
 
-			return echo;
-		})
-		.finally(() => {
-			bootPromise = null;
-		});
+      return echo;
+    })
+    .finally(() => {
+      bootPromise = null;
+    });
 
-	return bootPromise;
+  return bootPromise;
 };
 
 export const subscribeToLiveUpdates = (endpoint, listener) => {
-	if (
-		typeof window === "undefined" ||
-		typeof listener !== "function" ||
-		!endpoint
-	) {
-		return () => {};
-	}
+  if (
+    typeof window === "undefined" ||
+    typeof listener !== "function" ||
+    !endpoint
+  ) {
+    return () => {};
+  }
 
-	bindLifecycleListeners();
-	listeners.add(listener);
-	scheduleBoot();
+  bindLifecycleListeners();
+  listeners.add(listener);
+  scheduleBoot();
 
-	return () => {
-		listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
 
-		if (listeners.size === 0) {
-			teardownConnection();
-		}
-	};
+    if (listeners.size === 0) {
+      teardownConnection();
+    }
+  };
 };

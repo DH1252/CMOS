@@ -1,23 +1,23 @@
 <script>
   let {
     src = null,
-    alt = '',
-    class: className = '',
-    loading = 'lazy',
-    decoding = 'async',
-    fetchpriority = 'auto',
-    sizes = '',
+    alt = "",
+    class: className = "",
+    loading = "lazy",
+    decoding = "async",
+    fetchpriority = "auto",
+    sizes = "",
     onerror = null,
   } = $props();
 
   const DEFAULT_WIDTHS = [320, 480, 640, 960, 1280, 1920];
 
   const hasOptimizedSources = $derived(
-    src && typeof src === 'object' && (src.avif || src.webp),
+    src && typeof src === "object" && (src.avif || src.webp),
   );
 
   const originalSrc = $derived(
-    typeof src === 'string' ? src : src?.original ?? null,
+    typeof src === "string" ? src : (src?.original ?? null),
   );
 
   /**
@@ -26,13 +26,13 @@
    * @returns {string}
    */
   const makeSrcset = (url, widths = DEFAULT_WIDTHS) => {
-    if (!url || typeof url !== 'string') {
-      return '';
+    if (!url || typeof url !== "string") {
+      return "";
     }
 
-    const sep = url.includes('?') ? '&' : '?';
+    const sep = url.includes("?") ? "&" : "?";
 
-    return widths.map((w) => `${url}${sep}w=${w} ${w}w`).join(', ');
+    return widths.map((w) => `${url}${sep}w=${w} ${w}w`).join(", ");
   };
 
   const avifSrcset = $derived(makeSrcset(src?.avif));
@@ -56,7 +56,7 @@
       {decoding}
       {fetchpriority}
       {sizes}
-      onerror={onerror}
+      {onerror}
     />
   </picture>
 {:else if originalSrc}
@@ -68,6 +68,6 @@
     {decoding}
     {fetchpriority}
     {sizes}
-    onerror={onerror}
+    {onerror}
   />
 {/if}

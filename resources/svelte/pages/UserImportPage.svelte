@@ -1,17 +1,17 @@
 <script>
-  import { Button } from '$lib/components/ui/button/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Import User dari CSV',
-    description = '',
+    title = "Import User dari CSV",
+    description = "",
     form = {
-      action: '#',
-      csrfToken: '',
-      templateUrl: '#',
+      action: "#",
+      csrfToken: "",
+      templateUrl: "#",
     },
     roles = [],
     departments = [],
@@ -22,21 +22,25 @@
     },
   } = $props();
 
-  let fileName = $state('');
+  let fileName = $state("");
 
   const handleFileChange = (event) => {
-    fileName = event.currentTarget.files?.[0]?.name || '';
+    fileName = event.currentTarget.files?.[0]?.name || "";
   };
 </script>
 
-<Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+<Card.Root
+  class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+>
   <Card.Header class="border-b border-border/70 pb-4">
     <PageHeader {title} {description} icon="fas fa-file-csv" />
   </Card.Header>
 </Card.Root>
 
 <div class="import-grid">
-  <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Header class="border-b border-border/70 pb-4">
       <PageHeader
         title="Upload Data"
@@ -47,14 +51,27 @@
     </Card.Header>
 
     <Card.Content class="pt-5">
-      <form action={form.action} method="POST" enctype="multipart/form-data" class="import-form">
+      <form
+        action={form.action}
+        method="POST"
+        enctype="multipart/form-data"
+        class="import-form"
+      >
         <input type="hidden" name="_token" value={form.csrfToken} />
 
         <label class="import-dropzone" for="import-csv-file">
           <i class="fas fa-cloud-arrow-up"></i>
-          <strong>{fileName || 'Pilih file CSV untuk diunggah'}</strong>
+          <strong>{fileName || "Pilih file CSV untuk diunggah"}</strong>
           <span>Maksimal 2MB, format `.csv` atau `.txt`.</span>
-          <input id="import-csv-file" type="file" name="csv_file" accept=".csv,.txt" required onchange={handleFileChange} hidden />
+          <input
+            id="import-csv-file"
+            type="file"
+            name="csv_file"
+            accept=".csv,.txt"
+            required
+            onchange={handleFileChange}
+            hidden
+          />
         </label>
 
         {#if errors.csv_file}
@@ -66,7 +83,11 @@
             <i class="fas fa-upload"></i>
             <span>Import Users</span>
           </Button>
-          <Button href={form.templateUrl} variant="secondary" data-native="true">
+          <Button
+            href={form.templateUrl}
+            variant="secondary"
+            data-native="true"
+          >
             <i class="fas fa-download"></i>
             <span>Download Template</span>
           </Button>
@@ -75,7 +96,9 @@
     </Card.Content>
   </Card.Root>
 
-  <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Header class="border-b border-border/70 pb-4">
       <PageHeader
         title="Panduan Format"
@@ -142,7 +165,10 @@
               <StatusBadge label={department} tone="info" />
             {/each}
             {#if departments.length > 5}
-              <StatusBadge label={`+${departments.length - 5} lainnya`} tone="secondary" />
+              <StatusBadge
+                label={`+${departments.length - 5} lainnya`}
+                tone="secondary"
+              />
             {/if}
           </div>
         </div>
@@ -162,7 +188,9 @@ Admin User,admin@example.com,securepass,bph,</pre>
 {#if results.success?.length || results.errors?.length}
   <div class="import-result-grid">
     {#if results.success?.length}
-      <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+      <Card.Root
+        class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+      >
         <Card.Header class="border-b border-border/70 pb-4">
           <PageHeader
             title={`Berhasil (${results.success.length})`}
@@ -187,7 +215,9 @@ Admin User,admin@example.com,securepass,bph,</pre>
     {/if}
 
     {#if results.errors?.length}
-      <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+      <Card.Root
+        class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+      >
         <Card.Header class="border-b border-border/70 pb-4">
           <PageHeader
             title={`Gagal (${results.errors.length})`}
@@ -212,7 +242,9 @@ Admin User,admin@example.com,securepass,bph,</pre>
     {/if}
   </div>
 {:else}
-  <Card.Root class="mt-4 animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn mt-4 rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Content class="pt-5">
       <EmptyStatePanel
         title="Belum ada hasil impor"
@@ -251,11 +283,14 @@ Admin User,admin@example.com,securepass,bph,</pre>
     gap: 0.55rem;
     padding: 2rem 1.25rem;
     border-radius: 0.625rem;
-    border: 1px dashed color-mix(in srgb, var(--brand-primary) 36%, var(--line-soft));
+    border: 1px dashed
+      color-mix(in srgb, var(--brand-primary) 36%, var(--line-soft));
     background: var(--background);
     cursor: pointer;
     text-align: center;
-    transition: background 160ms ease, border-color 160ms ease;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease;
   }
 
   .import-dropzone:hover {
@@ -392,7 +427,7 @@ Admin User,admin@example.com,securepass,bph,</pre>
   }
 
   @media (max-width: 700px) {
-    .import-actions :global([data-slot='button']) {
+    .import-actions :global([data-slot="button"]) {
       width: 100%;
     }
   }

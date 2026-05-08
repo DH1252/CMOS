@@ -1,18 +1,18 @@
 <script>
-  import { onDestroy, onMount } from 'svelte';
-  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
-  import { Button } from '$lib/components/ui/button/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { onDestroy, onMount } from "svelte";
+  import { subscribeToLiveUpdates } from "$lib/live-updates.js";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Notifikasi',
-    description = '',
-    csrfToken = '',
-    refreshUrl = '',
-    realtimeSnapshot = '',
+    title = "Notifikasi",
+    description = "",
+    csrfToken = "",
+    refreshUrl = "",
+    realtimeSnapshot = "",
     notifications = $bindable([]),
     unreadCount = $bindable(0),
     pagination = null,
@@ -31,7 +31,7 @@
 
   const formatRelativeTime = (value) => {
     if (!value) {
-      return '-';
+      return "-";
     }
 
     const date = new Date(value);
@@ -43,29 +43,29 @@
     const diffMinutes = Math.round((date.getTime() - Date.now()) / 60000);
 
     if (Math.abs(diffMinutes) < 1) {
-      return 'baru saja';
+      return "baru saja";
     }
 
-    const formatter = new Intl.RelativeTimeFormat('id-ID', { numeric: 'auto' });
+    const formatter = new Intl.RelativeTimeFormat("id-ID", { numeric: "auto" });
 
     if (Math.abs(diffMinutes) < 60) {
-      return formatter.format(diffMinutes, 'minute');
+      return formatter.format(diffMinutes, "minute");
     }
 
     const diffHours = Math.round(diffMinutes / 60);
 
     if (Math.abs(diffHours) < 24) {
-      return formatter.format(diffHours, 'hour');
+      return formatter.format(diffHours, "hour");
     }
 
-    return formatter.format(Math.round(diffHours / 24), 'day');
+    return formatter.format(Math.round(diffHours / 24), "day");
   };
 
-  const toast = (toastTitle, text, icon = 'success') => {
+  const toast = (toastTitle, text, icon = "success") => {
     if (window.Swal) {
       window.Swal.fire({
         toast: true,
-        position: 'top-end',
+        position: "top-end",
         icon,
         title: toastTitle,
         text,
@@ -75,18 +75,18 @@
       return;
     }
 
-    if (icon === 'error') {
+    if (icon === "error") {
       window.alert(text);
     }
   };
 
-  const request = async (url, method = 'POST') => {
+  const request = async (url, method = "POST") => {
     const response = await fetch(url, {
       method,
       headers: {
-        Accept: 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest',
+        Accept: "application/json",
+        "X-CSRF-TOKEN": csrfToken,
+        "X-Requested-With": "XMLHttpRequest",
       },
     });
 
@@ -105,10 +105,10 @@
     try {
       const response = await fetch(refreshUrl, {
         headers: {
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
         },
-        cache: 'no-store',
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -117,28 +117,38 @@
 
       const data = await response.json();
 
-      notifications = Array.isArray(data.notifications) ? data.notifications : [];
+      notifications = Array.isArray(data.notifications)
+        ? data.notifications
+        : [];
       unreadCount = Number(data.unreadCount || 0);
       paginationState = data.pagination || paginationState;
     } catch (error) {
-      console.error('Failed to refresh notifications inbox', error);
+      console.error("Failed to refresh notifications inbox", error);
     }
   };
 
   const clearAllNotifications = async () => {
-    if (!paginationState?.clearAllUrl || notifications.length < 1 || isClearingAll) {
+    if (
+      !paginationState?.clearAllUrl ||
+      notifications.length < 1 ||
+      isClearingAll
+    ) {
       return;
     }
 
     isClearingAll = true;
 
     try {
-      await request(paginationState.clearAllUrl, 'DELETE');
+      await request(paginationState.clearAllUrl, "DELETE");
       notifications = [];
       unreadCount = 0;
-      toast('Notifikasi dibersihkan', 'Semua notifikasi telah dihapus.');
+      toast("Notifikasi dibersihkan", "Semua notifikasi telah dihapus.");
     } catch (error) {
-      toast('Gagal membersihkan', 'Tidak bisa menghapus semua notifikasi.', 'error');
+      toast(
+        "Gagal membersihkan",
+        "Tidak bisa menghapus semua notifikasi.",
+        "error",
+      );
     } finally {
       isClearingAll = false;
     }
@@ -156,7 +166,7 @@
         unreadCount = Math.max(unreadCount - 1, 0);
       }
     } catch (error) {
-      toast('Status belum tersimpan', 'Notifikasi akan tetap dibuka.', 'error');
+      toast("Status belum tersimpan", "Notifikasi akan tetap dibuka.", "error");
     } finally {
       window.location.href = item.href;
     }
@@ -169,32 +179,38 @@
 
     if (window.Swal) {
       const result = await window.Swal.fire({
-        title: 'Hapus notifikasi?',
-        text: 'Notifikasi ini akan dihapus dari kotak masuk.',
-        icon: 'warning',
+        title: "Hapus notifikasi?",
+        text: "Notifikasi ini akan dihapus dari kotak masuk.",
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonText: 'Hapus',
-        cancelButtonText: 'Batal',
+        confirmButtonText: "Hapus",
+        cancelButtonText: "Batal",
       });
 
       if (!result.isConfirmed) {
         return;
       }
-    } else if (!window.confirm('Hapus notifikasi ini?')) {
+    } else if (!window.confirm("Hapus notifikasi ini?")) {
       return;
     }
 
     deletingId = item.id;
 
     try {
-      await request(item.deleteUrl, 'DELETE');
-      notifications = notifications.filter((notification) => notification.id !== item.id);
+      await request(item.deleteUrl, "DELETE");
+      notifications = notifications.filter(
+        (notification) => notification.id !== item.id,
+      );
       if (!item.readAt) {
         unreadCount = Math.max(unreadCount - 1, 0);
       }
-      toast('Notifikasi dihapus', 'Item telah dikeluarkan dari kotak masuk.');
+      toast("Notifikasi dihapus", "Item telah dikeluarkan dari kotak masuk.");
     } catch (error) {
-      toast('Gagal menghapus', 'Tidak bisa menghapus notifikasi saat ini.', 'error');
+      toast(
+        "Gagal menghapus",
+        "Tidak bisa menghapus notifikasi saat ini.",
+        "error",
+      );
     } finally {
       deletingId = null;
     }
@@ -208,7 +224,7 @@
     liveUpdatesCleanup = subscribeToLiveUpdates(
       realtimeSnapshot,
       async ({ changed }) => {
-        if (!changed.includes('notifications')) {
+        if (!changed.includes("notifications")) {
           return;
         }
 
@@ -223,7 +239,9 @@
   });
 </script>
 
-<Card.Root class="animate-fadeIn notification-intro rounded-[10px] border border-border bg-card shadow-none">
+<Card.Root
+  class="animate-fadeIn notification-intro rounded-[10px] border border-border bg-card shadow-none"
+>
   <Card.Header class="notification-intro-head border-b border-border/70 pb-4">
     <div class="notification-intro-copy">
       <PageHeader {title} {description} icon="fas fa-bell" />
@@ -231,14 +249,20 @@
 
     <div class="notification-summary">
       <div>
-    <span>Belum dibaca</span>
+        <span>Belum dibaca</span>
         <strong>{unreadCount}</strong>
       </div>
 
       {#if notifications.length > 0}
-        <Button type="button" variant="secondary" size="sm" onclick={clearAllNotifications} disabled={isClearingAll}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onclick={clearAllNotifications}
+          disabled={isClearingAll}
+        >
           <i class="fas fa-trash"></i>
-          <span>{isClearingAll ? 'Memproses...' : 'Bersihkan Semua'}</span>
+          <span>{isClearingAll ? "Memproses..." : "Bersihkan Semua"}</span>
         </Button>
       {/if}
     </div>
@@ -248,9 +272,15 @@
 <section class="notification-list">
   {#if notifications.length}
     {#each notifications as item, index (item.id || index)}
-      <article class={`notification-card animate-fadeIn ${item.readAt ? '' : 'notification-card-unread'}`.trim()}>
-        <button type="button" class="notification-main" onclick={() => openNotification(item)}>
-          <div class={`notification-icon ${item.tone || 'secondary'}`.trim()}>
+      <article
+        class={`notification-card animate-fadeIn ${item.readAt ? "" : "notification-card-unread"}`.trim()}
+      >
+        <button
+          type="button"
+          class="notification-main"
+          onclick={() => openNotification(item)}
+        >
+          <div class={`notification-icon ${item.tone || "secondary"}`.trim()}>
             <i class={item.icon}></i>
           </div>
 
@@ -267,7 +297,12 @@
         </button>
 
         <div class="notification-actions">
-          <Button type="button" variant="secondary" size="sm" onclick={() => openNotification(item)}>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onclick={() => openNotification(item)}
+          >
             <i class="fas fa-arrow-up-right-from-square"></i>
             <span>Buka</span>
           </Button>
@@ -279,13 +314,15 @@
             disabled={deletingId === item.id}
           >
             <i class="fas fa-trash"></i>
-            <span>{deletingId === item.id ? 'Menghapus...' : 'Hapus'}</span>
+            <span>{deletingId === item.id ? "Menghapus..." : "Hapus"}</span>
           </Button>
         </div>
       </article>
     {/each}
   {:else}
-    <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Root
+      class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Content class="pt-5">
         <EmptyStatePanel
           title="Tidak ada notifikasi"
@@ -301,14 +338,26 @@
 
 {#if paginationState && paginationState.lastPage > 1}
   <nav class="notification-pagination">
-    <Button href={paginationState.previousUrl || undefined} variant="secondary" size="sm" disabled={!paginationState.previousUrl}>
+    <Button
+      href={paginationState.previousUrl || undefined}
+      variant="secondary"
+      size="sm"
+      disabled={!paginationState.previousUrl}
+    >
       <i class="fas fa-arrow-left"></i>
       <span>Sebelumnya</span>
     </Button>
 
-    <span>Halaman {paginationState.currentPage} dari {paginationState.lastPage}</span>
+    <span
+      >Halaman {paginationState.currentPage} dari {paginationState.lastPage}</span
+    >
 
-    <Button href={paginationState.nextUrl || undefined} variant="secondary" size="sm" disabled={!paginationState.nextUrl}>
+    <Button
+      href={paginationState.nextUrl || undefined}
+      variant="secondary"
+      size="sm"
+      disabled={!paginationState.nextUrl}
+    >
       <span>Selanjutnya</span>
       <i class="fas fa-arrow-right"></i>
     </Button>
@@ -338,7 +387,8 @@
     align-items: center;
     gap: 1rem;
     padding: 0.75rem 0.9rem;
-    border: 1px solid color-mix(in srgb, var(--brand-light) 34%, var(--line-soft));
+    border: 1px solid
+      color-mix(in srgb, var(--brand-light) 34%, var(--line-soft));
     border-radius: 0.75rem;
     background: color-mix(in srgb, var(--brand-light) 18%, var(--card));
   }
@@ -375,7 +425,11 @@
 
   .notification-card-unread {
     background: color-mix(in srgb, var(--brand-light) 20%, var(--card));
-    border-color: color-mix(in srgb, var(--brand-primary) 28%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 28%,
+      var(--line-soft)
+    );
   }
 
   .notification-main {
@@ -488,7 +542,7 @@
       flex-wrap: wrap;
     }
 
-    .notification-actions :global([data-slot='button']) {
+    .notification-actions :global([data-slot="button"]) {
       flex: 1 1 12rem;
     }
 

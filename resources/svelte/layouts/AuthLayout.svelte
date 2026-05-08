@@ -1,19 +1,19 @@
 <script>
-  import { onDestroy, onMount } from 'svelte';
-  import { inertiaEnhance } from '$lib/inertia-enhance.js';
-  import * as Sheet from '$lib/components/ui/sheet/index.js';
-  import SidebarNav from '../components/SidebarNav.svelte';
-  import UserMenuDropdown from '../components/UserMenuDropdown.svelte';
+  import { onDestroy, onMount } from "svelte";
+  import { inertiaEnhance } from "$lib/inertia-enhance.js";
+  import * as Sheet from "$lib/components/ui/sheet/index.js";
+  import SidebarNav from "../components/SidebarNav.svelte";
+  import UserMenuDropdown from "../components/UserMenuDropdown.svelte";
 
   let {
     children,
     shell = {},
     flash = {},
     errors = {},
-    pageTitle = '',
-    pageMeta = '',
-    title = '',
-    description = '',
+    pageTitle = "",
+    pageMeta = "",
+    title = "",
+    description = "",
   } = $props();
 
   let isSidebarOpen = $state(false);
@@ -22,7 +22,7 @@
   let unreadCount = $state(0);
   let notifications = $state([]);
   let isLoadingNotifications = $state(false);
-  let themeMode = $state('dark');
+  let themeMode = $state("dark");
   let liveUpdatesCleanup = $state(null);
   let deferredShellBootCleanup = $state(null);
   let deferredUiCleanup = $state(null);
@@ -41,60 +41,66 @@
   let liveUpdatesModulePromise = $state(null);
 
   const toneMap = {
-    primary: 'tone-primary',
-    success: 'tone-success',
-    warning: 'tone-warning',
-    info: 'tone-info',
-    secondary: 'tone-secondary',
+    primary: "tone-primary",
+    success: "tone-success",
+    warning: "tone-warning",
+    info: "tone-info",
+    secondary: "tone-secondary",
   };
 
   const readThemeMode = () => {
     try {
-      const saved = localStorage.getItem('cmos-theme');
-      return saved === 'light' || saved === 'dark' ? saved : 'dark';
+      const saved = localStorage.getItem("cmos-theme");
+      return saved === "light" || saved === "dark" ? saved : "dark";
     } catch (error) {
-      return 'dark';
+      return "dark";
     }
   };
 
   const persistThemeMode = (value) => {
     try {
-      localStorage.setItem('cmos-theme', value);
+      localStorage.setItem("cmos-theme", value);
     } catch (error) {
       // ignore storage access failures
     }
   };
 
   const iconMap = {
-    task_assigned: 'fas fa-tasks',
-    deadline_reminder: 'fas fa-clock',
-    evaluation_new: 'fas fa-star',
-    announcement: 'fas fa-bullhorn',
+    task_assigned: "fas fa-tasks",
+    deadline_reminder: "fas fa-clock",
+    evaluation_new: "fas fa-star",
+    announcement: "fas fa-bullhorn",
   };
 
-  const effectiveTitle = $derived(pageTitle || title || 'Dashboard');
-  const effectiveMeta = $derived(pageMeta || description || '');
+  const effectiveTitle = $derived(pageTitle || title || "Dashboard");
+  const effectiveMeta = $derived(pageMeta || description || "");
   const shellUser = $derived(shell.user || {});
   const shellLinks = $derived(shell.links || {});
   const shellEndpoints = $derived(shell.endpoints || {});
   const shellNavSections = $derived(shell.navSections || []);
   const shellQuickChat = $derived(shell.quickChat || null);
-  const shellAppName = $derived(shell.appName || 'CMOS');
-  const shellOrganizationName = $derived(shell.organizationName || 'HIMATEKKOM ITS');
-  const shellThemeColor = $derived(shell.themeColor || 'purple');
+  const shellAppName = $derived(shell.appName || "CMOS");
+  const shellOrganizationName = $derived(
+    shell.organizationName || "HIMATEKKOM ITS",
+  );
+  const shellThemeColor = $derived(shell.themeColor || "purple");
   const shellThemeVariables = $derived(shell.themeVariables || null);
-  const shellCsrfToken = $derived(shell.csrfToken || '');
-  const shellUserId = $derived(shellUser.id ? String(shellUser.id) : '');
-  const errorMessages = $derived(Object.values(errors || {}).flat().filter(Boolean));
+  const shellCsrfToken = $derived(shell.csrfToken || "");
+  const shellUserId = $derived(shellUser.id ? String(shellUser.id) : "");
+  const errorMessages = $derived(
+    Object.values(errors || {})
+      .flat()
+      .filter(Boolean),
+  );
 
   const applyThemeMode = (value) => {
     themeMode = value;
 
-    if (typeof document === 'undefined') {
+    if (typeof document === "undefined") {
       return;
     }
 
-    document.documentElement.setAttribute('data-theme', value);
+    document.documentElement.setAttribute("data-theme", value);
   };
 
   const applyBrandThemeColor = (value) => {
@@ -102,24 +108,24 @@
       return;
     }
 
-    if (typeof document === 'undefined') {
+    if (typeof document === "undefined") {
       return;
     }
 
-    document.documentElement.setAttribute('data-brand', value);
+    document.documentElement.setAttribute("data-brand", value);
   };
 
   const applyThemeVariables = (variables) => {
-    if (!variables || typeof variables !== 'object') {
+    if (!variables || typeof variables !== "object") {
       return;
     }
 
-    if (typeof document === 'undefined') {
+    if (typeof document === "undefined") {
       return;
     }
 
     Object.entries(variables).forEach(([token, value]) => {
-      if (typeof token !== 'string' || typeof value !== 'string') {
+      if (typeof token !== "string" || typeof value !== "string") {
         return;
       }
 
@@ -128,13 +134,13 @@
   };
 
   const identifyPostHogUser = () => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
     const runWithPostHog = window.__CMOS_WITH_POSTHOG__;
 
-    if (typeof runWithPostHog !== 'function' || !shellUserId) {
+    if (typeof runWithPostHog !== "function" || !shellUserId) {
       return;
     }
 
@@ -149,7 +155,7 @@
   };
 
   const handleResize = () => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -159,12 +165,12 @@
   };
 
   const scheduleAfterPaint = (callback, timeout = 1200) => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       callback();
       return () => {};
     }
 
-    if (typeof window.requestIdleCallback === 'function') {
+    if (typeof window.requestIdleCallback === "function") {
       const handle = window.requestIdleCallback(() => callback(), { timeout });
 
       return () => window.cancelIdleCallback?.(handle);
@@ -182,8 +188,8 @@
 
     if (!sonnerLoadPromise) {
       sonnerLoadPromise = Promise.all([
-        import('$lib/components/ui/sonner/index.js'),
-        import('svelte-sonner'),
+        import("$lib/components/ui/sonner/index.js"),
+        import("svelte-sonner"),
       ]).then(([toasterModule, sonnerModule]) => {
         ToasterComponent = toasterModule.Toaster;
         sonnerToast = sonnerModule.toast;
@@ -202,7 +208,7 @@
 
   const ensureLiveUpdatesModule = async () => {
     if (!liveUpdatesModulePromise) {
-      liveUpdatesModulePromise = import('$lib/live-updates.js');
+      liveUpdatesModulePromise = import("$lib/live-updates.js");
     }
 
     return liveUpdatesModulePromise;
@@ -216,10 +222,12 @@
     if (!shellComponentLoads.notifications) {
       shellComponentLoads = {
         ...shellComponentLoads,
-        notifications: import('../components/NotificationPopover.svelte').then((module) => {
-          NotificationPopoverComponent = module.default;
-          return module.default;
-        }),
+        notifications: import("../components/NotificationPopover.svelte").then(
+          (module) => {
+            NotificationPopoverComponent = module.default;
+            return module.default;
+          },
+        ),
       };
     }
 
@@ -234,10 +242,12 @@
     if (!shellComponentLoads.floatingChat) {
       shellComponentLoads = {
         ...shellComponentLoads,
-        floatingChat: import('../components/FloatingChat.svelte').then((module) => {
-          FloatingChatComponent = module.default;
-          return module.default;
-        }),
+        floatingChat: import("../components/FloatingChat.svelte").then(
+          (module) => {
+            FloatingChatComponent = module.default;
+            return module.default;
+          },
+        ),
       };
     }
 
@@ -259,7 +269,7 @@
           liveUpdatesCleanup = subscribeToLiveUpdates(
             shellEndpoints.realtimeSnapshot,
             async ({ changed, payload }) => {
-              if (!changed.includes('notifications')) {
+              if (!changed.includes("notifications")) {
                 return;
               }
 
@@ -300,7 +310,7 @@
     try {
       const response = await fetch(shellEndpoints.notificationsUnread, {
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
         },
       });
 
@@ -311,7 +321,7 @@
       const data = await response.json();
       unreadCount = Number(data.count || 0);
     } catch (error) {
-      console.error('Failed to fetch unread count', error);
+      console.error("Failed to fetch unread count", error);
     }
   };
 
@@ -325,7 +335,7 @@
     try {
       const response = await fetch(shellEndpoints.notificationsRecent, {
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
         },
       });
 
@@ -334,11 +344,16 @@
       }
 
       const data = await response.json();
-      notifications = Array.isArray(data.notifications) ? data.notifications : [];
+      notifications = Array.isArray(data.notifications)
+        ? data.notifications
+        : [];
       unreadCount = Number(data.unread_count || 0);
     } catch (error) {
-      console.error('Failed to fetch notifications', error);
-      void showShellToastError('Gagal memuat notifikasi terbaru.', 'shell-notifications');
+      console.error("Failed to fetch notifications", error);
+      void showShellToastError(
+        "Gagal memuat notifikasi terbaru.",
+        "shell-notifications",
+      );
     } finally {
       isLoadingNotifications = false;
     }
@@ -360,11 +375,11 @@
 
     try {
       const response = await fetch(shellEndpoints.notificationsClearAll, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': shellCsrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
+          Accept: "application/json",
+          "X-CSRF-TOKEN": shellCsrfToken,
+          "X-Requested-With": "XMLHttpRequest",
         },
       });
 
@@ -375,8 +390,11 @@
       notifications = [];
       unreadCount = 0;
     } catch (error) {
-      console.error('Failed to clear all notifications', error);
-      void showShellToastError('Tidak bisa membersihkan notifikasi.', 'shell-notifications-clear-all');
+      console.error("Failed to clear all notifications", error);
+      void showShellToastError(
+        "Tidak bisa membersihkan notifikasi.",
+        "shell-notifications-clear-all",
+      );
     }
   };
 
@@ -385,7 +403,9 @@
       return;
     }
 
-    const target = notifications.find((notification) => Number(notification.id) === Number(notificationId));
+    const target = notifications.find(
+      (notification) => Number(notification.id) === Number(notificationId),
+    );
 
     if (!target?.deleteUrl) {
       return;
@@ -393,11 +413,11 @@
 
     try {
       const response = await fetch(target.deleteUrl, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': shellCsrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
+          Accept: "application/json",
+          "X-CSRF-TOKEN": shellCsrfToken,
+          "X-Requested-With": "XMLHttpRequest",
         },
       });
 
@@ -405,14 +425,19 @@
         throw new Error(`Request failed with status ${response.status}`);
       }
 
-      notifications = notifications.filter((notification) => Number(notification.id) !== Number(notificationId));
+      notifications = notifications.filter(
+        (notification) => Number(notification.id) !== Number(notificationId),
+      );
 
       if (!target.read_at && !target.readAt) {
         unreadCount = Math.max(unreadCount - 1, 0);
       }
     } catch (error) {
-      console.error('Failed to clear notification', error);
-      void showShellToastError('Tidak bisa menghapus notifikasi ini.', 'shell-notifications-clear-one');
+      console.error("Failed to clear notification", error);
+      void showShellToastError(
+        "Tidak bisa menghapus notifikasi ini.",
+        "shell-notifications-clear-one",
+      );
     }
   };
 
@@ -425,52 +450,55 @@
   };
 
   const toggleThemeMode = () => {
-    if (typeof document === 'undefined') {
+    if (typeof document === "undefined") {
       return;
     }
 
-    const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-    const next = current === 'dark' ? 'light' : 'dark';
+    const current =
+      document.documentElement.getAttribute("data-theme") === "dark"
+        ? "dark"
+        : "light";
+    const next = current === "dark" ? "light" : "dark";
     persistThemeMode(next);
     applyThemeMode(next);
   };
 
   const formatTime = (value) => {
     if (!value) {
-      return '';
+      return "";
     }
 
     const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) {
-      return '';
+      return "";
     }
 
-    return date.toLocaleString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const iconForNotification = (type) => iconMap[type] || 'fas fa-bell';
+  const iconForNotification = (type) => iconMap[type] || "fas fa-bell";
 
   const toneForNotification = (type) => {
-    if (type === 'task_assigned') {
+    if (type === "task_assigned") {
       return toneMap.primary;
     }
 
-    if (type === 'deadline_reminder') {
+    if (type === "deadline_reminder") {
       return toneMap.warning;
     }
 
-    if (type === 'evaluation_new') {
+    if (type === "evaluation_new") {
       return toneMap.success;
     }
 
-    if (type === 'announcement') {
+    if (type === "announcement") {
       return toneMap.info;
     }
 
@@ -488,7 +516,7 @@
     deferredUiCleanup = scheduleAfterPaint(() => {
       void ensureSonnerLoaded();
     }, 2500);
-    const interactionEvents = ['pointerdown', 'keydown', 'touchstart'];
+    const interactionEvents = ["pointerdown", "keydown", "touchstart"];
 
     const activateShellActivity = () => {
       void primeShellActivity();
@@ -499,14 +527,17 @@
     };
 
     interactionEvents.forEach((eventName) => {
-      window.addEventListener(eventName, activateShellActivity, { once: true, passive: true });
+      window.addEventListener(eventName, activateShellActivity, {
+        once: true,
+        passive: true,
+      });
     });
 
     deferredShellBootCleanup = scheduleAfterPaint(() => {
       activateShellActivity();
     }, 14000);
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       interactionEvents.forEach((eventName) => {
@@ -516,8 +547,8 @@
   });
 
   onDestroy(() => {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('resize', handleResize);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("resize", handleResize);
 
       if (window.__CMOS_AUTH_PROPS__ === shell) {
         delete window.__CMOS_AUTH_PROPS__;
@@ -549,14 +580,28 @@
   {/if}
 </svelte:head>
 
-<div class="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[248px_minmax(0,1fr)]" use:inertiaEnhance>
-  <aside class="hidden h-screen border-r border-sidebar-border bg-sidebar lg:block">
-    <SidebarNav appName={shellAppName} organizationName={shellOrganizationName} navSections={shellNavSections} links={shellLinks} />
+<div
+  class="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[248px_minmax(0,1fr)]"
+  use:inertiaEnhance
+>
+  <aside
+    class="hidden h-screen border-r border-sidebar-border bg-sidebar lg:block"
+  >
+    <SidebarNav
+      appName={shellAppName}
+      organizationName={shellOrganizationName}
+      navSections={shellNavSections}
+      links={shellLinks}
+    />
   </aside>
 
   <div class="min-w-0">
-    <header class="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-sm">
-      <div class="flex items-start justify-between gap-4 px-4 py-4 md:px-6 lg:px-8">
+    <header
+      class="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-sm"
+    >
+      <div
+        class="flex items-start justify-between gap-4 px-4 py-4 md:px-6 lg:px-8"
+      >
         <div class="flex min-w-0 items-start gap-3">
           <Sheet.Root bind:open={isSidebarOpen}>
             <Sheet.Trigger>
@@ -588,9 +633,17 @@
           </Sheet.Root>
 
           <div class="min-w-0">
-            <h1 class="m-0 truncate text-xl font-semibold leading-tight text-foreground md:text-2xl">{effectiveTitle}</h1>
+            <h1
+              class="m-0 truncate text-xl leading-tight font-semibold text-foreground md:text-2xl"
+            >
+              {effectiveTitle}
+            </h1>
             {#if effectiveMeta}
-              <p class="mt-1 max-w-[62ch] text-sm leading-6 text-muted-foreground">{effectiveMeta}</p>
+              <p
+                class="mt-1 max-w-[62ch] text-sm leading-6 text-muted-foreground"
+              >
+                {effectiveMeta}
+              </p>
             {/if}
           </div>
         </div>
@@ -600,10 +653,15 @@
             type="button"
             class="inline-flex h-11 w-11 items-center justify-center rounded-[10px] border border-border bg-card text-foreground transition-colors hover:bg-muted"
             onclick={toggleThemeMode}
-            aria-label={themeMode === 'dark' ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'}
-            aria-pressed={themeMode === 'light'}
+            aria-label={themeMode === "dark"
+              ? "Aktifkan tema terang"
+              : "Aktifkan tema gelap"}
+            aria-pressed={themeMode === "light"}
           >
-            <i class={`fas ${themeMode === 'dark' ? 'fa-sun' : 'fa-moon'}`} aria-hidden="true"></i>
+            <i
+              class={`fas ${themeMode === "dark" ? "fa-sun" : "fa-moon"}`}
+              aria-hidden="true"
+            ></i>
           </button>
 
           {#if NotificationPopoverComponent}
@@ -631,7 +689,10 @@
             >
               <i class="fas fa-bell" aria-hidden="true"></i>
               {#if unreadCount > 0}
-                <span class="absolute -right-[0.2rem] -top-[0.2rem] inline-grid h-[1.1rem] min-w-[1.1rem] place-items-center rounded-full bg-[var(--signal-danger)] px-[0.2rem] text-[0.66rem] font-bold text-[var(--white-soft)]">{unreadCount}</span>
+                <span
+                  class="absolute -top-[0.2rem] -right-[0.2rem] inline-grid h-[1.1rem] min-w-[1.1rem] place-items-center rounded-full bg-[var(--signal-danger)] px-[0.2rem] text-[0.66rem] font-bold text-[var(--white-soft)]"
+                  >{unreadCount}</span
+                >
               {/if}
             </button>
           {/if}
@@ -682,7 +743,7 @@
             <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
             <div>
               <strong>Terjadi kesalahan:</strong>
-              <ul class="mb-0 mt-1">
+              <ul class="mt-1 mb-0">
                 {#each errorMessages as error, index (`${error}-${index}`)}
                   <li>{error}</li>
                 {/each}
@@ -700,9 +761,12 @@
     <ToasterComponent position="top-right" richColors />
   {/if}
   {#if FloatingChatComponent}
-    <FloatingChatComponent quickChat={shellQuickChat} initiallyOpen={floatingChatInitiallyOpen} />
+    <FloatingChatComponent
+      quickChat={shellQuickChat}
+      initiallyOpen={floatingChatInitiallyOpen}
+    />
   {:else if shellQuickChat}
-    <div class="fixed bottom-[1.4rem] right-[1.4rem] z-40">
+    <div class="fixed right-[1.4rem] bottom-[1.4rem] z-40">
       <button
         type="button"
         class="relative inline-grid h-14 w-14 place-items-center rounded-full border border-border bg-[var(--brand-primary)] text-[var(--primary-foreground)] shadow-none transition-transform hover:scale-[1.02]"

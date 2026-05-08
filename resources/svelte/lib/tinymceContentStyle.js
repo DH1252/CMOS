@@ -1,27 +1,27 @@
 const defaultPreviewTheme = {
-	backgroundColor: "#18141E",
-	surfaceColor: "#221F2E",
-	textColor: "#F0E6C8",
-	headingColor: "#F0E6C8",
-	softColor: "#CABE9E",
-	mutedColor: "#9E9278",
-	lineColor: "#8A7A3C",
-	linkColor: "#D9AE43",
+  backgroundColor: "#18141E",
+  surfaceColor: "#221F2E",
+  textColor: "#F0E6C8",
+  headingColor: "#F0E6C8",
+  softColor: "#CABE9E",
+  mutedColor: "#9E9278",
+  lineColor: "#8A7A3C",
+  linkColor: "#D9AE43",
 };
 
 const resolvePreviewTheme = (theme = {}) => ({
-	...defaultPreviewTheme,
-	...Object.fromEntries(
-		Object.entries(theme).filter(
-			([, value]) => typeof value === "string" && value.trim().length,
-		),
-	),
+  ...defaultPreviewTheme,
+  ...Object.fromEntries(
+    Object.entries(theme).filter(
+      ([, value]) => typeof value === "string" && value.trim().length,
+    ),
+  ),
 });
 
 const buildContentRules = (selector, theme) => {
-	const resolved = resolvePreviewTheme(theme);
+  const resolved = resolvePreviewTheme(theme);
 
-	return `
+  return `
     ${selector} { font-family: 'Public Sans', sans-serif; font-size: 16px; line-height: 1.65; background: ${resolved.backgroundColor}; color: ${resolved.textColor}; }
     ${selector} p { margin: 0 0 0.6rem 0; color: ${resolved.textColor}; }
     ${selector} h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.6rem 0; line-height: 1.3; color: ${resolved.headingColor}; }
@@ -63,7 +63,7 @@ export const buildTinymceContentStyle = (theme = {}) => `
 `;
 
 export const buildScopedTinymceContentStyle = (selector, theme = {}) =>
-	buildContentRules(selector, theme);
+  buildContentRules(selector, theme);
 
 export const buildScopedTinymceAlignmentStyle = (selector) =>
-	buildAlignmentRules(selector);
+  buildAlignmentRules(selector);

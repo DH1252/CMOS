@@ -1,18 +1,21 @@
 <script>
-  import { Button } from '$lib/components/ui/button/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
-  import { buildScopedTinymceAlignmentStyle, buildScopedTinymceContentStyle } from '../lib/tinymceContentStyle.js';
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
+  import {
+    buildScopedTinymceAlignmentStyle,
+    buildScopedTinymceContentStyle,
+  } from "../lib/tinymceContentStyle.js";
 
   let {
     article = {
-      title: '',
+      title: "",
       coverImage: null,
       badges: [],
       metadata: [],
-      contentHtml: '',
+      contentHtml: "",
       backAction: null,
       editAction: null,
     },
@@ -21,15 +24,18 @@
   } = $props();
 
   const previewShellStyle = $derived(
-    previewTheme?.backgroundColor ? `background: ${previewTheme.backgroundColor} !important;` : '',
+    previewTheme?.backgroundColor
+      ? `background: ${previewTheme.backgroundColor} !important;`
+      : "",
   );
 
-  const actionVariant = (action) => (action === article.editAction ? 'default' : 'secondary');
-  const fallbackImage = '/images/logokabinet.png';
+  const actionVariant = (action) =>
+    action === article.editAction ? "default" : "secondary";
+  const fallbackImage = "/images/logokabinet.png";
 
   const formatDateTime = (value) => {
     if (!value) {
-      return '-';
+      return "-";
     }
 
     const date = new Date(value);
@@ -38,13 +44,13 @@
       return value;
     }
 
-    return date.toLocaleString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -59,96 +65,133 @@
 
 <div class="article-page-wrapper">
   <div class="row">
-    <div class="col-12 col-lg-8">
-    <Card.Root class="article-meta-shell animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
-      <Card.Content class="article-meta-body">
-        <div class="article-meta-top">
-          <div class="article-status-row">
-            {#each article.badges || [] as badge, index (badge.label || index)}
-              {#if index === 0}
-                <span class={`article-status-pill article-status-${badge.tone}`}>
-                  {#if badge.icon}
-                    <i class={badge.icon}></i>
-                  {/if}
-                  {badge.label}
-                </span>
-              {:else}
-                <span class="article-category-pill">{badge.label}</span>
-              {/if}
-            {/each}
-          </div>
-
-          <div class="article-metadata">
-            {#each article.metadata || [] as item, index (item.label || index)}
-              <span class="article-meta-item">
-                {#if item.icon}
-                  <i class={item.icon}></i>
+    <div class="col-lg-8 col-12">
+      <Card.Root
+        class="article-meta-shell animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+      >
+        <Card.Content class="article-meta-body">
+          <div class="article-meta-top">
+            <div class="article-status-row">
+              {#each article.badges || [] as badge, index (badge.label || index)}
+                {#if index === 0}
+                  <span
+                    class={`article-status-pill article-status-${badge.tone}`}
+                  >
+                    {#if badge.icon}
+                      <i class={badge.icon}></i>
+                    {/if}
+                    {badge.label}
+                  </span>
+                {:else}
+                  <span class="article-category-pill">{badge.label}</span>
                 {/if}
-                {item.icon === 'fas fa-calendar' ? formatDateTime(item.label) : item.label}
-              </span>
-            {/each}
+              {/each}
+            </div>
+
+            <div class="article-metadata">
+              {#each article.metadata || [] as item, index (item.label || index)}
+                <span class="article-meta-item">
+                  {#if item.icon}
+                    <i class={item.icon}></i>
+                  {/if}
+                  {item.icon === "fas fa-calendar"
+                    ? formatDateTime(item.label)
+                    : item.label}
+                </span>
+              {/each}
+            </div>
           </div>
-        </div>
 
-        <h1 class="article-title">{article.title}</h1>
-      </Card.Content>
-    </Card.Root>
+          <h1 class="article-title">{article.title}</h1>
+        </Card.Content>
+      </Card.Root>
 
-    {#if article.coverImage}
-      <img src={article.coverImage} alt={article.title} class="article-cover" loading="lazy" decoding="async" onerror={handleImageError} />
-    {/if}
+      {#if article.coverImage}
+        <img
+          src={article.coverImage}
+          alt={article.title}
+          class="article-cover"
+          loading="lazy"
+          decoding="async"
+          onerror={handleImageError}
+        />
+      {/if}
 
-    <Card.Root class="article-shell animate-fadeIn rounded-[10px] border border-border shadow-none" style={previewShellStyle}>
-      <Card.Content class="article-body pt-5">
-        {@html `<style>${buildScopedTinymceContentStyle('.article-content', previewTheme)} ${buildScopedTinymceAlignmentStyle('.article-content')}</style>`}
-        <div class="article-content">
-          {@html article.contentHtml}
-        </div>
+      <Card.Root
+        class="article-shell animate-fadeIn rounded-[10px] border border-border shadow-none"
+        style={previewShellStyle}
+      >
+        <Card.Content class="article-body pt-5">
+          {@html `<style>${buildScopedTinymceContentStyle(".article-content", previewTheme)} ${buildScopedTinymceAlignmentStyle(".article-content")}</style>`}
+          <div class="article-content">
+            {@html article.contentHtml}
+          </div>
 
-        <div class="article-actions">
-          {#if article.backAction}
-            <Button href={article.backAction.href} variant={actionVariant(article.backAction)}>
-              {#if article.backAction.icon}
-                <i class={article.backAction.icon}></i>
-              {/if}
-              <span>{article.backAction.label}</span>
-            </Button>
+          <div class="article-actions">
+            {#if article.backAction}
+              <Button
+                href={article.backAction.href}
+                variant={actionVariant(article.backAction)}
+              >
+                {#if article.backAction.icon}
+                  <i class={article.backAction.icon}></i>
+                {/if}
+                <span>{article.backAction.label}</span>
+              </Button>
+            {/if}
+
+            {#if article.editAction}
+              <Button
+                href={article.editAction.href}
+                variant={actionVariant(article.editAction)}
+              >
+                {#if article.editAction.icon}
+                  <i class={article.editAction.icon}></i>
+                {/if}
+                <span>{article.editAction.label}</span>
+              </Button>
+            {/if}
+          </div>
+        </Card.Content>
+      </Card.Root>
+    </div>
+
+    <div class="col-lg-4 col-12">
+      <Card.Root
+        class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+      >
+        <Card.Header class="border-b border-border/70 pb-4">
+          <PageHeader
+            title="Artikel Terbaru"
+            icon="fas fa-stream"
+            compact={true}
+            headingTag="h3"
+          />
+        </Card.Header>
+
+        <Card.Content class="latest-articles pt-5">
+          {#if !latestArticles.length}
+            <EmptyStatePanel
+              title="Belum ada artikel lain"
+              text="Belum ada artikel lain."
+              icon="fas fa-stream"
+              tone="secondary"
+              compact={true}
+            />
+          {:else}
+            {#each latestArticles as item, index (item.href || index)}
+              <a href={item.href} class="latest-article-item">
+                <div class="latest-article-title">{item.title}</div>
+                <div class="latest-article-date">
+                  {formatDateTime(item.date)}
+                </div>
+              </a>
+            {/each}
           {/if}
-
-          {#if article.editAction}
-            <Button href={article.editAction.href} variant={actionVariant(article.editAction)}>
-              {#if article.editAction.icon}
-                <i class={article.editAction.icon}></i>
-              {/if}
-              <span>{article.editAction.label}</span>
-            </Button>
-          {/if}
-        </div>
-      </Card.Content>
-    </Card.Root>
+        </Card.Content>
+      </Card.Root>
+    </div>
   </div>
-
-  <div class="col-12 col-lg-4">
-    <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
-      <Card.Header class="border-b border-border/70 pb-4">
-        <PageHeader title="Artikel Terbaru" icon="fas fa-stream" compact={true} headingTag="h3" />
-      </Card.Header>
-
-      <Card.Content class="latest-articles pt-5">
-        {#if !latestArticles.length}
-          <EmptyStatePanel title="Belum ada artikel lain" text="Belum ada artikel lain." icon="fas fa-stream" tone="secondary" compact={true} />
-        {:else}
-          {#each latestArticles as item, index (item.href || index)}
-            <a href={item.href} class="latest-article-item">
-              <div class="latest-article-title">{item.title}</div>
-              <div class="latest-article-date">{formatDateTime(item.date)}</div>
-            </a>
-          {/each}
-        {/if}
-      </Card.Content>
-    </Card.Root>
-  </div>
-</div>
 </div>
 
 <style>
@@ -282,25 +325,29 @@
     margin-top: 1.5rem;
   }
 
-  .article-actions :global([data-slot='button'].button-variant-default) {
+  .article-actions :global([data-slot="button"].button-variant-default) {
     background: var(--brand-primary);
     color: #241a0f;
     border-color: color-mix(in srgb, var(--brand-primary) 60%, black);
   }
 
-  .article-actions :global([data-slot='button'].button-variant-secondary) {
+  .article-actions :global([data-slot="button"].button-variant-secondary) {
     background: var(--background);
     color: var(--foreground);
     border-color: var(--line-soft);
   }
 
-  .article-actions :global([data-slot='button'].button-variant-destructive) {
+  .article-actions :global([data-slot="button"].button-variant-destructive) {
     background: color-mix(in srgb, var(--signal-danger) 12%, white);
     color: color-mix(in srgb, var(--signal-danger) 80%, black);
-    border-color: color-mix(in srgb, var(--signal-danger) 24%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--signal-danger) 24%,
+      var(--line-soft)
+    );
   }
 
-  .article-actions :global([data-slot='button']) {
+  .article-actions :global([data-slot="button"]) {
     min-width: 0;
   }
 

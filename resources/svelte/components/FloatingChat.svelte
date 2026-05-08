@@ -1,37 +1,39 @@
 <script>
-  import { onMount, tick } from 'svelte';
-  import { subscribeToLiveUpdates } from '$lib/live-updates.js';
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { Input } from '$lib/components/ui/input/index.js';
-  import StatusBadge from './StatusBadge.svelte';
+  import { onMount, tick } from "svelte";
+  import { subscribeToLiveUpdates } from "$lib/live-updates.js";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import StatusBadge from "./StatusBadge.svelte";
 
   let { quickChat = null, initiallyOpen = false } = $props();
 
-  const initialUsers = () => quickChat?.users?.map((item) => ({ ...item })) || [];
-  const initialSummaries = () => quickChat?.conversations?.map((item) => ({ ...item })) || [];
+  const initialUsers = () =>
+    quickChat?.users?.map((item) => ({ ...item })) || [];
+  const initialSummaries = () =>
+    quickChat?.conversations?.map((item) => ({ ...item })) || [];
 
   let isOpen = $state(false);
   let activeUserId = $state(null);
   let activeUser = $state(null);
-  let search = $state('');
-  let draft = $state('');
+  let search = $state("");
+  let draft = $state("");
   let unreadCount = $state(0);
   let messages = $state([]);
   let users = $state([]);
   let summaries = $state([]);
   let hasLoadedDirectory = $state(false);
   let isLoadingDirectory = $state(false);
-  let directoryError = $state('');
+  let directoryError = $state("");
   let isSending = $state(false);
   let messageViewport = $state(null);
 
   const scheduleAfterPaint = (callback, timeout = 1200) => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       callback();
       return () => {};
     }
 
-    if (typeof window.requestIdleCallback === 'function') {
+    if (typeof window.requestIdleCallback === "function") {
       const handle = window.requestIdleCallback(() => callback(), { timeout });
 
       return () => window.cancelIdleCallback?.(handle);
@@ -42,8 +44,8 @@
     return () => window.clearTimeout(handle);
   };
 
-  const fallbackAvatar = (name = 'User') => {
-    const initial = (name || 'User').trim().charAt(0).toUpperCase() || 'U';
+  const fallbackAvatar = (name = "User") => {
+    const initial = (name || "User").trim().charAt(0).toUpperCase() || "U";
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="#251d39"/><text x="50%" y="50%" dy=".35em" fill="#f5c518" font-family="Public Sans, Arial, sans-serif" font-size="28" font-weight="700" text-anchor="middle">${initial}</text></svg>`;
 
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
@@ -66,7 +68,8 @@
     hasLoadedDirectory = nextUsers.length > 0;
   };
 
-  const endpointFor = (base, id) => `${String(base || '').replace(/\/$/, '')}/${id}`;
+  const endpointFor = (base, id) =>
+    `${String(base || "").replace(/\/$/, "")}/${id}`;
 
   const sortedUsers = (items) =>
     [...items].sort((left, right) => {
@@ -74,14 +77,21 @@
         return right.unreadCount - left.unreadCount;
       }
 
-      const leftTime = left.lastMessageAt ? new Date(left.lastMessageAt).getTime() : 0;
-      const rightTime = right.lastMessageAt ? new Date(right.lastMessageAt).getTime() : 0;
+      const leftTime = left.lastMessageAt
+        ? new Date(left.lastMessageAt).getTime()
+        : 0;
+      const rightTime = right.lastMessageAt
+        ? new Date(right.lastMessageAt).getTime()
+        : 0;
 
       if (leftTime !== rightTime) {
         return rightTime - leftTime;
       }
 
-      return String(left.name || 'Kontak').localeCompare(String(right.name || 'Kontak'), 'id');
+      return String(left.name || "Kontak").localeCompare(
+        String(right.name || "Kontak"),
+        "id",
+      );
     });
 
   const buildUsers = () => {
@@ -95,7 +105,7 @@
         return {
           ...user,
           unreadCount: summary.unreadCount || 0,
-          lastMessage: summary.lastMessage || '',
+          lastMessage: summary.lastMessage || "",
           lastMessageAt: summary.lastMessageAt || null,
         };
       }),
@@ -106,32 +116,37 @@
     const allUsers = buildUsers();
     const keyword = search.trim().toLowerCase();
 
-    return keyword === ''
+    return keyword === ""
       ? allUsers
       : allUsers.filter((user) => {
-          const haystack = `${user.name} ${user.role || ''} ${user.department || ''}`.toLowerCase();
+          const haystack =
+            `${user.name} ${user.role || ""} ${user.department || ""}`.toLowerCase();
 
           return haystack.includes(keyword);
         });
   });
 
   const ensureDirectoryData = async (force = false) => {
-    if ((!force && hasLoadedDirectory) || isLoadingDirectory || !quickChat?.endpoints?.sidebarData) {
+    if (
+      (!force && hasLoadedDirectory) ||
+      isLoadingDirectory ||
+      !quickChat?.endpoints?.sidebarData
+    ) {
       return;
     }
 
     isLoadingDirectory = true;
-    directoryError = '';
+    directoryError = "";
 
     try {
       const response = await fetch(quickChat.endpoints.sidebarData, {
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load chat directory');
+        throw new Error("Failed to load chat directory");
       }
 
       const data = await response.json();
@@ -141,21 +156,21 @@
         : [];
       hasLoadedDirectory = true;
     } catch (error) {
-      console.error('Failed to load floating chat directory', error);
-      directoryError = 'Kontak belum dapat dimuat.';
+      console.error("Failed to load floating chat directory", error);
+      directoryError = "Kontak belum dapat dimuat.";
     } finally {
       isLoadingDirectory = false;
     }
   };
 
   const previewText = (item) => {
-    const text = item.lastMessage || 'Belum ada pesan';
+    const text = item.lastMessage || "Belum ada pesan";
     return text.length > 34 ? `${text.slice(0, 33)}...` : text;
   };
 
-  const formatTime = (value, fallbackDateLabel = '') => {
+  const formatTime = (value, fallbackDateLabel = "") => {
     if (!value) {
-      return '';
+      return "";
     }
 
     const date = new Date(value);
@@ -166,49 +181,49 @@
     }
 
     const dayKey = (input) =>
-      new Intl.DateTimeFormat('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
+      new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       }).format(input);
 
     const yearKey = (input) =>
-      new Intl.DateTimeFormat('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        year: 'numeric',
+      new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
       }).format(input);
 
     if (dayKey(date) === dayKey(now)) {
-      return date.toLocaleTimeString('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        hour: '2-digit',
-        minute: '2-digit',
+      return date.toLocaleTimeString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     }
 
     if (yearKey(date) === yearKey(now)) {
-      return date.toLocaleString('id-ID', {
-        timeZone: 'Asia/Jakarta',
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
+      return date.toLocaleString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     }
 
-    return date.toLocaleString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const handleImageError = (event) => {
-    const nextSrc = fallbackAvatar(event.currentTarget.alt || 'User');
+    const nextSrc = fallbackAvatar(event.currentTarget.alt || "User");
 
     if (event.currentTarget.src === nextSrc) {
       return;
@@ -228,7 +243,10 @@
     const currentUserId = activeUserId;
     const viewport = messageViewport;
     const totalMessages = messages.length;
-    const lastMessageKey = messages[totalMessages - 1]?.id || messages[totalMessages - 1]?.created_at || null;
+    const lastMessageKey =
+      messages[totalMessages - 1]?.id ||
+      messages[totalMessages - 1]?.created_at ||
+      null;
 
     if (!currentUserId || !viewport) {
       return;
@@ -246,7 +264,7 @@
     try {
       const response = await fetch(quickChat.endpoints.unread, {
         headers: {
-          Accept: 'application/json',
+          Accept: "application/json",
         },
       });
 
@@ -257,25 +275,35 @@
       const data = await response.json();
       unreadCount = Number(data.count || 0);
     } catch (error) {
-      console.error('Failed to fetch message unread count', error);
+      console.error("Failed to fetch message unread count", error);
     }
   };
 
   const syncSummary = (userId, payload) => {
     const lastMessage = payload[payload.length - 1] || null;
-    const existing = summaries.find((item) => Number(item.id) === Number(userId));
+    const existing = summaries.find(
+      (item) => Number(item.id) === Number(userId),
+    );
     const user = users.find((item) => Number(item.id) === Number(userId));
     const nextSummary = {
       ...(user || {}),
       ...(existing || {}),
       id: Number(userId),
-      name: existing?.name || user?.name || activeUser?.name || 'Kontak',
+      name: existing?.name || user?.name || activeUser?.name || "Kontak",
       avatar: existing?.avatar || user?.avatar || activeUser?.avatar || null,
-      role: existing?.role || user?.role || activeUser?.role || '',
-      department: existing?.department || user?.department || activeUser?.department || null,
+      role: existing?.role || user?.role || activeUser?.role || "",
+      department:
+        existing?.department ||
+        user?.department ||
+        activeUser?.department ||
+        null,
       unreadCount: 0,
-      lastMessage: lastMessage?.content || existing?.lastMessage || '',
-      lastMessageAt: lastMessage?.created_at_raw || lastMessage?.created_at || existing?.lastMessageAt || null,
+      lastMessage: lastMessage?.content || existing?.lastMessage || "",
+      lastMessageAt:
+        lastMessage?.created_at_raw ||
+        lastMessage?.created_at ||
+        existing?.lastMessageAt ||
+        null,
     };
 
     summaries = sortedUsers([
@@ -290,11 +318,14 @@
     }
 
     try {
-      const response = await fetch(endpointFor(quickChat.endpoints.conversationBase, userId), {
-        headers: {
-          Accept: 'application/json',
+      const response = await fetch(
+        endpointFor(quickChat.endpoints.conversationBase, userId),
+        {
+          headers: {
+            Accept: "application/json",
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         return;
@@ -314,7 +345,7 @@
         await scrollToBottom();
       }
     } catch (error) {
-      console.error('Failed to load floating chat conversation', error);
+      console.error("Failed to load floating chat conversation", error);
     }
   };
 
@@ -326,27 +357,30 @@
     isSending = true;
 
     try {
-      const response = await fetch(endpointFor(quickChat.endpoints.sendBase, activeUserId), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': quickChat.csrfToken,
+      const response = await fetch(
+        endpointFor(quickChat.endpoints.sendBase, activeUserId),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-CSRF-TOKEN": quickChat.csrfToken,
+          },
+          body: JSON.stringify({
+            content: draft.trim(),
+          }),
         },
-        body: JSON.stringify({
-          content: draft.trim(),
-        }),
-      });
+      );
 
       if (!response.ok) {
         return;
       }
 
-      draft = '';
+      draft = "";
       await loadConversation(activeUserId);
       await syncUnreadBadge();
     } catch (error) {
-      console.error('Failed to send floating chat message', error);
+      console.error("Failed to send floating chat message", error);
     } finally {
       isSending = false;
     }
@@ -366,7 +400,7 @@
   };
 
   const handleRealtimeUpdate = async ({ changed }) => {
-    if (!changed.includes('messages')) {
+    if (!changed.includes("messages")) {
       return;
     }
 
@@ -420,7 +454,12 @@
 
 {#if quickChat}
   <div class="floating-chat-shell">
-    <button type="button" class="floating-chat-toggle" onclick={toggleChat} aria-label="Pesan cepat">
+    <button
+      type="button"
+      class="floating-chat-toggle"
+      onclick={toggleChat}
+      aria-label="Pesan cepat"
+    >
       <i class="fas fa-comments"></i>
       {#if unreadCount > 0}
         <span class="floating-chat-badge">{unreadCount}</span>
@@ -432,13 +471,23 @@
         <header class="floating-chat-head">
           {#if activeUser}
             <div class="floating-chat-head-user">
-              <button type="button" class="floating-chat-icon" onclick={backToList} aria-label="Kembali">
+              <button
+                type="button"
+                class="floating-chat-icon"
+                onclick={backToList}
+                aria-label="Kembali"
+              >
                 <i class="fas fa-arrow-left"></i>
               </button>
-              <img src={activeUser.avatar || fallbackAvatar(activeUser.name)} alt={activeUser.name} class="avatar-sm" onerror={handleImageError} />
+              <img
+                src={activeUser.avatar || fallbackAvatar(activeUser.name)}
+                alt={activeUser.name}
+                class="avatar-sm"
+                onerror={handleImageError}
+              />
               <div>
                 <strong>{activeUser.name}</strong>
-                <span>{activeUser.role || 'Kontak organisasi'}</span>
+                <span>{activeUser.role || "Kontak organisasi"}</span>
               </div>
             </div>
           {:else}
@@ -447,7 +496,12 @@
             </div>
           {/if}
 
-          <button type="button" class="floating-chat-icon" onclick={toggleChat} aria-label="Tutup">
+          <button
+            type="button"
+            class="floating-chat-icon"
+            onclick={toggleChat}
+            aria-label="Tutup"
+          >
             <i class="fas fa-xmark"></i>
           </button>
         </header>
@@ -455,10 +509,17 @@
         {#if activeUser}
           <div bind:this={messageViewport} class="floating-chat-messages">
             {#if messages.length}
-              {#each messages as message, index (message.id || `${message.created_at || 'message'}-${index}`)}
-                <article class={`floating-chat-bubble ${message.is_mine ? 'floating-chat-bubble-mine' : 'floating-chat-bubble-theirs'}`}>
+              {#each messages as message, index (message.id || `${message.created_at || "message"}-${index}`)}
+                <article
+                  class={`floating-chat-bubble ${message.is_mine ? "floating-chat-bubble-mine" : "floating-chat-bubble-theirs"}`}
+                >
                   <p>{message.content}</p>
-                  <span>{formatTime(message.created_at_raw || message.created_at, message.date || '')}</span>
+                  <span
+                    >{formatTime(
+                      message.created_at_raw || message.created_at,
+                      message.date || "",
+                    )}</span
+                  >
                 </article>
               {/each}
             {:else}
@@ -469,11 +530,19 @@
             {/if}
           </div>
 
-          <form class="floating-chat-composer" onsubmit={(event) => {
-            event.preventDefault();
-            void sendMessage();
-          }}>
-            <Input type="text" class="floating-chat-composer-input" placeholder={`Tulis pesan untuk ${activeUser.name}...`} bind:value={draft} />
+          <form
+            class="floating-chat-composer"
+            onsubmit={(event) => {
+              event.preventDefault();
+              void sendMessage();
+            }}
+          >
+            <Input
+              type="text"
+              class="floating-chat-composer-input"
+              placeholder={`Tulis pesan untuk ${activeUser.name}...`}
+              bind:value={draft}
+            />
             <Button
               type="submit"
               size="icon-sm"
@@ -489,7 +558,12 @@
           <div class="floating-chat-list-shell">
             <label class="floating-chat-search">
               <i class="fas fa-magnifying-glass floating-chat-search-icon"></i>
-              <Input type="search" class="floating-chat-search-input" placeholder="Cari user..." bind:value={search} />
+              <Input
+                type="search"
+                class="floating-chat-search-input"
+                placeholder="Cari user..."
+                bind:value={search}
+              />
             </label>
 
             <div class="floating-chat-user-list">
@@ -504,17 +578,29 @@
                   <p>{directoryError}</p>
                 </div>
               {:else if visibleUsers.length}
-                {#each visibleUsers as user, index (user.id || `${user.name || 'user'}-${index}`)}
-                  <button type="button" class="floating-chat-user" onclick={() => loadConversation(user.id)}>
-                    <img src={user.avatar || fallbackAvatar(user.name)} alt={user.name} class="avatar-sm" onerror={handleImageError} />
+                {#each visibleUsers as user, index (user.id || `${user.name || "user"}-${index}`)}
+                  <button
+                    type="button"
+                    class="floating-chat-user"
+                    onclick={() => loadConversation(user.id)}
+                  >
+                    <img
+                      src={user.avatar || fallbackAvatar(user.name)}
+                      alt={user.name}
+                      class="avatar-sm"
+                      onerror={handleImageError}
+                    />
                     <div class="floating-chat-user-copy">
                       <div class="floating-chat-user-topline">
                         <strong>{user.name}</strong>
                         {#if user.unreadCount > 0}
-                          <StatusBadge label={String(user.unreadCount)} tone="primary" />
+                          <StatusBadge
+                            label={String(user.unreadCount)}
+                            tone="primary"
+                          />
                         {/if}
                       </div>
-                      <span>{user.role || 'Anggota'}</span>
+                      <span>{user.role || "Anggota"}</span>
                       <p>{previewText(user)}</p>
                     </div>
                   </button>
@@ -527,7 +613,12 @@
               {/if}
             </div>
 
-            <Button href={quickChat.link} variant="secondary" size="sm" class="floating-chat-link-button">
+            <Button
+              href={quickChat.link}
+              variant="secondary"
+              size="sm"
+              class="floating-chat-link-button"
+            >
               <i class="fas fa-up-right-from-square"></i>
               <span>Buka Halaman Pesan</span>
             </Button>
@@ -682,8 +773,13 @@
 
   :global(.floating-chat-search-input:focus),
   :global(.floating-chat-search-input:focus-visible) {
-    border-color: color-mix(in srgb, var(--brand-primary) 24%, var(--line-soft));
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 14%, transparent);
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 24%,
+      var(--line-soft)
+    );
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--brand-primary) 14%, transparent);
   }
 
   .floating-chat-user-list {
@@ -713,7 +809,11 @@
 
   .floating-chat-user:hover {
     background: var(--muted);
-    border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--line-soft));
+    border-color: color-mix(
+      in srgb,
+      var(--brand-primary) 18%,
+      var(--line-soft)
+    );
   }
 
   .floating-chat-user-copy {

@@ -1,15 +1,15 @@
 <script>
-  import { Button } from '$lib/components/ui/button/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import DataTable from '../components/DataTable.svelte';
-  import EmptyStatePanel from '../components/EmptyStatePanel.svelte';
-  import MetricCard from '../components/MetricCard.svelte';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import DataTable from "../components/DataTable.svelte";
+  import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import MetricCard from "../components/MetricCard.svelte";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Laporan & Statistik',
-    description = '',
+    title = "Laporan & Statistik",
+    description = "",
     stats = [],
     taskDistribution = [],
     programDistribution = [],
@@ -19,40 +19,45 @@
   } = $props();
 
   const fallbackPalette = {
-    primary: '#7c3aed',
-    info: '#2563eb',
-    warning: '#d97706',
-    success: '#059669',
-    secondary: '#64748b',
+    primary: "#7c3aed",
+    info: "#2563eb",
+    warning: "#d97706",
+    success: "#059669",
+    secondary: "#64748b",
   };
 
   const colorMap = {
-    primary: '--brand-primary',
-    info: '--signal-info',
-    warning: '--signal-warning',
-    success: '--signal-success',
-    secondary: '--text-muted',
+    primary: "--brand-primary",
+    info: "--signal-info",
+    warning: "--signal-warning",
+    success: "--signal-success",
+    secondary: "--text-muted",
   };
 
   const resolveToneColor = (tone) => {
-    if (typeof document === 'undefined') {
+    if (typeof document === "undefined") {
       return fallbackPalette[tone] || fallbackPalette.secondary;
     }
 
     const variable = colorMap[tone] || colorMap.secondary;
-    const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue(variable)
+      .trim();
     return value || fallbackPalette[tone] || fallbackPalette.secondary;
   };
 
   const maxDistributionValue = (items = []) => {
-    return items.reduce((max, item) => Math.max(max, Number(item?.value || 0)), 0) || 1;
+    return (
+      items.reduce((max, item) => Math.max(max, Number(item?.value || 0)), 0) ||
+      1
+    );
   };
 
   const departmentColumns = [
-    { label: 'Departemen' },
-    { label: 'Anggota' },
-    { label: 'Proker' },
-    { label: 'Penyelesaian Task' },
+    { label: "Departemen" },
+    { label: "Anggota" },
+    { label: "Proker" },
+    { label: "Penyelesaian Task" },
   ];
 
   const departmentRows = $derived.by(() =>
@@ -60,31 +65,31 @@
       id: department.name,
       cells: [
         {
-          type: 'stack',
+          type: "stack",
           lines: [
             { text: department.name },
             { text: `${department.completionRate}% selesai`, muted: true },
           ],
         },
         {
-          type: 'badge',
+          type: "badge",
           label: String(department.members),
-          tone: 'info',
+          tone: "info",
         },
         {
-          type: 'badge',
+          type: "badge",
           label: String(department.programs),
-          tone: 'primary',
+          tone: "primary",
         },
         department.totalTasks > 0
           ? {
-              type: 'progress',
+              type: "progress",
               value: Number(department.completionRate || 0),
               label: `${department.completedTasks}/${department.totalTasks}`,
-              tone: 'success',
+              tone: "success",
             }
           : {
-              text: 'Belum ada task',
+              text: "Belum ada task",
               muted: true,
             },
       ],
@@ -92,26 +97,26 @@
   );
 
   const exportVariant = (item) => {
-    if (item?.tone === 'danger') {
-      return 'destructive';
+    if (item?.tone === "danger") {
+      return "destructive";
     }
 
-    if (item?.tone === 'success') {
-      return 'secondary';
+    if (item?.tone === "success") {
+      return "secondary";
     }
 
-    return 'outline';
+    return "outline";
   };
 
-  const fallbackAvatar = (name = 'User') => {
-    const initial = (name || 'User').trim().charAt(0).toUpperCase() || 'U';
+  const fallbackAvatar = (name = "User") => {
+    const initial = (name || "User").trim().charAt(0).toUpperCase() || "U";
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="#251d39"/><text x="50%" y="50%" dy=".35em" fill="#f5c518" font-family="Public Sans, Arial, sans-serif" font-size="28" font-weight="700" text-anchor="middle">${initial}</text></svg>`;
 
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   };
 
   const handleImageError = (event) => {
-    const nextSrc = fallbackAvatar(event.currentTarget.alt || 'User');
+    const nextSrc = fallbackAvatar(event.currentTarget.alt || "User");
 
     if (event.currentTarget.src === nextSrc) {
       return;
@@ -119,10 +124,11 @@
 
     event.currentTarget.src = nextSrc;
   };
-
 </script>
 
-<Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+<Card.Root
+  class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+>
   <Card.Header class="report-intro-head border-b border-border/70 pb-4">
     <div class="report-intro-copy-wrap">
       <PageHeader {title} {description} icon="fas fa-chart-column" />
@@ -131,7 +137,11 @@
     {#if exports.length}
       <div class="report-intro-actions">
         {#each exports as item, index (item.href || index)}
-          <Button href={item.href} variant={exportVariant(item)} data-native="true">
+          <Button
+            href={item.href}
+            variant={exportVariant(item)}
+            data-native="true"
+          >
             <i class={item.icon}></i>
             <span>{item.label}</span>
           </Button>
@@ -147,16 +157,23 @@
       label={stat.label}
       value={stat.value}
       icon={stat.icon}
-      description={stat.meta || ''}
-      tone={stat.tone || 'primary'}
+      description={stat.meta || ""}
+      tone={stat.tone || "primary"}
     />
   {/each}
 </div>
 
 <div class="report-chart-grid">
-  <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Header class="border-b border-border/70 pb-4">
-      <PageHeader title="Distribusi Task" icon="fas fa-chart-pie" compact={true} headingTag="h3" />
+      <PageHeader
+        title="Distribusi Task"
+        icon="fas fa-chart-pie"
+        compact={true}
+        headingTag="h3"
+      />
     </Card.Header>
 
     <Card.Content class="pt-5">
@@ -169,7 +186,10 @@
                 <span>{item.value}</span>
               </div>
               <div class="report-distribution-track" aria-hidden="true">
-                <div class="report-distribution-bar" style={`width:${Math.max(8, (Number(item.value || 0) / maxDistributionValue(taskDistribution)) * 100)}%; background:${resolveToneColor(item.tone)};`}></div>
+                <div
+                  class="report-distribution-bar"
+                  style={`width:${Math.max(8, (Number(item.value || 0) / maxDistributionValue(taskDistribution)) * 100)}%; background:${resolveToneColor(item.tone)};`}
+                ></div>
               </div>
             </div>
           {/each}
@@ -177,7 +197,10 @@
         <div class="report-legend-strip">
           {#each taskDistribution as item, index (item.label || index)}
             <div class="report-legend-item">
-              <span class="report-legend-dot" style={`background:${resolveToneColor(item.tone)}`}></span>
+              <span
+                class="report-legend-dot"
+                style={`background:${resolveToneColor(item.tone)}`}
+              ></span>
               <div>
                 <strong>{item.value}</strong>
                 <span>{item.label}</span>
@@ -186,14 +209,27 @@
           {/each}
         </div>
       {:else}
-        <EmptyStatePanel title="Belum ada distribusi task" text="Belum ada data task." icon="fas fa-chart-pie" tone="secondary" compact={true} />
+        <EmptyStatePanel
+          title="Belum ada distribusi task"
+          text="Belum ada data task."
+          icon="fas fa-chart-pie"
+          tone="secondary"
+          compact={true}
+        />
       {/if}
     </Card.Content>
   </Card.Root>
 
-  <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Header class="border-b border-border/70 pb-4">
-      <PageHeader title="Status Program" icon="fas fa-chart-simple" compact={true} headingTag="h3" />
+      <PageHeader
+        title="Status Program"
+        icon="fas fa-chart-simple"
+        compact={true}
+        headingTag="h3"
+      />
     </Card.Header>
 
     <Card.Content class="pt-5">
@@ -206,7 +242,10 @@
                 <span>{item.value}</span>
               </div>
               <div class="report-distribution-track" aria-hidden="true">
-                <div class="report-distribution-bar" style={`width:${Math.max(8, (Number(item.value || 0) / maxDistributionValue(programDistribution)) * 100)}%; background:${resolveToneColor(item.tone)};`}></div>
+                <div
+                  class="report-distribution-bar"
+                  style={`width:${Math.max(8, (Number(item.value || 0) / maxDistributionValue(programDistribution)) * 100)}%; background:${resolveToneColor(item.tone)};`}
+                ></div>
               </div>
             </div>
           {/each}
@@ -214,23 +253,39 @@
         <div class="report-legend-strip report-legend-strip-compact">
           {#each programDistribution as item, index (item.label || index)}
             <div class="report-legend-pill">
-              <span class="report-legend-dot" style={`background:${resolveToneColor(item.tone)}`}></span>
+              <span
+                class="report-legend-dot"
+                style={`background:${resolveToneColor(item.tone)}`}
+              ></span>
               <strong>{item.label}</strong>
               <span>{item.value}</span>
             </div>
           {/each}
         </div>
       {:else}
-        <EmptyStatePanel title="Belum ada distribusi program" text="Belum ada data program." icon="fas fa-chart-simple" tone="secondary" compact={true} />
+        <EmptyStatePanel
+          title="Belum ada distribusi program"
+          text="Belum ada data program."
+          icon="fas fa-chart-simple"
+          tone="secondary"
+          compact={true}
+        />
       {/if}
     </Card.Content>
   </Card.Root>
 </div>
 
 <div class="report-detail-grid">
-  <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Header class="border-b border-border/70 pb-4">
-      <PageHeader title="Ritme Departemen" icon="fas fa-building" compact={true} headingTag="h3" />
+      <PageHeader
+        title="Ritme Departemen"
+        icon="fas fa-building"
+        compact={true}
+        headingTag="h3"
+      />
     </Card.Header>
 
     <Card.Content class="px-0 pb-0">
@@ -238,17 +293,24 @@
         columns={departmentColumns}
         rows={departmentRows}
         emptyState={{
-          title: 'Belum ada data departemen',
-          text: 'Belum ada data departemen.',
-          icon: 'fas fa-building-circle-xmark',
+          title: "Belum ada data departemen",
+          text: "Belum ada data departemen.",
+          icon: "fas fa-building-circle-xmark",
         }}
       />
     </Card.Content>
   </Card.Root>
 
-  <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Header class="border-b border-border/70 pb-4">
-      <PageHeader title="Top Staff" icon="fas fa-trophy" compact={true} headingTag="h3" />
+      <PageHeader
+        title="Top Staff"
+        icon="fas fa-trophy"
+        compact={true}
+        headingTag="h3"
+      />
     </Card.Header>
 
     <Card.Content class="pt-5">
@@ -256,8 +318,17 @@
         <div class="report-leaderboard">
           {#each topStaff as staff, index (staff.rank || index)}
             <article class="report-leaderboard-item">
-              <div class={`report-rank ${staff.rank <= 3 ? 'report-rank-highlight' : ''}`.trim()}>#{staff.rank}</div>
-              <img src={staff.avatar || fallbackAvatar(staff.name)} alt={staff.name} class="avatar-sm" onerror={handleImageError} />
+              <div
+                class={`report-rank ${staff.rank <= 3 ? "report-rank-highlight" : ""}`.trim()}
+              >
+                #{staff.rank}
+              </div>
+              <img
+                src={staff.avatar || fallbackAvatar(staff.name)}
+                alt={staff.name}
+                class="avatar-sm"
+                onerror={handleImageError}
+              />
               <div class="report-leaderboard-copy">
                 <strong>{staff.name}</strong>
                 <span>{staff.department}</span>
@@ -267,7 +338,13 @@
           {/each}
         </div>
       {:else}
-        <EmptyStatePanel title="Belum ada data evaluasi" text="Belum ada evaluasi." icon="fas fa-star-half-stroke" tone="secondary" compact={true} />
+        <EmptyStatePanel
+          title="Belum ada data evaluasi"
+          text="Belum ada evaluasi."
+          icon="fas fa-star-half-stroke"
+          tone="secondary"
+          compact={true}
+        />
       {/if}
     </Card.Content>
   </Card.Root>
@@ -462,7 +539,7 @@
       width: 100%;
     }
 
-    .report-intro-actions :global([data-slot='button']) {
+    .report-intro-actions :global([data-slot="button"]) {
       width: 100%;
     }
 

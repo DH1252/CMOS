@@ -1,43 +1,44 @@
 <script>
-  import { onDestroy } from 'svelte';
-  import { Button } from '$lib/components/ui/button/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import { Input } from '$lib/components/ui/input/index.js';
-  import { Label } from '$lib/components/ui/label/index.js';
-  import PageHeader from '../components/PageHeader.svelte';
-  import StatusBadge from '../components/StatusBadge.svelte';
+  import { onDestroy } from "svelte";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import { Label } from "$lib/components/ui/label/index.js";
+  import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
 
   let {
-    title = 'Edit Profil',
-    description = '',
+    title = "Edit Profil",
+    description = "",
     user = {},
     profileForm = {
-      action: '#',
-      csrfToken: '',
-      spoofMethod: 'PUT',
+      action: "#",
+      csrfToken: "",
+      spoofMethod: "PUT",
       values: {},
       errors: {},
     },
     passwordForm = {
-      action: '#',
-      csrfToken: '',
-      spoofMethod: 'PUT',
+      action: "#",
+      csrfToken: "",
+      spoofMethod: "PUT",
       errors: {},
-      status: '',
+      status: "",
     },
     removeAvatarAction = null,
-    backHref = '#',
+    backHref = "#",
   } = $props();
 
-  let previewUrl = $state('');
+  let previewUrl = $state("");
   let avatarInput = $state(null);
   let removeAvatarForm = $state(null);
   let previewObjectUrl = $state(null);
-  const fallbackAvatar = (name = 'User') => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=251d39&color=f5c518&bold=true`;
+  const fallbackAvatar = (name = "User") =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "User")}&background=251d39&color=f5c518&bold=true`;
 
   $effect(() => {
     if (!previewObjectUrl) {
-      previewUrl = profileForm.values?.avatarUrl || user.avatarUrl || '';
+      previewUrl = profileForm.values?.avatarUrl || user.avatarUrl || "";
     }
   });
 
@@ -48,18 +49,18 @@
 
     if (window.Swal) {
       const result = await window.Swal.fire({
-        title: 'Hapus foto profil?',
-        text: 'Avatar akan kembali ke identitas default pengguna.',
-        icon: 'warning',
+        title: "Hapus foto profil?",
+        text: "Avatar akan kembali ke identitas default pengguna.",
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonText: 'Hapus',
-        cancelButtonText: 'Batal',
+        confirmButtonText: "Hapus",
+        cancelButtonText: "Batal",
       });
 
       if (!result.isConfirmed) {
         return;
       }
-    } else if (!window.confirm('Hapus foto profil?')) {
+    } else if (!window.confirm("Hapus foto profil?")) {
       return;
     }
 
@@ -81,7 +82,9 @@
   };
 
   const handleImageError = (event) => {
-    const nextSrc = fallbackAvatar(event.currentTarget.alt || user.name || 'User');
+    const nextSrc = fallbackAvatar(
+      event.currentTarget.alt || user.name || "User",
+    );
 
     if (event.currentTarget.src === nextSrc) {
       return;
@@ -92,7 +95,7 @@
 
   const formatJoinedDate = (value) => {
     if (!value) {
-      return '';
+      return "";
     }
 
     const date = new Date(value);
@@ -101,11 +104,11 @@
       return value;
     }
 
-    return date.toLocaleDateString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    return date.toLocaleDateString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -118,10 +121,15 @@
 
 <section class="profile-hero animate-fadeIn">
   <div class="profile-hero-main">
-    <img src={previewUrl || fallbackAvatar(user.name)} alt={user.name} class="profile-avatar" onerror={handleImageError} />
+    <img
+      src={previewUrl || fallbackAvatar(user.name)}
+      alt={user.name}
+      class="profile-avatar"
+      onerror={handleImageError}
+    />
 
     <div class="profile-copy">
-      <StatusBadge label={user.roleName || 'Akun'} tone="primary" />
+      <StatusBadge label={user.roleName || "Akun"} tone="primary" />
       <h3>{user.name}</h3>
       <p>{user.email}</p>
       <div class="profile-fact-row">
@@ -129,7 +137,11 @@
           <span><i class="fas fa-building"></i>{user.department}</span>
         {/if}
         {#if user.joinedAt}
-          <span><i class="fas fa-calendar-days"></i>Bergabung {formatJoinedDate(user.joinedAt)}</span>
+          <span
+            ><i class="fas fa-calendar-days"></i>Bergabung {formatJoinedDate(
+              user.joinedAt,
+            )}</span
+          >
         {/if}
       </div>
     </div>
@@ -143,7 +155,7 @@
   </div>
 </section>
 
-{#if passwordForm.status === 'password-updated'}
+{#if passwordForm.status === "password-updated"}
   <section class="profile-banner profile-banner-success animate-fadeIn">
     <i class="fas fa-circle-check"></i>
     <div>
@@ -154,13 +166,20 @@
 {/if}
 
 <div class="profile-grid">
-  <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+  <Card.Root
+    class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+  >
     <Card.Header class="border-b border-border/70 pb-4">
       <PageHeader {title} {description} icon="fas fa-user-pen" />
     </Card.Header>
 
     <Card.Content class="pt-5">
-      <form action={profileForm.action} method="POST" enctype="multipart/form-data" class="profile-form">
+      <form
+        action={profileForm.action}
+        method="POST"
+        enctype="multipart/form-data"
+        class="profile-form"
+      >
         <input type="hidden" name="_token" value={profileForm.csrfToken} />
         {#if profileForm.spoofMethod}
           <input type="hidden" name="_method" value={profileForm.spoofMethod} />
@@ -168,12 +187,19 @@
 
         <section class="profile-upload-shell">
           <div class="profile-upload-preview">
-            <img src={previewUrl || fallbackAvatar(user.name)} alt={user.name} onerror={handleImageError} />
+            <img
+              src={previewUrl || fallbackAvatar(user.name)}
+              alt={user.name}
+              onerror={handleImageError}
+            />
           </div>
 
           <div class="profile-upload-copy">
             <strong>Foto profil</strong>
-            <p>Gunakan gambar wajah yang jelas. Format JPG, PNG, GIF, atau WebP hingga 2MB.</p>
+            <p>
+              Gunakan gambar wajah yang jelas. Format JPG, PNG, GIF, atau WebP
+              hingga 2MB.
+            </p>
 
             <input
               bind:this={avatarInput}
@@ -191,7 +217,11 @@
               </Button>
 
               {#if removeAvatarAction}
-                <Button type="button" variant="destructive" onclick={confirmRemoveAvatar}>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onclick={confirmRemoveAvatar}
+                >
                   <i class="fas fa-trash"></i>
                   <span>Hapus Foto</span>
                 </Button>
@@ -199,7 +229,9 @@
             </div>
 
             {#if profileForm.errors.avatar}
-              <div class="profile-error" role="alert">{profileForm.errors.avatar}</div>
+              <div class="profile-error" role="alert">
+                {profileForm.errors.avatar}
+              </div>
             {/if}
           </div>
         </section>
@@ -212,11 +244,13 @@
             name="name"
             class="profile-input"
             aria-invalid={Boolean(profileForm.errors.name)}
-            value={profileForm.values?.name || ''}
+            value={profileForm.values?.name || ""}
             required
           />
           {#if profileForm.errors.name}
-            <div class="profile-error" role="alert">{profileForm.errors.name}</div>
+            <div class="profile-error" role="alert">
+              {profileForm.errors.name}
+            </div>
           {/if}
         </div>
 
@@ -231,9 +265,16 @@
   </Card.Root>
 
   <section class="profile-side">
-    <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Root
+      class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Header class="border-b border-border/70 pb-4">
-        <PageHeader title="Informasi Akun" icon="fas fa-id-card" compact={true} headingTag="h3" />
+        <PageHeader
+          title="Informasi Akun"
+          icon="fas fa-id-card"
+          compact={true}
+          headingTag="h3"
+        />
       </Card.Header>
 
       <Card.Content class="profile-facts pt-5">
@@ -260,16 +301,31 @@
       </Card.Content>
     </Card.Root>
 
-    <Card.Root class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none">
+    <Card.Root
+      class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+    >
       <Card.Header class="border-b border-border/70 pb-4">
-        <PageHeader title="Ubah Password" icon="fas fa-key" compact={true} headingTag="h3" />
+        <PageHeader
+          title="Ubah Password"
+          icon="fas fa-key"
+          compact={true}
+          headingTag="h3"
+        />
       </Card.Header>
 
       <Card.Content class="pt-5">
-        <form action={passwordForm.action} method="POST" class="profile-password-form">
+        <form
+          action={passwordForm.action}
+          method="POST"
+          class="profile-password-form"
+        >
           <input type="hidden" name="_token" value={passwordForm.csrfToken} />
           {#if passwordForm.spoofMethod}
-            <input type="hidden" name="_method" value={passwordForm.spoofMethod} />
+            <input
+              type="hidden"
+              name="_method"
+              value={passwordForm.spoofMethod}
+            />
           {/if}
 
           <div class="profile-field">
@@ -284,7 +340,9 @@
               required
             />
             {#if passwordForm.errors.current_password}
-              <div class="profile-error" role="alert">{passwordForm.errors.current_password}</div>
+              <div class="profile-error" role="alert">
+                {passwordForm.errors.current_password}
+              </div>
             {/if}
           </div>
 
@@ -299,14 +357,20 @@
               autocomplete="new-password"
               required
             />
-            <small class="profile-password-help">Minimal 8 karakter dan harus berbeda dari password lama.</small>
+            <small class="profile-password-help"
+              >Minimal 8 karakter dan harus berbeda dari password lama.</small
+            >
             {#if passwordForm.errors.password}
-              <div class="profile-error" role="alert">{passwordForm.errors.password}</div>
+              <div class="profile-error" role="alert">
+                {passwordForm.errors.password}
+              </div>
             {/if}
           </div>
 
           <div class="profile-field">
-            <Label for="profile-password-confirmation">Konfirmasi Password Baru</Label>
+            <Label for="profile-password-confirmation"
+              >Konfirmasi Password Baru</Label
+            >
             <Input
               id="profile-password-confirmation"
               type="password"
@@ -317,7 +381,9 @@
               required
             />
             {#if passwordForm.errors.password_confirmation}
-              <div class="profile-error" role="alert">{passwordForm.errors.password_confirmation}</div>
+              <div class="profile-error" role="alert">
+                {passwordForm.errors.password_confirmation}
+              </div>
             {/if}
           </div>
 
@@ -334,7 +400,12 @@
 </div>
 
 {#if removeAvatarAction}
-  <form bind:this={removeAvatarForm} action={removeAvatarAction.action} method="POST" hidden>
+  <form
+    bind:this={removeAvatarForm}
+    action={removeAvatarAction.action}
+    method="POST"
+    hidden
+  >
     <input type="hidden" name="_token" value={removeAvatarAction.csrfToken} />
     <input type="hidden" name="_method" value="DELETE" />
   </form>
@@ -549,9 +620,9 @@
       width: 100%;
     }
 
-    .profile-upload-actions :global([data-slot='button']),
-    .profile-actions :global([data-slot='button']),
-    .profile-hero-actions :global([data-slot='button']) {
+    .profile-upload-actions :global([data-slot="button"]),
+    .profile-actions :global([data-slot="button"]),
+    .profile-hero-actions :global([data-slot="button"]) {
       width: 100%;
     }
   }

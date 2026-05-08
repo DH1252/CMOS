@@ -22,13 +22,15 @@
     }
 @endphp
 <!DOCTYPE html>
-<html lang="id" data-theme="{{ $isPublicRoute ? 'public' : 'dark' }}" data-brand="{{ $themeColor }}"@if($landingStyle) style="{{ $landingStyle }}"@endif>
+<html lang="id" data-theme="{{ $isPublicRoute ? 'public' : 'dark' }}" data-brand="{{ $themeColor }}" data-js="false"@if($landingStyle) style="{{ $landingStyle }}"@endif>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
         (() => {
+            document.documentElement.setAttribute('data-js', 'true');
+
             try {
                 const theme = localStorage.getItem('cmos-theme');
 

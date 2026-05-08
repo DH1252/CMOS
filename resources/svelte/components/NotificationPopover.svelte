@@ -1,17 +1,17 @@
 <script>
-  import * as Popover from '$lib/components/ui/popover/index.js';
+  import * as Popover from "$lib/components/ui/popover/index.js";
 
   let {
     open = $bindable(false),
     unreadCount = 0,
     notifications = [],
     isLoading = false,
-    csrfToken = '',
+    csrfToken = "",
     links = {},
     endpoints = {},
-    formatTime = (value) => value || '',
-    toneForNotification = () => '',
-    iconForNotification = () => 'fas fa-bell',
+    formatTime = (value) => value || "",
+    toneForNotification = () => "",
+    iconForNotification = () => "fas fa-bell",
     onOpenChange = () => {},
     onClearAll = async () => {},
     onClearOne = async () => {},
@@ -24,7 +24,7 @@
 
   const formatNotificationTime = (value) => {
     if (!value) {
-      return '';
+      return "";
     }
 
     const date = new Date(value);
@@ -33,12 +33,12 @@
       return value;
     }
 
-    return date.toLocaleString('id-ID', {
-      timeZone: 'Asia/Jakarta',
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -90,7 +90,11 @@
 <Popover.Root bind:open>
   <Popover.Trigger>
     {#snippet child({ props })}
-      <button {...props} class={`shell-action-btn ${props.class || ''}`} aria-label="Notifikasi">
+      <button
+        {...props}
+        class={`shell-action-btn ${props.class || ""}`}
+        aria-label="Notifikasi"
+      >
         <i class="fas fa-bell" aria-hidden="true"></i>
         {#if unreadCount > 0}
           <span class="shell-badge">{unreadCount}</span>
@@ -99,14 +103,23 @@
     {/snippet}
   </Popover.Trigger>
 
-  <Popover.Content align="end" sideOffset={10} class="w-[min(22rem,calc(100vw-1.5rem))] gap-0 p-0">
+  <Popover.Content
+    align="end"
+    sideOffset={10}
+    class="w-[min(22rem,calc(100vw-1.5rem))] gap-0 p-0"
+  >
     <div class="shell-popover-header">
       <div>
         <strong>Notifikasi</strong>
       </div>
       <div class="shell-header-actions">
-        <button type="button" class="shell-text-btn shell-text-btn-danger" onclick={clearAll} disabled={isClearingAll || notifications.length < 1}>
-          {isClearingAll ? 'Membersihkan...' : 'Bersihkan'}
+        <button
+          type="button"
+          class="shell-text-btn shell-text-btn-danger"
+          onclick={clearAll}
+          disabled={isClearingAll || notifications.length < 1}
+        >
+          {isClearingAll ? "Membersihkan..." : "Bersihkan"}
         </button>
       </div>
     </div>
@@ -119,8 +132,15 @@
       <div class="shell-notification-list">
         {#each notifications as notification (notification.id || `${notification.type}-${notification.created_at}-${notification.title}`)}
           <div class="shell-notification-row">
-            <button type="button" class="shell-notification-item" onclick={() => navigate(notification.href || links.notifications || '#')}>
-              <span class={`shell-notification-icon ${toneForNotification(notification.type)}`}>
+            <button
+              type="button"
+              class="shell-notification-item"
+              onclick={() =>
+                navigate(notification.href || links.notifications || "#")}
+            >
+              <span
+                class={`shell-notification-icon ${toneForNotification(notification.type)}`}
+              >
                 <i class={iconForNotification(notification.type)}></i>
               </span>
               <span class="shell-notification-copy">
@@ -144,7 +164,11 @@
       </div>
     {/if}
 
-    <button type="button" class="shell-popover-footer" onclick={() => navigate(links.notifications || '#')}>
+    <button
+      type="button"
+      class="shell-popover-footer"
+      onclick={() => navigate(links.notifications || "#")}
+    >
       Lihat semua notifikasi
     </button>
   </Popover.Content>
@@ -162,7 +186,9 @@
     display: inline-grid;
     place-items: center;
     cursor: pointer;
-    transition: background 160ms ease, border-color 160ms ease;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease;
   }
 
   .shell-action-btn:hover {
