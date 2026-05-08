@@ -1,21 +1,19 @@
 import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
-import LandingPage from "../svelte/LandingPage.svelte";
-import PublicApp from "../svelte/PublicApp.svelte";
 
 const pages = {
-	LandingPage: { default: LandingPage },
-	PublicApp: { default: PublicApp },
+	LandingPage: () => import("../svelte/LandingPage.svelte"),
+	PublicApp: () => import("../svelte/PublicApp.svelte"),
 };
 
-const resolvePublicPage = (name) => {
-	const page = pages[name];
+const resolvePublicPage = async (name) => {
+	const importer = pages[name];
 
-	if (!page) {
+	if (!importer) {
 		throw new Error(`Unknown Inertia page: ${name}`);
 	}
 
-	return page;
+	return importer();
 };
 
 const applyBrandTheme = (themeName) => {
