@@ -76,6 +76,23 @@
     $landingProgramGroups = collect($landingProgramSection['groups'] ?? []);
     $landingLatestInfo = collect($landingProps['latestInfo'] ?? []);
     $landingFooterSections = collect($landingFooter['sections'] ?? []);
+    $resolveImageUrl = static function ($image): ?string {
+        if (is_string($image) && $image !== '') {
+            return $image;
+        }
+
+        if (is_array($image)) {
+            foreach (['original', 'webp', 'avif'] as $key) {
+                $value = $image[$key] ?? null;
+
+                if (is_string($value) && $value !== '') {
+                    return $value;
+                }
+            }
+        }
+
+        return null;
+    };
 
     if (Schema::hasTable('information_boards')) {
         if ($isInfoIndex) {
@@ -232,9 +249,12 @@
                     @else
                         <div class="no-js-stack" style="margin-top: 1.5rem;">
                             @foreach ($landingLatestInfo as $article)
+                                @php
+                                    $articleCoverImage = $resolveImageUrl($article['coverImage'] ?? null);
+                                @endphp
                                 <article class="no-js-article">
-                                    @if (! empty($article['coverImage']))
-                                        <img src="{{ $article['coverImage'] }}" alt="{{ $article['title'] ?? 'Artikel' }}" loading="lazy" decoding="async">
+                                    @if (! empty($articleCoverImage))
+                                        <img src="{{ $articleCoverImage }}" alt="{{ $article['title'] ?? 'Artikel' }}" loading="lazy" decoding="async">
                                     @endif
                                     <div class="no-js-meta">{{ $article['publishedAtLabel'] ?? 'Publikasi baru' }} · {{ $article['category'] ?? 'Papan Informasi' }}</div>
                                     <h3 class="no-js-article-title"><a href="{{ $article['url'] ?? route('informasi.index') }}">{{ $article['title'] ?? 'Artikel' }}</a></h3>
