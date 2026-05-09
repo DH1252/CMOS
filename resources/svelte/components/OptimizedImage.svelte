@@ -27,11 +27,19 @@
   );
 
   const intrinsicWidth = $derived(
-    typeof enhancedImage?.w === "number" ? enhancedImage.w : null,
+    typeof enhancedImage?.w === "number"
+      ? enhancedImage.w
+      : typeof src?.width === "number"
+        ? src.width
+        : null,
   );
 
   const intrinsicHeight = $derived(
-    typeof enhancedImage?.h === "number" ? enhancedImage.h : null,
+    typeof enhancedImage?.h === "number"
+      ? enhancedImage.h
+      : typeof src?.height === "number"
+        ? src.height
+        : null,
   );
 
   const hasOptimizedSources = $derived(
@@ -99,6 +107,8 @@
     src={originalSrc}
     {alt}
     class={className}
+    width={intrinsicWidth}
+    height={intrinsicHeight}
     {loading}
     {decoding}
     {fetchpriority}

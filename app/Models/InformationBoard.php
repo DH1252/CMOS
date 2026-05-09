@@ -75,7 +75,7 @@ class InformationBoard extends Model
     }
 
     /**
-     * @return array{original: string|null, webp: string|null, avif: string|null}|null
+     * @return array{original: string|null, webp: string|null, avif: string|null, width: int|null, height: int|null}|null
      */
     public function getCoverImageOptimizedAttribute(): ?array
     {
@@ -86,11 +86,14 @@ class InformationBoard extends Model
         }
 
         $optimizeUrl = route('images.optimize', ['path' => $this->cover_image]);
+        $dimensions = @getimagesize(Storage::disk('public')->path($this->cover_image)) ?: [null, null];
 
         return [
             'original' => $original,
             'webp' => $optimizeUrl.'?f=webp',
             'avif' => $optimizeUrl.'?f=avif',
+            'width' => is_int($dimensions[0] ?? null) ? $dimensions[0] : null,
+            'height' => is_int($dimensions[1] ?? null) ? $dimensions[1] : null,
         ];
     }
 
