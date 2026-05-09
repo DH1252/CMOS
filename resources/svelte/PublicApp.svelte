@@ -343,17 +343,12 @@
 
   :global(.landing-frame__media img) {
     display: block;
-    transition: filter 320ms var(--ease-out-quart);
     filter: grayscale(0.3) contrast(1.08);
   }
 
   :global(.landing-feature-link:hover),
   :global(.landing-frame:hover) {
     background: var(--landing-terminal-panel-soft-resolved);
-  }
-
-  :global(.landing-frame:hover .landing-frame__media img) {
-    filter: grayscale(0) contrast(1.02);
   }
 
   :global(.landing-frame__caption) {
