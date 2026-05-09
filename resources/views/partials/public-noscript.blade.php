@@ -76,6 +76,26 @@
     $landingProgramGroups = collect($landingProgramSection['groups'] ?? []);
     $landingLatestInfo = collect($landingProps['latestInfo'] ?? []);
     $landingFooterSections = collect($landingFooter['sections'] ?? []);
+    $landingGallery = [
+        [
+            'src' => asset('images/himatekkom.jpg'),
+            'alt' => 'Dokumentasi kegiatan mahasiswa Teknik Komputer ITS',
+            'label' => 'lab',
+            'value' => '/workspace',
+        ],
+        [
+            'src' => asset('images/flare.jpg'),
+            'alt' => 'Aksen visual identitas publikasi HIMATEKKOM ITS',
+            'label' => 'kolaborasi',
+            'value' => '/tim',
+        ],
+        [
+            'src' => asset('images/logokabinet.png'),
+            'alt' => 'Logo kabinet Sentra Sinergi HIMATEKKOM ITS',
+            'label' => 'gedung',
+            'value' => '/teknik komputer',
+        ],
+    ];
     $resolveImageUrl = static function ($image): ?string {
         if (is_string($image) && $image !== '') {
             return $image;
@@ -131,10 +151,10 @@
     <header class="no-js-header">
         <div class="no-js-header-inner">
             <a href="{{ route('home') }}" class="no-js-brand">
-                <img src="{{ asset('images/logokabinet.png') }}" alt="{{ $resolvedAppName }}">
+                <img src="{{ asset('images/logokabinet.png') }}" alt="{{ $organizationName }}">
                 <div class="no-js-brand-copy">
-                    <span class="no-js-brand-title">{{ $resolvedAppName }}</span>
-                    <span class="no-js-brand-subtitle">HIMATEKKOM ITS</span>
+                    <span class="no-js-brand-title">{{ $organizationName }}</span>
+                    <span class="no-js-brand-subtitle">Kabinet Sentra Sinergi 2026</span>
                 </div>
             </a>
 
@@ -155,118 +175,155 @@
     <main id="main-content" class="no-js-main">
         @if ($isHome)
             <div class="no-js-stack">
-                <section class="no-js-section">
-                    <h1 class="no-js-title">{{ $landingHeroTitle }}</h1>
-                    <p class="no-js-copy">{{ $landingHero['description'] ?? '' }}</p>
-
-                    @if ($landingHeroActions->isNotEmpty())
-                        <div class="no-js-actions">
-                            @foreach ($landingHeroActions as $action)
-                                <a href="{{ $action['href'] ?? '#' }}" class="no-js-button {{ ($action['variant'] ?? 'primary') === 'primary' ? 'no-js-button-primary' : '' }}">{{ $action['label'] ?? 'Buka' }}</a>
-                            @endforeach
+                <section class="no-js-hero no-js-section">
+                    <div class="no-js-hero-copy">
+                        <div class="no-js-hero-title-wrap">
+                            <h1 class="no-js-title">{{ $landingHeroTitle }}</h1>
+                            <p class="no-js-copy">{{ $landingHero['description'] ?? '' }}</p>
                         </div>
-                    @endif
 
-                    @if ($landingQuickFacts->isNotEmpty())
-                        <div class="no-js-stack" style="margin-top: 1.5rem;">
-                            @foreach ($landingQuickFacts as $fact)
-                                <div class="no-js-card">
-                                    <div class="no-js-meta">$</div>
-                                    <p class="no-js-copy">{{ $fact }}</p>
+                        @if ($landingHeroActions->isNotEmpty())
+                            <div class="no-js-actions">
+                                @foreach ($landingHeroActions as $action)
+                                    <a href="{{ $action['href'] ?? '#' }}" class="no-js-button {{ ($action['variant'] ?? 'primary') === 'primary' ? 'no-js-button-primary' : 'no-js-button-secondary' }}">{{ $action['label'] ?? 'Buka' }}</a>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        @if ($landingQuickFacts->isNotEmpty())
+                            <div class="no-js-command-block">
+                                @foreach ($landingQuickFacts as $fact)
+                                    <div class="no-js-command-row">
+                                        <div class="no-js-command-index">$</div>
+                                        <p class="no-js-copy">{{ $fact }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="no-js-hero-visual">
+                        <figure class="no-js-canvas-frame">
+                            <div class="no-js-canvas-head">
+                                <span>Kabinet logo</span>
+                                <span>ASCII ready</span>
+                            </div>
+                            <div class="no-js-canvas-media">
+                                <img src="{{ asset('images/logokabinet.png') }}" alt="Logo Kabinet Sentra Sinergi dalam ASCII art">
+                            </div>
+                            <figcaption class="no-js-canvas-caption">
+                                <span>render /logo</span>
+                                <span>image-to-ascii</span>
+                            </figcaption>
+                        </figure>
+                    </div>
+                </section>
+
+                <section class="no-js-gallery-strip no-js-section">
+                    <div class="no-js-gallery-grid">
+                        @foreach ($landingGallery as $image)
+                            <figure class="no-js-frame">
+                                <div class="no-js-frame-media">
+                                    <img src="{{ $image['src'] }}" alt="{{ $image['alt'] }}" loading="lazy" decoding="async">
                                 </div>
-                            @endforeach
+                                <figcaption class="no-js-frame-caption">
+                                    <span>{{ $image['label'] }}</span>
+                                    <span>{{ $image['value'] }}</span>
+                                </figcaption>
+                            </figure>
+                        @endforeach
+                    </div>
+                </section>
+
+                <section id="profil" class="no-js-section no-js-panel">
+                    <div class="no-js-section-head">
+                        <div>
+                            <h2 class="no-js-section-title">{{ $landingProfileSection['title'] ?? 'Profil organisasi' }}</h2>
+                            <p class="no-js-copy">{{ $landingProfileSection['description'] ?? '' }}</p>
                         </div>
+                        <div class="no-js-kicker">{{ $landingProfileSection['visionLabel'] ?? 'Visi' }}</div>
+                    </div>
+
+                    <p class="no-js-copy">{{ $landingProfileSection['vision'] ?? '' }}</p>
+
+                    @if ($landingMissionItems->isNotEmpty())
+                        <ol class="no-js-ordered-list">
+                            @foreach ($landingMissionItems as $index => $mission)
+                                <li class="no-js-list-item">
+                                    <div class="no-js-command-index">0{{ $index + 1 }}</div>
+                                    <p class="no-js-copy">{{ $mission }}</p>
+                                </li>
+                            @endforeach
+                        </ol>
                     @endif
                 </section>
 
-                <div class="no-js-grid no-js-grid-index">
-                    <section id="profil" class="no-js-section">
-                        <h2 class="no-js-title" style="font-size: 1.8rem;">{{ $landingProfileSection['title'] ?? 'Profil organisasi' }}</h2>
-                        <p class="no-js-copy">{{ $landingProfileSection['description'] ?? '' }}</p>
-
-                        <div class="no-js-stack" style="margin-top: 1.5rem;">
-                            <div>
-                                <div class="no-js-kicker">{{ $landingProfileSection['visionLabel'] ?? 'Visi' }}</div>
-                                <p class="no-js-copy">{{ $landingProfileSection['vision'] ?? '' }}</p>
-                            </div>
-
-                            @if ($landingMissionItems->isNotEmpty())
-                                <div>
-                                    <h3 class="no-js-article-title">{{ $landingProfileSection['missionTitle'] ?? 'Misi kerja' }}</h3>
-                                    <div class="no-js-stack" style="margin-top: 1rem;">
-                                        @foreach ($landingMissionItems as $index => $mission)
-                                            <div class="no-js-card">
-                                                <div class="no-js-meta">0{{ $index + 1 }}</div>
-                                                <p class="no-js-copy">{{ $mission }}</p>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
+                <section id="program-kerja" class="no-js-section no-js-panel">
+                    <div class="no-js-section-head no-js-section-head-inline">
+                        <div>
+                            <h2 class="no-js-section-title">{{ $landingProgramSection['title'] ?? 'Program kerja kabinet' }}</h2>
+                            @if (! empty($landingProgramSection['description']))
+                                <p class="no-js-copy">{{ $landingProgramSection['description'] }}</p>
                             @endif
                         </div>
-                    </section>
+                    </div>
 
-                    <section id="program-kerja" class="no-js-section">
-                        <h2 class="no-js-title" style="font-size: 1.8rem;">{{ $landingProgramSection['title'] ?? 'Program kerja kabinet' }}</h2>
-                        @if (! empty($landingProgramSection['description']))
-                            <p class="no-js-copy">{{ $landingProgramSection['description'] }}</p>
-                        @endif
-
-                        <div class="no-js-stack" style="margin-top: 1.5rem;">
-                            @foreach ($landingProgramGroups as $group)
-                                <section class="no-js-card">
+                    <div class="no-js-program-grid">
+                        @foreach ($landingProgramGroups as $group)
+                            <section class="no-js-panel no-js-panel-sub">
+                                <div class="no-js-section-head">
                                     <h3 class="no-js-article-title">{{ $group['title'] ?? 'Program' }}</h3>
                                     <p class="no-js-copy">{{ $group['description'] ?? '' }}</p>
+                                </div>
 
-                                    @if (! empty($group['items']))
-                                        <div class="no-js-stack" style="margin-top: 1rem;">
-                                            @foreach ($group['items'] as $item)
-                                                <article class="no-js-article">
-                                                    <div class="no-js-meta">{{ $item['unit'] ?? '-' }}</div>
-                                                    <h4 class="no-js-article-title">{{ $item['name'] ?? 'Item' }}</h4>
-                                                    <p class="no-js-copy">{{ $item['description'] ?? '' }}</p>
-                                                </article>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </section>
-                            @endforeach
-                        </div>
-                    </section>
-                </div>
+                                @if (! empty($group['items']))
+                                    <div class="no-js-stack">
+                                        @foreach ($group['items'] as $item)
+                                            <article class="no-js-article no-js-article-tight">
+                                                <div class="no-js-meta">{{ $item['unit'] ?? '-' }}</div>
+                                                <h4 class="no-js-article-title">{{ $item['name'] ?? 'Item' }}</h4>
+                                                <p class="no-js-copy">{{ $item['description'] ?? '' }}</p>
+                                            </article>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </section>
+                        @endforeach
+                    </div>
+                </section>
 
-                <section id="informasi" class="no-js-section">
-                    <div class="no-js-actions" style="margin-top: 0; justify-content: space-between; align-items: center;">
+                <section id="informasi" class="no-js-section no-js-panel">
+                    <div class="no-js-section-head no-js-section-head-inline">
                         <div>
-                            <h2 class="no-js-title" style="font-size: 1.8rem;">{{ $landingInformationSection['title'] ?? 'Informasi terbaru' }}</h2>
+                            <h2 class="no-js-section-title">{{ $landingInformationSection['title'] ?? 'Informasi terbaru' }}</h2>
                             <p class="no-js-copy">{{ $landingInformationSection['description'] ?? '' }}</p>
                         </div>
                         <a href="{{ route('informasi.index') }}" class="no-js-link">{{ $landingInformationSection['archiveLabel'] ?? 'Arsip lengkap' }}</a>
                     </div>
 
                     @if ($landingLatestInfo->isEmpty())
-                        <div class="no-js-empty" style="margin-top: 1.5rem;">{{ $landingInformationSection['emptyText'] ?? 'Belum ada publikasi yang terbit di papan informasi.' }}</div>
+                        <div class="no-js-empty">{{ $landingInformationSection['emptyText'] ?? 'Belum ada publikasi yang terbit di papan informasi.' }}</div>
                     @else
-                        <div class="no-js-stack" style="margin-top: 1.5rem;">
+                        <div class="no-js-stack">
                             @foreach ($landingLatestInfo as $article)
                                 @php
                                     $articleCoverImage = $resolveImageUrl($article['coverImage'] ?? null);
                                 @endphp
-                                <article class="no-js-article">
+                                <a href="{{ $article['url'] ?? route('informasi.index') }}" class="no-js-article no-js-article-link">
                                     @if (! empty($articleCoverImage))
                                         <img src="{{ $articleCoverImage }}" alt="{{ $article['title'] ?? 'Artikel' }}" loading="lazy" decoding="async">
                                     @endif
                                     <div class="no-js-meta">{{ $article['publishedAtLabel'] ?? 'Publikasi baru' }} · {{ $article['category'] ?? 'Papan Informasi' }}</div>
-                                    <h3 class="no-js-article-title"><a href="{{ $article['url'] ?? route('informasi.index') }}">{{ $article['title'] ?? 'Artikel' }}</a></h3>
+                                    <h3 class="no-js-article-title">{{ $article['title'] ?? 'Artikel' }}</h3>
                                     <p class="no-js-copy">{{ $article['excerpt'] ?? '' }}</p>
-                                </article>
+                                </a>
                             @endforeach
                         </div>
                     @endif
                 </section>
 
-                <section class="no-js-section">
-                    <h2 class="no-js-title" style="font-size: 1.8rem;">{{ $landingCtaSection['title'] ?? 'Kabinet Sentra Sinergi' }}</h2>
+                <section class="no-js-section no-js-panel no-js-cta">
+                    <h2 class="no-js-section-title">{{ $landingCtaSection['title'] ?? 'Kabinet Sentra Sinergi' }}</h2>
                     <p class="no-js-copy">{{ $landingCtaSection['description'] ?? '' }}</p>
                     <div class="no-js-actions">
                         <a href="#informasi" class="no-js-button no-js-button-primary">{{ $landingCtaSection['buttonLabel'] ?? 'Jelajahi arsip publik' }}</a>
@@ -278,17 +335,19 @@
                     </p>
                 </section>
 
-                <section class="no-js-section">
-                    <h2 class="no-js-title" style="font-size: 1.6rem;">{{ $organizationName }}</h2>
-                    <p class="no-js-copy">{{ $landingFooter['description'] ?? '' }}</p>
-                    <p class="no-js-copy">{{ $landingFooter['address'] ?? '' }}</p>
+                <footer class="no-js-footer no-js-panel">
+                    <div class="no-js-footer-primary">
+                        <h2 class="no-js-section-title">{{ $organizationName }}</h2>
+                        <p class="no-js-copy">{{ $landingFooter['description'] ?? '' }}</p>
+                        <p class="no-js-copy">{{ $landingFooter['address'] ?? '' }}</p>
+                    </div>
 
                     @if ($landingFooterSections->isNotEmpty())
-                        <div class="no-js-grid no-js-grid-index" style="margin-top: 1.5rem;">
+                        <div class="no-js-footer-grid">
                             @foreach ($landingFooterSections as $section)
-                                <div class="no-js-card">
+                                <div>
                                     <h3 class="no-js-article-title">{{ $section['title'] ?? 'Navigasi' }}</h3>
-                                    <div class="no-js-stack" style="margin-top: 1rem;">
+                                    <div class="no-js-stack no-js-footer-links">
                                         @foreach ($section['links'] ?? [] as $link)
                                             <a href="{{ $link['href'] ?? '#' }}" class="no-js-link">{{ $link['label'] ?? 'Tautan' }}</a>
                                         @endforeach
@@ -297,7 +356,7 @@
                             @endforeach
                         </div>
                     @endif
-                </section>
+                </footer>
             </div>
         @elseif ($isInfoIndex)
             <div class="no-js-stack">
