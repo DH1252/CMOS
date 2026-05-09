@@ -209,32 +209,6 @@ class DepartmentController extends Controller
                             })->values(),
                             'emptyText' => 'Belum ada anggota.',
                         ],
-                        [
-                            'kind' => 'table',
-                            'title' => 'Program Kerja',
-                            'icon' => 'fas fa-diagram-project',
-                            'columns' => [
-                                ['label' => 'Nama Proker'],
-                                ['label' => 'Periode'],
-                                ['label' => 'Status'],
-                            ],
-                            'rows' => $department->programs->map(function ($program) {
-                                return [
-                                    'cells' => [
-                                        ['type' => 'text', 'text' => $program->name, 'href' => route('programs.show', $program), 'className' => 'fw-semibold'],
-                                        ['type' => 'text', 'text' => $program->start_date->format('d M').' - '.$program->end_date->format('d M Y'), 'muted' => true],
-                                        ['type' => 'badge', 'label' => ucfirst($program->status), 'tone' => match ($program->status) {
-                                            'completed' => 'success',
-                                            'active' => 'warning',
-                                            'cancelled' => 'danger',
-                                            default => 'secondary',
-                                        }],
-                                    ],
-                                ];
-                            })->values(),
-                            'emptyText' => 'Belum ada program kerja.',
-                            'spacingClass' => 'mb-0',
-                        ],
                     ],
                 ];
 
