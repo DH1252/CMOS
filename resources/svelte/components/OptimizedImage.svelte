@@ -12,12 +12,33 @@
 
   const DEFAULT_WIDTHS = [320, 480, 640, 960, 1280, 1920];
 
+  /**
+   * @param {unknown} value
+   * @returns {value is Record<string, unknown>}
+   */
+  const isRecord = (value) => typeof value === "object" && value !== null;
+
+  const optimizedSources = $derived(
+    isRecord(src) && isRecord(src.sources) ? src.sources : null,
+  );
+
+  const enhancedImage = $derived(
+    isRecord(src) && isRecord(src.img) ? src.img : null,
+  );
+
   const hasOptimizedSources = $derived(
-    src && typeof src === "object" && (src.avif || src.webp),
+    Boolean(
+      optimizedSources?.avif ||
+      optimizedSources?.webp ||
+      src?.avif ||
+      src?.webp,
+    ),
   );
 
   const originalSrc = $derived(
-    typeof src === "string" ? src : (src?.original ?? null),
+    typeof src === "string"
+      ? src
+      : (enhancedImage?.src ?? src?.original ?? null),
   );
 
   /**
@@ -30,13 +51,17 @@
       return "";
     }
 
+    if (/\s\d+w(?:,|$)/.test(url)) {
+      return url;
+    }
+
     const sep = url.includes("?") ? "&" : "?";
 
     return widths.map((w) => `${url}${sep}w=${w} ${w}w`).join(", ");
   };
 
-  const avifSrcset = $derived(makeSrcset(src?.avif));
-  const webpSrcset = $derived(makeSrcset(src?.webp));
+  const avifSrcset = $derived(makeSrcset(optimizedSources?.avif ?? src?.avif));
+  const webpSrcset = $derived(makeSrcset(optimizedSources?.webp ?? src?.webp));
 </script>
 
 {#if hasOptimizedSources}

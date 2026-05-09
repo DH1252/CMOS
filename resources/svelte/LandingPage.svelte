@@ -26,7 +26,7 @@
     loginUrl = "/login",
     infoUrl = "/informasi",
     latestInfo = [],
-    logoUrl = brandLogo.original ?? brandLogo,
+    logoUrl = brandLogo.img?.src ?? brandLogo.original ?? brandLogo,
     navigation = null,
     hero = null,
     quickFacts = null,
@@ -1219,7 +1219,7 @@
     border-bottom: 1px solid var(--landing-terminal-line-resolved);
   }
 
-  .landing-frame__media img {
+  .landing-frame__media :global(img) {
     display: block;
     transition: filter 320ms var(--ease-out-quart);
     filter: grayscale(0.3) contrast(1.08);
@@ -1229,7 +1229,7 @@
     background: var(--landing-terminal-panel-soft-resolved);
   }
 
-  .landing-frame:hover .landing-frame__media img {
+  .landing-frame:hover .landing-frame__media :global(img) {
     filter: grayscale(0) contrast(1.02);
   }
 
