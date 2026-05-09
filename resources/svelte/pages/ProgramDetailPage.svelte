@@ -5,21 +5,27 @@
     submitConfirmedForm,
   } from "$lib/confirmable-form.js";
   import * as Card from "$lib/components/ui/card/index.js";
+  import FormActions from "../components/FormActions.svelte";
+  import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { Progress } from "$lib/components/ui/progress/index.js";
   import DataTable from "../components/DataTable.svelte";
   import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
   import PageHeader from "../components/PageHeader.svelte";
   import StatusBadge from "../components/StatusBadge.svelte";
+  import { Textarea } from "$lib/components/ui/textarea/index.js";
 
   let {
     summary = {},
+    editor = null,
     pics = {},
     team = {},
     tasks = {},
     timelines = {},
     csrfToken = "",
   } = $props();
+
+  const editorFormId = "program-editor-form";
 
   const submitRemoval = async (event, memberName) => {
     const form = event.currentTarget;
@@ -45,6 +51,44 @@
       if (result.isConfirmed) {
         submitConfirmedForm(form);
       }
+      return;
+    }
+
+    if (window.confirm(text)) {
+      submitConfirmedForm(form);
+    }
+  };
+
+  const submitDangerAction = async (event, action) => {
+    const form = event.currentTarget;
+
+    if (shouldSkipFormConfirmation(form)) {
+      return;
+    }
+
+    if (!action?.confirm) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const text =
+      action.confirmText || `Lanjutkan tindakan untuk ${action.confirm}?`;
+
+    if (window.Swal) {
+      const result = await window.Swal.fire({
+        title: action.confirmTitle || "Konfirmasi",
+        text,
+        icon: action.confirmIcon || "warning",
+        showCancelButton: true,
+        confirmButtonText: action.confirmButtonText || "Lanjutkan",
+        cancelButtonText: "Batal",
+      });
+
+      if (result.isConfirmed) {
+        submitConfirmedForm(form);
+      }
+
       return;
     }
 
@@ -81,6 +125,17 @@
 
     event.currentTarget.src = nextSrc;
   };
+
+  const isSelected = (field, value) => {
+    if (Array.isArray(field.value)) {
+      return field.value.map(String).includes(String(value));
+    }
+
+    return String(field.value ?? "") === String(value);
+  };
+
+  const nativeSelectClass = (field) =>
+    `program-select ${field.multiple ? "program-select-multiple" : ""}`;
 </script>
 
 <div class="row">
@@ -139,9 +194,147 @@
               <span>{action.label}</span>
             </Button>
           {/each}
+
+          {#if summary.dangerAction}
+            <form
+              method="POST"
+              action={summary.dangerAction.action}
+              class="program-summary-danger-form"
+              onsubmit={(event) =>
+                submitDangerAction(event, summary.dangerAction)}
+            >
+              <input type="hidden" name="_token" value={csrfToken} />
+              {#if summary.dangerAction.method}
+                <input
+                  type="hidden"
+                  name="_method"
+                  value={summary.dangerAction.method}
+                />
+              {/if}
+
+              <Button type="submit" variant="destructive" class="flex-1">
+                {#if summary.dangerAction.icon}
+                  <i class={summary.dangerAction.icon}></i>
+                {/if}
+                <span>{summary.dangerAction.label}</span>
+              </Button>
+            </form>
+          {/if}
         </div>
       </Card.Content>
     </Card.Root>
+
+    {#if editor}
+      <section id="program-editor" class="mb-4">
+        <Card.Root
+          class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+        >
+          <Card.Header class="border-b border-border/70 pb-4">
+            <PageHeader
+              title={editor.title || "Editor Program"}
+              description={editor.description || ""}
+              icon="fas fa-pen"
+              compact={true}
+              headingTag="h3"
+            />
+          </Card.Header>
+          <Card.Content class="pt-5">
+            <form
+              id={editorFormId}
+              method="POST"
+              action={editor.form?.action || "#"}
+            >
+              <input
+                type="hidden"
+                name="_token"
+                value={editor.form?.csrfToken || csrfToken}
+              />
+              {#if editor.form?.method && editor.form.method !== "POST"}
+                <input
+                  type="hidden"
+                  name="_method"
+                  value={editor.form.method}
+                />
+              {/if}
+
+              <div class="program-editor-grid">
+                {#each editor.fields || [] as field, index (field.name || index)}
+                  <div
+                    class={`program-editor-field ${field.span === "half" ? "program-editor-field-half" : ""}`}
+                  >
+                    <Label for={field.name} class="program-editor-label">
+                      {field.label}
+                      {#if field.required}
+                        <span class="program-editor-required">*</span>
+                      {/if}
+                    </Label>
+
+                    {#if field.type === "textarea"}
+                      <Textarea
+                        id={field.name}
+                        name={field.name}
+                        rows={field.rows || 4}
+                        class="program-input program-textarea"
+                        aria-invalid={Boolean(field.error)}
+                        placeholder={field.placeholder || ""}
+                        value={field.value || ""}
+                      />
+                    {:else if field.type === "select"}
+                      <select
+                        id={field.name}
+                        name={field.name}
+                        class={nativeSelectClass(field)}
+                        aria-invalid={Boolean(field.error)}
+                        required={field.required}
+                        multiple={field.multiple}
+                      >
+                        {#if field.placeholder && !field.multiple}
+                          <option value="">{field.placeholder}</option>
+                        {/if}
+                        {#each field.options || [] as option, optionIndex (option.value || optionIndex)}
+                          <option
+                            value={option.value}
+                            selected={isSelected(field, option.value)}
+                            >{option.label}</option
+                          >
+                        {/each}
+                      </select>
+                    {:else}
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        type={field.type || "text"}
+                        class="program-input"
+                        aria-invalid={Boolean(field.error)}
+                        value={field.value || ""}
+                        placeholder={field.placeholder || ""}
+                        required={field.required}
+                        min={field.min}
+                        max={field.max}
+                      />
+                    {/if}
+
+                    {#if field.error}
+                      <div class="program-field-error" role="alert">
+                        {field.error}
+                      </div>
+                    {/if}
+                  </div>
+                {/each}
+              </div>
+            </form>
+
+            <FormActions
+              formId={editorFormId}
+              submitLabel={editor.form?.submitLabel || "Simpan"}
+              submitIcon={editor.form?.submitIcon || "fas fa-save"}
+              dangerAction={editor.dangerAction || null}
+              csrfToken={editor.form?.csrfToken || csrfToken}
+            />
+          </Card.Content>
+        </Card.Root>
+      </section>
+    {/if}
 
     <Card.Root
       class="animate-fadeIn mb-4 rounded-[10px] border border-border bg-card shadow-none"
@@ -498,6 +691,12 @@
     margin-top: 1.5rem;
   }
 
+  .program-summary-danger-form {
+    display: flex;
+    flex: 1 1 100%;
+    margin: 0;
+  }
+
   .program-member,
   .program-timeline {
     display: flex;
@@ -523,6 +722,43 @@
   .program-member-copy {
     display: grid;
     gap: 0.3rem;
+  }
+
+  .program-editor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .program-editor-field {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .program-editor-field-half {
+    grid-column: span 1;
+  }
+
+  .program-editor-label {
+    margin-bottom: 0;
+  }
+
+  .program-editor-required {
+    color: var(--signal-danger);
+  }
+
+  .program-input {
+    background: color-mix(in srgb, var(--panel-bg) 92%, white);
+  }
+
+  .program-textarea {
+    min-height: 8.5rem;
+  }
+
+  .program-field-error {
+    font-size: 0.86rem;
+    color: var(--signal-danger);
   }
 
   .program-inline-form {
@@ -553,6 +789,18 @@
       box-shadow 160ms ease;
   }
 
+  .program-select[aria-invalid="true"] {
+    border-color: color-mix(in srgb, var(--signal-danger) 45%, white);
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--signal-danger) 12%, transparent);
+  }
+
+  .program-select-multiple {
+    min-height: 8.5rem;
+    height: auto;
+    padding-block: 0.75rem;
+  }
+
   .program-select:focus {
     border-color: color-mix(in srgb, var(--brand-primary) 32%, white);
     box-shadow: 0 0 0 3px
@@ -576,6 +824,14 @@
   }
 
   @media (max-width: 767px) {
+    .program-editor-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .program-editor-field-half {
+      grid-column: 1 / -1;
+    }
+
     .program-member,
     .program-timeline,
     .detail-fact-row {

@@ -8,6 +8,7 @@ use App\Models\Program;
 use App\Models\User;
 use App\Services\PostHogService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class ProgramController extends Controller
 {
@@ -59,6 +60,7 @@ class ProgramController extends Controller
                     ],
                     'rows' => $programs->map(function ($program) use ($canManagePrograms) {
                         $progress = $program->progress;
+                        $programHref = route('programs.show', $program).($canManagePrograms ? '#program-editor' : '');
 
                         return [
                             'cells' => [
@@ -75,10 +77,12 @@ class ProgramController extends Controller
                                 }],
                                 [
                                     'type' => 'actions',
-                                    'items' => array_values(array_filter([
-                                        ['href' => route('programs.show', $program), 'label' => 'Detail', 'icon' => 'fas fa-eye', 'tone' => 'secondary'],
-                                        $canManagePrograms ? ['href' => route('programs.edit', $program), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'] : null,
-                                    ])),
+                                    'items' => [[
+                                        'href' => $programHref,
+                                        'label' => $canManagePrograms ? 'Kelola' : 'Detail',
+                                        'icon' => $canManagePrograms ? 'fas fa-pen' : 'fas fa-eye',
+                                        'tone' => $canManagePrograms ? 'primary' : 'secondary',
+                                    ]],
                                 ],
                             ],
                         ];
@@ -98,71 +102,28 @@ class ProgramController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->isKabinet()) {
-            $departments = Department::where('id', $user->department_id)->get();
-        } else {
-            $departments = Department::active()->get();
-        }
-
-        $users = User::active()->get();
+        $departments = $this->programDepartmentsFor($user);
 
         return \Inertia\Inertia::render(
             'pages/EntityFormPage',
-            (static function (array $__viewData): array {
-                extract($__viewData, EXTR_SKIP);
-
-                $props = [
-                    'title' => 'Form Tambah Program',
-                    'description' => 'Tetapkan identitas program, departemen pengampu, dan periode kerjanya sejak awal.',
-                    'icon' => 'fas fa-diagram-project',
-                    'form' => [
-                        'action' => route('programs.store'),
-                        'method' => 'POST',
-                        'csrfToken' => csrf_token(),
-                        'submitLabel' => 'Simpan',
-                        'submitIcon' => 'fas fa-save',
-                    ],
-                    'cancelAction' => [
-                        'href' => route('programs.index'),
-                        'label' => 'Kembali',
-                        'icon' => 'fas fa-arrow-left',
-                    ],
-                    'fields' => [
-                        ['name' => 'name', 'label' => 'Nama Program', 'type' => 'text', 'required' => true, 'value' => old('name'), 'error' => session('errors')?->first('name')],
-                        ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description'), 'error' => session('errors')?->first('description'), 'rows' => 3],
-                        [
-                            'name' => 'department_id',
-                            'label' => 'Departemen',
-                            'type' => 'select',
-                            'required' => true,
-                            'value' => old('department_id'),
-                            'error' => session('errors')?->first('department_id'),
-                            'placeholder' => '-- Pilih Departemen --',
-                            'span' => 'half',
-                            'options' => $departments->map(fn ($department) => ['value' => $department->id, 'label' => $department->name])->values(),
-                        ],
-                        [
-                            'name' => 'status',
-                            'label' => 'Status',
-                            'type' => 'select',
-                            'required' => true,
-                            'value' => old('status', 'planning'),
-                            'error' => session('errors')?->first('status'),
-                            'span' => 'half',
-                            'options' => [
-                                ['value' => 'planning', 'label' => 'Planning'],
-                                ['value' => 'active', 'label' => 'Active'],
-                                ['value' => 'completed', 'label' => 'Completed'],
-                                ['value' => 'cancelled', 'label' => 'Cancelled'],
-                            ],
-                        ],
-                        ['name' => 'start_date', 'label' => 'Tanggal Mulai', 'type' => 'date', 'required' => true, 'value' => old('start_date'), 'error' => session('errors')?->first('start_date'), 'span' => 'half'],
-                        ['name' => 'end_date', 'label' => 'Tanggal Selesai', 'type' => 'date', 'required' => true, 'value' => old('end_date'), 'error' => session('errors')?->first('end_date'), 'span' => 'half'],
-                    ],
-                ];
-
-                return $props;
-            })(compact('departments', 'users')),
+            [
+                'title' => 'Form Tambah Program',
+                'description' => 'Tetapkan identitas program, departemen pengampu, dan periode kerjanya sejak awal.',
+                'icon' => 'fas fa-diagram-project',
+                'form' => [
+                    'action' => route('programs.store'),
+                    'method' => 'POST',
+                    'csrfToken' => csrf_token(),
+                    'submitLabel' => 'Simpan',
+                    'submitIcon' => 'fas fa-save',
+                ],
+                'cancelAction' => [
+                    'href' => route('programs.index'),
+                    'label' => 'Kembali',
+                    'icon' => 'fas fa-arrow-left',
+                ],
+                'fields' => $this->programFormFields($departments),
+            ],
         );
     }
 
@@ -210,177 +171,176 @@ class ProgramController extends Controller
         }
 
         $program->load(['department', 'creator', 'members', 'pics', 'tasks.assignee', 'timelines']);
+        $program->loadMissing(['department', 'creator', 'members', 'pics', 'tasks.assignee', 'timelines']);
 
-        return \Inertia\Inertia::render(
-            'pages/ProgramDetailPage',
-            (static function (array $__viewData): array {
-                extract($__viewData, EXTR_SKIP);
+        $canManage = $user->hasRole(['admin', 'bph', 'kabinet']);
+        $backRoute = $user->isStaff() ? route('programs.my') : route('programs.index');
+        $departments = $canManage ? $this->programDepartmentsFor($user) : collect();
+        $availableUsers = $canManage
+            ? User::active()->orderBy('name')->get()->map(fn ($availableUser) => [
+                'value' => $availableUser->id,
+                'label' => $availableUser->name,
+            ])->values()
+            : [];
 
-                $program->loadMissing(['department', 'creator', 'members', 'pics', 'tasks.assignee', 'timelines']);
-                $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
-                $backRoute = auth()->user()->isStaff() ? route('programs.my') : route('programs.index');
-
-                $props = [
+        return \Inertia\Inertia::render('pages/ProgramDetailPage', [
+            'csrfToken' => csrf_token(),
+            'summary' => [
+                'name' => $program->name,
+                'description' => $program->description,
+                'statusLabel' => ucfirst($program->status),
+                'statusTone' => match ($program->status) {
+                    'active' => 'warning',
+                    'completed' => 'success',
+                    'cancelled' => 'danger',
+                    default => 'secondary',
+                },
+                'progress' => $program->progress,
+                'facts' => [
+                    ['label' => 'Departemen', 'value' => $program->department?->name ?? '-'],
+                    ['label' => 'Periode', 'value' => $program->start_date->format('d M').' - '.$program->end_date->format('d M Y')],
+                    ['label' => 'Dibuat oleh', 'value' => $program->creator?->name ?? '-'],
+                    ['label' => 'Total Task', 'value' => $program->tasks->count()],
+                ],
+                'actions' => [
+                    ['href' => $backRoute, 'label' => 'Kembali', 'icon' => 'fas fa-arrow-left', 'tone' => 'secondary'],
+                ],
+                'dangerAction' => $canManage ? [
+                    'action' => route('programs.destroy', $program),
+                    'method' => 'DELETE',
+                    'label' => 'Hapus Program',
+                    'icon' => 'fas fa-trash',
+                    'confirm' => $program->name,
+                    'confirmText' => "Hapus program {$program->name}?",
+                    'confirmButtonText' => 'Hapus',
+                ] : null,
+            ],
+            'editor' => $canManage ? [
+                'title' => 'Editor Program',
+                'description' => '',
+                'form' => [
+                    'action' => route('programs.update', $program),
+                    'method' => 'PUT',
                     'csrfToken' => csrf_token(),
-                    'summary' => [
-                        'name' => $program->name,
-                        'description' => $program->description,
-                        'statusLabel' => ucfirst($program->status),
-                        'statusTone' => match ($program->status) {
-                            'active' => 'warning',
-                            'completed' => 'success',
-                            'cancelled' => 'danger',
-                            default => 'secondary',
-                        },
-                        'progress' => $program->progress,
-                        'facts' => [
-                            ['label' => 'Departemen', 'value' => $program->department?->name ?? '-'],
-                            ['label' => 'Periode', 'value' => $program->start_date->format('d M').' - '.$program->end_date->format('d M Y')],
-                            ['label' => 'Dibuat oleh', 'value' => $program->creator?->name ?? '-'],
-                            ['label' => 'Total Task', 'value' => $program->tasks->count()],
+                    'submitLabel' => 'Update Program',
+                    'submitIcon' => 'fas fa-save',
+                ],
+                'fields' => $this->programFormFields($departments, $program),
+                'dangerAction' => [
+                    'action' => route('programs.destroy', $program),
+                    'method' => 'DELETE',
+                    'label' => 'Hapus Program',
+                    'icon' => 'fas fa-trash',
+                    'confirm' => $program->name,
+                    'confirmText' => "Hapus program {$program->name}?",
+                    'confirmButtonText' => 'Hapus',
+                ],
+            ] : null,
+            'pics' => [
+                'items' => $program->pics->map(fn ($pic) => [
+                    'id' => $pic->id,
+                    'name' => $pic->name,
+                    'avatar' => $pic->avatar_url,
+                    'removeAction' => $canManage ? route('programs.pics.remove', [$program, $pic]) : null,
+                ])->values(),
+                'addAction' => $canManage ? route('programs.pics.add', $program) : null,
+                'availableUsers' => $availableUsers,
+            ],
+            'team' => [
+                'members' => $program->members->map(fn ($member) => [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'avatar' => $member->avatar_url,
+                    'roleLabel' => ucfirst($member->pivot->role),
+                    'roleTone' => $member->pivot->role === 'leader' ? 'primary' : 'secondary',
+                    'removeAction' => $canManage ? route('programs.members.remove', [$program, $member]) : null,
+                ])->values(),
+                'addAction' => $canManage ? route('programs.members.add', $program) : null,
+                'availableUsers' => $availableUsers,
+            ],
+            'tasks' => [
+                'createAction' => $canManage ? route('tasks.create', ['type' => 'program', 'id' => $program->id]) : null,
+                'columns' => [
+                    ['label' => 'Task'],
+                    ['label' => 'Assignee'],
+                    ['label' => 'Status'],
+                    ['label' => 'Progress'],
+                    ['label' => 'Aksi'],
+                ],
+                'rows' => $program->tasks->map(function ($task) {
+                    return [
+                        'cells' => [
+                            ['type' => 'text', 'text' => $task->title, 'className' => 'fw-semibold'],
+                            $task->assignee
+                                ? ['type' => 'avatar', 'image' => $task->assignee->avatar_url, 'title' => $task->assignee->name]
+                                : ['type' => 'text', 'text' => '-', 'muted' => true],
+                            ['type' => 'badge', 'label' => ucfirst(str_replace('_', ' ', $task->status)), 'tone' => $task->status_badge],
+                            ['type' => 'progress', 'value' => $task->progress, 'label' => "{$task->progress}%"],
+                            ['type' => 'actions', 'items' => [
+                                ['href' => route('tasks.show', $task), 'label' => 'Detail Task', 'icon' => 'fas fa-eye', 'tone' => 'secondary'],
+                            ]],
                         ],
-                        'actions' => array_values(array_filter([
-                            $canManage ? ['href' => route('programs.edit', $program), 'label' => 'Edit', 'icon' => 'fas fa-pen', 'tone' => 'primary'] : null,
-                            ['href' => $backRoute, 'label' => 'Kembali', 'icon' => 'fas fa-arrow-left', 'tone' => 'secondary'],
-                        ])),
-                    ],
-                    'pics' => [
-                        'items' => $program->pics->map(fn ($pic) => [
-                            'id' => $pic->id,
-                            'name' => $pic->name,
-                            'avatar' => $pic->avatar_url,
-                            'removeAction' => $canManage ? route('programs.pics.remove', [$program, $pic]) : null,
-                        ])->values(),
-                        'addAction' => $canManage ? route('programs.pics.add', $program) : null,
-                        'availableUsers' => $canManage ? \App\Models\User::active()->orderBy('name')->get()->map(fn ($user) => [
-                            'value' => $user->id,
-                            'label' => $user->name,
-                        ])->values() : [],
-                    ],
-                    'team' => [
-                        'members' => $program->members->map(fn ($member) => [
-                            'id' => $member->id,
-                            'name' => $member->name,
-                            'avatar' => $member->avatar_url,
-                            'roleLabel' => ucfirst($member->pivot->role),
-                            'roleTone' => $member->pivot->role === 'leader' ? 'primary' : 'secondary',
-                            'removeAction' => $canManage ? route('programs.members.remove', [$program, $member]) : null,
-                        ])->values(),
-                        'addAction' => $canManage ? route('programs.members.add', $program) : null,
-                        'availableUsers' => $canManage ? \App\Models\User::active()->orderBy('name')->get()->map(fn ($user) => [
-                            'value' => $user->id,
-                            'label' => $user->name,
-                        ])->values() : [],
-                    ],
-                    'tasks' => [
-                        'createAction' => $canManage ? route('tasks.create', ['type' => 'program', 'id' => $program->id]) : null,
-                        'columns' => [
-                            ['label' => 'Task'],
-                            ['label' => 'Assignee'],
-                            ['label' => 'Status'],
-                            ['label' => 'Progress'],
-                            ['label' => 'Aksi'],
-                        ],
-                        'rows' => $program->tasks->map(function ($task) {
-                            return [
-                                'cells' => [
-                                    ['type' => 'text', 'text' => $task->title, 'className' => 'fw-semibold'],
-                                    $task->assignee
-                                        ? ['type' => 'avatar', 'image' => $task->assignee->avatar_url, 'title' => $task->assignee->name]
-                                        : ['type' => 'text', 'text' => '-', 'muted' => true],
-                                    ['type' => 'badge', 'label' => ucfirst(str_replace('_', ' ', $task->status)), 'tone' => $task->status_badge],
-                                    ['type' => 'progress', 'value' => $task->progress, 'label' => "{$task->progress}%"],
-                                    ['type' => 'actions', 'items' => [
-                                        ['href' => route('tasks.show', $task), 'label' => 'Detail Task', 'icon' => 'fas fa-eye', 'tone' => 'secondary'],
-                                    ]],
-                                ],
-                            ];
-                        })->values(),
-                    ],
-                    'timelines' => [
-                        'items' => $program->timelines->map(fn ($timeline) => [
-                            'title' => $timeline->title,
-                            'range' => $timeline->start_date->format('d M').' - '.$timeline->end_date->format('d M Y'),
-                            'color' => $timeline->color ?? '#7C3AED',
-                            'description' => $timeline->description,
-                        ])->values(),
-                    ],
-                ];
-
-                return $props;
-            })(compact('program')),
-        );
+                    ];
+                })->values(),
+            ],
+            'timelines' => [
+                'items' => $program->timelines->map(fn ($timeline) => [
+                    'title' => $timeline->title,
+                    'range' => $timeline->start_date->format('d M').' - '.$timeline->end_date->format('d M Y'),
+                    'color' => $timeline->color ?? '#7C3AED',
+                    'description' => $timeline->description,
+                ])->values(),
+            ],
+        ]);
     }
 
-    public function edit(Program $program)
+    private function programDepartmentsFor(User $user): Collection
     {
-        $user = auth()->user();
+        $query = $user->isKabinet()
+            ? Department::where('id', $user->department_id)
+            : Department::active();
 
-        if ($user->isKabinet()) {
-            $departments = Department::where('id', $user->department_id)->get();
-        } else {
-            $departments = Department::active()->get();
-        }
+        return $query->get();
+    }
 
-        $users = User::active()->get();
-
-        return \Inertia\Inertia::render(
-            'pages/EntityFormPage',
-            (static function (array $__viewData): array {
-                extract($__viewData, EXTR_SKIP);
-
-                $props = [
-                    'title' => "Edit Program: {$program->name}",
-                    'description' => 'Perbarui identitas program, periode, atau departemen pengampu sesuai kebutuhan operasional.',
-                    'icon' => 'fas fa-diagram-project',
-                    'form' => [
-                        'action' => route('programs.update', $program),
-                        'method' => 'PUT',
-                        'csrfToken' => csrf_token(),
-                        'submitLabel' => 'Update',
-                        'submitIcon' => 'fas fa-save',
-                    ],
-                    'cancelAction' => [
-                        'href' => route('programs.show', $program),
-                        'label' => 'Kembali',
-                        'icon' => 'fas fa-arrow-left',
-                    ],
-                    'fields' => [
-                        ['name' => 'name', 'label' => 'Nama Program', 'type' => 'text', 'required' => true, 'value' => old('name', $program->name), 'error' => session('errors')?->first('name')],
-                        ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description', $program->description), 'error' => session('errors')?->first('description'), 'rows' => 3],
-                        [
-                            'name' => 'department_id',
-                            'label' => 'Departemen',
-                            'type' => 'select',
-                            'required' => true,
-                            'value' => old('department_id', $program->department_id),
-                            'error' => session('errors')?->first('department_id'),
-                            'span' => 'half',
-                            'options' => $departments->map(fn ($department) => ['value' => $department->id, 'label' => $department->name])->values(),
-                        ],
-                        [
-                            'name' => 'status',
-                            'label' => 'Status',
-                            'type' => 'select',
-                            'required' => true,
-                            'value' => old('status', $program->status),
-                            'error' => session('errors')?->first('status'),
-                            'span' => 'half',
-                            'options' => [
-                                ['value' => 'planning', 'label' => 'Planning'],
-                                ['value' => 'active', 'label' => 'Active'],
-                                ['value' => 'completed', 'label' => 'Completed'],
-                                ['value' => 'cancelled', 'label' => 'Cancelled'],
-                            ],
-                        ],
-                        ['name' => 'start_date', 'label' => 'Tanggal Mulai', 'type' => 'date', 'required' => true, 'value' => old('start_date', $program->start_date->format('Y-m-d')), 'error' => session('errors')?->first('start_date'), 'span' => 'half'],
-                        ['name' => 'end_date', 'label' => 'Tanggal Selesai', 'type' => 'date', 'required' => true, 'value' => old('end_date', $program->end_date->format('Y-m-d')), 'error' => session('errors')?->first('end_date'), 'span' => 'half'],
-                    ],
-                ];
-
-                return $props;
-            })(compact('program', 'departments', 'users')),
-        );
+    /**
+     * @param  Collection<int, Department>  $departments
+     * @return array<int, array<string, mixed>>
+     */
+    private function programFormFields(Collection $departments, ?Program $program = null): array
+    {
+        return [
+            ['name' => 'name', 'label' => 'Nama Program', 'type' => 'text', 'required' => true, 'value' => old('name', $program?->name), 'error' => session('errors')?->first('name')],
+            ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description', $program?->description), 'error' => session('errors')?->first('description'), 'rows' => 3],
+            [
+                'name' => 'department_id',
+                'label' => 'Departemen',
+                'type' => 'select',
+                'required' => true,
+                'value' => old('department_id', $program?->department_id),
+                'error' => session('errors')?->first('department_id'),
+                'placeholder' => '-- Pilih Departemen --',
+                'span' => 'half',
+                'options' => $departments->map(fn ($department) => ['value' => $department->id, 'label' => $department->name])->values(),
+            ],
+            [
+                'name' => 'status',
+                'label' => 'Status',
+                'type' => 'select',
+                'required' => true,
+                'value' => old('status', $program?->status ?? 'planning'),
+                'error' => session('errors')?->first('status'),
+                'span' => 'half',
+                'options' => [
+                    ['value' => 'planning', 'label' => 'Planning'],
+                    ['value' => 'active', 'label' => 'Active'],
+                    ['value' => 'completed', 'label' => 'Completed'],
+                    ['value' => 'cancelled', 'label' => 'Cancelled'],
+                ],
+            ],
+            ['name' => 'start_date', 'label' => 'Tanggal Mulai', 'type' => 'date', 'required' => true, 'value' => old('start_date', $program?->start_date?->format('Y-m-d')), 'error' => session('errors')?->first('start_date'), 'span' => 'half'],
+            ['name' => 'end_date', 'label' => 'Tanggal Selesai', 'type' => 'date', 'required' => true, 'value' => old('end_date', $program?->end_date?->format('Y-m-d')), 'error' => session('errors')?->first('end_date'), 'span' => 'half'],
+        ];
     }
 
     public function update(Request $request, Program $program)
