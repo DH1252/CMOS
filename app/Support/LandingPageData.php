@@ -55,6 +55,32 @@ class LandingPageData
             'organizationName' => $organizationName,
             'themeColor' => $theme['color'],
             'themeVariables' => $theme['variables'],
+            'seo' => [
+                'title' => 'Website Resmi HIMATEKKOM ITS 2026 | Kabinet Sentra Sinergi',
+                'description' => 'Platform resmi HIMATEKKOM ITS untuk informasi publik dan kerja operasional kabinet.',
+                'canonical' => route('home'),
+                'image' => asset('images/logokabinet.png'),
+                'type' => 'website',
+                'jsonLd' => json_encode([
+                    '@context' => 'https://schema.org',
+                    '@type' => 'WebSite',
+                    'name' => $organizationName,
+                    'url' => route('home'),
+                    'potentialAction' => [
+                        '@type' => 'SearchAction',
+                        'target' => route('informasi.index').'?q={search_term_string}',
+                        'query-input' => 'required name=search_term_string',
+                    ],
+                    'publisher' => [
+                        '@type' => 'Organization',
+                        'name' => $organizationName,
+                        'logo' => [
+                            '@type' => 'ImageObject',
+                            'url' => asset('images/logokabinet.png'),
+                        ],
+                    ],
+                ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+            ],
             'loginUrl' => $loginUrl,
             'infoUrl' => $infoUrl,
             'logoUrl' => asset('images/logokabinet.png'),

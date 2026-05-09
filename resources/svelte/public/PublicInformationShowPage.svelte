@@ -16,6 +16,7 @@
       contentHtml: "",
     },
     latestArticles = [],
+    seo = null,
   } = $props();
 
   const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
@@ -28,6 +29,27 @@
     event.currentTarget.src = fallbackImage;
   };
 </script>
+
+<svelte:head>
+  <title>{seo?.title || `${article.title} - HIMATEKKOM ITS`}</title>
+  <meta name="description" content={seo?.description || article.excerpt || ''} />
+  {#if seo?.canonical}
+    <link rel="canonical" href={seo.canonical} />
+  {/if}
+  {#if seo?.image}
+    <meta property="og:image" content={seo.image} />
+    <meta name="twitter:image" content={seo.image} />
+  {/if}
+  <meta property="og:type" content={seo?.type || 'article'} />
+  <meta property="og:title" content={seo?.title || article.title} />
+  <meta property="og:description" content={seo?.description || article.excerpt || ''} />
+  <meta name="twitter:card" content={seo?.image ? 'summary_large_image' : 'summary'} />
+  <meta name="twitter:title" content={seo?.title || article.title} />
+  <meta name="twitter:description" content={seo?.description || article.excerpt || ''} />
+  {#if seo?.jsonLd}
+    {@html `<script type="application/ld+json">${seo.jsonLd}</script>`}
+  {/if}
+</svelte:head>
 
 <article class="space-y-8">
   <nav

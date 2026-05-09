@@ -11,6 +11,7 @@
     homeUrl = "/",
     loginUrl = "/login",
     infoUrl = "/informasi",
+    seo = null,
     infoIndex = {},
     infoShow = {},
   } = $props();
@@ -40,8 +41,10 @@
 </script>
 
 <svelte:head>
-  <title>{pageTitle}</title>
-  <meta name="description" content={pageDescription} />
+  {#if !seo}
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+  {/if}
 </svelte:head>
 
 <div class="landing-terminal min-h-screen">
@@ -147,10 +150,10 @@
     id="main-content"
     class="mx-auto max-w-[1180px] px-5 py-8 lg:px-8 lg:py-10"
   >
-    {#if isInfoIndex}
-      <PublicInformationIndexPage {...infoIndex} {homeUrl} {infoUrl} />
+  {#if isInfoIndex}
+      <PublicInformationIndexPage {...infoIndex} {homeUrl} {infoUrl} {seo} />
     {:else if isInfoShow}
-      <PublicInformationShowPage {...infoShow} {homeUrl} {infoUrl} />
+      <PublicInformationShowPage {...infoShow} {homeUrl} {infoUrl} {seo} />
     {/if}
   </main>
 </div>

@@ -32,6 +32,31 @@ class InformationBoardRoutesTest extends TestCase
         $this->assertSame($article->title, $page['props']['infoShow']['article']['title']);
         $this->assertSame($article->seo_title, $page['props']['infoShow']['article']['seoTitle']);
         $this->assertSame($article->content, $page['props']['infoShow']['article']['contentHtml']);
+        $this->assertSame(route('informasi.show', $article), $page['props']['seo']['canonical']);
+        $this->assertSame('article', $page['props']['seo']['type']);
+    }
+
+    public function test_public_information_index_searches_published_articles(): void
+    {
+        $this->seed();
+        $this->withoutVite();
+
+        $response = $this->get(route('informasi.index', [
+            'q' => 'prioritas semester',
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('Pembaruan Roadmap Semester dan Prioritas Divisi');
+
+        $page = $this->inertiaPage($response->getContent());
+
+        $this->assertSame('PublicApp', $page['component']);
+        $this->assertSame('prioritas semester', $page['props']['infoIndex']['filters']['query']);
+        $this->assertSame(
+            'Pembaruan Roadmap Semester dan Prioritas Divisi',
+            $page['props']['infoIndex']['featured']['title'] ?? null,
+        );
+        $this->assertSame(route('informasi.index'), $page['props']['seo']['canonical']);
     }
 
     public function test_internal_article_route_resolves_by_slug_for_authenticated_user(): void

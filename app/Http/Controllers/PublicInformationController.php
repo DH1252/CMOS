@@ -19,6 +19,7 @@ class PublicInformationController extends Controller
     {
         $search = trim((string) $request->get('q', ''));
         $categorySlug = trim((string) $request->get('kategori', ''));
+        $supportsFullText = in_array(InformationBoard::query()->getConnection()->getDriverName(), ['mysql', 'mariadb'], true);
 
         $query = InformationBoard::query()
             ->select(['id', 'user_id', 'title', 'slug', 'excerpt', 'content', 'cover_image', 'published_at'])
@@ -27,11 +28,38 @@ class PublicInformationController extends Controller
             ->latest('published_at');
 
         if ($search !== '') {
-            $query->where(function (Builder $q) use ($search): void {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('excerpt', 'like', "%{$search}%")
-                    ->orWhere('content', 'like', "%{$search}%");
+            if ($supportsFullText && mb_strlen($search) >= 3) {
+                $query->selectRaw(
+                    'MATCH(title, excerpt, content, meta_title, meta_description) AGAINST (? IN NATURAL LANGUAGE MODE) AS search_score',
+                    [$search],
+                );
+            }
+
+            $query->where(function (Builder $q) use ($search, $supportsFullText): void {
+                if ($supportsFullText && mb_strlen($search) >= 3) {
+                    $q->whereFullText(
+                        ['title', 'excerpt', 'content', 'meta_title', 'meta_description'],
+                        $search,
+                    )->orWhere('title', 'like', "%{$search}%");
+                } else {
+                    $q->where('title', 'like', "%{$search}%");
+                }
+
+                $q->orWhere('excerpt', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%")
+                    ->orWhere('meta_title', 'like', "%{$search}%")
+                    ->orWhere('meta_description', 'like', "%{$search}%")
+                    ->orWhereHas('categories', function (Builder $categoryQuery) use ($search): void {
+                        $categoryQuery->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('user', function (Builder $userQuery) use ($search): void {
+                        $userQuery->where('name', 'like', "%{$search}%");
+                    });
             });
+
+            if ($supportsFullText && mb_strlen($search) >= 3) {
+                $query->orderByDesc('search_score');
+            }
         }
 
         $activeCategory = null;
@@ -94,6 +122,24 @@ class PublicInformationController extends Controller
             'loginUrl' => route('login'),
             'infoUrl' => route('informasi.index'),
             'logoUrl' => asset('images/logokabinet.png'),
+            'seo' => $this->buildSeoPayload(
+                title: 'Papan Informasi - '.$settings['organizationName'],
+                description: 'Artikel, pembaruan kegiatan, dan publikasi organisasi HIMATEKKOM ITS dalam satu arsip yang mudah ditelusuri.',
+                canonical: route('informasi.index'),
+                image: asset('images/logokabinet.png'),
+                type: 'website',
+                jsonLd: [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'WebSite',
+                    'name' => $settings['organizationName'].' | Papan Informasi',
+                    'url' => route('informasi.index'),
+                    'potentialAction' => [
+                        '@type' => 'SearchAction',
+                        'target' => route('informasi.index').'?q={search_term_string}',
+                        'query-input' => 'required name=search_term_string',
+                    ],
+                ],
+            ),
             'infoIndex' => [
                 'title' => 'Papan Informasi',
                 'kicker' => 'Publikasi Organisasi',
@@ -113,6 +159,9 @@ class PublicInformationController extends Controller
                         'label' => $category->name,
                     ])->values(),
                 ],
+                'searchSummary' => $search !== ''
+                    ? sprintf('Menampilkan hasil untuk "%s" di judul, ringkasan, isi, kategori, dan penulis.', $search)
+                    : 'Pencarian arsip mendukung kata kunci dari judul, ringkasan, isi artikel, kategori, dan nama penulis.',
                 'featured' => $featuredArticle ? [
                     'title' => $featuredArticle->title,
                     'excerpt' => Str::limit(strip_tags($featuredArticle->excerpt ?: $featuredArticle->content), 220),
@@ -163,6 +212,28 @@ class PublicInformationController extends Controller
             'loginUrl' => route('login'),
             'infoUrl' => route('informasi.index'),
             'logoUrl' => asset('images/logokabinet.png'),
+            'seo' => $this->buildSeoPayload(
+                title: $article->seo_title.' - '.$settings['organizationName'],
+                description: $article->seo_description,
+                canonical: route('informasi.show', $article),
+                image: $article->cover_image_url ?? asset('images/logokabinet.png'),
+                type: 'article',
+                jsonLd: [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'Article',
+                    'headline' => $article->seo_title,
+                    'description' => $article->seo_description,
+                    'author' => [
+                        '@type' => 'Person',
+                        'name' => $article->user?->name ?? $settings['organizationName'],
+                    ],
+                    'image' => $article->cover_image_url ?? asset('images/logokabinet.png'),
+                    'datePublished' => optional($article->publishedAtLocal)?->toIso8601String(),
+                    'dateModified' => optional($article->updated_at)?->toIso8601String(),
+                    'mainEntityOfPage' => route('informasi.show', $article),
+                    'keywords' => $article->categories->pluck('name')->implode(', '),
+                ],
+            ),
             'infoShow' => [
                 'article' => [
                     'title' => $article->title,
@@ -199,6 +270,25 @@ class PublicInformationController extends Controller
             'themeColor' => $themePayload['color'],
             'themeVariables' => $themePayload['variables'],
             'themeCustomCss' => $themePayload['customCss'],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $jsonLd
+     * @return array{title: string, description: string, canonical: string, image: string|null, type: string, jsonLd: string|null}
+     */
+    private function buildSeoPayload(string $title, string $description, string $canonical, ?string $image = null, string $type = 'website', array $jsonLd = []): array
+    {
+        return [
+            'title' => $title,
+            'description' => $description,
+            'canonical' => $canonical,
+            'image' => $image,
+            'type' => $type,
+            'jsonLd' => $jsonLd === [] ? null : json_encode(
+                $jsonLd,
+                JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT,
+            ),
         ];
     }
 
