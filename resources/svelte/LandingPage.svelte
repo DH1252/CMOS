@@ -1238,16 +1238,11 @@
 
   .landing-frame__media :global(img) {
     display: block;
-    transition: filter 320ms var(--ease-out-quart);
     filter: grayscale(0.3) contrast(1.08);
   }
 
   .landing-frame:hover {
     background: var(--landing-terminal-panel-soft-resolved);
-  }
-
-  .landing-frame:hover .landing-frame__media :global(img) {
-    filter: grayscale(0) contrast(1.02);
   }
 
   .landing-frame__caption {

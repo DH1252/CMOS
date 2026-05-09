@@ -235,8 +235,7 @@
   .terminal-reveal__base {
     position: relative;
     z-index: 1;
-    opacity: 0;
-    transition: opacity 280ms var(--ease-out-quart);
+    opacity: 1;
   }
 
   .terminal-reveal__base--visible {
@@ -298,7 +297,6 @@
   @media (prefers-reduced-motion: reduce) {
     .terminal-reveal__base {
       opacity: 1;
-      transition: none;
     }
 
     .terminal-reveal__overlay {

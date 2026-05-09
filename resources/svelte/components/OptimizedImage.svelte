@@ -26,6 +26,14 @@
     isRecord(src) && isRecord(src.img) ? src.img : null,
   );
 
+  const intrinsicWidth = $derived(
+    typeof enhancedImage?.w === "number" ? enhancedImage.w : null,
+  );
+
+  const intrinsicHeight = $derived(
+    typeof enhancedImage?.h === "number" ? enhancedImage.h : null,
+  );
+
   const hasOptimizedSources = $derived(
     Boolean(
       optimizedSources?.avif ||
@@ -77,6 +85,8 @@
       srcset={webpSrcset || avifSrcset}
       {alt}
       class="h-auto {className}"
+      width={intrinsicWidth}
+      height={intrinsicHeight}
       {loading}
       {decoding}
       {fetchpriority}
