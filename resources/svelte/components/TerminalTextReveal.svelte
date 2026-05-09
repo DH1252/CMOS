@@ -41,6 +41,8 @@
   });
   const baseText = $derived(sequenceTexts[0] ?? "");
   const renderStatic = $derived(!animate);
+  const isServer = typeof window === "undefined";
+  const baseTextVisible = $derived(renderStatic || isComplete || isServer);
   const glitchChars = "._:=+/-[]{}<>|";
 
   const nextGlitchGlyph = (seed) =>
@@ -207,7 +209,7 @@
 <div bind:this={wrapper} class={`terminal-reveal ${wrapperClass}`.trim()}>
   <svelte:element
     this={tag}
-    class={`terminal-reveal__base ${isComplete || renderStatic ? "terminal-reveal__base--visible" : ""} ${textClass}`.trim()}
+    class={`terminal-reveal__base ${baseTextVisible ? "terminal-reveal__base--visible" : ""} ${textClass}`.trim()}
   >
     {baseText}
   </svelte:element>

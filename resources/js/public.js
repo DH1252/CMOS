@@ -106,16 +106,19 @@ const deferBootstrapForPublic = (initialPage) => {
 	const schedule = () => {
 		const idleCallback =
 			window.requestIdleCallback ||
-			((callback) => window.setTimeout(callback, 500));
-		idleCallback(loadBootstrap);
+			((callback) => window.setTimeout(callback, 0));
+		idleCallback(loadBootstrap, { timeout: 750 });
 	};
 
-	if (document.readyState === "complete") {
+	if (
+		document.readyState === "complete" ||
+		document.readyState === "interactive"
+	) {
 		schedule();
 		return;
 	}
 
-	window.addEventListener("load", schedule, { once: true });
+	window.addEventListener("DOMContentLoaded", schedule, { once: true });
 };
 
 const inertiaRoot =
@@ -189,17 +192,20 @@ const deferPublicAppBoot = () => {
 	const schedule = () => {
 		const idleCallback =
 			window.requestIdleCallback ||
-			((callback) => window.setTimeout(callback, 650));
+			((callback) => window.setTimeout(callback, 0));
 
-		idleCallback(boot, { timeout: 2000 });
+		idleCallback(boot, { timeout: 750 });
 	};
 
-	if (document.readyState === "complete") {
+	if (
+		document.readyState === "complete" ||
+		document.readyState === "interactive"
+	) {
 		schedule();
 		return;
 	}
 
-	window.addEventListener("load", schedule, { once: true });
+	window.addEventListener("DOMContentLoaded", schedule, { once: true });
 };
 
 if (typeof document !== "undefined" && initialInertiaPage) {
