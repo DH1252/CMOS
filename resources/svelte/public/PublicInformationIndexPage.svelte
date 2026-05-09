@@ -17,9 +17,11 @@
       category: "",
       categories: [],
     },
+    searchSummary = "",
     featured = null,
     articles = [],
     pagination = null,
+	  seo = null,
 	  } = $props();
 
 	  const hasActiveFilters = $derived(Boolean(filters.query || filters.category));
@@ -51,6 +53,27 @@
     event.currentTarget.src = fallbackImage;
   };
 </script>
+
+<svelte:head>
+  <title>{seo?.title || `${headline} - HIMATEKKOM ITS`}</title>
+  <meta name="description" content={seo?.description || description} />
+  {#if seo?.canonical}
+    <link rel="canonical" href={seo.canonical} />
+  {/if}
+  {#if seo?.image}
+    <meta property="og:image" content={seo.image} />
+    <meta name="twitter:image" content={seo.image} />
+  {/if}
+  <meta property="og:type" content={seo?.type || 'website'} />
+  <meta property="og:title" content={seo?.title || headline} />
+  <meta property="og:description" content={seo?.description || description} />
+  <meta name="twitter:card" content={seo?.image ? 'summary_large_image' : 'summary'} />
+  <meta name="twitter:title" content={seo?.title || headline} />
+  <meta name="twitter:description" content={seo?.description || description} />
+  {#if seo?.jsonLd}
+    {@html `<script type="application/ld+json">${seo.jsonLd}</script>`}
+  {/if}
+</svelte:head>
 
 <section
   class="grid gap-8 border-b border-[var(--landing-terminal-line-resolved)] pb-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end"
@@ -135,15 +158,13 @@
   <div
     class="mt-4 flex flex-col gap-3 border-t border-[var(--landing-terminal-line-resolved)] pt-4 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)] md:flex-row md:items-center md:justify-between"
   >
+    <p>{searchSummary}</p>
     {#if hasActiveFilters}
-      <p>Hasil filter aktif.</p>
       <a
         href={filters.action}
         class="landing-inline-link font-medium text-[var(--landing-terminal-interactive-resolved)] hover:text-[var(--landing-terminal-text-resolved)]"
         >Hapus filter</a
       >
-    {:else}
-      <p>Gunakan pencarian atau kategori.</p>
     {/if}
   </div>
 </section>

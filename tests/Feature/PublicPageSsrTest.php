@@ -34,6 +34,8 @@ class PublicPageSsrTest extends TestCase
         $this->assertSame('landing', $page['props']['page']);
         $this->assertSame('purple', $page['props']['themeColor']);
         $this->assertArrayHasKey('brand-primary-base', $page['props']['themeVariables']);
+        $this->assertSame(route('home'), $page['props']['seo']['canonical']);
+        $this->assertStringContainsString('SearchAction', $page['props']['seo']['jsonLd']);
         $response->assertSee('data-brand="purple"', false);
     }
 

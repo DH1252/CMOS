@@ -22,6 +22,7 @@
     organizationName = "HIMATEKKOM ITS",
     themeColor = "purple",
     themeVariables = null,
+    seo = null,
     homeUrl = "/",
     loginUrl = "/login",
     infoUrl = "/informasi",
@@ -437,8 +438,24 @@
 </script>
 
 <svelte:head>
-  <title>{pageTitle}</title>
-  <meta name="description" content={pageDescription} />
+  <title>{seo?.title || pageTitle}</title>
+  <meta name="description" content={seo?.description || pageDescription} />
+  {#if seo?.canonical}
+    <link rel="canonical" href={seo.canonical} />
+  {/if}
+  <meta property="og:type" content={seo?.type || 'website'} />
+  <meta property="og:title" content={seo?.title || pageTitle} />
+  <meta property="og:description" content={seo?.description || pageDescription} />
+  {#if seo?.image}
+    <meta property="og:image" content={seo.image} />
+    <meta name="twitter:image" content={seo.image} />
+  {/if}
+  <meta name="twitter:card" content={seo?.image ? 'summary_large_image' : 'summary'} />
+  <meta name="twitter:title" content={seo?.title || pageTitle} />
+  <meta name="twitter:description" content={seo?.description || pageDescription} />
+  {#if seo?.jsonLd}
+    {@html `<script type="application/ld+json">${seo.jsonLd}</script>`}
+  {/if}
 </svelte:head>
 
 <div class="landing-terminal min-h-screen">
