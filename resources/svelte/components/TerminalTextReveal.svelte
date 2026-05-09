@@ -18,6 +18,7 @@
   } = $props();
 
   let wrapper = null;
+  let hasMounted = $state(false);
   let isActive = $state(false);
   let isComplete = $state(false);
   let typedText = $state("");
@@ -42,7 +43,9 @@
   const baseText = $derived(sequenceTexts[0] ?? "");
   const renderStatic = $derived(!animate);
   const isServer = typeof window === "undefined";
-  const baseTextVisible = $derived(renderStatic || isComplete || isServer);
+  const baseTextVisible = $derived(
+    renderStatic || isComplete || isServer || !hasMounted,
+  );
   const glitchChars = "._:=+/-[]{}<>|";
 
   const nextGlitchGlyph = (seed) =>
@@ -64,6 +67,8 @@
   };
 
   onMount(() => {
+    hasMounted = true;
+
     if (!animate) {
       return;
     }
@@ -235,7 +240,7 @@
   .terminal-reveal__base {
     position: relative;
     z-index: 1;
-    opacity: 1;
+    opacity: 0;
   }
 
   .terminal-reveal__base--visible {
