@@ -23,6 +23,7 @@
 
 # Laravel runtime files
 /bootstrap/cache/*.php
+/storage/app/laravel-brain/
 /storage/framework/cache/
 /storage/framework/sessions/
 /storage/framework/testing/
