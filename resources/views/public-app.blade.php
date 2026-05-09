@@ -255,6 +255,177 @@
             color: var(--landing-terminal-soft, #cabe9e);
         }
 
+        .no-js-hero,
+        .no-js-section-head,
+        .no-js-section-head-inline,
+        .no-js-footer,
+        .no-js-gallery-grid,
+        .no-js-program-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .no-js-hero,
+        .no-js-gallery-strip,
+        .no-js-panel,
+        .no-js-footer {
+            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            background: var(--landing-terminal-panel, #221f2e);
+        }
+
+        .no-js-hero,
+        .no-js-gallery-strip,
+        .no-js-panel,
+        .no-js-footer {
+            padding: 1.5rem;
+        }
+
+        .no-js-hero-copy,
+        .no-js-footer-primary {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .no-js-hero-title-wrap {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .no-js-hero-visual,
+        .no-js-canvas-frame,
+        .no-js-frame,
+        .no-js-panel-sub {
+            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            background: var(--landing-terminal-panel, #221f2e);
+        }
+
+        .no-js-canvas-frame,
+        .no-js-frame {
+            margin: 0;
+        }
+
+        .no-js-canvas-media,
+        .no-js-frame-media {
+            overflow: hidden;
+            border-bottom: 1px solid var(--landing-terminal-line, #8a7a3c);
+        }
+
+        .no-js-canvas-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.75rem 0.9rem;
+            border-bottom: 1px solid var(--landing-terminal-line, #8a7a3c);
+            color: var(--landing-terminal-soft, #cabe9e);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.03em;
+        }
+
+        .no-js-canvas-media img,
+        .no-js-frame-media img,
+        .no-js-article img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .no-js-canvas-caption,
+        .no-js-frame-caption {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.65rem 0.85rem;
+            color: var(--landing-terminal-muted, #cabe9e);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+        }
+
+        .no-js-command-block {
+            display: grid;
+            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            background: var(--landing-terminal-panel, #221f2e);
+        }
+
+        .no-js-command-row,
+        .no-js-list-item {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: 3rem minmax(0, 1fr);
+            padding: 0.95rem 1rem;
+            border-top: 1px solid var(--landing-terminal-line, #8a7a3c);
+        }
+
+        .no-js-command-row:first-child,
+        .no-js-list-item:first-child {
+            border-top: none;
+        }
+
+        .no-js-command-index {
+            color: var(--landing-terminal-command, #d9ae43);
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .no-js-gallery-strip {
+            margin: 0;
+        }
+
+        .no-js-gallery-grid,
+        .no-js-program-grid,
+        .no-js-footer-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .no-js-ordered-list {
+            display: grid;
+            gap: 0;
+            margin: 1.25rem 0 0;
+            padding: 0;
+            list-style: none;
+            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            background: var(--landing-terminal-panel, #221f2e);
+        }
+
+        .no-js-article-link {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .no-js-article-tight {
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        .no-js-footer-links {
+            margin-top: 1rem;
+        }
+
+        .no-js-kicker {
+            color: var(--landing-terminal-command, #d9ae43);
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .no-js-section-title {
+            margin: 0;
+            color: var(--landing-terminal-heading, #f0e6c8);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(2rem, 4vw, 3rem);
+            line-height: 1.1;
+        }
+
+        .no-js-section-head-inline {
+            align-items: start;
+        }
+
+        .no-js-cta {
+            text-align: center;
+        }
+
         @media (min-width: 768px) {
             .no-js-grid-home {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -262,6 +433,22 @@
 
             .no-js-grid-index {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .no-js-hero {
+                grid-template-columns: minmax(0, 1fr) 30rem;
+                align-items: start;
+            }
+
+            .no-js-section-head-inline {
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: end;
+            }
+
+            .no-js-gallery-grid,
+            .no-js-program-grid,
+            .no-js-footer-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
     </style>
