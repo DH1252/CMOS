@@ -1,7 +1,6 @@
 import "vite/modulepreload-polyfill";
 import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
-import * as bootstrapModule from "./bootstrap";
 
 const pages = {
 	...import.meta.glob("../svelte/LandingPage.svelte"),
@@ -58,7 +57,7 @@ let bootstrapModulePromise = null;
 
 const ensureBootstrapModule = async () => {
 	if (!bootstrapModulePromise) {
-		bootstrapModulePromise = Promise.resolve(bootstrapModule);
+		bootstrapModulePromise = import("./bootstrap");
 	}
 
 	return bootstrapModulePromise;
