@@ -107,6 +107,8 @@ class InformationBoardPublishingTest extends TestCase
 
         $path = $response->json('path');
         $this->assertIsString($path);
+        $this->assertStringEndsWith('.webp', $path);
+        $this->assertSame('image/webp', $response->json('contentType'));
         $this->assertTrue(Storage::disk('public')->exists($path));
     }
 

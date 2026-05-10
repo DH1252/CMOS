@@ -7,7 +7,9 @@ use App\Models\InformationBoard;
 use App\Models\InformationCategory;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\ArticleContentImageCompressor;
 use App\Support\ThemePalette;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -240,21 +242,22 @@ class InformationBoardController extends Controller
             ->with('success', 'Artikel papan informasi berhasil ditambahkan.');
     }
 
-    public function uploadAttachment(Request $request)
+    public function uploadAttachment(Request $request, ArticleContentImageCompressor $compressor): JsonResponse
     {
         $validated = $request->validate([
             'attachment' => 'required|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,rar',
         ]);
 
-        $path = $validated['attachment']->store('information-boards/attachments', 'public');
+        $attachment = $validated['attachment'];
+        $storedAttachment = $compressor->store($attachment);
 
         return response()->json([
-            'url' => asset('storage/'.$path),
-            'href' => asset('storage/'.$path),
-            'path' => $path,
-            'filename' => $validated['attachment']->getClientOriginalName(),
-            'filesize' => $validated['attachment']->getSize(),
-            'contentType' => $validated['attachment']->getClientMimeType(),
+            'url' => asset('storage/'.$storedAttachment['path']),
+            'href' => asset('storage/'.$storedAttachment['path']),
+            'path' => $storedAttachment['path'],
+            'filename' => $attachment->getClientOriginalName(),
+            'filesize' => $storedAttachment['size'],
+            'contentType' => $storedAttachment['contentType'],
         ], 201);
     }
 

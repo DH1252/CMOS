@@ -39,6 +39,8 @@ class PublicPageSsrTest extends TestCase
         $this->assertContains('Organization', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
         $this->assertContains('WebSite', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
         $this->assertContains('WebPage', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
+        $response->assertSee('<script type="application/ld+json">', false);
+        $response->assertSee('"@graph"', false);
         $response->assertSee('data-brand="purple"', false);
     }
 
