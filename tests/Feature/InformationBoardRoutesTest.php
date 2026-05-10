@@ -36,6 +36,8 @@ class InformationBoardRoutesTest extends TestCase
         $this->assertSame('article', $page['props']['seo']['type']);
         $this->assertContains('Article', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
         $this->assertContains('BreadcrumbList', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
+        $response->assertSee('<script type="application/ld+json">', false);
+        $response->assertSee('"@type":"Article"', false);
     }
 
     public function test_public_information_index_searches_published_articles(): void
@@ -62,6 +64,8 @@ class InformationBoardRoutesTest extends TestCase
         $this->assertContains('CollectionPage', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
         $this->assertContains('ItemList', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
         $this->assertContains('BreadcrumbList', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
+        $response->assertSee('<script type="application/ld+json">', false);
+        $response->assertSee('"@type":"BreadcrumbList"', false);
     }
 
     public function test_internal_article_route_resolves_by_slug_for_authenticated_user(): void

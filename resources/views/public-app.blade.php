@@ -454,6 +454,9 @@
     </style>
     @vite(['resources/css/public.css', 'resources/js/public.js'])
     @inertiaHead
+    @if (is_string(data_get($page, 'props.seo.jsonLd')) && data_get($page, 'props.seo.jsonLd') !== '')
+        <script type="application/ld+json">{!! data_get($page, 'props.seo.jsonLd') !!}</script>
+    @endif
     <script>
         window.addEventListener('message', function (e) {
             if (e.data && e.data.type === 'preview-css' && e.data.vars) {
