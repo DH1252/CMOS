@@ -36,6 +36,9 @@ class PublicPageSsrTest extends TestCase
         $this->assertArrayHasKey('brand-primary-base', $page['props']['themeVariables']);
         $this->assertSame(route('home'), $page['props']['seo']['canonical']);
         $this->assertStringContainsString('SearchAction', $page['props']['seo']['jsonLd']);
+        $this->assertContains('Organization', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
+        $this->assertContains('WebSite', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
+        $this->assertContains('WebPage', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
         $response->assertSee('data-brand="purple"', false);
     }
 
@@ -49,5 +52,19 @@ class PublicPageSsrTest extends TestCase
         $this->assertNotEmpty($matches[1] ?? null);
 
         return json_decode($matches[1], true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function jsonLdTypes(string $jsonLd): array
+    {
+        $decoded = json_decode($jsonLd, true, 512, JSON_THROW_ON_ERROR);
+
+        return collect($decoded['@graph'] ?? [])
+            ->pluck('@type')
+            ->filter()
+            ->values()
+            ->all();
     }
 }

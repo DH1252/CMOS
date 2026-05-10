@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\InformationBoard;
 use App\Models\InformationCategory;
 use App\Models\Setting;
+use App\Support\StructuredData;
 use App\Support\ThemePalette;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -110,6 +111,40 @@ class PublicInformationController extends Controller
         $featuredArticle = $articleItems->first();
         $remainingArticles = $articleItems->slice($featuredArticle ? 1 : 0)->values();
         $settings = $this->publicSettings();
+        $homeUrl = route('home');
+        $infoUrl = route('informasi.index');
+        $logoUrl = asset('images/logokabinet.png');
+        $organizationId = $homeUrl.'#organization';
+        $websiteId = $homeUrl.'#website';
+        $breadcrumbId = $infoUrl.'#breadcrumb';
+        $itemListId = $infoUrl.'#item-list';
+        $articleSchemaItems = $articleItems->map(fn (InformationBoard $article): array => [
+            'name' => $article->title,
+            'url' => route('informasi.show', $article->slug),
+        ])->all();
+        $jsonLdNodes = [
+            StructuredData::organization($settings['organizationName'], $homeUrl, $logoUrl),
+            StructuredData::website($settings['organizationName'], $homeUrl, $infoUrl, $organizationId),
+            StructuredData::collectionPage([
+                '@id' => $infoUrl.'#webpage',
+                'url' => $infoUrl,
+                'name' => 'Papan Informasi - '.$settings['organizationName'],
+                'description' => 'Artikel, pembaruan kegiatan, dan publikasi organisasi HIMATEKKOM ITS dalam satu arsip yang mudah ditelusuri.',
+                'isPartOf' => ['@id' => $websiteId],
+                'publisher' => ['@id' => $organizationId],
+                'breadcrumb' => ['@id' => $breadcrumbId],
+                'mainEntity' => $articleSchemaItems === [] ? null : ['@id' => $itemListId],
+                'inLanguage' => 'id-ID',
+            ]),
+            StructuredData::breadcrumb([
+                ['name' => 'Beranda', 'url' => $homeUrl],
+                ['name' => 'Papan Informasi', 'url' => $infoUrl],
+            ], $breadcrumbId),
+        ];
+
+        if ($articleSchemaItems !== []) {
+            $jsonLdNodes[] = StructuredData::itemList($articleSchemaItems, $itemListId);
+        }
 
         return [
             'page' => 'info-index',
@@ -118,27 +153,17 @@ class PublicInformationController extends Controller
             'themeColor' => $settings['themeColor'],
             'themeVariables' => $settings['themeVariables'],
             'themeCustomCss' => $settings['themeCustomCss'],
-            'homeUrl' => route('home'),
+            'homeUrl' => $homeUrl,
             'loginUrl' => route('login'),
-            'infoUrl' => route('informasi.index'),
-            'logoUrl' => asset('images/logokabinet.png'),
+            'infoUrl' => $infoUrl,
+            'logoUrl' => $logoUrl,
             'seo' => $this->buildSeoPayload(
                 title: 'Papan Informasi - '.$settings['organizationName'],
                 description: 'Artikel, pembaruan kegiatan, dan publikasi organisasi HIMATEKKOM ITS dalam satu arsip yang mudah ditelusuri.',
-                canonical: route('informasi.index'),
-                image: asset('images/logokabinet.png'),
+                canonical: $infoUrl,
+                image: $logoUrl,
                 type: 'website',
-                jsonLd: [
-                    '@context' => 'https://schema.org',
-                    '@type' => 'WebSite',
-                    'name' => $settings['organizationName'].' | Papan Informasi',
-                    'url' => route('informasi.index'),
-                    'potentialAction' => [
-                        '@type' => 'SearchAction',
-                        'target' => route('informasi.index').'?q={search_term_string}',
-                        'query-input' => 'required name=search_term_string',
-                    ],
-                ],
+                jsonLd: StructuredData::graph($jsonLdNodes),
             ),
             'infoIndex' => [
                 'title' => 'Papan Informasi',
@@ -151,7 +176,7 @@ class PublicInformationController extends Controller
                     ['label' => 'Filter Aktif', 'value' => ($search !== '' || $activeCategory) ? 'Ya' : 'Tidak'],
                 ],
                 'filters' => [
-                    'action' => route('informasi.index'),
+                    'action' => $infoUrl,
                     'query' => $search,
                     'category' => $activeCategory?->slug ?? '',
                     'categories' => $categories->map(fn ($category) => [
@@ -200,6 +225,60 @@ class PublicInformationController extends Controller
     private function showPayload(InformationBoard $article, $latestArticles): array
     {
         $settings = $this->publicSettings();
+        $homeUrl = route('home');
+        $infoUrl = route('informasi.index');
+        $canonicalUrl = route('informasi.show', $article);
+        $logoUrl = asset('images/logokabinet.png');
+        $coverImageUrl = $article->cover_image_url;
+        $organizationId = $homeUrl.'#organization';
+        $websiteId = $homeUrl.'#website';
+        $articleCategories = $article->categories->pluck('name')->values()->all();
+        $author = $article->user?->name
+            ? ['@type' => 'Person', 'name' => $article->user->name]
+            : ['@id' => $organizationId];
+        $showJsonLdNodes = [
+            StructuredData::organization($settings['organizationName'], $homeUrl, $logoUrl),
+            StructuredData::website($settings['organizationName'], $homeUrl, $infoUrl, $organizationId),
+            StructuredData::article([
+                '@id' => $canonicalUrl.'#article',
+                'headline' => $article->seo_title,
+                'description' => $article->seo_description,
+                'url' => $canonicalUrl,
+                'mainEntityOfPage' => ['@id' => $canonicalUrl.'#webpage'],
+                'author' => $author,
+                'publisher' => ['@id' => $organizationId],
+                'image' => $coverImageUrl ? [$coverImageUrl] : null,
+                'datePublished' => optional($article->publishedAtLocal)?->toIso8601String(),
+                'dateModified' => optional($article->updated_at)?->toIso8601String(),
+                'articleSection' => $articleCategories,
+                'keywords' => implode(', ', $articleCategories),
+                'isAccessibleForFree' => true,
+                'inLanguage' => 'id-ID',
+            ]),
+            StructuredData::page([
+                '@id' => $canonicalUrl.'#webpage',
+                'url' => $canonicalUrl,
+                'name' => $article->seo_title,
+                'description' => $article->seo_description,
+                'isPartOf' => ['@id' => $websiteId],
+                'primaryImageOfPage' => $coverImageUrl ? ['@id' => $canonicalUrl.'#primary-image'] : null,
+                'breadcrumb' => ['@id' => $canonicalUrl.'#breadcrumb'],
+                'inLanguage' => 'id-ID',
+            ]),
+            StructuredData::breadcrumb([
+                ['name' => 'Beranda', 'url' => $homeUrl],
+                ['name' => 'Papan Informasi', 'url' => $infoUrl],
+                ['name' => $article->title, 'url' => $canonicalUrl],
+            ], $canonicalUrl.'#breadcrumb'),
+        ];
+
+        if ($coverImageUrl) {
+            $showJsonLdNodes[] = [
+                '@type' => 'ImageObject',
+                '@id' => $canonicalUrl.'#primary-image',
+                'url' => $coverImageUrl,
+            ];
+        }
 
         return [
             'page' => 'info-show',
@@ -208,31 +287,17 @@ class PublicInformationController extends Controller
             'themeColor' => $settings['themeColor'],
             'themeVariables' => $settings['themeVariables'],
             'themeCustomCss' => $settings['themeCustomCss'],
-            'homeUrl' => route('home'),
+            'homeUrl' => $homeUrl,
             'loginUrl' => route('login'),
-            'infoUrl' => route('informasi.index'),
-            'logoUrl' => asset('images/logokabinet.png'),
+            'infoUrl' => $infoUrl,
+            'logoUrl' => $logoUrl,
             'seo' => $this->buildSeoPayload(
                 title: $article->seo_title.' - '.$settings['organizationName'],
                 description: $article->seo_description,
-                canonical: route('informasi.show', $article),
-                image: $article->cover_image_url ?? asset('images/logokabinet.png'),
+                canonical: $canonicalUrl,
+                image: $coverImageUrl ?? $logoUrl,
                 type: 'article',
-                jsonLd: [
-                    '@context' => 'https://schema.org',
-                    '@type' => 'Article',
-                    'headline' => $article->seo_title,
-                    'description' => $article->seo_description,
-                    'author' => [
-                        '@type' => 'Person',
-                        'name' => $article->user?->name ?? $settings['organizationName'],
-                    ],
-                    'image' => $article->cover_image_url ?? asset('images/logokabinet.png'),
-                    'datePublished' => optional($article->publishedAtLocal)?->toIso8601String(),
-                    'dateModified' => optional($article->updated_at)?->toIso8601String(),
-                    'mainEntityOfPage' => route('informasi.show', $article),
-                    'keywords' => $article->categories->pluck('name')->implode(', '),
-                ],
+                jsonLd: StructuredData::graph($showJsonLdNodes),
             ),
             'infoShow' => [
                 'article' => [
@@ -241,7 +306,7 @@ class PublicInformationController extends Controller
                     'dateLabel' => $this->formatPublicDate($article->publishedAtLocal, includeTime: true),
                     'author' => $article->user?->name ?? '-',
                     'coverImage' => $article->cover_image_optimized,
-                    'categories' => $article->categories->pluck('name')->values(),
+                    'categories' => $articleCategories,
                     'contentHtml' => $article->content,
                     'excerpt' => $article->seo_description,
                 ],
@@ -285,10 +350,7 @@ class PublicInformationController extends Controller
             'canonical' => $canonical,
             'image' => $image,
             'type' => $type,
-            'jsonLd' => $jsonLd === [] ? null : json_encode(
-                $jsonLd,
-                JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT,
-            ),
+            'jsonLd' => $jsonLd === [] ? null : StructuredData::encode($jsonLd),
         ];
     }
 

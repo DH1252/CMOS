@@ -150,7 +150,7 @@
     id="main-content"
     class="mx-auto max-w-[1180px] px-5 py-8 lg:px-8 lg:py-10"
   >
-  {#if isInfoIndex}
+    {#if isInfoIndex}
       <PublicInformationIndexPage {...infoIndex} {homeUrl} {infoUrl} {seo} />
     {:else if isInfoShow}
       <PublicInformationShowPage {...infoShow} {homeUrl} {infoUrl} {seo} />

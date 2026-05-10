@@ -21,9 +21,14 @@ class LandingPageData
         $appName = (string) $settings->get('app_name', 'CMOS');
         $organizationName = (string) $settings->get('organization_name', 'HIMATEKKOM ITS');
         $theme = ThemePalette::payloadFromSettings($settings->all());
+        $homeUrl = route('home');
         $loginUrl = route('login');
         $infoUrl = route('informasi.index');
+        $logoUrl = asset('images/logokabinet.png');
         $instagramUrl = 'https://www.instagram.com/sentrasinergi/';
+        $organizationId = $homeUrl.'#organization';
+        $websiteId = $homeUrl.'#website';
+        $latestInfo = $this->latestInfo();
 
         $navigation = [
             ['href' => '#profil', 'label' => 'Profil Organisasi'],
@@ -49,6 +54,29 @@ class LandingPageData
             ],
         ];
 
+        $latestInfoSchemaItems = collect($latestInfo)->map(fn (array $item): array => [
+            'name' => $item['title'],
+            'url' => $item['url'],
+        ])->all();
+        $jsonLdNodes = [
+            StructuredData::organization($organizationName, $homeUrl, $logoUrl, $instagramUrl),
+            StructuredData::website($organizationName, $homeUrl, $infoUrl, $organizationId),
+            StructuredData::page([
+                '@id' => $homeUrl.'#webpage',
+                'url' => $homeUrl,
+                'name' => 'Website Resmi HIMATEKKOM ITS 2026 | Kabinet Sentra Sinergi',
+                'description' => 'Platform resmi HIMATEKKOM ITS untuk informasi publik dan kerja operasional kabinet.',
+                'isPartOf' => ['@id' => $websiteId],
+                'about' => ['@id' => $organizationId],
+                'mainEntity' => $latestInfoSchemaItems === [] ? ['@id' => $organizationId] : ['@id' => $homeUrl.'#latest-information'],
+                'inLanguage' => 'id-ID',
+            ]),
+        ];
+
+        if ($latestInfoSchemaItems !== []) {
+            $jsonLdNodes[] = StructuredData::itemList($latestInfoSchemaItems, $homeUrl.'#latest-information');
+        }
+
         return [
             'page' => 'landing',
             'appName' => $appName,
@@ -58,32 +86,14 @@ class LandingPageData
             'seo' => [
                 'title' => 'Website Resmi HIMATEKKOM ITS 2026 | Kabinet Sentra Sinergi',
                 'description' => 'Platform resmi HIMATEKKOM ITS untuk informasi publik dan kerja operasional kabinet.',
-                'canonical' => route('home'),
-                'image' => asset('images/logokabinet.png'),
+                'canonical' => $homeUrl,
+                'image' => $logoUrl,
                 'type' => 'website',
-                'jsonLd' => json_encode([
-                    '@context' => 'https://schema.org',
-                    '@type' => 'WebSite',
-                    'name' => $organizationName,
-                    'url' => route('home'),
-                    'potentialAction' => [
-                        '@type' => 'SearchAction',
-                        'target' => route('informasi.index').'?q={search_term_string}',
-                        'query-input' => 'required name=search_term_string',
-                    ],
-                    'publisher' => [
-                        '@type' => 'Organization',
-                        'name' => $organizationName,
-                        'logo' => [
-                            '@type' => 'ImageObject',
-                            'url' => asset('images/logokabinet.png'),
-                        ],
-                    ],
-                ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+                'jsonLd' => StructuredData::encode(StructuredData::graph($jsonLdNodes)),
             ],
             'loginUrl' => $loginUrl,
             'infoUrl' => $infoUrl,
-            'logoUrl' => asset('images/logokabinet.png'),
+            'logoUrl' => $logoUrl,
             'navigation' => $navigation,
             'hero' => [
                 'titleVariants' => ['Kabinet Sentra Sinergi', 'HIMATEKKOM ITS'],
@@ -224,7 +234,7 @@ class LandingPageData
                     ],
                 ],
             ],
-            'latestInfo' => $this->latestInfo(),
+            'latestInfo' => $latestInfo,
         ];
     }
 
