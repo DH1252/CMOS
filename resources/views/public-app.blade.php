@@ -24,7 +24,8 @@
         document.documentElement.setAttribute('data-js', 'true');
     </script>
     <title>{{ $appName }}</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" href="{{ asset('images/logokabinet.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preload" href="{{ asset('fonts/public-sans.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
         <link rel="stylesheet" href="{{ asset('fonts/public-sans.css') }}">
