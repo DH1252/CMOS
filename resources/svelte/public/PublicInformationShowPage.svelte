@@ -20,6 +20,8 @@
   } = $props();
 
   const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
+  const jsonLdScriptOpen = '<script type="application/ld+json">';
+  const jsonLdScriptClose = "</" + "script>";
 
   const handleImageError = (event) => {
     if (event.currentTarget.src.endsWith(fallbackImage)) {
@@ -32,7 +34,10 @@
 
 <svelte:head>
   <title>{seo?.title || `${article.title} - HIMATEKKOM ITS`}</title>
-  <meta name="description" content={seo?.description || article.excerpt || ''} />
+  <meta
+    name="description"
+    content={seo?.description || article.excerpt || ""}
+  />
   {#if seo?.canonical}
     <link rel="canonical" href={seo.canonical} />
   {/if}
@@ -40,14 +45,23 @@
     <meta property="og:image" content={seo.image} />
     <meta name="twitter:image" content={seo.image} />
   {/if}
-  <meta property="og:type" content={seo?.type || 'article'} />
+  <meta property="og:type" content={seo?.type || "article"} />
   <meta property="og:title" content={seo?.title || article.title} />
-  <meta property="og:description" content={seo?.description || article.excerpt || ''} />
-  <meta name="twitter:card" content={seo?.image ? 'summary_large_image' : 'summary'} />
+  <meta
+    property="og:description"
+    content={seo?.description || article.excerpt || ""}
+  />
+  <meta
+    name="twitter:card"
+    content={seo?.image ? "summary_large_image" : "summary"}
+  />
   <meta name="twitter:title" content={seo?.title || article.title} />
-  <meta name="twitter:description" content={seo?.description || article.excerpt || ''} />
+  <meta
+    name="twitter:description"
+    content={seo?.description || article.excerpt || ""}
+  />
   {#if seo?.jsonLd}
-    {@html `<script type="application/ld+json">${seo.jsonLd}</script>`}
+    {@html jsonLdScriptOpen + seo.jsonLd + jsonLdScriptClose}
   {/if}
 </svelte:head>
 

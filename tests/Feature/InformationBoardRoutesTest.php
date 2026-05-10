@@ -34,6 +34,8 @@ class InformationBoardRoutesTest extends TestCase
         $this->assertSame($article->content, $page['props']['infoShow']['article']['contentHtml']);
         $this->assertSame(route('informasi.show', $article), $page['props']['seo']['canonical']);
         $this->assertSame('article', $page['props']['seo']['type']);
+        $this->assertContains('Article', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
+        $this->assertContains('BreadcrumbList', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
     }
 
     public function test_public_information_index_searches_published_articles(): void
@@ -57,6 +59,9 @@ class InformationBoardRoutesTest extends TestCase
             $page['props']['infoIndex']['featured']['title'] ?? null,
         );
         $this->assertSame(route('informasi.index'), $page['props']['seo']['canonical']);
+        $this->assertContains('CollectionPage', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
+        $this->assertContains('ItemList', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
+        $this->assertContains('BreadcrumbList', $this->jsonLdTypes($page['props']['seo']['jsonLd']));
     }
 
     public function test_internal_article_route_resolves_by_slug_for_authenticated_user(): void
@@ -89,5 +94,19 @@ class InformationBoardRoutesTest extends TestCase
         $this->assertNotEmpty($matches[1] ?? null);
 
         return json_decode($matches[1], true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function jsonLdTypes(string $jsonLd): array
+    {
+        $decoded = json_decode($jsonLd, true, 512, JSON_THROW_ON_ERROR);
+
+        return collect($decoded['@graph'] ?? [])
+            ->pluck('@type')
+            ->filter()
+            ->values()
+            ->all();
     }
 }

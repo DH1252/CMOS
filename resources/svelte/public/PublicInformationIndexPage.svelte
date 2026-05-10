@@ -21,12 +21,14 @@
     featured = null,
     articles = [],
     pagination = null,
-	  seo = null,
-	  } = $props();
+    seo = null,
+  } = $props();
 
-	  const hasActiveFilters = $derived(Boolean(filters.query || filters.category));
-	  const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
-	  const archiveSummary = $derived.by(() => {
+  const hasActiveFilters = $derived(Boolean(filters.query || filters.category));
+  const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
+  const jsonLdScriptOpen = '<script type="application/ld+json">';
+  const jsonLdScriptClose = "</" + "script>";
+  const archiveSummary = $derived.by(() => {
     if (!stats.length) {
       return "";
     }
@@ -64,14 +66,17 @@
     <meta property="og:image" content={seo.image} />
     <meta name="twitter:image" content={seo.image} />
   {/if}
-  <meta property="og:type" content={seo?.type || 'website'} />
+  <meta property="og:type" content={seo?.type || "website"} />
   <meta property="og:title" content={seo?.title || headline} />
   <meta property="og:description" content={seo?.description || description} />
-  <meta name="twitter:card" content={seo?.image ? 'summary_large_image' : 'summary'} />
+  <meta
+    name="twitter:card"
+    content={seo?.image ? "summary_large_image" : "summary"}
+  />
   <meta name="twitter:title" content={seo?.title || headline} />
   <meta name="twitter:description" content={seo?.description || description} />
   {#if seo?.jsonLd}
-    {@html `<script type="application/ld+json">${seo.jsonLd}</script>`}
+    {@html jsonLdScriptOpen + seo.jsonLd + jsonLdScriptClose}
   {/if}
 </svelte:head>
 
