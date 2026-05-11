@@ -102,6 +102,7 @@ export default defineConfig({
         entry: "resources/js/ssr.js",
         host: "127.0.0.1",
         port: 13714,
+        sourcemap: false,
       },
     }),
     tailwindcss(),

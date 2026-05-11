@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
 
   let {
     text = "",
@@ -10,6 +10,7 @@
     wrapperClass = "",
     delay = 0,
     animate = true,
+    previewWhileAnimating = true,
     cycle = false,
     holdDuration = 1200,
     speed: userSpeed,
@@ -17,12 +18,16 @@
     frameRate: userFrameRate,
   } = $props();
 
-  let wrapper = null;
+  let wrapper = $state(null);
+  let overlayTextElement = $state(null);
   let hasMounted = $state(false);
   let isActive = $state(false);
   let isComplete = $state(false);
+  let prefersReducedMotion = $state(false);
   let typedText = $state("");
   let glitchGlyph = $state("");
+  let endpointX = $state("0px");
+  let endpointY = $state("0px");
 
   const sourceText = $derived(
     Array.isArray(lines) && lines.length ? lines.join("\n") : text,
@@ -41,12 +46,91 @@
     return sourceText.trim() ? [sourceText] : [];
   });
   const baseText = $derived(sequenceTexts[0] ?? "");
+  const layoutText = $derived.by(() => {
+    return sequenceTexts.reduce(
+      (largestText, currentText) =>
+        currentText.length > largestText.length ? currentText : largestText,
+      "",
+    );
+  });
   const renderStatic = $derived(!animate);
   const isServer = typeof window === "undefined";
   const baseTextVisible = $derived(
-    renderStatic || isComplete || isServer || !hasMounted,
+    renderStatic ||
+      prefersReducedMotion ||
+      (!previewWhileAnimating && (isComplete || isServer || !hasMounted)),
+  );
+  const baseTextPreview = $derived(
+    animate && previewWhileAnimating && isActive && !isComplete && !isServer,
+  );
+  const overlayVisible = $derived(
+    animate &&
+      !prefersReducedMotion &&
+      (previewWhileAnimating || (isActive && !isComplete)),
+  );
+  const overlayText = $derived(
+    previewWhileAnimating && !isActive ? baseText : typedText,
+  );
+  const renderedBaseText = $derived(
+    animate && previewWhileAnimating && !prefersReducedMotion
+      ? layoutText
+      : baseText,
   );
   const glitchChars = "._:=+/-[]{}<>|";
+
+  const findOverlayTextNode = () => {
+    if (!overlayTextElement) {
+      return null;
+    }
+
+    return Array.from(overlayTextElement.childNodes).find(
+      (node) => node.nodeType === Node.TEXT_NODE,
+    );
+  };
+
+  const updateEndpointPosition = () => {
+    const textNode = findOverlayTextNode();
+
+    if (!overlayTextElement || !textNode || !overlayText.length) {
+      endpointX = "0px";
+      endpointY = "0px";
+      return;
+    }
+
+    const range = document.createRange();
+    const overlayRect = overlayTextElement.getBoundingClientRect();
+    const endOffset = overlayText.length;
+
+    range.setStart(textNode, Math.max(0, endOffset - 1));
+    range.setEnd(textNode, endOffset);
+
+    const textRect = Array.from(range.getClientRects()).at(-1);
+    range.detach();
+
+    if (!textRect) {
+      endpointX = "0px";
+      endpointY = "0px";
+      return;
+    }
+
+    endpointX = `${Math.max(0, textRect.right - overlayRect.left)}px`;
+    endpointY = `${Math.max(0, textRect.top - overlayRect.top)}px`;
+  };
+
+  $effect(() => {
+    const currentText = overlayText;
+    const isOverlayVisible = overlayVisible;
+
+    if (!hasMounted || !isOverlayVisible) {
+      return;
+    }
+
+    tick().then(() => {
+      if (overlayText === currentText && overlayVisible) {
+        updateEndpointPosition();
+      }
+    });
+  });
 
   const nextGlitchGlyph = (seed) =>
     glitchChars[Math.abs(seed) % glitchChars.length];
@@ -77,6 +161,7 @@
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
+      prefersReducedMotion = true;
       isComplete = true;
       return;
     }
@@ -214,19 +299,28 @@
 <div bind:this={wrapper} class={`terminal-reveal ${wrapperClass}`.trim()}>
   <svelte:element
     this={tag}
-    class={`terminal-reveal__base ${baseTextVisible ? "terminal-reveal__base--visible" : ""} ${textClass}`.trim()}
+    class={`terminal-reveal__base ${baseTextVisible ? "terminal-reveal__base--visible" : ""} ${baseTextPreview ? "terminal-reveal__base--preview" : ""} ${textClass}`.trim()}
   >
-    {baseText}
+    {renderedBaseText}
   </svelte:element>
 
-  {#if animate && isActive && !isComplete}
+  {#if overlayVisible}
     <svelte:element
       this={tag}
       class={`terminal-reveal__overlay ${textClass}`.trim()}
       aria-hidden="true"
     >
-      {typedText}<span class="terminal-reveal__glitch">{glitchGlyph}</span><span
-        class="terminal-reveal__cursor">_</span
+      <span class="terminal-reveal__overlay-spacer">{renderedBaseText}</span>
+      <span
+        class="terminal-reveal__animated-text"
+        bind:this={overlayTextElement}
+        >{overlayText}<span
+          class="terminal-reveal__endpoint"
+          style={`--terminal-reveal-endpoint-x: ${endpointX}; --terminal-reveal-endpoint-y: ${endpointY};`}
+          ><span class="terminal-reveal__glitch">{glitchGlyph}</span
+          >{#if !isComplete}<span class="terminal-reveal__cursor">_</span
+            >{/if}</span
+        ></span
       >
     </svelte:element>
   {/if}
@@ -247,6 +341,10 @@
     opacity: 1;
   }
 
+  .terminal-reveal__base--preview {
+    opacity: 0;
+  }
+
   .terminal-reveal__overlay {
     position: absolute;
     inset: 0;
@@ -254,6 +352,31 @@
     pointer-events: none;
     white-space: pre-wrap;
     text-shadow: 0 0 8px color-mix(in srgb, currentColor 18%, transparent);
+  }
+
+  .terminal-reveal__overlay-spacer {
+    visibility: hidden;
+  }
+
+  .terminal-reveal__animated-text {
+    position: absolute;
+    inset: 0;
+    white-space: pre-wrap;
+  }
+
+  .terminal-reveal__endpoint {
+    position: absolute;
+    top: 0;
+    left: 0;
+    line-height: inherit;
+    pointer-events: none;
+    transform: translate3d(
+      var(--terminal-reveal-endpoint-x, 0),
+      var(--terminal-reveal-endpoint-y, 0),
+      0
+    );
+    white-space: pre;
+    will-change: transform;
   }
 
   .terminal-reveal__glitch {

@@ -1426,6 +1426,12 @@ ul {
   clip-path: inset(0 0 9% 0);
 }
 
+[data-reveal="initial"] {
+  opacity: 1;
+  filter: none;
+  clip-path: none;
+}
+
 [data-reveal].is-revealed {
   animation: terminalReveal 560ms var(--ease-out-quart) both;
   animation-delay: var(--reveal-delay, 0ms);
