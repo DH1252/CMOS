@@ -544,19 +544,11 @@ html[data-js="false"] [data-reveal] {
 }
 
 .terminal-reveal__endpoint {
-  position: absolute;
-  top: 0;
-  left: 0;
+  display: inline-block;
   min-width: 1ch;
   line-height: inherit;
   pointer-events: none;
-  transform: translate3d(
-    var(--terminal-reveal-endpoint-x, 0),
-    var(--terminal-reveal-endpoint-y, 0),
-    0
-  );
   white-space: pre;
-  will-change: transform;
 }
 
 .terminal-reveal__glitch {
@@ -1535,6 +1527,13 @@ ul {
 [data-reveal].is-revealed {
   animation: terminalReveal 560ms var(--ease-out-quart) both;
   animation-delay: var(--reveal-delay, 0ms);
+}
+
+@supports (content-visibility: auto) {
+  .landing-deferred-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 720px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

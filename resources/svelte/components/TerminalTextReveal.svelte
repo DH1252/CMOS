@@ -1,5 +1,5 @@
 <script>
-  import { onMount, tick } from "svelte";
+  import { onMount } from "svelte";
 
   let {
     text = "",
@@ -19,15 +19,12 @@
   } = $props();
 
   let wrapper = $state(null);
-  let overlayTextElement = $state(null);
   let hasMounted = $state(false);
   let isActive = $state(false);
   let isComplete = $state(false);
   let prefersReducedMotion = $state(false);
   let typedText = $state("");
   let glitchGlyph = $state("");
-  let endpointX = $state("0px");
-  let endpointY = $state("0px");
 
   const sourceText = $derived(
     Array.isArray(lines) && lines.length ? lines.join("\n") : text,
@@ -77,60 +74,6 @@
       : baseText,
   );
   const glitchChars = "._:=+/-[]{}<>|";
-
-  const findOverlayTextNode = () => {
-    if (!overlayTextElement) {
-      return null;
-    }
-
-    return Array.from(overlayTextElement.childNodes).find(
-      (node) => node.nodeType === Node.TEXT_NODE,
-    );
-  };
-
-  const updateEndpointPosition = () => {
-    const textNode = findOverlayTextNode();
-
-    if (!overlayTextElement || !textNode || !overlayText.length) {
-      endpointX = "0px";
-      endpointY = "0px";
-      return;
-    }
-
-    const range = document.createRange();
-    const overlayRect = overlayTextElement.getBoundingClientRect();
-    const endOffset = overlayText.length;
-
-    range.setStart(textNode, Math.max(0, endOffset - 1));
-    range.setEnd(textNode, endOffset);
-
-    const textRect = Array.from(range.getClientRects()).at(-1);
-    range.detach();
-
-    if (!textRect) {
-      endpointX = "0px";
-      endpointY = "0px";
-      return;
-    }
-
-    endpointX = `${Math.max(0, textRect.right - overlayRect.left)}px`;
-    endpointY = `${Math.max(0, textRect.top - overlayRect.top)}px`;
-  };
-
-  $effect(() => {
-    const currentText = overlayText;
-    const isOverlayVisible = overlayVisible;
-
-    if (!hasMounted || !isOverlayVisible) {
-      return;
-    }
-
-    tick().then(() => {
-      if (overlayText === currentText && overlayVisible) {
-        updateEndpointPosition();
-      }
-    });
-  });
 
   const nextGlitchGlyph = (seed) =>
     glitchChars[Math.abs(seed) % glitchChars.length];
@@ -311,12 +254,8 @@
       aria-hidden="true"
     >
       <span class="terminal-reveal__overlay-spacer">{renderedBaseText}</span>
-      <span
-        class="terminal-reveal__animated-text"
-        bind:this={overlayTextElement}
-        >{overlayText}<span
-          class="terminal-reveal__endpoint"
-          style={`--terminal-reveal-endpoint-x: ${endpointX}; --terminal-reveal-endpoint-y: ${endpointY};`}
+      <span class="terminal-reveal__animated-text"
+        >{overlayText}<span class="terminal-reveal__endpoint"
           ><span class="terminal-reveal__glitch">{glitchGlyph}</span
           >{#if !isComplete}<span class="terminal-reveal__cursor">_</span
             >{/if}</span
@@ -368,19 +307,11 @@
   }
 
   .terminal-reveal__endpoint {
-    position: absolute;
-    top: 0;
-    left: 0;
+    display: inline-block;
     line-height: inherit;
     min-width: 1ch;
     pointer-events: none;
-    transform: translate3d(
-      var(--terminal-reveal-endpoint-x, 0),
-      var(--terminal-reveal-endpoint-y, 0),
-      0
-    );
     white-space: pre;
-    will-change: transform;
   }
 
   .terminal-reveal__glitch {
