@@ -359,8 +359,11 @@
   }
 
   .terminal-reveal__animated-text {
+    display: block;
     position: absolute;
     inset: 0;
+    width: 100%;
+    height: 100%;
     white-space: pre-wrap;
   }
 
@@ -369,6 +372,7 @@
     top: 0;
     left: 0;
     line-height: inherit;
+    min-width: 1ch;
     pointer-events: none;
     transform: translate3d(
       var(--terminal-reveal-endpoint-x, 0),

@@ -151,7 +151,7 @@
     <header class="no-js-header">
         <div class="no-js-header-inner">
             <a href="{{ route('home') }}" class="no-js-brand">
-                <img src="{{ asset('images/logokabinet.png') }}" alt="{{ $organizationName }}">
+                <img src="{{ asset('images/logokabinet.png') }}" alt="{{ $organizationName }}" width="160" height="137">
                 <div class="no-js-brand-copy">
                     <span class="no-js-brand-title">{{ $organizationName }}</span>
                     <span class="no-js-brand-subtitle">Kabinet Sentra Sinergi 2026</span>
@@ -209,7 +209,7 @@
                                 <span>ASCII ready</span>
                             </div>
                             <div class="no-js-canvas-media">
-                                <img src="{{ asset('images/logokabinet.png') }}" alt="Logo Kabinet Sentra Sinergi dalam ASCII art">
+                                <img src="{{ asset('images/logokabinet.png') }}" alt="Logo Kabinet Sentra Sinergi dalam ASCII art" width="160" height="137">
                             </div>
                             <figcaption class="no-js-canvas-caption">
                                 <span>render /logo</span>
