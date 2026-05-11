@@ -219,7 +219,17 @@
   .public-article-content :global(h3),
   .public-article-content :global(h4) {
     color: var(--landing-terminal-heading-resolved);
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(
+      --font-terminal,
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      "Liberation Mono",
+      "Courier New",
+      monospace
+    );
     line-height: 1.2;
   }
 

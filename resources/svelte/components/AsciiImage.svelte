@@ -145,7 +145,17 @@
   }
 
   .ascii-image-loading {
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(
+      --font-terminal,
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      "Liberation Mono",
+      "Courier New",
+      monospace
+    );
     font-size: 0.65rem;
     color: var(--text-muted);
     padding: 1rem;
