@@ -5,6 +5,7 @@
   import { Label } from "$lib/components/ui/label/index.js";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
   import FormActions from "../components/FormActions.svelte";
+  import OptimizedImage from "../components/OptimizedImage.svelte";
   import PageHeader from "../components/PageHeader.svelte";
   import TinymceEditor from "../components/TinymceEditor.svelte";
 
@@ -355,12 +356,13 @@
                 headingTag="h4"
               />
               {#if article.coverImage}
-                <img
+                <OptimizedImage
                   src={article.coverImage}
                   alt="Cover artikel"
                   class="editor-cover-preview"
                   loading="lazy"
                   decoding="async"
+                  sizes="(min-width: 992px) 22rem, 100vw"
                   onerror={handleImageError}
                 />
               {/if}
@@ -519,7 +521,7 @@
     padding-block: 0.75rem;
   }
 
-  .editor-cover-preview {
+  :global(.editor-cover-preview) {
     display: block;
     width: 100%;
     margin-bottom: 1rem;

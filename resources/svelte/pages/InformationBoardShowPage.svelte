@@ -3,6 +3,7 @@
   import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import * as Card from "$lib/components/ui/card/index.js";
   import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
+  import OptimizedImage from "../components/OptimizedImage.svelte";
   import PageHeader from "../components/PageHeader.svelte";
   import StatusBadge from "../components/StatusBadge.svelte";
   import {
@@ -107,12 +108,13 @@
       </Card.Root>
 
       {#if article.coverImage}
-        <img
+        <OptimizedImage
           src={article.coverImage}
           alt={article.title}
           class="article-cover"
           loading="lazy"
           decoding="async"
+          sizes="(min-width: 992px) 66vw, 100vw"
           onerror={handleImageError}
         />
       {/if}
@@ -203,7 +205,7 @@
     overflow: hidden;
   }
 
-  .article-cover {
+  :global(.article-cover) {
     display: block;
     width: 100%;
     max-height: 16rem;

@@ -43,7 +43,7 @@
         })();
     </script>
     <title>{{ $appName }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logokabinet.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('images/logokabinet.webp') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
     @if ($isPublicRoute)
         <link rel="preconnect" href="https://fonts.googleapis.com">

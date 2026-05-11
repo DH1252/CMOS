@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\InformationBoard;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -97,5 +98,19 @@ class ImageOptimizationTest extends TestCase
             'f' => 'webp',
         ]));
         $response2->assertOk();
+    }
+
+    public function test_it_rewrites_stored_content_images_to_optimized_urls(): void
+    {
+        $article = new InformationBoard([
+            'content' => '<p><img src="/storage/information-boards/attachments/example.png" alt="Example"></p>',
+        ]);
+
+        $this->assertStringContainsString(
+            '/images/optimize/information-boards/attachments/example.png?f=webp',
+            $article->content_optimized,
+        );
+        $this->assertStringContainsString('loading="lazy"', $article->content_optimized);
+        $this->assertStringContainsString('decoding="async"', $article->content_optimized);
     }
 }

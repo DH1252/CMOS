@@ -113,7 +113,7 @@ class PublicInformationController extends Controller
         $settings = $this->publicSettings();
         $homeUrl = route('home');
         $infoUrl = route('informasi.index');
-        $logoUrl = asset('images/logokabinet.png');
+        $logoUrl = asset('images/logokabinet.webp');
         $organizationId = $homeUrl.'#organization';
         $websiteId = $homeUrl.'#website';
         $breadcrumbId = $infoUrl.'#breadcrumb';
@@ -228,8 +228,8 @@ class PublicInformationController extends Controller
         $homeUrl = route('home');
         $infoUrl = route('informasi.index');
         $canonicalUrl = route('informasi.show', $article);
-        $logoUrl = asset('images/logokabinet.png');
-        $coverImageUrl = $article->cover_image_url;
+        $logoUrl = asset('images/logokabinet.webp');
+        $coverImageUrl = $article->cover_image_optimized['webp'] ?? $article->cover_image_url;
         $organizationId = $homeUrl.'#organization';
         $websiteId = $homeUrl.'#website';
         $articleCategories = $article->categories->pluck('name')->values()->all();
@@ -307,7 +307,7 @@ class PublicInformationController extends Controller
                     'author' => $article->user?->name ?? '-',
                     'coverImage' => $article->cover_image_optimized,
                     'categories' => $articleCategories,
-                    'contentHtml' => $article->content,
+                    'contentHtml' => $article->content_optimized,
                     'excerpt' => $article->seo_description,
                 ],
                 'latestArticles' => $latestArticles->map(fn ($latest) => [

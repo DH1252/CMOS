@@ -84,7 +84,9 @@ class ImageController extends Controller
             default => $image->encode(),
         };
 
-        $cacheDisk->put($cachePath, $encoded->toString());
+        if ($outputFormat === ($format ?? $this->detectOriginalFormat($path))) {
+            $cacheDisk->put($cachePath, $encoded->toString());
+        }
 
         $mimeType = $this->formatToMimeType($outputFormat);
 

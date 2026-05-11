@@ -65,6 +65,32 @@ class InformationBoardPublishingTest extends TestCase
         );
     }
 
+    public function test_article_cover_upload_is_stored_as_optimized_webp(): void
+    {
+        $this->seed();
+
+        Storage::fake('public');
+
+        $user = $this->adminUser();
+
+        $response = $this->actingAs($user)->post(route('information-boards.store'), [
+            'title' => 'Artikel Dengan Cover',
+            'excerpt' => 'Ringkasan singkat.',
+            'content' => '<p>Konten artikel.</p>',
+            'status' => 'published',
+            'publish_mode' => 'immediately',
+            'cover_image' => UploadedFile::fake()->image('cover.png', 1800, 1200),
+        ]);
+
+        $response->assertRedirect(route('information-boards.index'));
+
+        $article = InformationBoard::query()->where('title', 'Artikel Dengan Cover')->firstOrFail();
+
+        $this->assertIsString($article->cover_image);
+        $this->assertStringEndsWith('.webp', $article->cover_image);
+        $this->assertTrue(Storage::disk('public')->exists($article->cover_image));
+    }
+
     public function test_scheduled_publish_requires_datetime(): void
     {
         $this->seed();
