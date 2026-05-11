@@ -4,17 +4,21 @@ import { hydrate, mount } from "svelte";
 
 const pages = {
   ...import.meta.glob("../svelte/LandingPage.svelte", { eager: true }),
-  ...import.meta.glob("../svelte/PublicApp.svelte", { eager: true }),
+  ...import.meta.glob("../svelte/PublicApp.svelte"),
 };
 
 const resolvePublicPage = async (name) => {
-  const importer = pages[`../svelte/${name}.svelte`];
+  const page = pages[`../svelte/${name}.svelte`];
 
-  if (!importer) {
+  if (!page) {
     throw new Error(`Unknown Inertia page: ${name}`);
   }
 
-  return importer;
+  if (typeof page === "function") {
+    return await page();
+  }
+
+  return page;
 };
 
 const applyBrandTheme = (themeName) => {
