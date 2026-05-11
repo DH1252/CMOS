@@ -92,7 +92,7 @@
       src={originalSrc}
       srcset={webpSrcset || avifSrcset}
       {alt}
-      class="h-auto {className}"
+      class={className}
       width={intrinsicWidth}
       height={intrinsicHeight}
       {loading}

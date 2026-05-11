@@ -26,16 +26,11 @@
     <title>{{ $appName }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logokabinet.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
-    <link rel="preload" href="{{ asset('fonts/public-sans.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-        <link rel="stylesheet" href="{{ asset('fonts/public-sans.css') }}">
-    </noscript>
+    <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{{ asset('fonts/public-sans.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" media="print" onload="this.onload=null;this.media='all'">
-    <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    </noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=optional">
     <style>
         .no-js-shell {
             min-height: 100vh;

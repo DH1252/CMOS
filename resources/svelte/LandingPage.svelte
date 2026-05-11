@@ -484,13 +484,15 @@
         href={homeUrl}
         class="flex min-w-0 items-center gap-3 text-inherit no-underline"
       >
-        <OptimizedImage
-          src={brandLogo}
+        <img
+          src={logoUrl}
           alt={organizationName}
-          class="h-10 w-auto shrink-0"
+          class="h-10 w-[47px] shrink-0 object-contain"
+          width="47"
+          height="40"
           loading="eager"
+          decoding="async"
           fetchpriority="high"
-          sizes="40px"
         />
         <div class="min-w-0">
           <div
