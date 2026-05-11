@@ -276,7 +276,43 @@
     let revealObserver;
     let spyObserver;
     let resetScrollTimeout;
+    let cancelObserverSetup = () => {};
     let removeUserIntentListeners = () => {};
+
+    const scheduleIdleWork = (callback) => {
+      let cancelled = false;
+      let idleHandle;
+      let timeoutHandle;
+
+      const run = () => {
+        if (cancelled) {
+          return;
+        }
+
+        callback();
+      };
+
+      if (typeof window.requestIdleCallback === "function") {
+        idleHandle = window.requestIdleCallback(run, { timeout: 650 });
+      } else {
+        timeoutHandle = window.setTimeout(run, 120);
+      }
+
+      return () => {
+        cancelled = true;
+
+        if (
+          idleHandle !== undefined &&
+          typeof window.cancelIdleCallback === "function"
+        ) {
+          window.cancelIdleCallback(idleHandle);
+        }
+
+        if (timeoutHandle !== undefined) {
+          window.clearTimeout(timeoutHandle);
+        }
+      };
+    };
 
     const setupLandingReveal = () => {
       if (typeof document === "undefined") {
@@ -362,7 +398,7 @@
           }
         },
         {
-          threshold: [0, 0.15, 0.3, 0.5, 0.75, 1],
+          threshold: [0, 0.5, 1],
           rootMargin: "-12% 0px -60% 0px",
         },
       );
@@ -421,7 +457,7 @@
       resetScrollTimeout = window.setTimeout(resetScroll, 420);
     };
 
-    const frame = requestAnimationFrame(() => {
+    cancelObserverSetup = scheduleIdleWork(() => {
       setupLandingReveal();
       setupScrollSpy();
     });
@@ -429,7 +465,7 @@
     stabilizeInitialMobileScroll();
 
     return () => {
-      cancelAnimationFrame(frame);
+      cancelObserverSetup();
       if (resetScrollTimeout) {
         window.clearTimeout(resetScrollTimeout);
       }
@@ -630,7 +666,7 @@
       id="profil"
       data-reveal
       style="--reveal-delay: 220ms;"
-      class="scroll-mt-24 border-b border-[var(--landing-terminal-line-resolved)]"
+      class="landing-deferred-section scroll-mt-24 border-b border-[var(--landing-terminal-line-resolved)]"
     >
       <div
         class="mx-auto grid max-w-[1180px] gap-6 px-5 py-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:px-8 lg:py-10"
@@ -701,7 +737,7 @@
     <section
       data-reveal
       style="--reveal-delay: 280ms;"
-      class="border-b border-[var(--landing-terminal-line-resolved)]"
+      class="landing-deferred-section border-b border-[var(--landing-terminal-line-resolved)]"
     >
       <div class="mx-auto max-w-[1180px] px-5 py-6 lg:px-8 lg:py-8">
         <div class="grid gap-3 md:grid-cols-3">
@@ -773,7 +809,7 @@
       id="program-kerja"
       data-reveal
       style="--reveal-delay: 360ms;"
-      class="scroll-mt-24 border-b border-[var(--landing-terminal-line-resolved)]"
+      class="landing-deferred-section scroll-mt-24 border-b border-[var(--landing-terminal-line-resolved)]"
     >
       <div class="mx-auto max-w-[1180px] px-5 py-10 lg:px-8 lg:py-14">
         <div class="max-w-[72ch]">
@@ -852,7 +888,7 @@
       id="informasi"
       data-reveal
       style="--reveal-delay: 420ms;"
-      class="scroll-mt-24 border-b border-[var(--landing-terminal-line-resolved)]"
+      class="landing-deferred-section scroll-mt-24 border-b border-[var(--landing-terminal-line-resolved)]"
     >
       <div class="mx-auto max-w-[1180px] px-5 py-8 lg:px-8 lg:py-10">
         <section class="landing-panel px-5 py-5">
@@ -947,7 +983,7 @@
     <section
       data-reveal
       style="--reveal-delay: 480ms;"
-      class="border-b border-[var(--landing-terminal-line-resolved)]"
+      class="landing-deferred-section border-b border-[var(--landing-terminal-line-resolved)]"
     >
       <div class="mx-auto max-w-[1180px] px-5 py-14 lg:px-8 lg:py-16">
         <div class="landing-panel px-8 py-10 text-center lg:px-14 lg:py-14">
@@ -993,7 +1029,7 @@
   <footer
     data-reveal
     style="--reveal-delay: 540ms;"
-    class="border-t border-[var(--landing-terminal-line-resolved)]"
+    class="landing-deferred-section border-t border-[var(--landing-terminal-line-resolved)]"
   >
     <div
       class="mx-auto grid max-w-[1180px] gap-6 px-5 py-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.8fr)] lg:px-8"
