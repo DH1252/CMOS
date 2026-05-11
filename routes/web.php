@@ -23,7 +23,11 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\UserController;
 use App\Support\LandingPageData;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Inertia\Inertia;
 
 /*
@@ -42,6 +46,12 @@ Route::get('/informasi/{informationBoard:slug}', [PublicInformationController::c
 // Optimized image serving
 Route::get('/images/optimize/{path}', [ImageController::class, 'show'])
     ->where('path', '.*')
+    ->withoutMiddleware([
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        ValidateCsrfToken::class,
+    ])
     ->name('images.optimize');
 
 // Guest Routes
