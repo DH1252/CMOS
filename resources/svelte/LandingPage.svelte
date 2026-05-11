@@ -283,7 +283,9 @@
         return;
       }
 
-      const targets = Array.from(document.querySelectorAll("[data-reveal]"));
+      const targets = Array.from(
+        document.querySelectorAll('[data-reveal]:not([data-reveal="initial"])'),
+      );
 
       if (!targets.length) {
         return;
@@ -565,18 +567,20 @@
       <div
         class="mx-auto grid max-w-[1180px] gap-8 px-5 py-8 lg:grid-cols-[minmax(0,1fr)_30rem] lg:px-8 lg:py-10"
       >
-        <div data-reveal style="--reveal-delay: 40ms;" class="grid gap-6">
+        <div data-reveal="initial" class="grid gap-6">
           <div class="grid gap-4">
             <TerminalTextReveal
               tag="h1"
               texts={resolvedHero.titleVariants}
               cycle={true}
               holdDuration={3000}
-              textClass="min-h-[2.45em] max-w-[18ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl lg:text-[3.55rem]"
+              previewWhileAnimating={true}
+              textClass="landing-hero-title min-h-[2.45em] max-w-[18ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl lg:text-[3.55rem]"
             />
             <TerminalTextReveal
               tag="p"
               text={resolvedHero.description}
+              previewWhileAnimating={true}
               textClass="max-w-[66ch] text-[0.98rem] leading-7 text-[var(--landing-terminal-soft-resolved)]"
             />
           </div>
@@ -600,6 +604,7 @@
                 <TerminalTextReveal
                   tag="p"
                   text={item}
+                  previewWhileAnimating={true}
                   textClass="text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
                 />
               </div>
@@ -607,7 +612,7 @@
           </div>
         </div>
 
-        <aside data-reveal style="--reveal-delay: 140ms;">
+        <aside data-reveal="initial">
           <TerminalHeroCanvas
             asciiArt={logokabinetAscii}
             fallbackSrc={logoUrl}
