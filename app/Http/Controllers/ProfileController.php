@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\UploadedImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -60,7 +61,7 @@ class ProfileController extends Controller
         );
     }
 
-    public function update(Request $request)
+    public function update(Request $request, UploadedImageOptimizer $imageOptimizer)
     {
         $user = auth()->user();
 
@@ -69,21 +70,15 @@ class ProfileController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-        // Update name
         $user->name = $validated['name'];
 
-        // Handle avatar upload
         if ($request->hasFile('avatar')) {
-            // Delete old avatar if exists
             if ($user->avatar && Storage::disk('public')->exists('avatars/'.$user->avatar)) {
                 Storage::disk('public')->delete('avatars/'.$user->avatar);
             }
 
-            // Store new avatar
-            $file = $request->file('avatar');
-            $filename = 'avatar_'.$user->id.'_'.time().'.'.$file->extension();
-            $file->storeAs('avatars', $filename, 'public');
-            $user->avatar = $filename;
+            $storedAvatar = $imageOptimizer->store($request->file('avatar'), 'avatars', 320, 320, 84);
+            $user->avatar = basename($storedAvatar['path']);
         }
 
         $user->save();

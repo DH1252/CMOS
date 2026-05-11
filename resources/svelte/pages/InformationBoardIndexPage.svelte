@@ -9,6 +9,7 @@
   import { Input } from "$lib/components/ui/input/index.js";
   import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
   import MetricCard from "../components/MetricCard.svelte";
+  import OptimizedImage from "../components/OptimizedImage.svelte";
   import PageHeader from "../components/PageHeader.svelte";
   import StatusBadge from "../components/StatusBadge.svelte";
 
@@ -203,11 +204,13 @@
           <div class="board-row-top">
             {#if article.coverThumb || article.coverImage}
               <div class="board-row-thumb" aria-hidden="true">
-                <img
+                <OptimizedImage
                   src={article.coverThumb || article.coverImage}
                   alt={article.title}
+                  class="h-full w-full object-cover"
                   loading="lazy"
                   decoding="async"
+                  sizes="96px"
                   onerror={handleImageError}
                 />
               </div>
@@ -410,7 +413,7 @@
     background: color-mix(in srgb, var(--brand-light) 28%, var(--panel-muted));
   }
 
-  .board-row-thumb img {
+  .board-row-thumb :global(img) {
     width: 100%;
     height: 100%;
     display: block;

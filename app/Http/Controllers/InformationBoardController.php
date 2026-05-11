@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Support\ArticleContentImageCompressor;
 use App\Support\ThemePalette;
+use App\Support\UploadedImageOptimizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -87,8 +88,8 @@ class InformationBoardController extends Controller
                         return [
                             'title' => $article->title,
                             'excerpt' => \Illuminate\Support\Str::limit($previewText, 180),
-                            'coverImage' => $article->cover_image_url,
-                            'coverThumb' => $article->cover_image_url,
+                            'coverImage' => $article->cover_image_optimized,
+                            'coverThumb' => $article->cover_image_optimized,
                             'categories' => $article->categories->pluck('name')->values(),
                             'statusLabel' => ucfirst($article->status),
                             'statusTone' => $article->status === 'published' ? 'success' : 'secondary',
@@ -192,7 +193,7 @@ class InformationBoardController extends Controller
         );
     }
 
-    public function store(Request $request)
+    public function store(Request $request, UploadedImageOptimizer $imageOptimizer)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -230,7 +231,10 @@ class InformationBoardController extends Controller
         unset($validated['publish_mode']);
 
         if ($request->hasFile('cover_image')) {
-            $validated['cover_image'] = $request->file('cover_image')->store('information-boards', 'public');
+            $validated['cover_image'] = $imageOptimizer->store(
+                $request->file('cover_image'),
+                'information-boards',
+            )['path'];
         }
 
         $article = InformationBoard::create($validated);
@@ -278,7 +282,7 @@ class InformationBoardController extends Controller
             array_merge([
                 'article' => [
                     'title' => $informationBoard->title,
-                    'coverImage' => $informationBoard->cover_image_url,
+                    'coverImage' => $informationBoard->cover_image_optimized,
                     'badges' => [
                         [
                             'label' => ucfirst($informationBoard->status),
@@ -300,7 +304,7 @@ class InformationBoardController extends Controller
                             'label' => $informationBoard->user?->name ?? '-',
                         ],
                     ],
-                    'contentHtml' => $informationBoard->content,
+                    'contentHtml' => $informationBoard->content_optimized,
                     'backAction' => [
                         'href' => route('information-boards.index'),
                         'label' => 'Kembali',
@@ -360,7 +364,7 @@ class InformationBoardController extends Controller
                         'metaTitle' => old('meta_title', $informationBoard->meta_title),
                         'metaDescription' => old('meta_description', $informationBoard->meta_description),
                         'categoryIds' => old('category_ids', $informationBoard->categories->pluck('id')->all()),
-                        'coverImage' => $informationBoard->cover_image_url,
+                        'coverImage' => $informationBoard->cover_image_optimized,
                     ],
                     'categories' => $categories->map(fn ($category) => ['value' => $category->id, 'label' => $category->name])->values(),
                     'errors' => [
@@ -398,7 +402,7 @@ class InformationBoardController extends Controller
         );
     }
 
-    public function update(Request $request, InformationBoard $informationBoard)
+    public function update(Request $request, InformationBoard $informationBoard, UploadedImageOptimizer $imageOptimizer)
     {
         $this->authorizeEdit($informationBoard, $request->user());
 
@@ -433,7 +437,10 @@ class InformationBoardController extends Controller
         if ($request->hasFile('cover_image')) {
             $this->deleteCoverImage($informationBoard->cover_image);
 
-            $validated['cover_image'] = $request->file('cover_image')->store('information-boards', 'public');
+            $validated['cover_image'] = $imageOptimizer->store(
+                $request->file('cover_image'),
+                'information-boards',
+            )['path'];
         }
 
         $informationBoard->update($validated);

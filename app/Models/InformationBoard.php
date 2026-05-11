@@ -91,10 +91,42 @@ class InformationBoard extends Model
         return [
             'original' => $original,
             'webp' => $optimizeUrl.'?f=webp',
-            'avif' => $optimizeUrl.'?f=avif',
+            'avif' => null,
             'width' => is_int($dimensions[0] ?? null) ? $dimensions[0] : null,
             'height' => is_int($dimensions[1] ?? null) ? $dimensions[1] : null,
         ];
+    }
+
+    public function getContentOptimizedAttribute(): string
+    {
+        if (! is_string($this->content) || $this->content === '') {
+            return '';
+        }
+
+        return preg_replace_callback(
+            '#<img\b[^>]*\bsrc\s*=\s*(["\'])([^"\']+)\1[^>]*>#i',
+            function (array $matches): string {
+                $optimizedUrl = $this->optimizedStorageImageUrl($matches[2]);
+
+                if ($optimizedUrl === null) {
+                    return $matches[0];
+                }
+
+                $tag = preg_replace('#\bsrc\s*=\s*(["\']).*?\1#i', 'src="'.$optimizedUrl.'"', $matches[0], 1) ?? $matches[0];
+                $lowerTag = strtolower($tag);
+
+                if (! str_contains($lowerTag, ' loading=')) {
+                    $tag = preg_replace('/\s*\/?>$/', ' loading="lazy">', $tag, 1) ?? $tag;
+                }
+
+                if (! str_contains($lowerTag, ' decoding=')) {
+                    $tag = preg_replace('/\s*\/?>$/', ' decoding="async">', $tag, 1) ?? $tag;
+                }
+
+                return $tag;
+            },
+            $this->content,
+        ) ?? $this->content;
     }
 
     public function getPublishedAtLocalAttribute(): ?Carbon
@@ -135,5 +167,27 @@ class InformationBoard extends Model
         }
 
         return $slug;
+    }
+
+    private function optimizedStorageImageUrl(string $source): ?string
+    {
+        $path = parse_url($source, PHP_URL_PATH);
+
+        if (! is_string($path) || ! str_starts_with($path, '/storage/')) {
+            return null;
+        }
+
+        $storagePath = rawurldecode(Str::after($path, '/storage/'));
+        $extension = strtolower(pathinfo($storagePath, PATHINFO_EXTENSION));
+
+        if (! in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+            return null;
+        }
+
+        return route('images.optimize', [
+            'path' => $storagePath,
+            'f' => 'webp',
+            'w' => 1280,
+        ], false);
     }
 }

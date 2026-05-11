@@ -76,25 +76,32 @@
     $landingProgramGroups = collect($landingProgramSection['groups'] ?? []);
     $landingLatestInfo = collect($landingProps['latestInfo'] ?? []);
     $landingFooterSections = collect($landingFooter['sections'] ?? []);
+    $staticImage = static function (string $file): array {
+        $name = pathinfo($file, PATHINFO_FILENAME);
+
+        return [
+            'src' => asset("images/{$file}"),
+            'webp' => asset("images/{$name}.webp"),
+            'avif' => asset("images/{$name}.avif"),
+        ];
+    };
+    $staticLogo = $staticImage('logokabinet.png');
     $landingGallery = [
-        [
-            'src' => asset('images/himatekkom.jpg'),
+        array_merge($staticImage('himatekkom.jpg'), [
             'alt' => 'Dokumentasi kegiatan mahasiswa Teknik Komputer ITS',
             'label' => 'lab',
             'value' => '/workspace',
-        ],
-        [
-            'src' => asset('images/flare.jpg'),
+        ]),
+        array_merge($staticImage('flare.jpg'), [
             'alt' => 'Aksen visual identitas publikasi HIMATEKKOM ITS',
             'label' => 'kolaborasi',
             'value' => '/tim',
-        ],
-        [
-            'src' => asset('images/logokabinet.png'),
+        ]),
+        array_merge($staticLogo, [
             'alt' => 'Logo kabinet Sentra Sinergi HIMATEKKOM ITS',
             'label' => 'gedung',
             'value' => '/teknik komputer',
-        ],
+        ]),
     ];
     $resolveImageUrl = static function ($image): ?string {
         if (is_string($image) && $image !== '') {
@@ -102,7 +109,7 @@
         }
 
         if (is_array($image)) {
-            foreach (['original', 'webp', 'avif'] as $key) {
+            foreach (['webp', 'avif', 'original'] as $key) {
                 $value = $image[$key] ?? null;
 
                 if (is_string($value) && $value !== '') {
@@ -151,7 +158,11 @@
     <header class="no-js-header">
         <div class="no-js-header-inner">
             <a href="{{ route('home') }}" class="no-js-brand">
-                <img src="{{ asset('images/logokabinet.png') }}" alt="{{ $organizationName }}" width="160" height="137">
+                <picture>
+                    <source srcset="{{ $staticLogo['avif'] }}" type="image/avif">
+                    <source srcset="{{ $staticLogo['webp'] }}" type="image/webp">
+                    <img src="{{ $staticLogo['src'] }}" alt="{{ $organizationName }}" width="160" height="137">
+                </picture>
                 <div class="no-js-brand-copy">
                     <span class="no-js-brand-title">{{ $organizationName }}</span>
                     <span class="no-js-brand-subtitle">Kabinet Sentra Sinergi 2026</span>
@@ -209,7 +220,11 @@
                                 <span>ASCII ready</span>
                             </div>
                             <div class="no-js-canvas-media">
-                                <img src="{{ asset('images/logokabinet.png') }}" alt="Logo Kabinet Sentra Sinergi dalam ASCII art" width="160" height="137">
+                                <picture>
+                                    <source srcset="{{ $staticLogo['avif'] }}" type="image/avif">
+                                    <source srcset="{{ $staticLogo['webp'] }}" type="image/webp">
+                                    <img src="{{ $staticLogo['src'] }}" alt="Logo Kabinet Sentra Sinergi dalam ASCII art" width="160" height="137">
+                                </picture>
                             </div>
                             <figcaption class="no-js-canvas-caption">
                                 <span>render /logo</span>
@@ -224,7 +239,11 @@
                         @foreach ($landingGallery as $image)
                             <figure class="no-js-frame">
                                 <div class="no-js-frame-media">
-                                    <img src="{{ $image['src'] }}" alt="{{ $image['alt'] }}" loading="lazy" decoding="async">
+                                    <picture>
+                                        <source srcset="{{ $image['avif'] }}" type="image/avif">
+                                        <source srcset="{{ $image['webp'] }}" type="image/webp">
+                                        <img src="{{ $image['src'] }}" alt="{{ $image['alt'] }}" loading="lazy" decoding="async">
+                                    </picture>
                                 </div>
                                 <figcaption class="no-js-frame-caption">
                                     <span>{{ $image['label'] }}</span>
@@ -307,11 +326,20 @@
                         <div class="no-js-stack">
                             @foreach ($landingLatestInfo as $article)
                                 @php
-                                    $articleCoverImage = $resolveImageUrl($article['coverImage'] ?? null);
+                                    $articleCover = $article['coverImage'] ?? null;
+                                    $articleCoverImage = $resolveImageUrl($articleCover);
                                 @endphp
                                 <a href="{{ $article['url'] ?? route('informasi.index') }}" class="no-js-article no-js-article-link">
                                     @if (! empty($articleCoverImage))
-                                        <img src="{{ $articleCoverImage }}" alt="{{ $article['title'] ?? 'Artikel' }}" loading="lazy" decoding="async">
+                                        <picture>
+                                            @if (is_array($articleCover) && ! empty($articleCover['avif']))
+                                                <source srcset="{{ $articleCover['avif'] }}" type="image/avif">
+                                            @endif
+                                            @if (is_array($articleCover) && ! empty($articleCover['webp']))
+                                                <source srcset="{{ $articleCover['webp'] }}" type="image/webp">
+                                            @endif
+                                            <img src="{{ $articleCoverImage }}" alt="{{ $article['title'] ?? 'Artikel' }}" loading="lazy" decoding="async">
+                                        </picture>
                                     @endif
                                     <div class="no-js-meta">{{ $article['publishedAtLabel'] ?? 'Publikasi baru' }} · {{ $article['category'] ?? 'Papan Informasi' }}</div>
                                     <h3 class="no-js-article-title">{{ $article['title'] ?? 'Artikel' }}</h3>
@@ -371,9 +399,21 @@
                 @else
                     <div class="no-js-grid no-js-grid-index">
                         @foreach ($archiveArticles as $article)
+                            @php
+                                $articleCover = $article->cover_image_optimized;
+                                $articleCoverImage = $resolveImageUrl($articleCover);
+                            @endphp
                             <article class="no-js-article">
-                                @if ($article->cover_image_url)
-                                    <img src="{{ $article->cover_image_url }}" alt="{{ $article->title }}" loading="lazy" decoding="async">
+                                @if ($articleCoverImage)
+                                    <picture>
+                                        @if (! empty($articleCover['avif']))
+                                            <source srcset="{{ $articleCover['avif'] }}" type="image/avif">
+                                        @endif
+                                        @if (! empty($articleCover['webp']))
+                                            <source srcset="{{ $articleCover['webp'] }}" type="image/webp">
+                                        @endif
+                                        <img src="{{ $articleCoverImage }}" alt="{{ $article->title }}" loading="lazy" decoding="async">
+                                    </picture>
                                 @endif
                                 <div class="no-js-meta">{{ $formatDate($article->publishedAtLocal, true) }} · {{ $article->user?->name ?? '-' }}</div>
                                 <h2 class="no-js-article-title"><a href="{{ route('informasi.show', $article->slug) }}">{{ $article->title }}</a></h2>
@@ -414,12 +454,24 @@
                 </section>
 
                 <section class="no-js-section no-js-prose">
-                    @if ($currentArticle->cover_image_url)
-                        <img src="{{ $currentArticle->cover_image_url }}" alt="{{ $currentArticle->title }}" loading="lazy" decoding="async">
+                    @php
+                        $articleCover = $currentArticle->cover_image_optimized;
+                        $articleCoverImage = $resolveImageUrl($articleCover);
+                    @endphp
+                    @if ($articleCoverImage)
+                        <picture>
+                            @if (! empty($articleCover['avif']))
+                                <source srcset="{{ $articleCover['avif'] }}" type="image/avif">
+                            @endif
+                            @if (! empty($articleCover['webp']))
+                                <source srcset="{{ $articleCover['webp'] }}" type="image/webp">
+                            @endif
+                            <img src="{{ $articleCoverImage }}" alt="{{ $currentArticle->title }}" loading="lazy" decoding="async">
+                        </picture>
                         <hr class="no-js-divider">
                     @endif
 
-                    {!! $currentArticle->content !!}
+                    {!! $currentArticle->content_optimized !!}
                 </section>
 
                 @if ($relatedArticles->isNotEmpty())

@@ -90,7 +90,6 @@
     {/if}
     <img
       src={originalSrc}
-      srcset={webpSrcset || avifSrcset}
       {alt}
       class={className}
       width={intrinsicWidth}

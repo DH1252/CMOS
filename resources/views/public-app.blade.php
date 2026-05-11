@@ -29,7 +29,7 @@
         document.documentElement.setAttribute('data-js', 'true');
     </script>
     <title>{{ $appName }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logokabinet.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('images/logokabinet.webp') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ asset('fonts/public-sans.css') }}">
