@@ -234,8 +234,8 @@
       oklch(0.27 0.015 304)
     );
     --font-terminal:
-      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-      "Courier New", monospace;
+      "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace;
     background: var(--landing-terminal-bg-resolved);
     color: var(--landing-terminal-text-resolved);
     font-family: "Public Sans", sans-serif;
