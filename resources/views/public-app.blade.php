@@ -13,8 +13,6 @@
         }
         $landingStyle = implode('; ', $vars);
     }
-    $terminalFontUrl = 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=block';
-    $terminalFontLatinUrl = 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2';
     $ssr = isset($page) && is_array($page)
         ? app(\App\Services\SvelteSsrRenderer::class)->renderPage($page)
         : ['html' => '', 'head' => '', 'rendered' => false];
@@ -32,12 +30,8 @@
     <link rel="icon" type="image/webp" href="{{ asset('images/logokabinet.webp') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/jetbrains-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ asset('fonts/public-sans.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="{{ $terminalFontLatinUrl }}" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="{{ $terminalFontUrl }}" as="style">
-    <link rel="stylesheet" href="{{ $terminalFontUrl }}">
     <style>
         .no-js-shell {
             --font-terminal: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;

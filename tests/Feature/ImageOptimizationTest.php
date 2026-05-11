@@ -36,6 +36,38 @@ class ImageOptimizationTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('Content-Type', 'image/webp');
+        $response->assertHeader('X-Image-Optimized', '1');
+    }
+
+    public function test_it_resizes_and_caches_optimized_images(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        $image = UploadedFile::fake()->image('wide.jpg', 800, 400);
+        Storage::disk('public')->put('information-boards/wide.jpg', $image->get());
+
+        $route = route('images.optimize', [
+            'path' => 'information-boards/wide.jpg',
+            'f' => 'webp',
+            'w' => 320,
+        ]);
+
+        $response = $this->get($route);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'image/webp');
+        $response->assertHeader('X-Image-Optimized', '1');
+        $response->assertHeaderMissing('Set-Cookie');
+        $dimensions = getimagesizefromstring($response->getContent());
+        $this->assertIsArray($dimensions);
+        $this->assertSame(320, $dimensions[0]);
+        $this->assertSame(160, $dimensions[1]);
+
+        $cachedResponse = $this->get($route);
+
+        $cachedResponse->assertOk();
+        $cachedResponse->assertHeader('Content-Type', 'image/webp');
+        $cachedResponse->assertHeader('X-Image-Optimized', '1');
     }
 
     public function test_it_returns_404_for_missing_image(): void
@@ -98,6 +130,23 @@ class ImageOptimizationTest extends TestCase
             'f' => 'webp',
         ]));
         $response2->assertOk();
+    }
+
+    public function test_it_serves_original_when_optimization_fails(): void
+    {
+        Storage::fake('public');
+        Storage::fake('local');
+        Storage::disk('public')->put('information-boards/corrupt.jpg', 'not an image');
+
+        $response = $this->get(route('images.optimize', [
+            'path' => 'information-boards/corrupt.jpg',
+            'f' => 'webp',
+            'w' => 320,
+        ]));
+
+        $response->assertOk();
+        $this->assertSame('not an image', $response->getContent());
+        $response->assertHeader('X-Image-Optimized', '0');
     }
 
     public function test_it_rewrites_stored_content_images_to_optimized_urls(): void

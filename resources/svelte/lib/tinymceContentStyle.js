@@ -32,7 +32,7 @@ const buildContentRules = (selector, theme) => {
     ${selector} li { margin: 0 0 0.25rem 0; }
     ${selector} blockquote { border-left: 3px solid ${resolved.lineColor}; padding-left: 0.75rem; margin: 0 0 0.6rem 0; font-style: italic; color: ${resolved.softColor}; }
     ${selector} pre { background: ${resolved.surfaceColor}; color: ${resolved.textColor}; padding: 0.6rem 0.8rem; border-radius: 0.5rem; margin: 0 0 0.6rem 0; overflow-x: auto; }
-    ${selector} code { background: ${resolved.surfaceColor}; color: ${resolved.textColor}; padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.875rem; }
+    ${selector} code { background: ${resolved.surfaceColor}; color: ${resolved.textColor}; padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.875rem; }
     ${selector} img { max-width: 100%; height: auto; border-radius: 0.375rem; display: block; margin: 0.5rem 0; }
     ${selector} table { width: 100%; border-collapse: collapse; margin: 0 0 0.6rem 0; font-size: 0.9rem; color: ${resolved.textColor}; }
     ${selector} th, ${selector} td { border: 1px solid ${resolved.lineColor}; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
@@ -51,13 +51,13 @@ const buildAlignmentRules = (selector) => `
 `;
 
 export const tinymceBaseStyle = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
+  @import url('/fonts/public-sans.css');
   ${buildContentRules("body", defaultPreviewTheme)}
   ${buildAlignmentRules("body")}
 `;
 
 export const buildTinymceContentStyle = (theme = {}) => `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
+  @import url('/fonts/public-sans.css');
   ${buildContentRules("body", theme)}
   ${buildAlignmentRules("body")}
 `;

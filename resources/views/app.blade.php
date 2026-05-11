@@ -45,25 +45,22 @@
     <title>{{ $appName }}</title>
     <link rel="icon" type="image/webp" href="{{ asset('images/logokabinet.webp') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
+    <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     @if ($isPublicRoute)
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.onload=null;this.media='all'">
-        <noscript>
-            <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        </noscript>
-    @else
-        {{-- Self-hosted font CSS (subsetted woff2, ~53 KB total) --}}
-        <link rel="preload" href="{{ asset('fonts/public-sans.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <noscript>
-            <link rel="stylesheet" href="{{ asset('fonts/public-sans.css') }}">
-        </noscript>
+        <link rel="preload" href="{{ asset('fonts/jetbrains-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    @endif
+    {{-- Self-hosted font CSS (subsetted woff2, ~85 KB total) --}}
+    <link rel="preload" href="{{ asset('fonts/public-sans.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="{{ asset('fonts/public-sans.css') }}">
+    </noscript>
+    @unless ($isPublicRoute)
         {{-- Self-hosted Font Awesome 6.5.1 (~360 KB woff2 + 103 KB CSS) --}}
         <link rel="preload" href="{{ asset('fonts/font-awesome/css/all.min.css') }}" as="style" fetchpriority="low" onload="this.onload=null;this.rel='stylesheet'">
         <noscript>
             <link rel="stylesheet" href="{{ asset('fonts/font-awesome/css/all.min.css') }}">
         </noscript>
-    @endif
+    @endunless
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
     @if ($isPublicRoute)

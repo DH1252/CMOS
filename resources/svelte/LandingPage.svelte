@@ -418,7 +418,6 @@
         requestAnimationFrame(resetScroll);
       });
 
-      window.addEventListener("load", resetScroll, { once: true });
       resetScrollTimeout = window.setTimeout(resetScroll, 420);
     };
 
