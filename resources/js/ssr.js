@@ -13,7 +13,7 @@ const isPublicPage = (name) =>
   name === "LandingPage" || name === "PublicApp" || name.startsWith("public/");
 const isGuestPage = (name) => name === "LoginPage";
 
-createServer((page) =>
+const renderInertiaPage = (page) =>
   createInertiaApp({
     page,
     render,
@@ -47,5 +47,33 @@ createServer((page) =>
     setup: ({ App, props }) => {
       return render(App, { props });
     },
-  }),
-);
+  });
+
+const readStdin = () =>
+  new Promise((resolve, reject) => {
+    let payload = "";
+
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("data", (chunk) => {
+      payload += chunk;
+    });
+    process.stdin.on("end", () => resolve(payload));
+    process.stdin.on("error", reject);
+  });
+
+const renderOnce = async () => {
+  const payload = await readStdin();
+  const page = JSON.parse(payload);
+  const response = await renderInertiaPage(page);
+
+  process.stdout.write(JSON.stringify(response));
+};
+
+if (process.argv.includes("--render-once")) {
+  renderOnce().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+} else {
+  createServer((page) => renderInertiaPage(page));
+}

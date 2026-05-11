@@ -12,10 +12,40 @@ class SvelteSsrRenderer
     public function __construct(private string $entryPoint = 'bootstrap/ssr/ssr.js') {}
 
     /**
+     * @param  array{component?: string, props?: array<string, mixed>, url?: string, version?: string|null}  $page
+     * @return array{html: string, head: string, rendered: bool}
+     */
+    public function renderPage(array $page): array
+    {
+        $component = is_string($page['component'] ?? null) ? $page['component'] : '';
+
+        return $this->renderPayload([
+            'component' => $component,
+            'props' => is_array($page['props'] ?? null) ? $page['props'] : [],
+            'url' => is_string($page['url'] ?? null) ? $page['url'] : '/',
+            'version' => $page['version'] ?? null,
+        ], $component);
+    }
+
+    /**
      * @param  array<string, mixed>  $props
      * @return array{html: string, head: string, rendered: bool}
      */
     public function render(string $component, array $props = []): array
+    {
+        return $this->renderPayload([
+            'component' => $component,
+            'props' => $props,
+            'url' => '/',
+            'version' => null,
+        ], $component);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array{html: string, head: string, rendered: bool}
+     */
+    private function renderPayload(array $payload, string $component): array
     {
         if (is_file(public_path('hot'))) {
             return $this->emptyResult();
@@ -28,14 +58,11 @@ class SvelteSsrRenderer
         }
 
         try {
-            $payload = json_encode([
-                'component' => $component,
-                'props' => $props,
-            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $encodedPayload = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
             $result = Process::timeout(10)
-                ->input($payload)
-                ->run(sprintf('node "%s"', $entryPoint));
+                ->input($encodedPayload)
+                ->run(sprintf('node "%s" --render-once', $entryPoint));
         } catch (Throwable $exception) {
             Log::warning('Svelte SSR process failed before completion.', [
                 'component' => $component,

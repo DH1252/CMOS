@@ -13,6 +13,9 @@
         }
         $landingStyle = implode('; ', $vars);
     }
+    $ssr = isset($page) && is_array($page)
+        ? app(\App\Services\SvelteSsrRenderer::class)->renderPage($page)
+        : ['html' => '', 'head' => '', 'rendered' => false];
 @endphp
 <!DOCTYPE html>
 <html lang="id" data-theme="public" data-brand="{{ $themeColor }}" data-js="false"@if($landingStyle) style="{{ $landingStyle }}"@endif>
@@ -28,11 +31,9 @@
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ asset('fonts/public-sans.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=optional">
     <style>
         .no-js-shell {
+            --font-terminal: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
             min-height: 100vh;
             background: var(--page-bg, #18141e);
             color: var(--landing-terminal-text, #f0e6c8);
@@ -43,7 +44,7 @@
         .no-js-meta,
         .no-js-tag,
         .no-js-button {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-terminal);
         }
 
         .no-js-header {
@@ -138,7 +139,7 @@
         .no-js-title {
             margin: 0.6rem 0 0;
             color: var(--landing-terminal-heading, #f0e6c8);
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-terminal);
             font-size: clamp(2rem, 5vw, 3.4rem);
             line-height: 1.1;
         }
@@ -193,7 +194,7 @@
         .no-js-article-title {
             margin: 0;
             color: var(--landing-terminal-heading, #f0e6c8);
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-terminal);
             font-size: 1.25rem;
             line-height: 1.3;
         }
@@ -233,7 +234,7 @@
         .no-js-prose h3,
         .no-js-prose h4 {
             color: var(--landing-terminal-heading, #f0e6c8);
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-terminal);
         }
 
         .no-js-prose a {
@@ -313,7 +314,7 @@
             padding: 0.75rem 0.9rem;
             border-bottom: 1px solid var(--landing-terminal-line, #8a7a3c);
             color: var(--landing-terminal-soft, #cabe9e);
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-terminal);
             font-size: 0.72rem;
             letter-spacing: 0.03em;
         }
@@ -333,7 +334,7 @@
             gap: 0.5rem;
             padding: 0.65rem 0.85rem;
             color: var(--landing-terminal-muted, #cabe9e);
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-terminal);
             font-size: 0.72rem;
         }
 
@@ -409,7 +410,7 @@
         .no-js-section-title {
             margin: 0;
             color: var(--landing-terminal-heading, #f0e6c8);
-            font-family: 'JetBrains Mono', monospace;
+            font-family: var(--font-terminal);
             font-size: clamp(2rem, 4vw, 3rem);
             line-height: 1.1;
         }
@@ -450,6 +451,9 @@
     </style>
     @vite(['resources/css/public.css', 'resources/js/public.js'])
     @inertiaHead
+    @if ($ssr['rendered'] && $ssr['head'] !== '')
+        {!! $ssr['head'] !!}
+    @endif
     @if (is_string(data_get($page, 'props.seo.jsonLd')) && data_get($page, 'props.seo.jsonLd') !== '')
         <script type="application/ld+json">{!! data_get($page, 'props.seo.jsonLd') !!}</script>
     @endif
@@ -471,6 +475,11 @@
     <noscript>
         @include('partials.public-noscript')
     </noscript>
-    @inertia
+    @if ($ssr['rendered'])
+        {!! $ssr['html'] !!}
+    @else
+        <script data-page="app" type="application/json">{!! json_encode($page, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+        <div id="app"></div>
+    @endif
 </body>
 </html>

@@ -3,8 +3,8 @@ import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
 
 const pages = {
-  ...import.meta.glob("../svelte/LandingPage.svelte"),
-  ...import.meta.glob("../svelte/PublicApp.svelte"),
+  ...import.meta.glob("../svelte/LandingPage.svelte", { eager: true }),
+  ...import.meta.glob("../svelte/PublicApp.svelte", { eager: true }),
 };
 
 const resolvePublicPage = async (name) => {
@@ -14,7 +14,7 @@ const resolvePublicPage = async (name) => {
     throw new Error(`Unknown Inertia page: ${name}`);
   }
 
-  return importer();
+  return importer;
 };
 
 const applyBrandTheme = (themeName) => {

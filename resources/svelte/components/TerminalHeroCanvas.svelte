@@ -110,7 +110,17 @@
     max-height: 100%;
     overflow: hidden;
     white-space: pre;
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(
+      --font-terminal,
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      "Liberation Mono",
+      "Courier New",
+      monospace
+    );
     font-weight: 700;
     font-size: clamp(0.24rem, 0.31vw, 0.38rem);
     line-height: 0.9;

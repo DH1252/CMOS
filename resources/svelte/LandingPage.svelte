@@ -1120,6 +1120,9 @@
       --landing-terminal-button-secondary-hover,
       oklch(0.27 0.015 304)
     );
+    --font-terminal:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
     background: var(--landing-terminal-bg-resolved);
     color: var(--landing-terminal-text-resolved);
     font-family: "Public Sans", sans-serif;
@@ -1129,7 +1132,7 @@
   .landing-terminal :global(h2),
   .landing-terminal :global(h3) {
     color: var(--landing-terminal-heading-resolved);
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(--font-terminal);
     letter-spacing: -0.02em;
     line-height: 1.2;
   }
@@ -1140,7 +1143,7 @@
   .landing-command-block :global(*),
   .landing-button-primary,
   .landing-button-secondary {
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(--font-terminal);
   }
 
   .landing-terminal :global(p) {
@@ -1268,7 +1271,7 @@
     align-items: baseline;
     gap: 0.25rem;
     padding: 0.6rem 0.8rem;
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(--font-terminal);
     font-size: 0.72rem;
   }
 
