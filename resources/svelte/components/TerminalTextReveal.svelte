@@ -53,16 +53,6 @@
       "",
     );
   });
-  const renderStatic = $derived(!animate);
-  const isServer = typeof window === "undefined";
-  const baseTextVisible = $derived(
-    renderStatic ||
-      prefersReducedMotion ||
-      (!previewWhileAnimating && (isComplete || isServer || !hasMounted)),
-  );
-  const baseTextPreview = $derived(
-    animate && previewWhileAnimating && isActive && !isComplete && !isServer,
-  );
   const overlayVisible = $derived(
     animate &&
       !prefersReducedMotion &&
@@ -76,6 +66,10 @@
       ? layoutText
       : baseText,
   );
+  const layoutPlaceholderText = $derived(
+    overlayVisible && renderedBaseText ? renderedBaseText : undefined,
+  );
+  const staticText = $derived(overlayVisible ? "" : baseText);
   const glitchChars = "._:=+/-[]{}<>|";
 
   const findOverlayTextNode = () => {
@@ -296,75 +290,51 @@
   });
 </script>
 
-<div bind:this={wrapper} class={`terminal-reveal ${wrapperClass}`.trim()}>
-  <svelte:element
-    this={tag}
-    class={`terminal-reveal__base ${baseTextVisible ? "terminal-reveal__base--visible" : ""} ${baseTextPreview ? "terminal-reveal__base--preview" : ""} ${textClass}`.trim()}
-  >
-    {renderedBaseText}
-  </svelte:element>
-
+<svelte:element
+  this={tag}
+  bind:this={wrapper}
+  class={`terminal-reveal ${wrapperClass} ${textClass}`.trim()}
+  data-layout-text={layoutPlaceholderText}
+  aria-label={overlayVisible ? baseText : undefined}
+>
   {#if overlayVisible}
-    <svelte:element
-      this={tag}
-      class={`terminal-reveal__overlay ${textClass}`.trim()}
-      aria-hidden="true"
+    <span class="terminal-reveal__animated-text" bind:this={overlayTextElement}
+      >{overlayText}<span
+        class="terminal-reveal__endpoint"
+        style={`--terminal-reveal-endpoint-x: ${endpointX}; --terminal-reveal-endpoint-y: ${endpointY};`}
+        aria-hidden="true"
+        ><span class="terminal-reveal__glitch">{glitchGlyph}</span
+        >{#if !isComplete}<span class="terminal-reveal__cursor">_</span
+          >{/if}</span
+      ></span
     >
-      <span class="terminal-reveal__overlay-spacer">{renderedBaseText}</span>
-      <span
-        class="terminal-reveal__animated-text"
-        bind:this={overlayTextElement}
-        >{overlayText}<span
-          class="terminal-reveal__endpoint"
-          style={`--terminal-reveal-endpoint-x: ${endpointX}; --terminal-reveal-endpoint-y: ${endpointY};`}
-          ><span class="terminal-reveal__glitch">{glitchGlyph}</span
-          >{#if !isComplete}<span class="terminal-reveal__cursor">_</span
-            >{/if}</span
-        ></span
-      >
-    </svelte:element>
+  {:else}
+    {staticText}
   {/if}
-</div>
+</svelte:element>
 
 <style>
   .terminal-reveal {
     position: relative;
   }
 
-  .terminal-reveal__base {
-    position: relative;
-    z-index: 1;
-    opacity: 0;
-  }
-
-  .terminal-reveal__base--visible {
-    opacity: 1;
-  }
-
-  .terminal-reveal__base--preview {
-    opacity: 0;
-  }
-
-  .terminal-reveal__overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    white-space: pre-wrap;
-    text-shadow: 0 0 8px color-mix(in srgb, currentColor 18%, transparent);
-  }
-
-  .terminal-reveal__overlay-spacer {
+  .terminal-reveal[data-layout-text]::before {
+    content: attr(data-layout-text);
+    display: block;
     visibility: hidden;
+    white-space: pre-wrap;
   }
 
   .terminal-reveal__animated-text {
     display: block;
     position: absolute;
     inset: 0;
+    z-index: 2;
     width: 100%;
     height: 100%;
+    pointer-events: none;
     white-space: pre-wrap;
+    text-shadow: 0 0 8px color-mix(in srgb, currentColor 18%, transparent);
   }
 
   .terminal-reveal__endpoint {
@@ -427,14 +397,6 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .terminal-reveal__base {
-      opacity: 1;
-    }
-
-    .terminal-reveal__overlay {
-      display: none;
-    }
-
     .terminal-reveal__cursor {
       animation: none;
     }
