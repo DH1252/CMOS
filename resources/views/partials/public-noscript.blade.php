@@ -109,7 +109,7 @@
         }
 
         if (is_array($image)) {
-            foreach (['webp', 'avif', 'original'] as $key) {
+            foreach (['avif', 'webp', 'original'] as $key) {
                 $value = $image[$key] ?? null;
 
                 if (is_string($value) && $value !== '') {

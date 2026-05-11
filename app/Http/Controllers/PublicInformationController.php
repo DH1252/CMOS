@@ -229,7 +229,8 @@ class PublicInformationController extends Controller
         $infoUrl = route('informasi.index');
         $canonicalUrl = route('informasi.show', $article);
         $logoUrl = asset('images/logokabinet.webp');
-        $coverImageUrl = $article->cover_image_optimized['webp'] ?? $article->cover_image_url;
+        $coverImage = $article->cover_image_optimized;
+        $coverImageUrl = $coverImage['avif'] ?? $coverImage['webp'] ?? $article->cover_image_url;
         $organizationId = $homeUrl.'#organization';
         $websiteId = $homeUrl.'#website';
         $articleCategories = $article->categories->pluck('name')->values()->all();

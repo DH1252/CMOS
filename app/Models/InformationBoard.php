@@ -90,8 +90,8 @@ class InformationBoard extends Model
 
         return [
             'original' => $original,
+            'avif' => $optimizeUrl.'?f=avif',
             'webp' => $optimizeUrl.'?f=webp',
-            'avif' => null,
             'width' => is_int($dimensions[0] ?? null) ? $dimensions[0] : null,
             'height' => is_int($dimensions[1] ?? null) ? $dimensions[1] : null,
         ];
@@ -121,6 +121,10 @@ class InformationBoard extends Model
 
                 if (! str_contains($lowerTag, ' decoding=')) {
                     $tag = preg_replace('/\s*\/?>$/', ' decoding="async">', $tag, 1) ?? $tag;
+                }
+
+                if (! str_contains($lowerTag, ' style=')) {
+                    $tag = preg_replace('/\s*\/?>$/', ' style="max-width: 100%; height: auto; object-fit: contain;">', $tag, 1) ?? $tag;
                 }
 
                 return $tag;
@@ -186,7 +190,7 @@ class InformationBoard extends Model
 
         return route('images.optimize', [
             'path' => $storagePath,
-            'f' => 'webp',
+            'f' => 'avif',
             'w' => 1280,
         ], false);
     }

@@ -57,6 +57,32 @@
       : (enhancedImage?.src ?? src?.original ?? null),
   );
 
+  const imageClass = $derived.by(() => {
+    const classes = [className];
+
+    if (
+      !/(^|\s)(block|inline-block|inline|flex|grid|hidden)(\s|$)/.test(
+        className,
+      )
+    ) {
+      classes.push("block");
+    }
+
+    if (!/(^|\s)(max-w-|w-|size-)/.test(className)) {
+      classes.push("max-w-full");
+    }
+
+    if (!/(^|\s)(h-|min-h-|max-h-|size-)/.test(className)) {
+      classes.push("h-auto");
+    }
+
+    if (!/(^|\s)object-/.test(className)) {
+      classes.push("object-contain");
+    }
+
+    return classes.filter(Boolean).join(" ");
+  });
+
   /**
    * @param {string|null} url
    * @param {number[]} widths
@@ -81,7 +107,7 @@
 </script>
 
 {#if hasOptimizedSources}
-  <picture>
+  <picture class="contents">
     {#if avifSrcset}
       <source srcset={avifSrcset} type="image/avif" {sizes} />
     {/if}
@@ -91,7 +117,7 @@
     <img
       src={originalSrc}
       {alt}
-      class={className}
+      class={imageClass}
       width={intrinsicWidth}
       height={intrinsicHeight}
       {loading}
@@ -105,7 +131,7 @@
   <img
     src={originalSrc}
     {alt}
-    class={className}
+    class={imageClass}
     width={intrinsicWidth}
     height={intrinsicHeight}
     {loading}
