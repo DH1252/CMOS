@@ -199,7 +199,7 @@ class InformationBoardController extends Controller
             'title' => 'required|string|max:255',
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'cover_image' => 'nullable|file|mimetypes:image/jpeg,image/png,image/gif,image/avif,image/webp|max:2048',
             'status' => 'required|in:draft,published',
             'publish_mode' => 'nullable|in:immediately,scheduled',
             'published_at' => [
@@ -249,7 +249,7 @@ class InformationBoardController extends Controller
     public function uploadAttachment(Request $request, ArticleContentImageCompressor $compressor): JsonResponse
     {
         $validated = $request->validate([
-            'attachment' => 'required|file|max:10240|mimes:jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,rar',
+            'attachment' => 'required|file|max:10240|mimes:jpg,jpeg,png,gif,avif,webp,pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,rar',
         ]);
 
         $attachment = $validated['attachment'];
@@ -410,7 +410,7 @@ class InformationBoardController extends Controller
             'title' => 'required|string|max:255',
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'cover_image' => 'nullable|file|mimetypes:image/jpeg,image/png,image/gif,image/avif,image/webp|max:2048',
             'status' => 'required|in:draft,published',
             'publish_mode' => 'nullable|in:immediately,scheduled',
             'published_at' => [

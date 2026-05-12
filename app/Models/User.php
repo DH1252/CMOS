@@ -135,7 +135,7 @@ class User extends Authenticatable
         if ($this->avatar) {
             return route('images.optimize', [
                 'path' => 'avatars/'.$this->avatar,
-                'f' => 'webp',
+                'f' => 'avif',
                 'w' => 320,
                 'h' => 320,
             ]);

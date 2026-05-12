@@ -67,7 +67,7 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'avatar' => 'nullable|file|mimetypes:image/jpeg,image/png,image/gif,image/avif,image/webp|max:2048',
         ]);
 
         $user->name = $validated['name'];

@@ -10,7 +10,7 @@ class ArticleContentImageCompressor
 
     private const MAX_HEIGHT = 1600;
 
-    private const WEBP_QUALITY = 82;
+    private const IMAGE_QUALITY = 82;
 
     public function __construct(private readonly UploadedImageOptimizer $optimizer) {}
 
@@ -29,7 +29,7 @@ class ArticleContentImageCompressor
             $directory,
             self::MAX_WIDTH,
             self::MAX_HEIGHT,
-            self::WEBP_QUALITY,
+            self::IMAGE_QUALITY,
         );
     }
 }

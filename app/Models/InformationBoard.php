@@ -184,7 +184,7 @@ class InformationBoard extends Model
         $storagePath = rawurldecode(Str::after($path, '/storage/'));
         $extension = strtolower(pathinfo($storagePath, PATHINFO_EXTENSION));
 
-        if (! in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+        if (! in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'avif', 'webp'], true)) {
             return null;
         }
 

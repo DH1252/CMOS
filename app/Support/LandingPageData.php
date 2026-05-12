@@ -24,7 +24,7 @@ class LandingPageData
         $homeUrl = route('home');
         $loginUrl = route('login');
         $infoUrl = route('informasi.index');
-        $logoUrl = asset('images/logokabinet.webp');
+        $logoUrl = asset('images/logokabinet.avif');
         $instagramUrl = 'https://www.instagram.com/sentrasinergi/';
         $organizationId = $homeUrl.'#organization';
         $websiteId = $homeUrl.'#website';
