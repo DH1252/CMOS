@@ -21,7 +21,7 @@
     remember = false,
   } = $props();
 
-  let emailInput;
+  let emailInput = $state(null);
 
   const readThemeMode = () => {
     try {
@@ -122,7 +122,7 @@
             <div class="grid gap-2">
               <Label for="email">Email organisasi</Label>
               <Input
-                bind:this={emailInput}
+                bind:ref={emailInput}
                 id="email"
                 type="email"
                 name="email"

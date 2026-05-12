@@ -7,6 +7,7 @@ use App\Support\AuthShellData;
 use App\Support\ThemePalette;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Inertia\Middleware;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -65,6 +66,8 @@ class HandleInertiaRequests extends Middleware
             ->pluck('value', 'key')
             ->all();
         $themePayload = ThemePalette::payloadFromSettings($themeSettings);
+        $posthogKey = (string) config('posthog-js.key', '');
+        $posthogDisabled = (bool) config('posthog-js.disabled', false);
 
         return [
             ...parent::share($request),
@@ -75,9 +78,10 @@ class HandleInertiaRequests extends Middleware
                 'customCss' => $themePayload['customCss'],
             ],
             'posthog' => [
-                'key' => (string) config('posthog-js.key', ''),
+                'key' => $posthogKey,
                 'host' => (string) config('posthog-js.host', 'https://app.posthog.com'),
-                'disabled' => (bool) config('posthog-js.disabled', false),
+                'disabled' => $posthogDisabled,
+                'moduleUrl' => $posthogDisabled || $posthogKey === '' ? null : Vite::asset('resources/js/posthog.js'),
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),

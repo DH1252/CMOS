@@ -100,6 +100,33 @@ const applyThemeVariables = (variables = null) => {
   });
 };
 
+const isTruthyDisabledFlag = (value) => {
+  return ["1", "true", "yes", "on"].includes(String(value).toLowerCase());
+};
+
+const applyPostHogConfig = (posthog = null) => {
+  if (typeof window === "undefined" || !posthog) {
+    return;
+  }
+
+  window.__CMOS_POSTHOG_CONFIG__ = {
+    key: posthog.key || "",
+    host: posthog.host || "https://app.posthog.com",
+    moduleUrl: posthog.moduleUrl || "",
+    disabled: isTruthyDisabledFlag(posthog.disabled),
+  };
+};
+
+const isPostHogEnabled = (page = null) => {
+  const posthog = page?.props?.posthog;
+
+  return (
+    Boolean(posthog?.key) &&
+    Boolean(posthog?.moduleUrl) &&
+    !isTruthyDisabledFlag(posthog?.disabled)
+  );
+};
+
 const capturePostHogPageview = (page = null) => {
   if (typeof window === "undefined") {
     return;
@@ -322,9 +349,12 @@ if (typeof document !== "undefined") {
 
   applyBrandTheme(pageBrand);
   applyThemeVariables({ ...themeVariables, customCss: themeCustomCss });
+  applyPostHogConfig(initialInertiaPage?.props?.posthog || null);
 
   if (initialInertiaPage?.component === "LandingPage") {
-    deferBootstrapForLanding(initialInertiaPage);
+    if (isPostHogEnabled(initialInertiaPage)) {
+      deferBootstrapForLanding(initialInertiaPage);
+    }
   } else {
     void ensureBootstrapModule().then(() => {
       capturePostHogPageview(initialInertiaPage);

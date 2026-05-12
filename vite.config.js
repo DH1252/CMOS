@@ -92,6 +92,7 @@ export default defineConfig({
         "resources/css/app.css",
         "resources/css/public.css",
         "resources/js/app.js",
+        "resources/js/posthog.js",
         "resources/js/public.js",
       ],
       ssr: "resources/js/ssr.js",
