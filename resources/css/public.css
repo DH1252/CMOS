@@ -343,6 +343,432 @@ select {
   animation-delay: var(--reveal-delay, 0ms);
 }
 
+.landing-terminal {
+  --landing-terminal-bg-resolved: var(
+    --landing-terminal-bg,
+    oklch(0.18 0.012 304)
+  );
+  --landing-terminal-hero-bg-resolved: var(
+    --landing-terminal-hero-bg,
+    var(--landing-terminal-bg, oklch(0.18 0.012 304))
+  );
+  --landing-terminal-panel-resolved: var(
+    --landing-terminal-panel,
+    oklch(0.22 0.014 304)
+  );
+  --landing-terminal-panel-soft-resolved: var(
+    --landing-terminal-panel-soft,
+    oklch(0.27 0.015 304)
+  );
+  --landing-terminal-line-resolved: var(
+    --landing-terminal-line,
+    oklch(0.52 0.032 82)
+  );
+  --landing-terminal-text-resolved: var(
+    --landing-terminal-text,
+    oklch(0.86 0.03 92)
+  );
+  --landing-terminal-heading-resolved: var(
+    --landing-terminal-heading,
+    oklch(0.86 0.03 92)
+  );
+  --landing-terminal-soft-resolved: var(
+    --landing-terminal-soft,
+    oklch(0.74 0.025 92)
+  );
+  --landing-terminal-muted-resolved: var(
+    --landing-terminal-muted,
+    oklch(0.62 0.02 88)
+  );
+  --landing-terminal-accent-resolved: var(
+    --landing-terminal-accent,
+    oklch(0.78 0.14 84)
+  );
+  --landing-terminal-interactive-resolved: var(
+    --landing-terminal-interactive,
+    oklch(0.78 0.14 84)
+  );
+  --landing-terminal-command-resolved: var(
+    --landing-terminal-command,
+    oklch(0.78 0.14 84)
+  );
+  --landing-terminal-frame-accent-resolved: var(
+    --landing-terminal-frame-accent,
+    oklch(0.78 0.14 84)
+  );
+  --landing-terminal-icon-resolved: var(
+    --landing-terminal-icon,
+    oklch(0.78 0.14 84)
+  );
+  --landing-terminal-button-text-resolved: var(
+    --landing-terminal-button-text,
+    oklch(0.22 0.02 74)
+  );
+  --landing-terminal-button-hover-resolved: var(
+    --landing-terminal-button-hover,
+    oklch(0.82 0.12 84)
+  );
+  --landing-terminal-button-secondary-text-resolved: var(
+    --landing-terminal-button-secondary-text,
+    oklch(0.86 0.03 92)
+  );
+  --landing-terminal-button-secondary-hover-resolved: var(
+    --landing-terminal-button-secondary-hover,
+    oklch(0.27 0.015 304)
+  );
+  --font-terminal:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  background: var(--landing-terminal-bg-resolved);
+  color: var(--landing-terminal-text-resolved);
+  font-family: "Public Sans", sans-serif;
+}
+
+.landing-terminal h1,
+.landing-terminal h2,
+.landing-terminal h3 {
+  color: var(--landing-terminal-heading-resolved);
+  font-family: var(--font-terminal);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.landing-terminal header,
+.landing-terminal header *,
+.landing-command-block,
+.landing-command-block *,
+.landing-button-primary,
+.landing-button-secondary {
+  font-family: var(--font-terminal);
+}
+
+.landing-terminal p {
+  line-height: 1.65;
+}
+
+.landing-panel,
+.landing-command-block {
+  border: 1px solid var(--landing-terminal-line-resolved);
+  background: var(--landing-terminal-panel-resolved);
+}
+
+.landing-button-primary,
+.landing-button-secondary {
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--landing-terminal-line-resolved);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 180ms var(--ease-out-quart),
+    color 180ms var(--ease-out-quart),
+    border-color 180ms var(--ease-out-quart);
+}
+
+.landing-button-primary {
+  background: var(--landing-terminal-accent-resolved);
+  border-color: color-mix(
+    in oklch,
+    var(--landing-terminal-accent-resolved) 72%,
+    var(--landing-terminal-line-resolved) 28%
+  );
+  color: var(--landing-terminal-button-text-resolved);
+}
+
+.landing-button-primary:hover {
+  background: var(--landing-terminal-button-hover-resolved);
+}
+
+.landing-button-secondary {
+  background: var(--landing-terminal-panel-resolved);
+  color: var(--landing-terminal-button-secondary-text-resolved);
+}
+
+.landing-button-secondary:hover,
+.landing-inline-link:hover,
+.landing-article-row:hover {
+  background: var(--landing-terminal-panel-soft-resolved);
+}
+
+.landing-button-secondary:hover {
+  background: var(--landing-terminal-button-secondary-hover-resolved);
+}
+
+.landing-command-block {
+  display: grid;
+}
+
+.landing-command-row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  padding: 0.95rem 1rem;
+  border-top: 1px solid var(--landing-terminal-line-resolved);
+}
+
+.landing-command-row:first-child {
+  border-top: none;
+}
+
+.landing-command-index {
+  color: var(--landing-terminal-command-resolved);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.landing-inline-link,
+.landing-article-row {
+  color: inherit;
+  text-decoration: none;
+  transition:
+    background-color 180ms var(--ease-out-quart),
+    color 180ms var(--ease-out-quart);
+}
+
+.landing-inline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.35rem;
+  margin: -0.2rem -0.35rem;
+}
+
+.landing-article-row {
+  display: block;
+  padding: 1rem 0.85rem;
+  margin-inline: -0.85rem;
+}
+
+.landing-frame {
+  border: 1px solid var(--landing-terminal-line-resolved);
+  background: var(--landing-terminal-panel-resolved);
+  transition:
+    background-color 180ms var(--ease-out-quart),
+    border-color 180ms var(--ease-out-quart);
+}
+
+.landing-frame__media {
+  overflow: hidden;
+  border-bottom: 1px solid var(--landing-terminal-line-resolved);
+}
+
+.landing-frame__media img {
+  display: block;
+  filter: grayscale(0.3) contrast(1.08);
+}
+
+.landing-frame:hover {
+  background: var(--landing-terminal-panel-soft-resolved);
+}
+
+.landing-frame__caption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  padding: 0.6rem 0.8rem;
+  font-family: var(--font-terminal);
+  font-size: 0.72rem;
+}
+
+.terminal-hero {
+  display: grid;
+  gap: 0;
+  border: 1px solid
+    var(--landing-terminal-line-resolved, var(--landing-terminal-line));
+  background: var(
+    --landing-terminal-panel-resolved,
+    var(--landing-terminal-panel)
+  );
+}
+
+.terminal-hero__head,
+.terminal-hero__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid
+    var(--landing-terminal-line-resolved, var(--landing-terminal-line));
+  color: var(--landing-terminal-soft-resolved, var(--landing-terminal-soft));
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
+
+.terminal-hero__foot {
+  border-top: 1px solid
+    var(--landing-terminal-line-resolved, var(--landing-terminal-line));
+  border-bottom: none;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.terminal-hero__viewport {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  aspect-ratio: 50 / 34;
+  min-height: 236px;
+  background: var(
+    --landing-terminal-hero-bg-resolved,
+    var(
+      --landing-terminal-hero-bg,
+      var(--landing-terminal-panel-resolved, var(--landing-terminal-panel))
+    )
+  );
+}
+
+.terminal-hero__ascii,
+.terminal-hero__fallback,
+.terminal-hero__placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.terminal-hero__ascii {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 0.6rem 0.8rem;
+  margin: 0;
+  overflow: hidden;
+  color: var(
+    --landing-terminal-frame-accent-resolved,
+    var(--landing-terminal-frame-accent)
+  );
+  font-family: var(
+    --font-terminal,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    "Courier New",
+    monospace
+  );
+  font-size: clamp(0.24rem, 0.31vw, 0.38rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: 0;
+  white-space: pre;
+  filter: brightness(1.18) saturate(1.12);
+  text-shadow: 0 0 12px
+    color-mix(
+      in srgb,
+      var(
+          --landing-terminal-frame-accent-resolved,
+          var(--landing-terminal-frame-accent)
+        )
+        30%,
+      transparent
+    );
+  user-select: none;
+}
+
+.terminal-hero__fallback,
+.terminal-hero__placeholder {
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.05) brightness(0.62) sepia(0.3);
+}
+
+.terminal-hero__placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--landing-terminal-soft-resolved, var(--landing-terminal-soft));
+  font-size: 0.88rem;
+  letter-spacing: 0.03em;
+}
+
+.terminal-hero__scanlines,
+.terminal-hero__mask {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.terminal-hero__scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(12, 10, 14, 0) 0,
+    rgba(12, 10, 14, 0) 2px,
+    rgba(12, 10, 14, 0.18) 3px,
+    rgba(12, 10, 14, 0.18) 4px
+  );
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+}
+
+.terminal-hero__mask {
+  box-shadow:
+    inset 0 0 0 1px rgba(217, 174, 67, 0.12),
+    inset 0 0 40px rgba(9, 7, 10, 0.4);
+  animation: terminalFlicker 6s steps(3, end) infinite;
+}
+
+@keyframes terminalFlicker {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+
+  8% {
+    opacity: 0.72;
+  }
+
+  12% {
+    opacity: 0.84;
+  }
+
+  32% {
+    opacity: 0.76;
+  }
+
+  52% {
+    opacity: 0.88;
+  }
+
+  76% {
+    opacity: 0.8;
+  }
+}
+
+.landing-group-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  flex-shrink: 0;
+  border: 1px solid var(--landing-terminal-line-resolved);
+  background: color-mix(
+    in oklch,
+    var(--landing-terminal-panel-resolved) 82%,
+    var(--landing-terminal-panel-soft-resolved) 18%
+  );
+  color: var(--landing-terminal-icon-resolved);
+}
+
+@media (max-width: 767px) {
+  .landing-command-row {
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-terminal * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+
+  .terminal-hero__mask {
+    animation: none;
+  }
+}
+
 @supports (content-visibility: auto) {
   .landing-deferred-section {
     content-visibility: auto;
