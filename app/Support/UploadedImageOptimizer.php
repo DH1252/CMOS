@@ -5,7 +5,7 @@ namespace App\Support;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Laravel\Facades\Image;
 use RuntimeException;
 use Throwable;
@@ -19,7 +19,16 @@ class UploadedImageOptimizer
         'image/jpeg',
         'image/png',
         'image/gif',
+        'image/avif',
         'image/webp',
+    ];
+
+    /**
+     * @var array<string, string>
+     */
+    private const OPTIMIZED_CONTENT_TYPES = [
+        'avif' => 'image/avif',
+        'webp' => 'image/webp',
     ];
 
     /**
@@ -44,27 +53,28 @@ class UploadedImageOptimizer
 
         try {
             $image = Image::decodePath($realPath);
+            $format = $this->preferredOutputFormat($image);
 
-            if (! $image->driver()->supports('webp')) {
+            if ($format === null) {
                 return $this->storeOriginal($file, $directory);
             }
 
             $encoded = $image
                 ->scaleDown($maxWidth, $maxHeight)
-                ->encode(new WebpEncoder(quality: $quality));
+                ->encodeUsingFileExtension($format, quality: $quality);
         } catch (Throwable) {
             return $this->storeOriginal($file, $directory);
         }
 
         $contents = $encoded->toString();
-        $path = trim($directory, '/').'/'.Str::uuid().'.webp';
+        $path = trim($directory, '/').'/'.Str::uuid().'.'.$format;
 
         Storage::disk('public')->put($path, $contents);
 
         return [
             'path' => $path,
             'size' => strlen($contents),
-            'contentType' => 'image/webp',
+            'contentType' => self::OPTIMIZED_CONTENT_TYPES[$format],
         ];
     }
 
@@ -89,5 +99,16 @@ class UploadedImageOptimizer
             'size' => $file->getSize(),
             'contentType' => $file->getMimeType() ?: 'application/octet-stream',
         ];
+    }
+
+    private function preferredOutputFormat(ImageInterface $image): ?string
+    {
+        foreach (array_keys(self::OPTIMIZED_CONTENT_TYPES) as $format) {
+            if ($image->driver()->supports($format)) {
+                return $format;
+            }
+        }
+
+        return null;
     }
 }

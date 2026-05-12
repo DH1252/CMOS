@@ -13,7 +13,7 @@ class ProfileImageOptimizationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_profile_avatar_upload_is_stored_as_optimized_webp(): void
+    public function test_profile_avatar_upload_is_stored_as_optimized_modern_image(): void
     {
         $this->seed();
 
@@ -32,9 +32,14 @@ class ProfileImageOptimizationTest extends TestCase
         $user->refresh();
 
         $this->assertIsString($user->avatar);
-        $this->assertStringEndsWith('.webp', $user->avatar);
+        $this->assertStringEndsWith('.'.$this->expectedOptimizedExtension(), $user->avatar);
         $this->assertTrue(Storage::disk('public')->exists('avatars/'.$user->avatar));
         $this->assertStringContainsString('/images/optimize/avatars/', $user->avatar_url);
-        $this->assertStringContainsString('f=webp', $user->avatar_url);
+        $this->assertStringContainsString('f=avif', $user->avatar_url);
+    }
+
+    private function expectedOptimizedExtension(): string
+    {
+        return (imagetypes() & IMG_AVIF) ? 'avif' : 'webp';
     }
 }

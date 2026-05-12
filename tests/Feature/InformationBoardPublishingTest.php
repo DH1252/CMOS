@@ -65,7 +65,7 @@ class InformationBoardPublishingTest extends TestCase
         );
     }
 
-    public function test_article_cover_upload_is_stored_as_optimized_webp(): void
+    public function test_article_cover_upload_is_stored_as_optimized_modern_image(): void
     {
         $this->seed();
 
@@ -87,7 +87,7 @@ class InformationBoardPublishingTest extends TestCase
         $article = InformationBoard::query()->where('title', 'Artikel Dengan Cover')->firstOrFail();
 
         $this->assertIsString($article->cover_image);
-        $this->assertStringEndsWith('.webp', $article->cover_image);
+        $this->assertStringEndsWith('.'.$this->expectedOptimizedExtension(), $article->cover_image);
         $this->assertTrue(Storage::disk('public')->exists($article->cover_image));
     }
 
@@ -133,9 +133,19 @@ class InformationBoardPublishingTest extends TestCase
 
         $path = $response->json('path');
         $this->assertIsString($path);
-        $this->assertStringEndsWith('.webp', $path);
-        $this->assertSame('image/webp', $response->json('contentType'));
+        $this->assertStringEndsWith('.'.$this->expectedOptimizedExtension(), $path);
+        $this->assertSame($this->expectedOptimizedContentType(), $response->json('contentType'));
         $this->assertTrue(Storage::disk('public')->exists($path));
+    }
+
+    private function expectedOptimizedExtension(): string
+    {
+        return (imagetypes() & IMG_AVIF) ? 'avif' : 'webp';
+    }
+
+    private function expectedOptimizedContentType(): string
+    {
+        return 'image/'.$this->expectedOptimizedExtension();
     }
 
     private function adminUser(): User

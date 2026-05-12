@@ -43,6 +43,7 @@
         })();
     </script>
     <title>{{ $appName }}</title>
+    <link rel="icon" type="image/avif" href="{{ asset('images/logokabinet.avif') }}">
     <link rel="icon" type="image/webp" href="{{ asset('images/logokabinet.webp') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>

@@ -27,7 +27,7 @@ class OptimizedImageCache
     /**
      * @var array<int, string>
      */
-    public const OPTIMIZABLE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    public const OPTIMIZABLE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'avif', 'webp'];
 
     /**
      * @return array{path: string, format: string, cached: bool}|null
