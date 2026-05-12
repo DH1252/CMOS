@@ -9,16 +9,34 @@ window.axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 const postHogApiKey = import.meta.env.VITE_POSTHOG_KEY || "";
 const postHogHost =
   import.meta.env.VITE_POSTHOG_HOST || "https://app.posthog.com";
-const postHogDisabled =
-  String(import.meta.env.VITE_POSTHOG_DISABLED || "false").toLowerCase() ===
-  "true";
+const postHogDisabled = import.meta.env.VITE_POSTHOG_DISABLED || "false";
+
+const isTruthyDisabledFlag = (value) => {
+  return ["1", "true", "yes", "on"].includes(String(value).toLowerCase());
+};
+
+const resolvePostHogConfig = () => {
+  const runtimeConfig =
+    typeof window !== "undefined" && window.__CMOS_POSTHOG_CONFIG__
+      ? window.__CMOS_POSTHOG_CONFIG__
+      : {};
+
+  return {
+    key: runtimeConfig.key || postHogApiKey,
+    host: runtimeConfig.host || postHogHost,
+    moduleUrl: runtimeConfig.moduleUrl || "",
+    disabled: isTruthyDisabledFlag(runtimeConfig.disabled ?? postHogDisabled),
+  };
+};
 
 const loadPostHog = async () => {
   if (typeof window === "undefined") {
     return null;
   }
 
-  if (postHogDisabled || !postHogApiKey) {
+  const config = resolvePostHogConfig();
+
+  if (config.disabled || !config.key || !config.moduleUrl) {
     return null;
   }
 
@@ -27,10 +45,12 @@ const loadPostHog = async () => {
   }
 
   if (!window.__CMOS_POSTHOG_PROMISE__) {
-    window.__CMOS_POSTHOG_PROMISE__ = import("posthog-js")
+    window.__CMOS_POSTHOG_PROMISE__ = import(
+      /* @vite-ignore */ config.moduleUrl
+    )
       .then(({ default: posthog }) => {
-        posthog.init(postHogApiKey, {
-          api_host: postHogHost,
+        posthog.init(config.key, {
+          api_host: config.host,
           autocapture: false,
           capture_pageview: true,
           capture_pageleave: true,
