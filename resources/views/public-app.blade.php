@@ -16,6 +16,7 @@
     $ssr = isset($page) && is_array($page)
         ? app(\App\Services\SvelteSsrRenderer::class)->renderPage($page)
         : ['html' => '', 'head' => '', 'rendered' => false];
+    $fontCss = str_replace('url("', 'url("'.asset('fonts').'/', file_get_contents(public_path('fonts/public-sans.css')) ?: '');
 @endphp
 <!DOCTYPE html>
 <html lang="id" data-theme="public" data-brand="{{ $themeColor }}" data-js="false"@if($landingStyle) style="{{ $landingStyle }}"@endif>
@@ -31,7 +32,7 @@
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{{ asset('fonts/jetbrains-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="{{ asset('fonts/public-sans.css') }}">
+    <style>{!! $fontCss !!}</style>
     <style>
         .no-js-shell {
             --font-terminal: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
