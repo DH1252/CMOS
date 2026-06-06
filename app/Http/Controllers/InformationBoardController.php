@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\InformationBoard;
 use App\Models\InformationCategory;
-use App\Models\Setting;
 use App\Models\User;
 use App\Support\ArticleContentImageCompressor;
-use App\Support\ThemePalette;
 use App\Support\UploadedImageOptimizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -671,20 +669,15 @@ class InformationBoardController extends Controller
      */
     private function landingPreviewTheme(): array
     {
-        $settings = Setting::query()
-            ->whereIn('key', array_merge(['theme_color'], ThemePalette::cssVariableKeys()))
-            ->pluck('value', 'key');
-        $defaults = ThemePalette::landingCssDefaults();
-
         return [
-            'backgroundColor' => (string) $settings->get('css_landing_terminal_bg', $defaults['css_landing_terminal_bg']),
-            'surfaceColor' => (string) $settings->get('css_landing_terminal_panel', $defaults['css_landing_terminal_panel']),
-            'textColor' => (string) $settings->get('css_landing_terminal_text', $defaults['css_landing_terminal_text']),
-            'headingColor' => (string) $settings->get('css_landing_terminal_heading', $defaults['css_landing_terminal_heading']),
-            'softColor' => (string) $settings->get('css_landing_terminal_soft', $defaults['css_landing_terminal_soft']),
-            'mutedColor' => (string) $settings->get('css_landing_terminal_muted', $defaults['css_landing_terminal_muted']),
-            'lineColor' => (string) $settings->get('css_landing_terminal_line', $defaults['css_landing_terminal_line']),
-            'linkColor' => (string) $settings->get('css_landing_terminal_interactive', $defaults['css_landing_terminal_interactive']),
+            'backgroundColor' => '#fffdf8',
+            'surfaceColor' => '#fff4d3',
+            'textColor' => '#222222',
+            'headingColor' => '#2a0078',
+            'softColor' => '#5b4b66',
+            'mutedColor' => '#7c6d84',
+            'lineColor' => '#2a0078',
+            'linkColor' => '#2a0078',
         ];
     }
 }

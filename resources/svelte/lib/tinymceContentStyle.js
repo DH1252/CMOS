@@ -1,12 +1,12 @@
 const defaultPreviewTheme = {
-  backgroundColor: "#18141E",
-  surfaceColor: "#221F2E",
-  textColor: "#F0E6C8",
-  headingColor: "#F0E6C8",
-  softColor: "#CABE9E",
-  mutedColor: "#9E9278",
-  lineColor: "#8A7A3C",
-  linkColor: "#D9AE43",
+  backgroundColor: "#fffdf8",
+  surfaceColor: "#fff4d3",
+  textColor: "#222222",
+  headingColor: "#2a0078",
+  softColor: "#5b4b66",
+  mutedColor: "#7c6d84",
+  lineColor: "#2a0078",
+  linkColor: "#2a0078",
 };
 
 const resolvePreviewTheme = (theme = {}) => ({

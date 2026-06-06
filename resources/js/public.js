@@ -5,6 +5,7 @@ import { hydrate, mount } from "svelte";
 const pages = {
   ...import.meta.glob("../svelte/LandingPage.svelte", { eager: true }),
   ...import.meta.glob("../svelte/PublicApp.svelte"),
+  ...import.meta.glob("../svelte/PublicComingSoonPage.svelte"),
 };
 
 const resolvePublicPage = async (name) => {

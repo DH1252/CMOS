@@ -1,3 +1,4 @@
+import { pathToFileURL } from "node:url";
 import { createInertiaApp } from "@inertiajs/svelte";
 import createServer from "@inertiajs/svelte/server";
 import { render } from "svelte/server";
@@ -10,7 +11,10 @@ const pages = {
 };
 
 const isPublicPage = (name) =>
-  name === "LandingPage" || name === "PublicApp" || name.startsWith("public/");
+  name === "LandingPage" ||
+  name === "PublicApp" ||
+  name === "PublicComingSoonPage" ||
+  name.startsWith("public/");
 const isGuestPage = (name) => name === "LoginPage";
 
 const renderInertiaPage = (page) =>
@@ -49,6 +53,8 @@ const renderInertiaPage = (page) =>
     },
   });
 
+export default renderInertiaPage;
+
 const readStdin = () =>
   new Promise((resolve, reject) => {
     let payload = "";
@@ -69,11 +75,15 @@ const renderOnce = async () => {
   process.stdout.write(JSON.stringify(response));
 };
 
-if (process.argv.includes("--render-once")) {
+const isCliEntry = process.argv[1]
+  ? import.meta.url === pathToFileURL(process.argv[1]).href
+  : false;
+
+if (isCliEntry && process.argv.includes("--render-once")) {
   renderOnce().catch((error) => {
     console.error(error);
     process.exitCode = 1;
   });
-} else {
+} else if (isCliEntry) {
   createServer((page) => renderInertiaPage(page));
 }

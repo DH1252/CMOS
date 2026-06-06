@@ -44,6 +44,7 @@ class AuthShellData
                 'items' => [
                     ['label' => 'Pengumuman', 'icon' => 'fas fa-bullhorn', 'href' => route('announcements.index'), 'active' => $request->routeIs('announcements.*'), 'meta' => 'Feed internal kabinet'],
                     ['label' => 'Informasi', 'icon' => 'fas fa-newspaper', 'href' => route('information-boards.index'), 'active' => $request->routeIs('information-boards.*'), 'meta' => 'Publikasi dan arsip resmi'],
+                    ['label' => 'Acara', 'icon' => 'fas fa-calendar-days', 'href' => route('events.index'), 'active' => $request->routeIs('events.*'), 'meta' => 'Agenda dan acara mendatang'],
                     [
                         'label' => 'Program kerja',
                         'icon' => 'fas fa-diagram-project',

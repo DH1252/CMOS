@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DriveController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\InformationBoardController;
 use App\Http\Controllers\LinkController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfilePasswordController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\PublicInformationController;
 use App\Http\Controllers\RealtimeController;
 use App\Http\Controllers\ReportController;
@@ -22,6 +24,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\UserController;
+use App\Models\Setting;
 use App\Support\LandingPageData;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
@@ -42,6 +45,38 @@ Route::get('/', function () {
 })->name('home');
 Route::get('/informasi', [PublicInformationController::class, 'index'])->name('informasi.index');
 Route::get('/informasi/{informationBoard:slug}', [PublicInformationController::class, 'show'])->name('informasi.show');
+Route::get('/acara', [PublicEventController::class, 'index'])->name('acara.index');
+Route::get('/acara/{event:slug}', [PublicEventController::class, 'show'])->name('acara.show');
+
+// Coming-soon public pages (navbar targets not yet built)
+$comingSoon = static function (string $pageTitle, string $description) {
+    $organizationName = (string) Setting::get('organization_name', 'HIMATEKKOM ITS');
+
+    return Inertia::render('PublicComingSoonPage', [
+        'pageTitle' => $pageTitle,
+        'organizationName' => $organizationName,
+        'description' => $description,
+        'homeUrl' => route('home'),
+        'seo' => [
+            'title' => $pageTitle.' - '.$organizationName,
+            'description' => $description,
+            'canonical' => url()->current(),
+        ],
+    ]);
+};
+
+Route::get('/tentang', fn () => $comingSoon(
+    'Tentang Kami',
+    'Profil lengkap Kabinet Sentra Sinergi HIMATEKKOM ITS sedang kami siapkan.',
+))->name('tentang');
+Route::get('/departemen', fn () => $comingSoon(
+    'Departemen',
+    'Informasi departemen dan program kerja HIMATEKKOM ITS sedang kami siapkan.',
+))->name('departemen');
+Route::get('/kompetisi', fn () => $comingSoon(
+    'Kompetisi',
+    'Informasi kompetisi dan ajang HIMATEKKOM ITS sedang kami siapkan.',
+))->name('kompetisi');
 
 // Optimized image serving
 Route::get('/images/optimize/{path}', [ImageController::class, 'show'])
@@ -188,6 +223,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/information-boards/attachments/upload', [InformationBoardController::class, 'uploadAttachment'])
         ->name('information-boards.attachments.upload');
     Route::resource('information-boards', InformationBoardController::class);
+
+    // Events - all authenticated roles can write
+    Route::resource('events', EventController::class);
 
     // Messages - All users
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');

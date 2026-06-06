@@ -256,7 +256,10 @@ const resolveInitialPage = (payload) => {
 };
 
 const isPublicPage = (name) =>
-  name === "LandingPage" || name === "PublicApp" || name.startsWith("public/");
+  name === "LandingPage" ||
+  name === "PublicApp" ||
+  name === "PublicComingSoonPage" ||
+  name.startsWith("public/");
 const isGuestPage = (name) => name === "LoginPage";
 
 let loginFallbackMounted = false;

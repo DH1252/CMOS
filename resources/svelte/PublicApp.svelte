@@ -3,27 +3,45 @@
   import OptimizedImage from "./components/OptimizedImage.svelte";
   import PublicInformationIndexPage from "./public/PublicInformationIndexPage.svelte";
   import PublicInformationShowPage from "./public/PublicInformationShowPage.svelte";
-  import { LogIn, Menu } from "lucide-svelte";
+  import PublicEventIndexPage from "./public/PublicEventIndexPage.svelte";
+  import PublicEventShowPage from "./public/PublicEventShowPage.svelte";
+  import { Button } from "$lib/components/ui/button/index.js";
 
   let {
     page = "info-index",
+    appName = "CMOS",
     organizationName = "HIMATEKKOM ITS",
     homeUrl = "/",
     loginUrl = "/login",
     infoUrl = "/informasi",
+    acaraUrl = "/acara",
     seo = null,
     infoIndex = {},
     infoShow = {},
+    acaraIndex = {},
+    acaraShow = {},
   } = $props();
 
   const isInfoIndex = $derived(page === "info-index");
   const isInfoShow = $derived(page === "info-show");
+  const isAcaraIndex = $derived(page === "acara-index");
+  const isAcaraShow = $derived(page === "acara-show");
 
   const pageTitle = $derived.by(() => {
     if (page === "info-show") {
       const seoTitle = infoShow?.article?.seoTitle;
 
       return `${seoTitle || infoShow?.article?.title || "Papan Informasi"} - ${organizationName}`;
+    }
+
+    if (page === "acara-show") {
+      const seoTitle = acaraShow?.event?.seoTitle;
+
+      return `${seoTitle || acaraShow?.event?.title || "Acara"} - ${organizationName}`;
+    }
+
+    if (page === "acara-index") {
+      return `Acara Mendatang - ${organizationName}`;
     }
 
     return `Papan Informasi - ${organizationName}`;
@@ -34,10 +52,24 @@
       return infoShow?.article?.excerpt || "Publikasi resmi HIMATEKKOM ITS.";
     }
 
+    if (page === "acara-show") {
+      return acaraShow?.event?.excerpt || "Agenda resmi HIMATEKKOM ITS.";
+    }
+
+    if (page === "acara-index") {
+      return `Daftar acara dan kegiatan resmi ${organizationName}.`;
+    }
+
     return `Portal informasi resmi ${organizationName}. Artikel, pembaruan kegiatan, dan publikasi organisasi.`;
   });
 
   let menuDetails = $state(null);
+
+  const closeMenu = () => {
+    if (menuDetails) {
+      menuDetails.open = false;
+    }
+  };
 </script>
 
 <svelte:head>
@@ -47,327 +79,407 @@
   {/if}
 </svelte:head>
 
-<div class="landing-terminal min-h-screen">
+<div class="taling-public">
   <a href="#main-content" class="skip-link">Langsung ke konten</a>
 
-  <header
-    class="border-b border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-bg)]"
-  >
-    <div
-      class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8"
-    >
-      <a
-        href={homeUrl}
-        class="flex min-w-0 items-center gap-3 text-inherit no-underline"
-      >
+  <header class="taling-header">
+    <div class="taling-header-inner">
+      <a href={homeUrl} class="taling-brand" aria-label={organizationName}>
         <OptimizedImage
           src={brandLogo}
-          alt={organizationName}
-          class="h-10 w-[47px] shrink-0 object-contain"
+          alt=""
+          class="taling-brand-mark"
           loading="eager"
           decoding="async"
           fetchpriority="high"
-          sizes="47px"
+          sizes="76px"
         />
-        <div class="min-w-0">
-          <div
-            class="truncate text-sm font-semibold text-[var(--landing-terminal-heading-resolved)]"
-          >
-            {organizationName}
-          </div>
-          <div
-            class="truncate text-xs text-[var(--landing-terminal-soft-resolved)]"
-          >
-            Papan Informasi Publik
-          </div>
-        </div>
+        <span>{organizationName}</span>
       </a>
 
-      <nav class="hidden items-center gap-6 md:flex">
-        <a
-          href={homeUrl}
-          class="text-sm text-[var(--landing-terminal-soft-resolved)] transition-colors duration-200 hover:text-[var(--landing-terminal-text-resolved)]"
-          >Beranda</a
-        >
+      <nav class="taling-nav" aria-label="Navigasi utama">
+        <a href={homeUrl} class="taling-nav-link">Beranda</a>
         <a
           href={infoUrl}
-          class="text-sm text-[var(--landing-terminal-interactive-resolved)] transition-colors duration-200 hover:text-[var(--landing-terminal-text-resolved)]"
-          >Arsip</a
+          class={`taling-nav-link ${isInfoIndex || isInfoShow ? "taling-nav-link-active" : ""}`}
         >
+          Kabar Terbaru
+        </a>
+        <a
+          href={acaraUrl}
+          class={`taling-nav-link ${isAcaraIndex || isAcaraShow ? "taling-nav-link-active" : ""}`}
+        >
+          Acara Mendatang
+        </a>
       </nav>
 
-      <div class="flex items-center gap-2">
-        <a
-          href={loginUrl}
-          class="landing-button-secondary hidden items-center gap-2 sm:inline-flex"
-        >
-          <LogIn size={16} />
-          Masuk
-        </a>
+      <div class="taling-header-actions">
+        <Button href={loginUrl} class="taling-login">Masuk</Button>
 
-        <details class="relative md:hidden" bind:this={menuDetails}>
-          <summary
-            class="inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] text-[var(--landing-terminal-text-resolved)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--landing-terminal-interactive-resolved)] [&::-webkit-details-marker]:hidden"
-          >
-            <Menu size={18} />
+        <details class="taling-menu" bind:this={menuDetails}>
+          <summary class="taling-menu-trigger" aria-label="Buka menu">
+            <span></span>
+            <span></span>
+            <span></span>
           </summary>
-          <div
-            class="absolute top-[calc(100%+0.75rem)] right-0 z-20 grid min-w-56 gap-1 border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] p-3"
-          >
-            <a
-              href={homeUrl}
-              class="px-3 py-2 text-sm text-[var(--landing-terminal-soft-resolved)] transition-colors duration-200 hover:bg-[var(--landing-terminal-panel-soft-resolved)] hover:text-[var(--landing-terminal-text-resolved)]"
-              onclick={() => {
-                menuDetails.open = false;
-              }}
+          <div class="taling-menu-panel">
+            <a href={homeUrl} class="taling-menu-link" onclick={closeMenu}
+              >Beranda</a
             >
-              Beranda
-            </a>
-            <a
-              href={infoUrl}
-              class="px-3 py-2 text-sm text-[var(--landing-terminal-interactive-resolved)] transition-colors duration-200 hover:bg-[var(--landing-terminal-panel-soft-resolved)] hover:text-[var(--landing-terminal-text-resolved)]"
-              onclick={() => {
-                menuDetails.open = false;
-              }}
+            <a href={infoUrl} class="taling-menu-link" onclick={closeMenu}
+              >Kabar Terbaru</a
             >
-              Arsip
-            </a>
-            <a
+            <a href={acaraUrl} class="taling-menu-link" onclick={closeMenu}
+              >Acara Mendatang</a
+            >
+            <Button
               href={loginUrl}
-              class="landing-button-secondary mt-1 justify-center"
-              onclick={() => {
-                menuDetails.open = false;
-              }}
+              class="taling-menu-login"
+              onclick={closeMenu}
             >
-              Masuk ke CMOS
-            </a>
+              Masuk
+            </Button>
           </div>
         </details>
       </div>
     </div>
   </header>
 
-  <main
-    id="main-content"
-    class="mx-auto max-w-[1180px] px-5 py-8 lg:px-8 lg:py-10"
-  >
+  <main id="main-content">
     {#if isInfoIndex}
       <PublicInformationIndexPage {...infoIndex} {homeUrl} {infoUrl} {seo} />
     {:else if isInfoShow}
       <PublicInformationShowPage {...infoShow} {homeUrl} {infoUrl} {seo} />
+    {:else if isAcaraIndex}
+      <PublicEventIndexPage {...acaraIndex} {homeUrl} {acaraUrl} {seo} />
+    {:else if isAcaraShow}
+      <PublicEventShowPage {...acaraShow} {homeUrl} {acaraUrl} {seo} />
     {/if}
   </main>
+
+  <footer class="taling-footer">
+    <div class="taling-footer-inner">
+      <div>
+        <strong>{organizationName}</strong>
+        <p>
+          Kanal publik Kabinet Sentra Sinergi untuk membaca kabar, dokumentasi,
+          dan agenda resmi HIMATEKKOM ITS.
+        </p>
+      </div>
+      <div class="taling-footer-links">
+        <a href={homeUrl}>Beranda</a>
+        <a href={infoUrl}>Kabar Terbaru</a>
+        <a href={acaraUrl}>Acara Mendatang</a>
+        <a href={loginUrl}>Masuk</a>
+      </div>
+    </div>
+    <div class="taling-footer-base">
+      <span>&copy; {organizationName} 2026</span>
+      <span>{appName}</span>
+    </div>
+  </footer>
 </div>
 
 <style>
-  .landing-terminal {
-    --landing-terminal-bg-resolved: var(
-      --landing-terminal-bg,
-      oklch(0.18 0.012 304)
-    );
-    --landing-terminal-hero-bg-resolved: var(
-      --landing-terminal-hero-bg,
-      var(--landing-terminal-bg, oklch(0.18 0.012 304))
-    );
-    --landing-terminal-panel-resolved: var(
-      --landing-terminal-panel,
-      oklch(0.22 0.014 304)
-    );
-    --landing-terminal-panel-soft-resolved: var(
-      --landing-terminal-panel-soft,
-      oklch(0.27 0.015 304)
-    );
-    --landing-terminal-line-resolved: var(
-      --landing-terminal-line,
-      oklch(0.52 0.032 82)
-    );
-    --landing-terminal-text-resolved: var(
-      --landing-terminal-text,
-      oklch(0.86 0.03 92)
-    );
-    --landing-terminal-heading-resolved: var(
-      --landing-terminal-heading,
-      oklch(0.86 0.03 92)
-    );
-    --landing-terminal-soft-resolved: var(
-      --landing-terminal-soft,
-      oklch(0.74 0.025 92)
-    );
-    --landing-terminal-muted-resolved: var(
-      --landing-terminal-muted,
-      oklch(0.62 0.02 88)
-    );
-    --landing-terminal-accent-resolved: var(
-      --landing-terminal-accent,
-      oklch(0.78 0.14 84)
-    );
-    --landing-terminal-interactive-resolved: var(
-      --landing-terminal-interactive,
-      oklch(0.78 0.14 84)
-    );
-    --landing-terminal-command-resolved: var(
-      --landing-terminal-command,
-      oklch(0.78 0.14 84)
-    );
-    --landing-terminal-frame-accent-resolved: var(
-      --landing-terminal-frame-accent,
-      oklch(0.78 0.14 84)
-    );
-    --landing-terminal-icon-resolved: var(
-      --landing-terminal-icon,
-      oklch(0.78 0.14 84)
-    );
-    --landing-terminal-button-text-resolved: var(
-      --landing-terminal-button-text,
-      oklch(0.22 0.02 74)
-    );
-    --landing-terminal-button-hover-resolved: var(
-      --landing-terminal-button-hover,
-      oklch(0.82 0.12 84)
-    );
-    --landing-terminal-button-secondary-text-resolved: var(
-      --landing-terminal-button-secondary-text,
-      oklch(0.86 0.03 92)
-    );
-    --landing-terminal-button-secondary-hover-resolved: var(
-      --landing-terminal-button-secondary-hover,
-      oklch(0.27 0.015 304)
-    );
-    --font-terminal:
-      "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-      "Liberation Mono", "Courier New", monospace;
-    background: var(--landing-terminal-bg-resolved);
-    color: var(--landing-terminal-text-resolved);
-    font-family: "Public Sans", sans-serif;
+  .taling-public {
+    --taling-yellow: #ffd344;
+    --taling-purple: #2a0078;
+    --taling-purple-deep: #5d0077;
+    --taling-orange: #ff7a1a;
+    --taling-ink: #222222;
+    --taling-white: #fffdf8;
+    --taling-cream: #fff4d3;
+    --taling-section: #f59b1a;
+    min-height: 100vh;
+    overflow: clip;
+    background: var(--taling-white);
+    color: var(--taling-ink);
+    font-family: var(--taling-font-sans);
   }
 
-  .landing-terminal :global(h1),
-  .landing-terminal :global(h2),
-  .landing-terminal :global(h3) {
-    color: var(--landing-terminal-heading-resolved);
-    font-family: var(--font-terminal);
-    letter-spacing: -0.02em;
-    line-height: 1.2;
+  .taling-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: #fffdf8;
+    color: var(--taling-ink);
   }
 
-  .landing-terminal header,
-  .landing-terminal header :global(*),
-  :global(.landing-button-primary),
-  :global(.landing-button-secondary) {
-    font-family: var(--font-terminal);
+  .taling-header-inner,
+  .taling-footer-inner,
+  .taling-footer-base,
+  :global(.taling-section-shell) {
+    width: min(1248px, calc(100% - 3rem));
+    margin-inline: auto;
   }
 
-  .landing-terminal :global(p) {
-    line-height: 1.65;
+  .taling-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 84px;
+    gap: 2rem;
   }
 
-  :global(.landing-panel) {
-    border: 1px solid var(--landing-terminal-line-resolved);
-    background: var(--landing-terminal-panel-resolved);
-  }
-
-  :global(.landing-button-primary),
-  :global(.landing-button-secondary) {
-    min-height: 2.75rem;
-    padding: 0.65rem 1rem;
-    border: 1px solid var(--landing-terminal-line-resolved);
-    font-size: 0.92rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition:
-      background-color 180ms var(--ease-out-quart),
-      color 180ms var(--ease-out-quart),
-      border-color 180ms var(--ease-out-quart);
-  }
-
-  :global(.landing-button-primary) {
-    background: var(--landing-terminal-accent-resolved);
-    border-color: color-mix(
-      in oklch,
-      var(--landing-terminal-accent-resolved) 72%,
-      var(--landing-terminal-line-resolved) 28%
-    );
-    color: var(--landing-terminal-button-text-resolved);
-  }
-
-  :global(.landing-button-primary:hover) {
-    background: var(--landing-terminal-button-hover-resolved);
-  }
-
-  :global(.landing-button-secondary) {
-    background: var(--landing-terminal-panel-resolved);
-    color: var(--landing-terminal-button-secondary-text-resolved);
-  }
-
-  :global(.landing-button-secondary:hover),
-  :global(.landing-inline-link:hover),
-  :global(.landing-article-row:hover) {
-    background: var(--landing-terminal-panel-soft-resolved);
-  }
-
-  :global(.landing-button-secondary:hover) {
-    background: var(--landing-terminal-button-secondary-hover-resolved);
-  }
-
-  :global(.landing-inline-link),
-  :global(.landing-article-row) {
-    color: inherit;
-    text-decoration: none;
-    transition:
-      background-color 180ms var(--ease-out-quart),
-      color 180ms var(--ease-out-quart);
-  }
-
-  :global(.landing-inline-link) {
+  .taling-brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.2rem 0.35rem;
-    margin: -0.2rem -0.35rem;
+    color: inherit;
+    text-decoration: none;
   }
 
-  :global(.landing-article-row) {
-    display: block;
-    padding: 1rem 0.85rem;
-    margin-inline: -0.85rem;
-  }
-
-  :global(.landing-frame) {
-    border: 1px solid var(--landing-terminal-line-resolved);
-    background: var(--landing-terminal-panel-resolved);
-    transition:
-      background-color 180ms var(--ease-out-quart),
-      border-color 180ms var(--ease-out-quart);
-  }
-
-  :global(.landing-frame__media) {
+  .taling-brand span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
     overflow: hidden;
-    border-bottom: 1px solid var(--landing-terminal-line-resolved);
+    clip: rect(0 0 0 0);
   }
 
-  :global(.landing-frame__media img) {
-    display: block;
-    filter: grayscale(0.3) contrast(1.08);
+  .taling-brand :global(.taling-brand-mark),
+  .taling-brand :global(img) {
+    width: 76px;
+    height: auto;
   }
 
-  :global(.landing-feature-link:hover),
-  :global(.landing-frame:hover) {
-    background: var(--landing-terminal-panel-soft-resolved);
+  .taling-nav {
+    display: none;
+    align-items: center;
+    gap: clamp(1.6rem, 3vw, 3rem);
+    font-size: 0.95rem;
+    font-weight: 700;
   }
 
-  :global(.landing-frame__caption) {
+  .taling-nav-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .taling-nav-link:hover,
+  .taling-nav-link-active {
+    color: var(--taling-purple);
+  }
+
+  .taling-header-actions {
     display: flex;
-    align-items: baseline;
-    gap: 0.25rem;
-    padding: 0.6rem 0.8rem;
-    font-family: var(--font-terminal);
-    font-size: 0.72rem;
+    align-items: center;
+    gap: 1rem;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .landing-terminal :global(*) {
-      transition-duration: 0ms !important;
-      animation-duration: 0ms !important;
+  :global(.taling-login),
+  :global(.taling-menu-login),
+  :global(.taling-section-link) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    min-height: 36px;
+    padding: 0.55rem 1.9rem;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      var(--taling-orange),
+      var(--taling-yellow)
+    );
+    color: var(--taling-purple);
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .taling-menu {
+    position: relative;
+  }
+
+  .taling-menu-trigger {
+    display: grid;
+    place-items: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .taling-menu-trigger::-webkit-details-marker {
+    display: none;
+  }
+
+  .taling-menu-trigger span {
+    width: 26px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--taling-ink);
+  }
+
+  .taling-menu-panel {
+    position: absolute;
+    top: calc(100% + 0.7rem);
+    right: 0;
+    display: grid;
+    gap: 0.35rem;
+    min-width: 15rem;
+    padding: 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--taling-purple) 18%, transparent);
+    background: #fffdf8;
+    box-shadow: 0 10px 24px rgba(34, 34, 34, 0.14);
+  }
+
+  .taling-menu-link {
+    padding: 0.7rem 0.8rem;
+    color: var(--taling-ink);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .taling-menu-link:hover {
+    background: color-mix(in srgb, var(--taling-yellow) 22%, transparent);
+  }
+
+  .taling-footer {
+    background: #fffdf8;
+    color: var(--taling-ink);
+    padding: 4rem 0 2rem;
+  }
+
+  .taling-footer-inner {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(280px, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .taling-footer strong {
+    font-family: var(--taling-font-serif);
+    font-size: 2rem;
+  }
+
+  .taling-footer p {
+    max-width: 56ch;
+    margin: 1rem 0 0;
+    color: color-mix(in srgb, var(--taling-ink) 74%, transparent);
+    line-height: 1.6;
+  }
+
+  .taling-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: end;
+    gap: 0.85rem 1.35rem;
+  }
+
+  .taling-footer-links a {
+    color: var(--taling-ink);
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .taling-footer-base {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--taling-ink) 14%, transparent);
+    color: color-mix(in srgb, var(--taling-ink) 62%, transparent);
+    font-weight: 800;
+  }
+
+  :global(.taling-page-kicker) {
+    margin: 0;
+    color: var(--taling-yellow);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :global(.taling-page-title) {
+    margin: 0;
+    font-family: var(--taling-font-serif);
+    font-size: clamp(3.3rem, 7vw, 6.8rem);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  :global(.taling-page-copy) {
+    margin: 0;
+    max-width: 66ch;
+    font-weight: 800;
+    line-height: 1.48;
+  }
+
+  :global(.taling-meta-line) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1rem;
+    font-weight: 800;
+  }
+
+  :global(.taling-chip) {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 1.9rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--taling-purple);
+    color: var(--taling-white);
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  :global(.taling-empty-bright) {
+    padding: 3rem;
+    border: 4px solid var(--taling-purple);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--taling-purple);
+    font-weight: 900;
+    text-align: center;
+  }
+
+  @media (min-width: 820px) {
+    .taling-nav,
+    :global(.taling-login) {
+      display: flex;
+    }
+
+    .taling-menu {
+      display: none;
+    }
+  }
+
+  @media (max-width: 819px) {
+    .taling-header-inner,
+    .taling-footer-inner,
+    .taling-footer-base,
+    :global(.taling-section-shell) {
+      width: min(100% - 1.5rem, 620px);
+    }
+
+    :global(.taling-login) {
+      display: none;
+    }
+
+    .taling-header-inner {
+      min-height: 72px;
+    }
+
+    .taling-brand :global(.taling-brand-mark),
+    .taling-brand :global(img) {
+      width: 58px;
+    }
+
+    .taling-footer-inner {
+      grid-template-columns: 1fr;
+    }
+
+    .taling-footer-links {
+      justify-content: start;
+    }
+
+    .taling-footer-base {
+      display: grid;
     }
   }
 </style>

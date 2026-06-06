@@ -2,6 +2,7 @@
 
 @source "../svelte/LandingPage.svelte";
 @source "../svelte/PublicApp.svelte";
+@source "../svelte/PublicComingSoonPage.svelte";
 @source "../svelte/public/**/*.svelte";
 @source "../svelte/components/TerminalHeroCanvas.svelte";
 @source "../svelte/components/TerminalTextReveal.svelte";
@@ -787,4 +788,69 @@ select {
   [data-reveal].is-revealed {
     animation: none;
   }
+}
+
+/* =====================================================================
+   Project TALING — public landing design system
+   Scoped under .taling-landing so it never collides with .landing-terminal.
+   Palette + fonts from the Figma brand sheet (60-30-10: yellow / purple / orange).
+   ===================================================================== */
+.taling-landing {
+  --taling-yellow: #ffd344;
+  --taling-purple: #2a0078;
+  --taling-purple-deep: #5d0077;
+  --taling-orange: #ff7a1a;
+  --taling-ink: #222222;
+  --taling-white: #ffffff;
+
+  --taling-bg: var(--taling-ink);
+  --taling-surface: #1a0a33;
+  --taling-text: var(--taling-white);
+  --taling-text-soft: color-mix(in srgb, var(--taling-white) 74%, transparent);
+  --taling-text-muted: color-mix(in srgb, var(--taling-white) 55%, transparent);
+  --taling-line: color-mix(in srgb, var(--taling-white) 14%, transparent);
+
+  --taling-font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --taling-font-sans: "Josefin Sans", ui-sans-serif, system-ui, sans-serif;
+
+  background: var(--taling-bg);
+  color: var(--taling-text);
+  font-family: var(--taling-font-sans);
+}
+
+.taling-landing :is(h1, h2, h3, .taling-display) {
+  font-family: var(--taling-font-serif);
+  color: var(--taling-text);
+  line-height: 1.1;
+}
+
+.taling-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  border-radius: 999px;
+  font-family: var(--taling-font-sans);
+  font-weight: 700;
+  color: var(--taling-purple);
+  background: linear-gradient(
+    90deg,
+    var(--taling-orange),
+    var(--taling-yellow)
+  );
+  border: none;
+  cursor: pointer;
+  transition:
+    filter 180ms ease,
+    transform 180ms ease;
+}
+
+.taling-pill:hover {
+  filter: brightness(1.06);
+}
+
+.taling-pill:focus-visible {
+  outline: 2px solid var(--taling-yellow);
+  outline-offset: 3px;
 }

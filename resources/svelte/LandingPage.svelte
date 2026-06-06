@@ -1,214 +1,71 @@
 <script>
-  import { onMount } from "svelte";
-  import flareImage from "../images/flare.jpg?enhanced&w=720;1080";
-  import brandLogo from "../images/logokabinet.png?enhanced&w=80;160";
-  import himatekkomGallery from "../images/himatekkom.jpg?enhanced&w=720;1080";
-  import logoGallery from "../images/logokabinet.png?enhanced&w=720;1080";
+  import heroPhoto from "../images/himatekkom.jpg?enhanced&w=960;1440;1920";
+  import brandLogo from "../images/logokabinet.png?enhanced&w=96;192;384";
+  import { Badge } from "$lib/components/ui/badge/index.js";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
   import OptimizedImage from "./components/OptimizedImage.svelte";
-  import TerminalHeroCanvas from "./components/TerminalHeroCanvas.svelte";
-  import TerminalTextReveal from "./components/TerminalTextReveal.svelte";
-  import { logokabinetAscii } from "./lib/logokabinet-ascii.js";
-  import {
-    ArrowRight,
-    Gauge,
-    Handshake,
-    LogIn,
-    Menu,
-    Rocket,
-  } from "lucide-svelte";
 
   let {
     appName = "CMOS",
     organizationName = "HIMATEKKOM ITS",
-    themeColor = "purple",
-    themeVariables = null,
     seo = null,
     homeUrl = "/",
     loginUrl = "/login",
     infoUrl = "/informasi",
+    acaraUrl = "/acara",
     latestInfo = [],
-    logoUrl = brandLogo.img?.src ?? brandLogo.original ?? brandLogo,
+    upcomingEvents = [],
     navigation = null,
     hero = null,
-    quickFacts = null,
-    profileSection = null,
-    programSection = null,
     informationSection = null,
-    ctaSection = null,
+    eventsSection = null,
+    profileSection = null,
     footer = null,
   } = $props();
 
-  const programGroupIcons = {
-    Optimalisasi: Gauge,
-    Kolaborasi: Handshake,
-    Ekspansi: Rocket,
-  };
   const jsonLdScriptOpen = '<script type="application/ld+json">';
   const jsonLdScriptClose = "</" + "script>";
 
   const resolvedNavigation = $derived(
     navigation ?? [
-      { href: "#profil", label: "Profil Organisasi" },
-      { href: "#program-kerja", label: "Program Kerja" },
-      { href: "#informasi", label: "Informasi" },
+      { href: homeUrl, label: "Beranda" },
+      { href: "/departemen", label: "Departemen" },
+      { href: "/kompetisi", label: "Kompetisi" },
+      { href: "/tentang", label: "Tentang Kami" },
     ],
   );
 
   const resolvedHero = $derived(
     hero ?? {
-      titleVariants: ["Kabinet Sentra Sinergi", "HIMATEKKOM ITS"],
-      description:
-        "Kabinet Sentra Sinergi menjaga publikasi, dokumentasi, dan akses internal melalui satu sistem yang rapi dan mudah dipantau.",
-      actions: [
-        { href: "#informasi", label: "Buka arsip publik", variant: "primary" },
-        { href: "#profil", label: "Profil organisasi", variant: "secondary" },
-      ],
+      titleVariants: ["Kabinet Sentra Sinergi"],
+      description: "#OKE | Optimalisasi | Kolaborasi | Ekspansi",
     },
-  );
-
-  const resolvedQuickFacts = $derived(
-    quickFacts ?? [
-      "Website resmi HIMATEKKOM ITS 2026.",
-      "Kabinet Sentra Sinergi menjaga transparansi, dokumentasi, dan kolaborasi organisasi.",
-      `${appName} dipakai pengurus untuk kerja operasional sehari-hari.`,
-    ],
-  );
-
-  const resolvedProfileSection = $derived(
-    profileSection ?? {
-      title: "Profil organisasi",
-      description:
-        "HIMATEKKOM ITS 2026 menjalankan publikasi dan operasional kabinet dengan alur yang terstruktur, terdokumentasi, dan mudah dibaca oleh pengurus maupun publik.",
-      visionLabel: "Visi",
-      vision:
-        "Menjadikan HIMATEKKOM ITS sebagai himpunan yang progresif, inklusif, dan berdampak, dengan tata kelola organisasi yang profesional serta budaya kolaborasi yang kuat dalam semangat Kabinet Sentra Sinergi.",
-      missionTitle: "Misi kerja",
-      missionItems: [
-        "Menguatkan pelayanan internal melalui sistem kerja terstruktur, evaluasi berkala, dan pengembangan kapasitas pengurus yang berkelanjutan.",
-        "Mendorong kolaborasi lintas pihak, mulai dari mahasiswa, alumni, departemen, hingga mitra kegiatan, untuk memperluas dampak program kerja.",
-        "Mewujudkan transparansi informasi melalui publikasi kegiatan, dokumentasi terpusat, dan akses informasi yang mudah bagi warga Teknik Komputer ITS.",
-      ],
-    },
-  );
-
-  const resolvedProgramSection = $derived(
-    programSection ?? {
-      title: "Program kerja kabinet",
-      description:
-        "Tiga rumpun kerja utama kabinet, disusun sebagai garis kerja yang saling melengkapi.",
-      groups: [
-        {
-          title: "Optimalisasi",
-          description:
-            "Penguatan sistem internal organisasi dan pengelolaan kerja yang lebih terukur.",
-          items: [
-            {
-              name: "CMOS",
-              unit: "Monitoring & Pelaporan",
-              description:
-                "Sistem monitoring dan pelaporan program kerja untuk mendukung transparansi, akuntabilitas, dan manajemen organisasi berbasis data.",
-            },
-            {
-              name: "Personalia",
-              unit: "Sumber Daya Manusia",
-              description:
-                "Pengelolaan rekrutmen, upgrading, rapor staf, dan sistem apresiasi untuk membangun budaya kerja yang sehat dan bertumbuh.",
-            },
-          ],
-        },
-        {
-          title: "Kolaborasi",
-          description:
-            "Penguatan relasi organisasi dengan mahasiswa, alumni, dan isu kesejahteraan yang dekat dengan kebutuhan anggota.",
-          items: [
-            {
-              name: "Hi Alumni",
-              unit: "Hubungan Alumni",
-              description:
-                "Penguatan relasi mahasiswa aktif dan alumni melalui basis data terstruktur serta publikasi pengalaman dari dunia kuliah hingga dunia kerja.",
-            },
-            {
-              name: "Sosmas",
-              unit: "Hubungan Luar",
-              description:
-                "Program yang berfokus pada isu sosial kemasyarakatan seperti charity, bantuan sosial, dan kolaborasi eksternal.",
-            },
-            {
-              name: "Advocation Corner",
-              unit: "Kesejahteraan Mahasiswa",
-              description:
-                "Layanan advokasi aktif pada isu UKT, FRS, beasiswa, dan kebutuhan kesejahteraan mahasiswa lainnya.",
-            },
-          ],
-        },
-        {
-          title: "Ekspansi",
-          description:
-            "Perluasan dampak kabinet lewat pengembangan karier, media, kaderisasi, dan kanal digital organisasi.",
-          items: [
-            {
-              name: "COD",
-              unit: "Pengembangan Karier",
-              description:
-                "Program pengembangan karier melalui pelatihan CV, simulasi interview, dan penguatan personal branding mahasiswa.",
-            },
-            {
-              name: "BIOS",
-              unit: "Kajian & Riset",
-              description:
-                "Forum kajian isu keprofesian Teknik Komputer untuk mendorong diskusi kritis dan solusi yang relevan.",
-            },
-            {
-              name: "TEKKOM Insight",
-              unit: "Media & Informasi",
-              description:
-                "Media informasi dengan konten edukatif dan kreatif untuk meningkatkan literasi teknologi mahasiswa.",
-            },
-            {
-              name: "Buku Panduan Kaderisasi",
-              unit: "Kader",
-              description:
-                "Pedoman nilai, alur, dan indikator kaderisasi untuk menjaga kesinambungan regenerasi kepemimpinan.",
-            },
-            {
-              name: "Website HIMATEKKOM",
-              unit: "Digital",
-              description:
-                "Pusat informasi, dokumentasi, dan layanan digital himpunan yang terhubung dengan CMOS.",
-            },
-          ],
-        },
-      ],
-    },
-  );
-
-  const programGroups = $derived(
-    (resolvedProgramSection.groups ?? []).map((group) => ({
-      ...group,
-      icon: programGroupIcons[group.title] ?? Rocket,
-    })),
   );
 
   const resolvedInformationSection = $derived(
     informationSection ?? {
-      title: "Informasi terbaru",
-      description:
-        "Publikasi dan dokumentasi terbaru yang sudah terbit di kanal resmi HIMATEKKOM ITS.",
+      title: "Kabar Terbaru",
       archiveLabel: "Arsip lengkap",
       emptyText: "Belum ada publikasi yang terbit di papan informasi.",
     },
   );
 
-  const resolvedCtaSection = $derived(
-    ctaSection ?? {
-      title: "Kabinet Sentra Sinergi",
+  const resolvedEventsSection = $derived(
+    eventsSection ?? {
+      title: "Acara Mendatang",
+      archiveLabel: "Semua acara",
+      emptyText: "Belum ada acara mendatang yang dipublikasikan.",
+    },
+  );
+
+  const resolvedProfileSection = $derived(
+    profileSection ?? {
+      title: "Kabinet Kami",
       description:
-        "Satu sistem, satu kabinet. Transparansi dan dokumentasi kerja berjalan di satu tempat.",
-      buttonLabel: "Jelajahi arsip publik",
-      instagramUrl: "https://www.instagram.com/sentrasinergi/",
-      instagramLabel: "@sentrasinergi",
-      instagramPrefix: "Ikuti",
-      instagramSuffix: "di Instagram",
+        "Kabinet Sentra Sinergi menjalankan publikasi dan operasional HIMATEKKOM ITS dengan alur kerja yang rapi, terdokumentasi, dan mudah dibaca oleh publik maupun pengurus.",
+      vision:
+        "Menjaga ruang kerja organisasi yang progresif, inklusif, dan berdampak melalui kolaborasi yang kuat.",
     },
   );
 
@@ -216,264 +73,119 @@
     footer ?? {
       description:
         "Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember.",
-      address: "Gedung Teknik Komputer, Kampus ITS Sukolilo, Surabaya.",
-      sections: [
-        {
-          title: "Navigasi",
-          links: resolvedNavigation,
-        },
-        {
-          title: "Akses",
-          links: [
-            { href: loginUrl, label: "Masuk ke CMOS" },
-            { href: infoUrl, label: "Arsip informasi" },
-            {
-              href: "https://www.instagram.com/sentrasinergi/",
-              label: "Instagram resmi",
-            },
-          ],
-        },
-        {
-          title: "Kanal pendukung",
-          links: [
-            {
-              href: "https://its.id/m/RPOSentraSinergi",
-              label: "Dokumen Organisasi",
-            },
-            {
-              href: "https://its.id/m/PPTRPOSentraSinergi",
-              label: "Materi Presentasi",
-            },
-            {
-              href: "https://www.instagram.com/sentrasinergi/",
-              label: "Instagram Sentra Sinergi",
-            },
-          ],
-        },
-      ],
+      sections: [],
     },
   );
 
+  const fallbackNews = $derived([
+    {
+      title: "Publikasi HIMATEKKOM ITS",
+      excerpt: resolvedInformationSection.emptyText,
+      publishedAtLabel: "Terbaru",
+      category: "Papan Informasi",
+      url: infoUrl,
+      coverImage: null,
+    },
+  ]);
+
+  let menuDetails = $state(null);
+  let activeEventIndex = $state(0);
+
+  const newsItems = $derived(latestInfo.length ? latestInfo : fallbackNews);
+  const eventCount = $derived(upcomingEvents.length);
+  const activeEvent = $derived(upcomingEvents[activeEventIndex] ?? null);
   const footerSections = $derived(resolvedFooter.sections ?? []);
+  const footerLinks = $derived.by(() => {
+    const links = [
+      ...resolvedNavigation,
+      ...footerSections.flatMap((section) => section.links ?? []),
+    ];
+    const seen = [];
+
+    return links.filter((link) => {
+      if (!link?.href || seen.includes(link.href)) {
+        return false;
+      }
+
+      seen.push(link.href);
+
+      return true;
+    });
+  });
+  const cabinetLead = $derived(
+    resolvedHero.titleVariants?.[0] ?? "Kabinet Sentra Sinergi",
+  );
 
   const pageTitle =
     "Website Resmi HIMATEKKOM ITS 2026 | Kabinet Sentra Sinergi";
   const pageDescription =
     "Platform resmi HIMATEKKOM ITS untuk informasi publik dan kerja operasional kabinet.";
 
-  let menuDetails = $state(null);
-  let activeNavId = $state(null);
+  const closeMenu = () => {
+    if (menuDetails) {
+      menuDetails.open = false;
+    }
+  };
 
-  const handleImageError = (event) => {
-    if (event.currentTarget.src.endsWith(logoUrl)) {
+  const showPreviousEvent = () => {
+    if (eventCount < 2) {
       return;
     }
 
-    event.currentTarget.src = logoUrl;
+    activeEventIndex = (activeEventIndex - 1 + eventCount) % eventCount;
   };
 
-  onMount(() => {
-    let revealObserver;
-    let spyObserver;
-    let resetScrollTimeout;
-    let cancelObserverSetup = () => {};
-    let removeUserIntentListeners = () => {};
+  const showNextEvent = () => {
+    if (eventCount < 2) {
+      return;
+    }
 
-    const scheduleIdleWork = (callback) => {
-      let cancelled = false;
-      let idleHandle;
-      let timeoutHandle;
+    activeEventIndex = (activeEventIndex + 1) % eventCount;
+  };
 
-      const run = () => {
-        if (cancelled) {
-          return;
-        }
+  const getEventOffset = (index) => {
+    if (eventCount === 0) {
+      return 0;
+    }
 
-        callback();
-      };
+    let offset = index - activeEventIndex;
 
-      if (typeof window.requestIdleCallback === "function") {
-        idleHandle = window.requestIdleCallback(run, { timeout: 650 });
-      } else {
-        timeoutHandle = window.setTimeout(run, 120);
-      }
+    if (offset > eventCount / 2) {
+      offset -= eventCount;
+    }
 
-      return () => {
-        cancelled = true;
+    if (offset < -eventCount / 2) {
+      offset += eventCount;
+    }
 
-        if (
-          idleHandle !== undefined &&
-          typeof window.cancelIdleCallback === "function"
-        ) {
-          window.cancelIdleCallback(idleHandle);
-        }
+    return offset;
+  };
 
-        if (timeoutHandle !== undefined) {
-          window.clearTimeout(timeoutHandle);
-        }
-      };
-    };
+  const eventPosterClass = (index) => {
+    const offset = getEventOffset(index);
 
-    const setupLandingReveal = () => {
-      if (typeof document === "undefined") {
-        return;
-      }
+    if (offset === 0) {
+      return "taling-event-poster taling-event-poster-active";
+    }
 
-      const targets = Array.from(
-        document.querySelectorAll('[data-reveal]:not([data-reveal="initial"])'),
-      );
+    if (offset === -1) {
+      return "taling-event-poster taling-event-poster-prev";
+    }
 
-      if (!targets.length) {
-        return;
-      }
+    if (offset === 1) {
+      return "taling-event-poster taling-event-poster-next";
+    }
 
-      if (typeof IntersectionObserver === "undefined") {
-        targets.forEach((element) => {
-          element.classList.add("is-revealed");
-        });
+    if (offset === -2) {
+      return "taling-event-poster taling-event-poster-far-prev";
+    }
 
-        return;
-      }
+    if (offset === 2) {
+      return "taling-event-poster taling-event-poster-far-next";
+    }
 
-      revealObserver?.disconnect();
-
-      revealObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) {
-              return;
-            }
-
-            entry.target.classList.add("is-revealed");
-            revealObserver?.unobserve(entry.target);
-          });
-        },
-        {
-          threshold: 0.18,
-          rootMargin: "0px 0px -10% 0px",
-        },
-      );
-
-      targets.forEach((element) => {
-        element.classList.remove("is-revealed");
-        revealObserver.observe(element);
-      });
-    };
-
-    const setupScrollSpy = () => {
-      if (typeof IntersectionObserver === "undefined") {
-        return;
-      }
-
-      const sections = resolvedNavigation
-        .map((item) => document.getElementById(item.href.replace("#", "")))
-        .filter(Boolean);
-
-      if (!sections.length) {
-        return;
-      }
-
-      spyObserver?.disconnect();
-
-      const ratios = new Map();
-
-      spyObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            ratios.set(entry.target, entry.intersectionRatio);
-          });
-
-          let maxRatio = 0;
-          let bestId = null;
-
-          ratios.forEach((ratio, target) => {
-            if (ratio > maxRatio) {
-              maxRatio = ratio;
-              bestId = `#${target.id}`;
-            }
-          });
-
-          if (bestId) {
-            activeNavId = bestId;
-          }
-        },
-        {
-          threshold: [0, 0.5, 1],
-          rootMargin: "-12% 0px -60% 0px",
-        },
-      );
-
-      sections.forEach((section) => spyObserver.observe(section));
-    };
-
-    const stabilizeInitialMobileScroll = () => {
-      if (typeof window === "undefined") {
-        return;
-      }
-
-      if (
-        window.location.hash ||
-        !window.matchMedia?.("(pointer: coarse)").matches
-      ) {
-        return;
-      }
-
-      const navigationEntry = performance.getEntriesByType?.("navigation")?.[0];
-
-      if (navigationEntry?.type && navigationEntry.type !== "navigate") {
-        return;
-      }
-
-      let userInteracted = false;
-
-      const markUserIntent = () => {
-        userInteracted = true;
-      };
-
-      const resetScroll = () => {
-        if (userInteracted || window.scrollY <= 8) {
-          return;
-        }
-
-        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      };
-
-      const userIntentEvents = ["touchstart", "pointerdown", "keydown"];
-
-      userIntentEvents.forEach((eventName) => {
-        window.addEventListener(eventName, markUserIntent, { passive: true });
-      });
-
-      removeUserIntentListeners = () => {
-        userIntentEvents.forEach((eventName) => {
-          window.removeEventListener(eventName, markUserIntent);
-        });
-      };
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(resetScroll);
-      });
-
-      resetScrollTimeout = window.setTimeout(resetScroll, 420);
-    };
-
-    cancelObserverSetup = scheduleIdleWork(() => {
-      setupLandingReveal();
-      setupScrollSpy();
-    });
-
-    stabilizeInitialMobileScroll();
-
-    return () => {
-      cancelObserverSetup();
-      if (resetScrollTimeout) {
-        window.clearTimeout(resetScrollTimeout);
-      }
-      removeUserIntentListeners();
-      revealObserver?.disconnect();
-      spyObserver?.disconnect();
-    };
-  });
+    return "taling-event-poster taling-event-poster-hidden";
+  };
 </script>
 
 <svelte:head>
@@ -506,92 +218,52 @@
   {/if}
 </svelte:head>
 
-<div class="landing-terminal min-h-screen">
+<div class="taling-landing">
   <a href="#main-content" class="skip-link">Langsung ke konten</a>
 
-  <header
-    class="border-b border-[var(--landing-terminal-line)] bg-[var(--landing-terminal-bg)]"
-  >
-    <div
-      class="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-5 py-4 lg:px-8"
-    >
-      <a
-        href={homeUrl}
-        class="flex min-w-0 items-center gap-3 text-inherit no-underline"
-      >
+  <header class="taling-header">
+    <div class="taling-header-inner">
+      <a href={homeUrl} class="taling-brand" aria-label={organizationName}>
         <OptimizedImage
           src={brandLogo}
-          alt={organizationName}
-          class="h-10 w-[47px] shrink-0 object-contain"
+          alt=""
+          class="taling-brand-mark"
           loading="eager"
           decoding="async"
           fetchpriority="high"
-          sizes="47px"
+          sizes="76px"
         />
-        <div class="min-w-0">
-          <div
-            class="truncate text-sm font-semibold text-[var(--landing-terminal-heading-resolved)]"
-          >
-            {organizationName}
-          </div>
-          <div
-            class="truncate text-xs text-[var(--landing-terminal-soft-resolved)]"
-          >
-            Kabinet Sentra Sinergi 2026
-          </div>
-        </div>
+        <span>{organizationName}</span>
       </a>
 
-      <nav class="hidden items-center gap-6 md:flex">
+      <nav class="taling-nav" aria-label="Navigasi utama">
         {#each resolvedNavigation as item (item.href)}
-          <a
-            href={item.href}
-            class="rounded-sm text-sm transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--landing-terminal-interactive-resolved)] {activeNavId ===
-            item.href
-              ? 'font-medium text-[var(--landing-terminal-interactive-resolved)]'
-              : 'text-[var(--landing-terminal-soft-resolved)] hover:text-[var(--landing-terminal-text-resolved)]'}"
-          >
-            {item.label}
-          </a>
+          <a href={item.href} class="taling-nav-link">{item.label}</a>
         {/each}
       </nav>
 
-      <div class="flex items-center gap-2">
-        <a
-          href={loginUrl}
-          class="landing-button-secondary hidden items-center gap-2 sm:inline-flex"
-        >
-          <LogIn size={16} />
-          Masuk
-        </a>
+      <div class="taling-header-actions">
+        <Button href={loginUrl} class="taling-login">Masuk</Button>
 
-        <details class="relative md:hidden" bind:this={menuDetails}>
-          <summary
-            class="inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] text-[var(--landing-terminal-text-resolved)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--landing-terminal-interactive-resolved)] [&::-webkit-details-marker]:hidden"
-          >
-            <Menu size={18} />
+        <details class="taling-menu" bind:this={menuDetails}>
+          <summary class="taling-menu-trigger" aria-label="Buka menu">
+            <span></span>
+            <span></span>
+            <span></span>
           </summary>
-          <div
-            class="absolute top-[calc(100%+0.75rem)] right-0 z-20 grid min-w-56 gap-1 border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] p-3"
-          >
+          <div class="taling-menu-panel">
             {#each resolvedNavigation as item (item.href)}
-              <a
-                href={item.href}
-                class={`px-3 py-2 text-sm transition-colors duration-200 hover:bg-[var(--landing-terminal-panel-soft-resolved)] ${activeNavId === item.href ? "text-[var(--landing-terminal-interactive-resolved)]" : "text-[var(--landing-terminal-soft-resolved)] hover:text-[var(--landing-terminal-text-resolved)]"}`}
-                onclick={() => {
-                  menuDetails.open = false;
-                }}
+              <a href={item.href} class="taling-menu-link" onclick={closeMenu}
+                >{item.label}</a
               >
-                {item.label}
-              </a>
             {/each}
-            <a
+            <Button
               href={loginUrl}
-              class="landing-button-secondary mt-1 justify-center"
-              onclick={() => {
-                menuDetails.open = false;
-              }}>Masuk ke CMOS</a
+              class="taling-menu-login"
+              onclick={closeMenu}
             >
+              Masuk
+            </Button>
           </div>
         </details>
       </div>
@@ -599,483 +271,1443 @@
   </header>
 
   <main id="main-content">
-    <section class="border-b border-[var(--landing-terminal-line-resolved)]">
-      <div
-        class="mx-auto grid max-w-[1180px] gap-8 px-5 py-8 lg:grid-cols-[minmax(0,1fr)_30rem] lg:px-8 lg:py-10"
-      >
-        <div data-reveal="initial" class="grid gap-6">
-          <div class="grid gap-4">
-            <TerminalTextReveal
-              tag="h1"
-              texts={resolvedHero.titleVariants}
-              cycle={true}
-              holdDuration={3000}
-              previewWhileAnimating={true}
-              textClass="landing-hero-title min-h-[2.45em] max-w-[18ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl lg:text-[3.55rem]"
-            />
-            <TerminalTextReveal
-              tag="p"
-              text={resolvedHero.description}
-              previewWhileAnimating={true}
-              textClass="max-w-[66ch] text-[0.98rem] leading-7 text-[var(--landing-terminal-soft-resolved)]"
-            />
-          </div>
+    <section class="taling-hero" aria-label="Sambutan">
+      <div class="taling-hero-media" aria-hidden="true">
+        <OptimizedImage
+          src={heroPhoto}
+          alt=""
+          class="taling-hero-img"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+          sizes="100vw"
+        />
+        <div class="taling-hero-scrim"></div>
+      </div>
+      <span class="taling-star taling-star-left" aria-hidden="true"></span>
+      <span class="taling-star taling-star-right" aria-hidden="true"></span>
 
-          <div class="flex flex-col gap-3 sm:flex-row">
-            {#each resolvedHero.actions ?? [] as action (action.href)}
-              <a
-                href={action.href}
-                class={`${action.variant === "secondary" ? "landing-button-secondary" : "landing-button-primary"} inline-flex items-center justify-center gap-2`}
-              >
-                {action.label}
-                <ArrowRight size={16} />
+      <div class="taling-hero-center">
+        <OptimizedImage
+          src={brandLogo}
+          alt={cabinetLead}
+          class="taling-hero-logo"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+          sizes="360px"
+        />
+        <h1>dari kita untuk kita</h1>
+        <div class="taling-hero-rule" aria-hidden="true"></div>
+      </div>
+
+      <div class="taling-hero-signature">
+        <OptimizedImage
+          src={brandLogo}
+          alt=""
+          class="taling-signature-logo"
+          loading="lazy"
+          decoding="async"
+          sizes="180px"
+        />
+        <p>{resolvedHero.description}</p>
+      </div>
+    </section>
+
+    <section id="kabar" class="taling-news" aria-labelledby="kabar-heading">
+      <div class="taling-section-shell">
+        <div class="taling-news-heading">
+          <h2 id="kabar-heading">{resolvedInformationSection.title}</h2>
+          <Button href={infoUrl} variant="ghost" class="taling-news-link">
+            {resolvedInformationSection.archiveLabel}
+          </Button>
+        </div>
+
+        <div class="taling-news-strip">
+          {#each newsItems as article, index (article.url ?? `${article.title}-${index}`)}
+            <Card.Root class="taling-news-card" size="sm">
+              <a href={article.url ?? infoUrl} class="taling-news-card-link">
+                {#if article.coverImage}
+                  <OptimizedImage
+                    src={article.coverImage}
+                    alt={article.title}
+                    class="taling-news-img"
+                    loading={index === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                    sizes="(min-width: 1100px) 313px, 78vw"
+                  />
+                {:else}
+                  <div class="taling-news-placeholder" aria-hidden="true">
+                    {article.title?.slice(0, 2) || "HI"}
+                  </div>
+                {/if}
+                <div class="taling-news-copy">
+                  <Badge class="taling-news-badge" variant="outline">
+                    {article.publishedAtLabel || "Publikasi"}
+                  </Badge>
+                  <strong>{article.title}</strong>
+                </div>
               </a>
-            {/each}
-          </div>
-
-          <div class="landing-command-block">
-            {#each resolvedQuickFacts as item, index (`${index}-${item}`)}
-              <div class="landing-command-row">
-                <span class="landing-command-index">$</span>
-                <TerminalTextReveal
-                  tag="p"
-                  text={item}
-                  previewWhileAnimating={true}
-                  textClass="text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-                />
-              </div>
-            {/each}
-          </div>
-        </div>
-
-        <aside data-reveal="initial">
-          <TerminalHeroCanvas
-            asciiArt={logokabinetAscii}
-            fallbackSrc={logoUrl}
-            alt="Logo Kabinet Sentra Sinergi dalam ASCII art"
-            title="Kabinet logo"
-            status="ASCII ready"
-            footerLeft="render /logo"
-            footerRight="image-to-ascii"
-          />
-        </aside>
-      </div>
-    </section>
-
-    <section
-      id="profil"
-      data-reveal
-      style="--reveal-delay: 220ms;"
-      class="landing-deferred-section scroll-mt-24 border-b border-[var(--landing-terminal-line-resolved)]"
-    >
-      <div
-        class="mx-auto grid max-w-[1180px] gap-6 px-5 py-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:px-8 lg:py-10"
-      >
-        <section class="landing-panel px-5 py-5">
-          <TerminalTextReveal
-            animate={false}
-            tag="h2"
-            text={resolvedProfileSection.title}
-            textClass="text-2xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-[2rem]"
-          />
-          <TerminalTextReveal
-            animate={false}
-            tag="p"
-            text={resolvedProfileSection.description}
-            textClass="mt-4 max-w-[66ch] text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-          />
-          <div
-            class="mt-6 border-t border-[var(--landing-terminal-line-resolved)] pt-4"
-          >
-            <TerminalTextReveal
-              animate={false}
-              tag="div"
-              text={resolvedProfileSection.visionLabel}
-              textClass="text-sm font-semibold text-[var(--landing-terminal-heading-resolved)]"
-            />
-            <TerminalTextReveal
-              animate={false}
-              tag="p"
-              text={resolvedProfileSection.vision}
-              textClass="mt-3 max-w-[66ch] text-sm leading-8 text-[var(--landing-terminal-soft-resolved)]"
-            />
-          </div>
-        </section>
-
-        <section class="landing-panel px-5 py-5">
-          <TerminalTextReveal
-            animate={false}
-            tag="h2"
-            text={resolvedProfileSection.missionTitle}
-            textClass="text-2xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-[2rem]"
-          />
-          <ol
-            class="mt-5 divide-y divide-[var(--landing-terminal-line-resolved)] border-t border-[var(--landing-terminal-line-resolved)]"
-          >
-            {#each resolvedProfileSection.missionItems ?? [] as item, index (`${index}-${item}`)}
-              <li
-                class="grid gap-3 py-4 md:grid-cols-[2.5rem_minmax(0,1fr)] md:items-start"
-              >
-                <div
-                  class="text-sm font-semibold text-[var(--landing-terminal-command-resolved)]"
-                >
-                  0{index + 1}
-                </div>
-                <TerminalTextReveal
-                  animate={false}
-                  tag="p"
-                  text={item}
-                  textClass="text-sm leading-8 text-[var(--landing-terminal-soft-resolved)]"
-                />
-              </li>
-            {/each}
-          </ol>
-        </section>
-      </div>
-    </section>
-
-    <section
-      data-reveal
-      style="--reveal-delay: 280ms;"
-      class="landing-deferred-section border-b border-[var(--landing-terminal-line-resolved)]"
-    >
-      <div class="mx-auto max-w-[1180px] px-5 py-6 lg:px-8 lg:py-8">
-        <div class="grid gap-3 md:grid-cols-3">
-          <figure class="landing-frame m-0">
-            <div class="landing-frame__media">
-              <OptimizedImage
-                src={himatekkomGallery}
-                alt="Dokumentasi kegiatan mahasiswa Teknik Komputer ITS"
-                class="h-48 w-full object-cover"
-                loading="lazy"
-                decoding="async"
-                sizes="(min-width: 768px) 33vw, 100vw"
-              />
-            </div>
-            <figcaption class="landing-frame__caption">
-              <span class="text-[var(--landing-terminal-muted-resolved)]"
-                >lab</span
-              >
-              <span class="text-[var(--landing-terminal-frame-accent-resolved)]"
-                >/workspace</span
-              >
-            </figcaption>
-          </figure>
-          <figure class="landing-frame m-0">
-            <div class="landing-frame__media">
-              <OptimizedImage
-                src={flareImage}
-                alt="Aksen visual identitas publikasi HIMATEKKOM ITS"
-                class="h-48 w-full object-cover"
-                loading="lazy"
-                decoding="async"
-                sizes="(min-width: 768px) 33vw, 100vw"
-              />
-            </div>
-            <figcaption class="landing-frame__caption">
-              <span class="text-[var(--landing-terminal-muted-resolved)]"
-                >kolaborasi</span
-              >
-              <span class="text-[var(--landing-terminal-frame-accent-resolved)]"
-                >/tim</span
-              >
-            </figcaption>
-          </figure>
-          <figure class="landing-frame m-0">
-            <div class="landing-frame__media">
-              <OptimizedImage
-                src={logoGallery}
-                alt="Logo kabinet Sentra Sinergi HIMATEKKOM ITS"
-                class="h-48 w-full object-cover object-center p-6"
-                loading="lazy"
-                decoding="async"
-                sizes="(min-width: 768px) 33vw, 100vw"
-              />
-            </div>
-            <figcaption class="landing-frame__caption">
-              <span class="text-[var(--landing-terminal-muted-resolved)]"
-                >gedung</span
-              >
-              <span class="text-[var(--landing-terminal-frame-accent-resolved)]"
-                >/teknik komputer</span
-              >
-            </figcaption>
-          </figure>
-        </div>
-      </div>
-    </section>
-
-    <section
-      id="program-kerja"
-      data-reveal
-      style="--reveal-delay: 360ms;"
-      class="landing-deferred-section scroll-mt-24 border-b border-[var(--landing-terminal-line-resolved)]"
-    >
-      <div class="mx-auto max-w-[1180px] px-5 py-10 lg:px-8 lg:py-14">
-        <div class="max-w-[72ch]">
-          <TerminalTextReveal
-            animate={false}
-            tag="h2"
-            text={resolvedProgramSection.title}
-            textClass="text-2xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-[2rem]"
-          />
-          <TerminalTextReveal
-            animate={false}
-            tag="p"
-            text={resolvedProgramSection.description}
-            textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-          />
-        </div>
-
-        <div class="mt-8 grid gap-8 lg:grid-cols-3">
-          {#each programGroups as group (group.title)}
-            <section class="landing-panel px-5 py-5">
-              <div class="flex items-center gap-3">
-                <div class="landing-group-icon" aria-hidden="true">
-                  <group.icon size={18} strokeWidth={1.9} />
-                </div>
-                <TerminalTextReveal
-                  animate={false}
-                  tag="h3"
-                  text={group.title}
-                  textClass="text-xl leading-tight text-[var(--landing-terminal-heading-resolved)]"
-                />
-              </div>
-              <TerminalTextReveal
-                animate={false}
-                tag="p"
-                text={group.description}
-                textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-              />
-
-              <div
-                class="mt-5 divide-y divide-[var(--landing-terminal-line-resolved)] border-t border-[var(--landing-terminal-line-resolved)]"
-              >
-                {#each group.items as item, itemIndex (`${group.title}-${item.name}`)}
-                  <article class={`py-4 ${itemIndex === 0 ? "pt-0" : ""}`}>
-                    <div
-                      class="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between"
-                    >
-                      <TerminalTextReveal
-                        animate={false}
-                        tag="div"
-                        text={item.name}
-                        textClass="text-sm font-semibold text-[var(--landing-terminal-heading-resolved)]"
-                      />
-                      <TerminalTextReveal
-                        animate={false}
-                        tag="div"
-                        text={item.unit}
-                        textClass="text-xs text-[var(--landing-terminal-muted-resolved)]"
-                      />
-                    </div>
-                    <TerminalTextReveal
-                      animate={false}
-                      tag="p"
-                      text={item.description}
-                      textClass="mt-2 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-                    />
-                  </article>
-                {/each}
-              </div>
-            </section>
+            </Card.Root>
           {/each}
         </div>
       </div>
     </section>
 
-    <section
-      id="informasi"
-      data-reveal
-      style="--reveal-delay: 420ms;"
-      class="landing-deferred-section scroll-mt-24 border-b border-[var(--landing-terminal-line-resolved)]"
-    >
-      <div class="mx-auto max-w-[1180px] px-5 py-8 lg:px-8 lg:py-10">
-        <section class="landing-panel px-5 py-5">
-          <div
-            class="flex flex-col gap-4 border-b border-[var(--landing-terminal-line-resolved)] pb-4 md:flex-row md:items-end md:justify-between"
-          >
-            <div>
-              <TerminalTextReveal
-                animate={false}
-                tag="h2"
-                text={resolvedInformationSection.title}
-                textClass="text-2xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-[2rem]"
-              />
-              <TerminalTextReveal
-                animate={false}
-                tag="p"
-                text={resolvedInformationSection.description}
-                textClass="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-              />
-            </div>
-            <a
-              href={infoUrl}
-              class="landing-inline-link inline-flex items-center gap-2 text-sm font-semibold text-[var(--landing-terminal-interactive-resolved)] hover:text-[var(--landing-terminal-text-resolved)]"
-            >
-              {resolvedInformationSection.archiveLabel}
-              <ArrowRight size={16} />
-            </a>
-          </div>
+    <section id="acara" class="taling-events" aria-labelledby="acara-heading">
+      <span class="taling-flower" aria-hidden="true"></span>
+      <span class="taling-puzzle" aria-hidden="true"></span>
+      <div class="taling-section-shell taling-events-shell">
+        <h2 id="acara-heading">{resolvedEventsSection.title}</h2>
 
-          {#if latestInfo.length}
-            <div
-              class="divide-y divide-[var(--landing-terminal-line-resolved)]"
-            >
-              {#each latestInfo as article (article.url || article.title)}
-                <a href={article.url} class="landing-article-row">
-                  <div
-                    class={article.coverImage
-                      ? "grid gap-3 lg:grid-cols-[11rem_8rem_minmax(0,1fr)] lg:items-start"
-                      : "grid gap-3 lg:grid-cols-[9rem_minmax(0,1fr)] lg:items-start"}
+        {#if activeEvent}
+          <div class="taling-event-feature">
+            <div class="taling-event-carousel">
+              <div class="taling-event-posters" aria-live="polite">
+                {#each upcomingEvents as event, index (event.url ?? `${event.title}-${index}`)}
+                  <a
+                    href={event.url ?? acaraUrl}
+                    class={eventPosterClass(index)}
+                    aria-label={event.title}
+                    aria-current={index === activeEventIndex
+                      ? "true"
+                      : undefined}
+                    tabindex={Math.abs(getEventOffset(index)) > 1
+                      ? -1
+                      : undefined}
                   >
-                    {#if article.coverImage}
-                      <div class="landing-frame overflow-hidden">
-                        <div class="landing-frame__media border-b-0">
-                          <OptimizedImage
-                            src={article.coverImage}
-                            alt={article.title}
-                            class="h-28 w-full object-cover"
-                            loading="lazy"
-                            decoding="async"
-                            sizes="11rem"
-                            onerror={handleImageError}
-                          />
-                        </div>
+                    {#if event.poster}
+                      <OptimizedImage
+                        src={event.poster}
+                        alt={event.title}
+                        class="taling-event-poster-img"
+                        loading={index === activeEventIndex ? "eager" : "lazy"}
+                        decoding="async"
+                        sizes="(min-width: 900px) 330px, 64vw"
+                      />
+                    {:else}
+                      <div class="taling-event-poster-fallback">
+                        <span>{event.startsAtLabel || "Segera"}</span>
+                        <strong>{event.title}</strong>
                       </div>
                     {/if}
-                    <div
-                      class="space-y-1 text-[0.73rem] text-[var(--landing-terminal-muted-resolved)]"
-                    >
-                      <div>{article.publishedAtLabel || "Publikasi baru"}</div>
-                      <div>{article.category}</div>
-                    </div>
-                    <div class="space-y-2">
-                      <TerminalTextReveal
-                        animate={false}
-                        tag="h3"
-                        text={article.title}
-                        textClass="text-lg leading-snug text-[var(--landing-terminal-heading-resolved)]"
-                      />
-                      <TerminalTextReveal
-                        animate={false}
-                        tag="p"
-                        text={article.excerpt}
-                        textClass="max-w-[65ch] text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-                      />
-                    </div>
+                  </a>
+                {/each}
+              </div>
+
+              {#if eventCount > 1}
+                <div class="taling-event-controls" aria-label="Navigasi acara">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    class="taling-carousel-nav"
+                    onclick={showPreviousEvent}
+                    aria-label="Acara sebelumnya"
+                  >
+                    ‹
+                  </Button>
+                  <div class="taling-event-dots" aria-label="Pilih acara">
+                    {#each upcomingEvents as event, index (event.url ?? `${event.title}-dot-${index}`)}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        class={`taling-carousel-dot ${index === activeEventIndex ? "taling-carousel-dot-active" : ""}`}
+                        onclick={() => (activeEventIndex = index)}
+                        aria-label={`Tampilkan ${event.title}`}
+                        aria-current={index === activeEventIndex
+                          ? "true"
+                          : undefined}
+                      >
+                        <span></span>
+                      </Button>
+                    {/each}
                   </div>
-                </a>
-              {/each}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    class="taling-carousel-nav"
+                    onclick={showNextEvent}
+                    aria-label="Acara berikutnya"
+                  >
+                    ›
+                  </Button>
+                </div>
+              {/if}
             </div>
-          {:else}
-            <TerminalTextReveal
-              animate={false}
-              tag="div"
-              text={resolvedInformationSection.emptyText}
-              textClass="py-5 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-            />
-          {/if}
-        </section>
+
+            <Card.Root class="taling-event-copy" size="sm">
+              <Badge class="taling-event-date" variant="default">
+                {activeEvent.startsAtLabel || "Segera"}
+              </Badge>
+              <h3>{activeEvent.title}</h3>
+              <div class="taling-event-rule" aria-hidden="true"></div>
+              <p class="taling-event-description">
+                {activeEvent.excerpt ||
+                  resolvedEventsSection.description ||
+                  "Agenda dan kegiatan terbaru HIMATEKKOM ITS yang akan datang."}
+              </p>
+              {#if activeEvent.location}
+                <p class="taling-event-location">{activeEvent.location}</p>
+              {/if}
+              <Button
+                href={activeEvent.url ?? acaraUrl}
+                class="taling-section-link"
+              >
+                Lihat detail acara
+              </Button>
+            </Card.Root>
+          </div>
+        {:else}
+          <Card.Root class="taling-empty-bright" size="sm">
+            {resolvedEventsSection.emptyText}
+          </Card.Root>
+        {/if}
       </div>
     </section>
 
-    <section
-      data-reveal
-      style="--reveal-delay: 480ms;"
-      class="landing-deferred-section border-b border-[var(--landing-terminal-line-resolved)]"
-    >
-      <div class="mx-auto max-w-[1180px] px-5 py-14 lg:px-8 lg:py-16">
-        <div class="landing-panel px-8 py-10 text-center lg:px-14 lg:py-14">
-          <div class="mx-auto max-w-[48ch] space-y-5">
-            <TerminalTextReveal
-              animate={false}
-              tag="h2"
-              text={resolvedCtaSection.title}
-              textClass="text-3xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-[3rem]"
-            />
-            <TerminalTextReveal
-              animate={false}
-              tag="p"
-              text={resolvedCtaSection.description}
-              textClass="text-[0.98rem] leading-7 text-[var(--landing-terminal-soft-resolved)]"
-            />
-            <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-center">
-              <a
-                href="#informasi"
-                class="landing-button-primary inline-flex items-center justify-center gap-2"
-              >
-                {resolvedCtaSection.buttonLabel}
-                <ArrowRight size={16} />
-              </a>
-            </div>
-            <p class="text-sm text-[var(--landing-terminal-muted-resolved)]">
-              {resolvedCtaSection.instagramPrefix}
-              <a
-                href={resolvedCtaSection.instagramUrl}
-                target="_blank"
-                rel="noreferrer"
-                class="text-[var(--landing-terminal-interactive-resolved)] transition-colors hover:text-[var(--landing-terminal-text-resolved)]"
-                >{resolvedCtaSection.instagramLabel}</a
-              >
-              {resolvedCtaSection.instagramSuffix}
-            </p>
-          </div>
+    <section class="taling-cabinet" aria-labelledby="cabinet-heading">
+      <div class="taling-section-shell taling-cabinet-grid">
+        <div class="taling-cabinet-copy">
+          <p class="taling-jargon">Contoh Jargon</p>
+          <h2 id="cabinet-heading">Kabinet Kami</h2>
+          <p>{resolvedProfileSection.description}</p>
+          <p>{resolvedProfileSection.vision}</p>
+        </div>
+        <div class="taling-cabinet-photo">
+          <OptimizedImage
+            src={heroPhoto}
+            alt="Dokumentasi Kabinet Sentra Sinergi"
+            class="taling-cabinet-img"
+            loading="lazy"
+            decoding="async"
+            sizes="(min-width: 900px) 620px, 100vw"
+          />
         </div>
       </div>
     </section>
   </main>
 
-  <footer
-    data-reveal
-    style="--reveal-delay: 540ms;"
-    class="landing-deferred-section border-t border-[var(--landing-terminal-line-resolved)]"
-  >
-    <div
-      class="mx-auto grid max-w-[1180px] gap-6 px-5 py-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)_minmax(0,0.8fr)] lg:px-8"
-    >
-      <div class="space-y-3">
-        <TerminalTextReveal
-          animate={false}
-          tag="div"
-          text={organizationName}
-          textClass="text-lg font-semibold text-[var(--landing-terminal-heading-resolved)]"
-        />
-        <TerminalTextReveal
-          animate={false}
-          tag="p"
-          text={resolvedFooter.description}
-          textClass="max-w-[60ch] text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-        />
-        <TerminalTextReveal
-          animate={false}
-          tag="p"
-          text={resolvedFooter.address}
-          textClass="text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-        />
+  <footer class="taling-footer">
+    <div class="taling-footer-inner">
+      <div>
+        <strong>{organizationName}</strong>
+        <p>{resolvedFooter.description}</p>
       </div>
-
-      {#each footerSections as section (section.title)}
-        <div>
-          <TerminalTextReveal
-            animate={false}
-            tag="div"
-            text={section.title}
-            textClass="text-sm font-semibold text-[var(--landing-terminal-heading-resolved)]"
-          />
-          <div
-            class="mt-3 grid gap-2 text-sm text-[var(--landing-terminal-soft-resolved)]"
-          >
-            {#each section.links as link (link.href)}
-              <a
-                href={link.href}
-                class="transition-colors duration-150 hover:text-[var(--landing-terminal-interactive-resolved)]"
-                >{link.label}</a
-              >
-            {/each}
-          </div>
-        </div>
-      {/each}
+      <div class="taling-footer-links">
+        {#each footerLinks.slice(0, 8) as link (link.href)}
+          <a href={link.href}>{link.label}</a>
+        {/each}
+      </div>
+    </div>
+    <div class="taling-footer-base">
+      <span>&copy; {organizationName} 2026</span>
+      <span>{appName}</span>
     </div>
   </footer>
 </div>
+
+<style>
+  .taling-landing {
+    --taling-yellow: #ffd344;
+    --taling-purple: #2a0078;
+    --taling-purple-deep: #5d0077;
+    --taling-orange: #ff7a1a;
+    --taling-ink: #222222;
+    --taling-white: #fffdf8;
+    --taling-cream: #fff4d3;
+    --taling-section: #f59b1a;
+    min-height: 100vh;
+    overflow: clip;
+    background: var(--taling-white);
+    color: var(--taling-ink);
+    font-family: var(--taling-font-sans);
+  }
+
+  .taling-section-shell,
+  .taling-header-inner,
+  .taling-footer-inner,
+  .taling-footer-base {
+    width: min(1248px, calc(100% - 3rem));
+    margin-inline: auto;
+  }
+
+  .taling-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: #fffdf8;
+    color: var(--taling-ink);
+  }
+
+  .taling-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 84px;
+    gap: 2rem;
+  }
+
+  .taling-brand {
+    display: inline-flex;
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .taling-brand span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .taling-brand :global(.taling-brand-mark),
+  .taling-brand :global(img) {
+    width: 76px;
+    height: auto;
+  }
+
+  .taling-nav {
+    display: none;
+    align-items: center;
+    gap: clamp(1.6rem, 3vw, 3rem);
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .taling-nav-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .taling-nav-link:hover {
+    color: var(--taling-purple);
+  }
+
+  .taling-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .taling-login,
+  .taling-menu-login,
+  .taling-section-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    min-height: 36px;
+    padding: 0.55rem 1.9rem;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      var(--taling-orange),
+      var(--taling-yellow)
+    );
+    color: var(--taling-purple);
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .taling-login:hover,
+  .taling-menu-login:hover,
+  .taling-section-link:hover {
+    filter: saturate(1.12) brightness(1.02);
+  }
+
+  .taling-menu {
+    position: relative;
+  }
+
+  .taling-menu-trigger {
+    display: grid;
+    place-items: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .taling-menu-trigger::-webkit-details-marker {
+    display: none;
+  }
+
+  .taling-menu-trigger span {
+    width: 26px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--taling-ink);
+  }
+
+  .taling-menu-panel {
+    position: absolute;
+    top: calc(100% + 0.7rem);
+    right: 0;
+    display: grid;
+    gap: 0.35rem;
+    min-width: 15rem;
+    padding: 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--taling-purple) 18%, transparent);
+    background: #fffdf8;
+    box-shadow: 0 10px 24px rgba(34, 34, 34, 0.14);
+  }
+
+  .taling-menu-link {
+    padding: 0.7rem 0.8rem;
+    color: var(--taling-ink);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .taling-menu-link:hover {
+    background: color-mix(in srgb, var(--taling-yellow) 22%, transparent);
+  }
+
+  .taling-hero {
+    position: relative;
+    display: grid;
+    min-height: 896px;
+    overflow: hidden;
+    color: var(--taling-white);
+  }
+
+  .taling-hero-media,
+  .taling-hero-scrim {
+    position: absolute;
+    inset: 0;
+  }
+
+  .taling-hero :global(.taling-hero-img),
+  .taling-hero-media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .taling-hero-scrim {
+    background:
+      linear-gradient(180deg, rgba(42, 0, 120, 0.12), rgba(18, 8, 34, 0.76)),
+      color-mix(in srgb, var(--taling-purple) 44%, transparent);
+  }
+
+  .taling-hero-center {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    align-self: center;
+    width: min(900px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding-top: 4rem;
+    text-align: center;
+  }
+
+  .taling-hero-center :global(.taling-hero-logo),
+  .taling-hero-center :global(img) {
+    width: min(398px, 70vw);
+    height: auto;
+    margin-bottom: 2.1rem;
+    filter: drop-shadow(0 10px 16px rgba(18, 8, 34, 0.45));
+  }
+
+  .taling-hero h1 {
+    margin: 0;
+    color: var(--taling-white);
+    font-family: var(--taling-font-serif);
+    font-size: clamp(3.3rem, 7vw, 6.8rem);
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 0 0 22px rgba(255, 253, 248, 0.72);
+  }
+
+  .taling-hero-rule {
+    width: min(534px, 68vw);
+    height: 22px;
+    margin-top: 1.9rem;
+    background: var(--taling-yellow);
+    box-shadow: 0 0 24px rgba(255, 211, 68, 0.52);
+  }
+
+  .taling-hero-signature {
+    position: absolute;
+    left: clamp(2rem, 7vw, 7rem);
+    bottom: 3.8rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 1.15rem;
+    max-width: 540px;
+  }
+
+  .taling-hero-signature :global(.taling-signature-logo),
+  .taling-hero-signature :global(img) {
+    width: 180px;
+    height: auto;
+  }
+
+  .taling-hero-signature p {
+    margin: 0;
+    color: var(--taling-white);
+    font-weight: 800;
+    line-height: 1.35;
+  }
+
+  .taling-star {
+    position: absolute;
+    z-index: 1;
+    width: 270px;
+    aspect-ratio: 1;
+    background: var(--taling-yellow);
+    clip-path: polygon(
+      50% 0,
+      59% 35%,
+      98% 35%,
+      66% 56%,
+      78% 96%,
+      50% 70%,
+      22% 96%,
+      34% 56%,
+      2% 35%,
+      41% 35%
+    );
+    opacity: 0.72;
+  }
+
+  .taling-star-left {
+    top: -112px;
+    left: 16%;
+    width: 355px;
+  }
+
+  .taling-star-right {
+    right: -118px;
+    bottom: 42px;
+  }
+
+  .taling-news {
+    position: relative;
+    padding: 6rem 0 7rem;
+    overflow: hidden;
+    background:
+      radial-gradient(
+        circle at 20% 20%,
+        rgba(255, 211, 68, 0.12),
+        transparent 32rem
+      ),
+      linear-gradient(180deg, #18072e 0%, #12051f 100%);
+    color: var(--taling-white);
+  }
+
+  .taling-news::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.18;
+    background-image:
+      linear-gradient(
+        45deg,
+        transparent 46%,
+        rgba(255, 211, 68, 0.2) 47%,
+        transparent 48%
+      ),
+      linear-gradient(
+        -45deg,
+        transparent 46%,
+        rgba(255, 255, 255, 0.16) 47%,
+        transparent 48%
+      );
+    background-size: 46px 46px;
+  }
+
+  .taling-news-heading,
+  .taling-news-strip {
+    position: relative;
+    z-index: 1;
+  }
+
+  .taling-news-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 4rem;
+    border-bottom: 2px solid rgba(255, 253, 248, 0.78);
+    padding-bottom: 2rem;
+  }
+
+  .taling-news h2,
+  .taling-events h2,
+  .taling-cabinet h2,
+  .taling-jargon {
+    margin: 0;
+    font-family: var(--taling-font-serif);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .taling-news h2 {
+    color: var(--taling-white);
+    font-size: clamp(3rem, 6.8vw, 6rem);
+  }
+
+  .taling-news-link {
+    min-height: 36px;
+    padding-inline: 0;
+    color: color-mix(in srgb, var(--taling-white) 76%, transparent);
+    background: transparent;
+    font-weight: 800;
+  }
+
+  .taling-news-strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(240px, 313px);
+    gap: 1.4rem;
+    margin-inline: calc((100vw - min(1248px, calc(100vw - 3rem))) / -2);
+    padding-inline: calc((100vw - min(1248px, calc(100vw - 3rem))) / 2);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .taling-news-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .taling-news-card {
+    position: relative;
+    display: block;
+    height: 397px;
+    overflow: hidden;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--taling-white);
+    text-decoration: none;
+    scroll-snap-align: center;
+    background: var(--taling-purple);
+  }
+
+  .taling-news-card-link {
+    position: absolute;
+    inset: 0;
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .taling-news-card :global(.taling-news-img),
+  .taling-news-card :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .taling-news-placeholder {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    background:
+      linear-gradient(145deg, rgba(42, 0, 120, 0.82), rgba(255, 122, 26, 0.72)),
+      var(--taling-purple);
+    color: var(--taling-yellow);
+    font-family: var(--taling-font-serif);
+    font-size: 5rem;
+  }
+
+  .taling-news-copy {
+    position: absolute;
+    inset: auto 0 0;
+    display: grid;
+    gap: 0.4rem;
+    padding: 1rem;
+    background: linear-gradient(180deg, transparent, rgba(18, 5, 31, 0.88));
+  }
+
+  .taling-news-badge {
+    width: fit-content;
+    border-color: color-mix(in srgb, var(--taling-yellow) 60%, transparent);
+    background: rgba(18, 5, 31, 0.62);
+    color: var(--taling-yellow);
+    font-weight: 900;
+  }
+
+  .taling-news-copy strong {
+    font-size: 1.05rem;
+    line-height: 1.18;
+  }
+
+  .taling-events {
+    position: relative;
+    padding: 6rem 0 7.5rem;
+    overflow: hidden;
+    background:
+      radial-gradient(
+        circle at 17% 18%,
+        rgba(255, 211, 68, 0.86),
+        transparent 10rem
+      ),
+      linear-gradient(135deg, #ffd344 0%, #ffb13a 32%, #ff7a1a 100%);
+    color: var(--taling-purple);
+  }
+
+  .taling-events h2 {
+    margin-bottom: 5.25rem;
+    color: #211028;
+    text-align: center;
+    font-size: clamp(3.4rem, 6.8vw, 6.6rem);
+  }
+
+  .taling-events-shell {
+    position: relative;
+    z-index: 1;
+  }
+
+  .taling-event-feature {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.92fr) minmax(320px, 1.08fr);
+    gap: clamp(3rem, 7vw, 7rem);
+    align-items: center;
+  }
+
+  .taling-event-carousel {
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .taling-event-posters {
+    position: relative;
+    min-height: 440px;
+    isolation: isolate;
+  }
+
+  .taling-event-poster {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    display: block;
+    width: 265px;
+    height: 374px;
+    overflow: hidden;
+    border: 8px solid var(--taling-purple);
+    background: var(--taling-purple);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(64px) scale(0.74);
+    transition:
+      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .taling-event-poster-active {
+    z-index: 3;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  .taling-event-poster-prev {
+    z-index: 2;
+    opacity: 0.86;
+    pointer-events: auto;
+    filter: brightness(0.82);
+    transform: translateX(calc(-50% - 165px)) translateY(42px) scale(0.86);
+  }
+
+  .taling-event-poster-next {
+    z-index: 1;
+    opacity: 0.72;
+    pointer-events: auto;
+    filter: brightness(0.72);
+    transform: translateX(calc(-50% + 165px)) translateY(46px) scale(0.86);
+  }
+
+  .taling-event-poster-far-prev,
+  .taling-event-poster-far-next {
+    z-index: 0;
+    opacity: 0.34;
+    filter: brightness(0.62);
+  }
+
+  .taling-event-poster-far-prev {
+    transform: translateX(calc(-50% - 275px)) translateY(82px) scale(0.7);
+  }
+
+  .taling-event-poster-far-next {
+    transform: translateX(calc(-50% + 275px)) translateY(82px) scale(0.7);
+  }
+
+  .taling-event-poster :global(.taling-event-poster-img),
+  .taling-event-poster :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .taling-event-poster-fallback {
+    display: grid;
+    align-content: center;
+    gap: 1rem;
+    width: 100%;
+    height: 100%;
+    padding: 1.25rem;
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 211, 68, 0.96),
+        rgba(255, 122, 26, 0.92)
+      ),
+      var(--taling-yellow);
+    color: var(--taling-purple);
+  }
+
+  .taling-event-poster-fallback span {
+    font-weight: 900;
+  }
+
+  .taling-event-poster-fallback strong {
+    font-family: var(--taling-font-serif);
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .taling-event-copy {
+    max-width: 620px;
+    padding: 0;
+    overflow: visible;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--taling-purple);
+  }
+
+  .taling-event-date {
+    display: inline-block;
+    margin: 0 0 0.65rem;
+    padding: 0.35rem 0.8rem;
+    background: var(--taling-purple);
+    color: var(--taling-white);
+    font-weight: 900;
+  }
+
+  .taling-event-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
+  }
+
+  .taling-carousel-nav {
+    width: 45px;
+    height: 45px;
+    padding: 0;
+    border-radius: 0.25rem;
+    border: 2px solid var(--taling-purple);
+    background: color-mix(
+      in srgb,
+      var(--taling-white) 86%,
+      var(--taling-yellow)
+    );
+    color: var(--taling-purple);
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 6px 6px 0
+      color-mix(in srgb, var(--taling-purple) 28%, transparent);
+  }
+
+  .taling-carousel-nav:hover {
+    background: var(--taling-purple);
+    color: var(--taling-white);
+    box-shadow: 3px 3px 0
+      color-mix(in srgb, var(--taling-purple) 34%, transparent);
+  }
+
+  .taling-event-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+  }
+
+  .taling-carousel-dot {
+    width: 24px;
+    height: 24px;
+    min-height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  .taling-carousel-dot span {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: color-mix(
+      in srgb,
+      var(--taling-purple) 34%,
+      var(--taling-white)
+    );
+  }
+
+  .taling-carousel-dot-active span {
+    width: 18px;
+    background: var(--taling-purple);
+  }
+
+  .taling-event-copy :global(h3) {
+    margin: 0;
+    color: var(--taling-purple);
+    font-family: var(--taling-font-sans);
+    font-size: clamp(3rem, 7vw, 6.8rem);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 0.92;
+    text-transform: uppercase;
+    -webkit-text-stroke: 2px var(--taling-purple);
+    color: transparent;
+  }
+
+  .taling-event-rule {
+    width: 100%;
+    height: 12px;
+    margin: 1.35rem 0 1.75rem;
+    background: var(--taling-purple);
+  }
+
+  .taling-event-description,
+  .taling-event-location {
+    margin: 0;
+    max-width: 64ch;
+    color: #231328;
+    font-weight: 800;
+    line-height: 1.44;
+  }
+
+  .taling-event-location {
+    margin-top: 1rem;
+    color: var(--taling-purple);
+  }
+
+  .taling-event-copy :global(.taling-section-link) {
+    margin-top: 1.5rem;
+    background: var(--taling-purple);
+    color: var(--taling-white);
+  }
+
+  .taling-flower,
+  .taling-puzzle {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .taling-flower {
+    top: 16%;
+    left: -34px;
+    width: 190px;
+    aspect-ratio: 1;
+    background:
+      radial-gradient(
+          ellipse at center,
+          rgba(255, 122, 26, 0.72) 0 38%,
+          transparent 40%
+        )
+        50% 0 / 50% 50%,
+      radial-gradient(
+          ellipse at center,
+          rgba(255, 122, 26, 0.72) 0 38%,
+          transparent 40%
+        )
+        100% 50% / 50% 50%,
+      radial-gradient(
+          ellipse at center,
+          rgba(255, 122, 26, 0.72) 0 38%,
+          transparent 40%
+        )
+        50% 100% / 50% 50%,
+      radial-gradient(
+          ellipse at center,
+          rgba(255, 122, 26, 0.72) 0 38%,
+          transparent 40%
+        )
+        0 50% / 50% 50%;
+    background-repeat: no-repeat;
+    rotate: -22deg;
+  }
+
+  .taling-puzzle {
+    right: -28px;
+    bottom: 30px;
+    width: 250px;
+    aspect-ratio: 1;
+    background:
+      linear-gradient(var(--taling-purple), var(--taling-purple)) 30% 10% / 46%
+        38%,
+      linear-gradient(var(--taling-purple), var(--taling-purple)) 58% 42% / 46%
+        38%,
+      linear-gradient(var(--taling-purple), var(--taling-purple)) 10% 54% / 38%
+        34%;
+    background-repeat: no-repeat;
+    rotate: 36deg;
+  }
+
+  .taling-cabinet {
+    padding: 6rem 0 7rem;
+    background:
+      radial-gradient(
+        circle at 86% 20%,
+        rgba(255, 211, 68, 0.42),
+        transparent 15rem
+      ),
+      linear-gradient(160deg, #f6bb2f 0%, #ff8a1f 54%, #c85910 100%);
+    color: #1f1520;
+  }
+
+  .taling-cabinet-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.85fr) minmax(320px, 1.15fr);
+    gap: clamp(2.5rem, 7vw, 6rem);
+    align-items: center;
+  }
+
+  .taling-jargon {
+    margin-bottom: 2.5rem;
+    color: transparent;
+    font-family: var(--taling-font-sans);
+    font-size: clamp(3rem, 7vw, 6.6rem);
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    line-height: 0.9;
+    -webkit-text-stroke: 2px var(--taling-purple);
+  }
+
+  .taling-cabinet h2 {
+    margin-bottom: 1.8rem;
+    color: #1f1520;
+    font-size: clamp(2.3rem, 4.5vw, 4rem);
+  }
+
+  .taling-cabinet-copy p:not(.taling-jargon) {
+    margin: 0 0 1.2rem;
+    max-width: 60ch;
+    color: #241422;
+    font-weight: 800;
+    line-height: 1.48;
+  }
+
+  .taling-cabinet-photo {
+    overflow: hidden;
+    border: 10px solid color-mix(in srgb, var(--taling-yellow) 45%, transparent);
+    background: var(--taling-purple);
+  }
+
+  .taling-cabinet-photo :global(.taling-cabinet-img),
+  .taling-cabinet-photo :global(img) {
+    width: 100%;
+    height: 420px;
+    object-fit: cover;
+  }
+
+  .taling-empty-bright {
+    padding: 3rem;
+    border: 4px solid var(--taling-purple);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--taling-purple);
+    font-weight: 900;
+    text-align: center;
+  }
+
+  :global(.taling-login),
+  :global(.taling-menu-login),
+  :global(.taling-section-link) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    min-height: 36px;
+    padding: 0.55rem 1.9rem;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      var(--taling-orange),
+      var(--taling-yellow)
+    );
+    color: var(--taling-purple);
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  :global(.taling-news-link) {
+    width: auto;
+    height: auto;
+    min-height: 36px;
+    padding-inline: 0;
+    background: transparent;
+    color: color-mix(in srgb, var(--taling-white) 76%, transparent);
+    font-weight: 800;
+  }
+
+  :global(.taling-news-card) {
+    position: relative;
+    display: block;
+    height: 397px;
+    overflow: hidden;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--taling-white);
+    scroll-snap-align: center;
+    background: var(--taling-purple);
+  }
+
+  :global(.taling-news-card) :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  :global(.taling-news-badge),
+  :global(.taling-event-date) {
+    width: fit-content;
+    height: auto;
+    font-weight: 900;
+  }
+
+  :global(.taling-news-badge) {
+    border-color: color-mix(in srgb, var(--taling-yellow) 60%, transparent);
+    background: rgba(18, 5, 31, 0.62);
+    color: var(--taling-yellow);
+  }
+
+  :global(.taling-event-copy) {
+    max-width: 620px;
+    padding: 0;
+    overflow: visible;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--taling-purple);
+  }
+
+  :global(.taling-event-date) {
+    display: inline-block;
+    margin: 0 0 0.65rem;
+    padding: 0.35rem 0.8rem;
+    border-color: var(--taling-purple);
+    background: var(--taling-purple);
+    color: var(--taling-white);
+  }
+
+  :global(.taling-event-copy) :global(h3) {
+    margin: 0;
+    color: transparent;
+    font-family: var(--taling-font-sans);
+    font-size: clamp(3rem, 7vw, 6.8rem);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 0.92;
+    text-transform: uppercase;
+    -webkit-text-stroke: 2px var(--taling-purple);
+  }
+
+  :global(.taling-event-copy) :global(.taling-section-link) {
+    margin-top: 1.5rem;
+    background: var(--taling-purple);
+    color: var(--taling-white);
+  }
+
+  :global(.taling-carousel-nav) {
+    width: 45px;
+    height: 45px;
+    min-height: 45px;
+    padding: 0;
+    border-radius: 0.25rem;
+    border: 2px solid var(--taling-purple);
+    background: color-mix(
+      in srgb,
+      var(--taling-white) 86%,
+      var(--taling-yellow)
+    );
+    color: var(--taling-purple);
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+    box-shadow: 6px 6px 0
+      color-mix(in srgb, var(--taling-purple) 28%, transparent);
+  }
+
+  :global(.taling-carousel-nav:hover) {
+    background: var(--taling-purple);
+    color: var(--taling-white);
+    box-shadow: 3px 3px 0
+      color-mix(in srgb, var(--taling-purple) 34%, transparent);
+  }
+
+  :global(.taling-carousel-dot) {
+    width: 24px;
+    height: 24px;
+    min-height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+  }
+
+  :global(.taling-carousel-dot) :global(span) {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: color-mix(
+      in srgb,
+      var(--taling-purple) 34%,
+      var(--taling-white)
+    );
+  }
+
+  :global(.taling-carousel-dot-active) :global(span) {
+    width: 18px;
+    background: var(--taling-purple);
+  }
+
+  :global(.taling-empty-bright) {
+    padding: 3rem;
+    border: 4px solid var(--taling-purple);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--taling-purple);
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .taling-footer {
+    background: #fffdf8;
+    color: var(--taling-ink);
+    padding: 4rem 0 2rem;
+  }
+
+  .taling-footer-inner {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(280px, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .taling-footer strong {
+    font-family: var(--taling-font-serif);
+    font-size: 2rem;
+  }
+
+  .taling-footer p {
+    max-width: 56ch;
+    margin: 1rem 0 0;
+    color: color-mix(in srgb, var(--taling-ink) 74%, transparent);
+    line-height: 1.6;
+  }
+
+  .taling-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: end;
+    gap: 0.85rem 1.35rem;
+  }
+
+  .taling-footer-links a {
+    color: var(--taling-ink);
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .taling-footer-base {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid color-mix(in srgb, var(--taling-ink) 14%, transparent);
+    color: color-mix(in srgb, var(--taling-ink) 62%, transparent);
+    font-weight: 800;
+  }
+
+  @media (min-width: 820px) {
+    .taling-nav,
+    .taling-login {
+      display: flex;
+    }
+
+    :global(.taling-login) {
+      display: flex;
+    }
+
+    .taling-menu {
+      display: none;
+    }
+  }
+
+  @media (max-width: 819px) {
+    .taling-section-shell,
+    .taling-header-inner,
+    .taling-footer-inner,
+    .taling-footer-base {
+      width: min(100% - 1.5rem, 620px);
+    }
+
+    .taling-login {
+      display: none;
+    }
+
+    :global(.taling-login) {
+      display: none;
+    }
+
+    .taling-header-inner {
+      min-height: 72px;
+    }
+
+    .taling-brand :global(.taling-brand-mark),
+    .taling-brand :global(img) {
+      width: 58px;
+    }
+
+    .taling-hero {
+      min-height: 760px;
+    }
+
+    .taling-hero-center {
+      padding-top: 1rem;
+    }
+
+    .taling-hero-signature {
+      left: 1rem;
+      right: 1rem;
+      bottom: 2rem;
+      flex-direction: column;
+      align-items: start;
+    }
+
+    .taling-hero-signature :global(.taling-signature-logo),
+    .taling-hero-signature :global(img) {
+      width: 142px;
+    }
+
+    .taling-star-left {
+      left: -88px;
+      width: 255px;
+    }
+
+    .taling-star-right {
+      right: -104px;
+      bottom: 86px;
+      width: 210px;
+    }
+
+    .taling-news {
+      padding: 4.25rem 0 5rem;
+    }
+
+    .taling-news-heading {
+      display: grid;
+      margin-bottom: 2.25rem;
+      padding-bottom: 1.3rem;
+    }
+
+    .taling-news-strip {
+      grid-auto-columns: minmax(236px, 78vw);
+      margin-inline: -0.75rem;
+      padding-inline: 0.75rem;
+    }
+
+    .taling-news-card {
+      height: 330px;
+    }
+
+    .taling-events {
+      padding: 4.5rem 0 5.5rem;
+    }
+
+    .taling-events h2 {
+      margin-bottom: 3rem;
+    }
+
+    .taling-event-feature,
+    .taling-cabinet-grid,
+    .taling-footer-inner {
+      grid-template-columns: 1fr;
+    }
+
+    .taling-event-posters {
+      min-height: 355px;
+    }
+
+    .taling-event-poster {
+      width: min(235px, 58vw);
+      height: 322px;
+      border-width: 6px;
+    }
+
+    .taling-event-poster-active {
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    .taling-event-poster-prev {
+      transform: translateX(calc(-50% - 88px)) translateY(36px) scale(0.82);
+    }
+
+    .taling-event-poster-next {
+      transform: translateX(calc(-50% + 88px)) translateY(38px) scale(0.82);
+    }
+
+    .taling-event-poster-far-prev {
+      transform: translateX(calc(-50% - 152px)) translateY(70px) scale(0.66);
+    }
+
+    .taling-event-poster-far-next {
+      transform: translateX(calc(-50% + 152px)) translateY(70px) scale(0.66);
+    }
+
+    .taling-event-controls {
+      gap: 0.6rem;
+    }
+
+    .taling-event-copy :global(h3),
+    :global(.taling-event-copy) :global(h3) {
+      font-size: clamp(3rem, 17vw, 5.5rem);
+    }
+
+    .taling-flower {
+      width: 140px;
+      left: -50px;
+    }
+
+    .taling-puzzle {
+      width: 180px;
+      right: -70px;
+    }
+
+    .taling-cabinet {
+      padding: 4.5rem 0 5rem;
+    }
+
+    .taling-cabinet-photo :global(.taling-cabinet-img),
+    .taling-cabinet-photo :global(img) {
+      height: 280px;
+    }
+
+    .taling-footer-links {
+      justify-content: start;
+    }
+
+    .taling-footer-base {
+      display: grid;
+    }
+  }
+</style>

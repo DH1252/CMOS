@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Event;
 use App\Models\InformationBoard;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Schema;
@@ -24,16 +25,19 @@ class LandingPageData
         $homeUrl = route('home');
         $loginUrl = route('login');
         $infoUrl = route('informasi.index');
+        $acaraUrl = route('acara.index');
         $logoUrl = asset('images/logokabinet.avif');
         $instagramUrl = 'https://www.instagram.com/sentrasinergi/';
         $organizationId = $homeUrl.'#organization';
         $websiteId = $homeUrl.'#website';
         $latestInfo = $this->latestInfo();
+        $upcomingEvents = $this->upcomingEvents();
 
         $navigation = [
-            ['href' => '#profil', 'label' => 'Profil Organisasi'],
-            ['href' => '#program-kerja', 'label' => 'Program Kerja'],
-            ['href' => '#informasi', 'label' => 'Informasi'],
+            ['href' => $homeUrl, 'label' => 'Beranda'],
+            ['href' => route('departemen'), 'label' => 'Departemen'],
+            ['href' => route('kompetisi'), 'label' => 'Kompetisi'],
+            ['href' => route('tentang'), 'label' => 'Tentang Kami'],
         ];
 
         $supportLinks = [
@@ -93,6 +97,7 @@ class LandingPageData
             ],
             'loginUrl' => $loginUrl,
             'infoUrl' => $infoUrl,
+            'acaraUrl' => $acaraUrl,
             'logoUrl' => $logoUrl,
             'navigation' => $navigation,
             'hero' => [
@@ -194,8 +199,14 @@ class LandingPageData
                     ],
                 ],
             ],
+            'eventsSection' => [
+                'title' => 'Acara Mendatang',
+                'description' => 'Agenda dan kegiatan terbaru HIMATEKKOM ITS yang akan datang.',
+                'archiveLabel' => 'Semua acara',
+                'emptyText' => 'Belum ada acara mendatang yang dipublikasikan.',
+            ],
             'informationSection' => [
-                'title' => 'Informasi terbaru',
+                'title' => 'Kabar Terbaru',
                 'description' => 'Publikasi dan dokumentasi terbaru yang sudah terbit di kanal resmi HIMATEKKOM ITS.',
                 'archiveLabel' => 'Arsip lengkap',
                 'emptyText' => 'Belum ada publikasi yang terbit di papan informasi.',
@@ -221,6 +232,7 @@ class LandingPageData
                         'title' => 'Akses',
                         'links' => [
                             ['href' => $loginUrl, 'label' => 'Masuk ke CMOS'],
+                            ['href' => $acaraUrl, 'label' => 'Acara mendatang'],
                             ['href' => $infoUrl, 'label' => 'Arsip informasi'],
                             ['href' => $instagramUrl, 'label' => 'Instagram resmi'],
                         ],
@@ -235,6 +247,7 @@ class LandingPageData
                 ],
             ],
             'latestInfo' => $latestInfo,
+            'upcomingEvents' => $upcomingEvents,
         ];
     }
 
@@ -251,7 +264,7 @@ class LandingPageData
             ->select(['id', 'title', 'slug', 'excerpt', 'content', 'cover_image', 'published_at'])
             ->with('categories:id,name')
             ->latest('published_at')
-            ->take(3)
+            ->take(5)
             ->get()
             ->map(fn (InformationBoard $item) => [
                 'title' => $item->title,
@@ -260,6 +273,32 @@ class LandingPageData
                 'coverImage' => $item->cover_image_optimized,
                 'category' => $item->categories->pluck('name')->implode(', ') ?: 'Papan Informasi',
                 'url' => route('informasi.show', $item->slug),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function upcomingEvents(): array
+    {
+        if (! Schema::hasTable('events')) {
+            return [];
+        }
+
+        return Event::published()
+            ->upcoming()
+            ->select(['id', 'title', 'slug', 'description', 'poster_image', 'location', 'starts_at', 'published_at'])
+            ->take(3)
+            ->get()
+            ->map(fn (Event $item) => [
+                'title' => $item->title,
+                'location' => $item->location,
+                'poster' => $item->poster_image_optimized,
+                'excerpt' => Str::limit(strip_tags($item->description), 220),
+                'startsAtLabel' => optional($item->startsAtLocal)?->locale('id')->translatedFormat('d M Y'),
+                'url' => route('acara.show', $item->slug),
             ])
             ->values()
             ->all();

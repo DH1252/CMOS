@@ -2,7 +2,6 @@
   import { ArrowRight } from "lucide-svelte";
   import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import OptimizedImage from "../components/OptimizedImage.svelte";
-  import TerminalTextReveal from "../components/TerminalTextReveal.svelte";
 
   let {
     homeUrl = "/",
@@ -28,24 +27,8 @@
   const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
   const jsonLdScriptOpen = '<script type="application/ld+json">';
   const jsonLdScriptClose = "</" + "script>";
-  const archiveSummary = $derived.by(() => {
-    if (!stats.length) {
-      return "";
-    }
-
-    const articleCount = Number(
-      stats.find((stat) => stat.label === "Artikel Terbit")?.value || 0,
-    );
-    const categoryCount = Number(
-      stats.find((stat) => stat.label === "Kategori")?.value || 0,
-    );
-
-    if (!articleCount || !categoryCount) {
-      return "";
-    }
-
-    return `${articleCount} publikasi tercatat dalam ${categoryCount} kategori arsip.`;
-  });
+  const visibleStats = $derived(stats.filter((stat) => stat?.label));
+  const cardArticles = $derived(featured ? articles : articles.slice(0));
 
   const handleImageError = (event) => {
     if (event.currentTarget.src.endsWith(fallbackImage)) {
@@ -80,293 +63,659 @@
   {/if}
 </svelte:head>
 
-<section
-  class="grid gap-8 border-b border-[var(--landing-terminal-line-resolved)] pb-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end"
->
-  <div class="max-w-[65ch] space-y-4">
-    <TerminalTextReveal
-      animate={false}
-      tag="p"
-      text={kicker}
-      textClass="text-sm font-semibold text-[var(--landing-terminal-command-resolved)]"
-    />
-    <TerminalTextReveal
-      animate={false}
-      tag="h1"
-      text={headline}
-      textClass="max-w-[18ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl"
-    />
-    <TerminalTextReveal
-      animate={false}
-      tag="p"
-      text={description}
-      textClass="max-w-[66ch] text-[0.98rem] leading-7 text-[var(--landing-terminal-soft-resolved)]"
-    />
-  </div>
-
-  {#if archiveSummary}
-    <div
-      class="landing-panel px-5 py-5 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-    >
-      {archiveSummary}
-    </div>
-  {/if}
-</section>
-
-<section class="landing-panel mt-6 px-5 py-5">
-  <form
-    method="GET"
-    action={filters.action}
-    class="grid gap-3 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_auto] lg:items-end"
-  >
-    <label
-      class="grid gap-2 text-sm text-[var(--landing-terminal-soft-resolved)]"
-    >
-      Cari arsip
-      <input
-        type="text"
-        name="q"
-        class="h-11 rounded-[8px] border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-bg)] px-3 text-sm text-[var(--landing-terminal-text-resolved)] transition-colors outline-none placeholder:text-[var(--landing-terminal-muted-resolved)] focus:border-[var(--landing-terminal-interactive-resolved)]"
-        placeholder="Judul, ringkasan, atau kata kunci"
-        value={filters.query || ""}
-      />
-    </label>
-
-    <label
-      class="grid gap-2 text-sm text-[var(--landing-terminal-soft-resolved)]"
-    >
-      Kategori
-      <select
-        name="kategori"
-        class="h-11 rounded-[8px] border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-bg)] px-3 text-sm text-[var(--landing-terminal-text-resolved)] transition-colors outline-none focus:border-[var(--landing-terminal-interactive-resolved)]"
-      >
-        <option value="">Semua kategori</option>
-        {#each filters.categories || [] as category (category.value)}
-          <option
-            value={category.value}
-            selected={String(filters.category || "") === String(category.value)}
-          >
-            {category.label}
-          </option>
-        {/each}
-      </select>
-    </label>
-
-    <button
-      type="submit"
-      class="landing-button-primary inline-flex h-11 items-center justify-center gap-2 px-4 text-sm font-semibold"
-    >
-      Terapkan filter
-    </button>
-  </form>
-
-  <div
-    class="mt-4 flex flex-col gap-3 border-t border-[var(--landing-terminal-line-resolved)] pt-4 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)] md:flex-row md:items-center md:justify-between"
-  >
-    <p>{searchSummary}</p>
-    {#if hasActiveFilters}
-      <a
-        href={filters.action}
-        class="landing-inline-link font-medium text-[var(--landing-terminal-interactive-resolved)] hover:text-[var(--landing-terminal-text-resolved)]"
-        >Hapus filter</a
-      >
-    {/if}
-  </div>
-</section>
-
-{#if featured}
-  <section
-    class={`grid gap-6 border-b border-[var(--landing-terminal-line-resolved)] py-8 ${featured.coverImage ? "lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start" : ""}`}
-  >
-    {#if featured.coverImage}
-      <a
-        href={featured.href}
-        class="landing-frame landing-feature-link block overflow-hidden text-inherit no-underline"
-      >
-        <div class="landing-frame__media">
-          <OptimizedImage
-            src={featured.coverImage}
-            alt={featured.title}
-            class="w-full"
-            loading="eager"
-            decoding="async"
-            fetchpriority="high"
-            sizes="(min-width: 1024px) 12rem, 100vw"
-            onerror={handleImageError}
-          />
-        </div>
-      </a>
-    {/if}
-
-    <div class={featured.coverImage ? "space-y-4" : "space-y-3"}>
-      <div
-        class="text-sm font-semibold text-[var(--landing-terminal-command-resolved)]"
-      >
-        Artikel unggulan
+<div class="public-info-index">
+  <section class="info-hero" aria-labelledby="info-index-heading">
+    <span class="info-star info-star-left" aria-hidden="true"></span>
+    <span class="info-star info-star-right" aria-hidden="true"></span>
+    <div class="taling-section-shell info-hero-grid">
+      <div class="info-hero-copy">
+        <p class="taling-page-kicker">{kicker}</p>
+        <h1 id="info-index-heading" class="taling-page-title">{headline}</h1>
+        <div class="info-hero-rule" aria-hidden="true"></div>
+        <p class="taling-page-copy">{description}</p>
       </div>
-      <a
-        href={featured.href}
-        class="landing-inline-link inline-block text-inherit no-underline"
-      >
-        <h2
-          class="max-w-[16ch] text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl"
-        >
-          {featured.title}
-        </h2>
-      </a>
-      <div
-        class="flex flex-wrap gap-3 text-sm text-[var(--landing-terminal-muted-resolved)]"
-      >
-        <span>{featured.dateLabel || "-"}</span>
-        <span>{featured.author}</span>
-      </div>
-      <p
-        class="max-w-[60ch] text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-      >
-        {featured.excerpt}
-      </p>
-      {#if featured.categories?.length}
-        <div
-          class="flex flex-wrap gap-2 border-t border-[var(--landing-terminal-line-resolved)] pt-4"
-        >
-          {#each featured.categories as category (category)}
-            <span
-              class="rounded-[8px] border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] px-2.5 py-1 text-xs font-medium text-[var(--landing-terminal-text-resolved)]"
-              >{category}</span
-            >
+
+      {#if visibleStats.length}
+        <div class="info-stat-board" aria-label="Ringkasan arsip">
+          {#each visibleStats as stat (stat.label)}
+            <div class="info-stat-row">
+              <span>{stat.label}</span>
+              <strong>{stat.value}</strong>
+            </div>
           {/each}
         </div>
       {/if}
     </div>
   </section>
-{/if}
 
-{#if !featured && !articles.length}
-  <section
-    class="grid gap-8 border-b border-[var(--landing-terminal-line-resolved)] py-8 lg:grid-cols-[minmax(0,1.1fr)_18rem] lg:items-start"
-  >
-    <div class="space-y-4">
-      <h2
-        class="max-w-[18ch] text-3xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-4xl"
-      >
-        Arsip publik belum terisi.
-      </h2>
-      <p
-        class="max-w-[58ch] text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-      >
-        Belum ada publikasi.
-      </p>
-    </div>
+  <section class="info-search" aria-label="Filter arsip">
+    <div class="taling-section-shell info-search-shell">
+      <form method="GET" action={filters.action} class="info-filter-form">
+        <label>
+          <span>Cari arsip</span>
+          <input
+            type="text"
+            name="q"
+            placeholder="Judul, ringkasan, atau kata kunci"
+            value={filters.query || ""}
+          />
+        </label>
 
-    <div class="landing-panel px-5 py-5">
-      <div
-        class="text-sm font-semibold text-[var(--landing-terminal-heading-resolved)]"
-      >
-        Sementara itu
+        <label>
+          <span>Kategori</span>
+          <select name="kategori">
+            <option value="">Semua kategori</option>
+            {#each filters.categories || [] as category (category.value)}
+              <option
+                value={category.value}
+                selected={String(filters.category || "") ===
+                  String(category.value)}
+              >
+                {category.label}
+              </option>
+            {/each}
+          </select>
+        </label>
+
+        <button type="submit">Terapkan filter</button>
+      </form>
+
+      <div class="info-search-note">
+        <p>{searchSummary}</p>
+        {#if hasActiveFilters}
+          <a href={filters.action}>Hapus filter</a>
+        {/if}
       </div>
-      <div
-        class="mt-3 grid gap-3 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-      >
-        <div>Buka beranda untuk konteks kabinet.</div>
-        <div>Kembali nanti untuk publikasi berikutnya.</div>
-      </div>
-      <a
-        href={homeUrl}
-        class="landing-button-secondary mt-5 inline-flex items-center gap-2"
-      >
-        Kembali ke beranda
-        <ArrowRight size={16} />
-      </a>
     </div>
   </section>
-{:else if articles.length}
-  <section
-    class="space-y-0 border-b border-[var(--landing-terminal-line-resolved)] py-2"
-  >
-    {#each articles as article, index (article.href)}
-      <a
-        href={article.href}
-        class={`landing-article-row ${index === 0 ? "border-t-0 pt-0" : ""}`}
-      >
-        <div
-          class={article.coverImage
-            ? "grid gap-4 md:grid-cols-[12rem_minmax(0,1fr)] md:items-start"
-            : "grid gap-3"}
-        >
-          {#if article.coverImage}
+
+  {#if featured}
+    <section class="info-feature" aria-labelledby="featured-heading">
+      <div class="taling-section-shell info-feature-grid">
+        <a href={featured.href} class="info-feature-media">
+          {#if featured.coverImage}
             <OptimizedImage
-              src={article.coverImage}
-              alt={article.title}
-              class="w-full rounded-[8px] border border-[var(--landing-terminal-line-resolved)]"
-              loading="lazy"
+              src={featured.coverImage}
+              alt={featured.title}
+              class="info-feature-img"
+              loading="eager"
               decoding="async"
-              sizes="12rem"
+              fetchpriority="high"
+              sizes="(min-width: 900px) 620px, 100vw"
               onerror={handleImageError}
             />
+          {:else}
+            <div class="info-feature-fallback" aria-hidden="true">HI</div>
           {/if}
+        </a>
 
-          <div
-            class={article.coverImage
-              ? "min-w-0 space-y-3"
-              : "min-w-0 space-y-2.5"}
-          >
-            <div
-              class="flex flex-wrap gap-3 text-sm text-[var(--landing-terminal-muted-resolved)]"
-            >
-              <span>{article.dateLabel || "-"}</span>
-              <span>{article.author}</span>
-            </div>
-            <h3
-              class="max-w-[22ch] text-3xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-[2rem]"
-            >
-              {article.title}
-            </h3>
-            <p
-              class="max-w-[62ch] text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-            >
-              {article.excerpt}
-            </p>
-            {#if article.categories?.length}
-              <div class="flex flex-wrap gap-2 pt-1">
-                {#each article.categories as category (category)}
-                  <span
-                    class="rounded-[8px] border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] px-2.5 py-1 text-xs font-medium text-[var(--landing-terminal-text-resolved)]"
-                    >{category}</span
-                  >
-                {/each}
-              </div>
-            {/if}
+        <div class="info-feature-copy">
+          <p class="info-outline">Artikel Unggulan</p>
+          <a href={featured.href}>
+            <h2 id="featured-heading">{featured.title}</h2>
+          </a>
+          <div class="info-feature-rule" aria-hidden="true"></div>
+          <div class="taling-meta-line">
+            <span>{featured.dateLabel || "-"}</span>
+            <span>{featured.author}</span>
           </div>
+          <p>{featured.excerpt}</p>
+          {#if featured.categories?.length}
+            <div class="info-chip-row">
+              {#each featured.categories as category (category)}
+                <span class="taling-chip">{category}</span>
+              {/each}
+            </div>
+          {/if}
+          <a href={featured.href} class="taling-section-link">
+            Baca artikel
+            <ArrowRight size={16} />
+          </a>
         </div>
-      </a>
-    {/each}
-  </section>
-{/if}
+      </div>
+    </section>
+  {/if}
 
-{#if pagination && pagination.total > 0}
-  <section
-    class="flex flex-col gap-4 border-t border-[var(--landing-terminal-line-resolved)] pt-6 md:flex-row md:items-center md:justify-between"
-  >
-    <div class="text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]">
-      Menampilkan {pagination.from} - {pagination.to} dari {pagination.total} publikasi.
-    </div>
+  {#if !featured && !articles.length}
+    <section class="info-empty">
+      <div class="taling-section-shell">
+        <div class="taling-empty-bright">
+          <h2>Arsip publik belum terisi.</h2>
+          <p>Belum ada publikasi. Buka beranda untuk konteks kabinet.</p>
+          <a href={homeUrl} class="taling-section-link">Kembali ke beranda</a>
+        </div>
+      </div>
+    </section>
+  {:else if cardArticles.length}
+    <section class="info-strip" aria-labelledby="article-strip-heading">
+      <div class="taling-section-shell info-strip-heading">
+        <h2 id="article-strip-heading">Kabar lainnya</h2>
+        <p>Publikasi lanjutan dari papan informasi HIMATEKKOM ITS.</p>
+      </div>
 
-    <div class="flex flex-wrap items-center gap-2 text-sm">
-      <span
-        class="rounded-[8px] border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] px-2.5 py-1 text-[var(--landing-terminal-muted-resolved)]"
-      >
-        Halaman {pagination.currentPage} / {pagination.lastPage}
-      </span>
-      {#if pagination.prevUrl}
-        <a href={pagination.prevUrl} class="landing-button-secondary px-3 py-2"
-          >Sebelumnya</a
-        >
-      {/if}
-      {#if pagination.nextUrl}
-        <a href={pagination.nextUrl} class="landing-button-secondary px-3 py-2"
-          >Selanjutnya</a
-        >
-      {/if}
-    </div>
-  </section>
-{/if}
+      <div class="info-card-strip">
+        {#each cardArticles as article, index (article.href)}
+          <a href={article.href} class="info-card">
+            <div class="info-card-media">
+              {#if article.coverImage}
+                <OptimizedImage
+                  src={article.coverImage}
+                  alt={article.title}
+                  class="info-card-img"
+                  loading={index < 2 ? "eager" : "lazy"}
+                  decoding="async"
+                  sizes="(min-width: 900px) 313px, 78vw"
+                  onerror={handleImageError}
+                />
+              {:else}
+                <div class="info-card-fallback" aria-hidden="true">
+                  {article.title?.slice(0, 2) || "HI"}
+                </div>
+              {/if}
+            </div>
+            <div class="info-card-copy">
+              <span>{article.dateLabel || "Publikasi"}</span>
+              <strong>{article.title}</strong>
+              <p>{article.excerpt}</p>
+            </div>
+          </a>
+        {/each}
+      </div>
+    </section>
+  {/if}
+
+  {#if pagination && pagination.total > 0}
+    <section class="info-pagination">
+      <div class="taling-section-shell info-pagination-inner">
+        <p>
+          Menampilkan {pagination.from} - {pagination.to} dari {pagination.total}
+          publikasi.
+        </p>
+        <div>
+          <span>Halaman {pagination.currentPage} / {pagination.lastPage}</span>
+          {#if pagination.prevUrl}
+            <a href={pagination.prevUrl}>Sebelumnya</a>
+          {/if}
+          {#if pagination.nextUrl}
+            <a href={pagination.nextUrl}>Selanjutnya</a>
+          {/if}
+        </div>
+      </div>
+    </section>
+  {/if}
+</div>
+
+<style>
+  .info-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 6rem 0 7rem;
+    background:
+      radial-gradient(
+        circle at 20% 20%,
+        rgba(255, 211, 68, 0.12),
+        transparent 32rem
+      ),
+      linear-gradient(180deg, #18072e 0%, #12051f 100%);
+    color: var(--taling-white);
+  }
+
+  .info-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.18;
+    background-image:
+      linear-gradient(
+        45deg,
+        transparent 46%,
+        rgba(255, 211, 68, 0.2) 47%,
+        transparent 48%
+      ),
+      linear-gradient(
+        -45deg,
+        transparent 46%,
+        rgba(255, 255, 255, 0.16) 47%,
+        transparent 48%
+      );
+    background-size: 46px 46px;
+  }
+
+  .info-hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+    gap: clamp(2.5rem, 7vw, 6rem);
+    align-items: end;
+  }
+
+  .info-hero-copy {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 820px;
+  }
+
+  .info-hero h1 {
+    color: var(--taling-white);
+  }
+
+  .info-hero-rule {
+    width: min(534px, 68vw);
+    height: 18px;
+    background: var(--taling-yellow);
+    box-shadow: 0 0 24px rgba(255, 211, 68, 0.52);
+  }
+
+  .info-stat-board {
+    display: grid;
+    border-top: 2px solid rgba(255, 253, 248, 0.78);
+    border-bottom: 2px solid rgba(255, 253, 248, 0.78);
+  }
+
+  .info-stat-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(255, 253, 248, 0.3);
+    font-weight: 800;
+  }
+
+  .info-stat-row:first-child {
+    border-top: 0;
+  }
+
+  .info-stat-row strong {
+    color: var(--taling-yellow);
+    font-family: var(--taling-font-serif);
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .info-star {
+    position: absolute;
+    z-index: 1;
+    aspect-ratio: 1;
+    background: var(--taling-yellow);
+    clip-path: polygon(
+      50% 0,
+      59% 35%,
+      98% 35%,
+      66% 56%,
+      78% 96%,
+      50% 70%,
+      22% 96%,
+      34% 56%,
+      2% 35%,
+      41% 35%
+    );
+    opacity: 0.72;
+  }
+
+  .info-star-left {
+    top: -96px;
+    left: 14%;
+    width: 300px;
+  }
+
+  .info-star-right {
+    right: -92px;
+    bottom: 42px;
+    width: 230px;
+  }
+
+  .info-search {
+    padding: 2rem 0;
+    background: #fffdf8;
+  }
+
+  .info-search-shell {
+    display: grid;
+    gap: 1.15rem;
+    border-bottom: 2px solid
+      color-mix(in srgb, var(--taling-ink) 16%, transparent);
+    padding-bottom: 2rem;
+  }
+
+  .info-filter-form {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) auto;
+    align-items: end;
+  }
+
+  .info-filter-form label {
+    display: grid;
+    gap: 0.5rem;
+    color: var(--taling-purple);
+    font-weight: 900;
+  }
+
+  .info-filter-form input,
+  .info-filter-form select {
+    height: 3rem;
+    border: 2px solid var(--taling-purple);
+    border-radius: 0;
+    background: var(--taling-cream);
+    color: var(--taling-ink);
+    padding: 0 0.9rem;
+    font: inherit;
+    font-weight: 800;
+  }
+
+  .info-filter-form button,
+  .info-pagination a {
+    min-height: 3rem;
+    border: 2px solid var(--taling-purple);
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      var(--taling-orange),
+      var(--taling-yellow)
+    );
+    color: var(--taling-purple);
+    padding: 0.65rem 1.2rem;
+    font: inherit;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .info-search-note {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: color-mix(in srgb, var(--taling-ink) 72%, transparent);
+    font-weight: 800;
+    line-height: 1.5;
+  }
+
+  .info-search-note p {
+    margin: 0;
+  }
+
+  .info-search-note a {
+    color: var(--taling-purple);
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .info-feature {
+    padding: 6rem 0 7rem;
+    background: linear-gradient(160deg, #f6bb2f 0%, #ff8a1f 54%, #c85910 100%);
+    color: #1f1520;
+  }
+
+  .info-feature-grid {
+    display: grid;
+    grid-template-columns: minmax(300px, 1.05fr) minmax(300px, 0.95fr);
+    gap: clamp(2.5rem, 7vw, 6rem);
+    align-items: center;
+  }
+
+  .info-feature-media {
+    display: block;
+    overflow: hidden;
+    border: 10px solid color-mix(in srgb, var(--taling-yellow) 45%, transparent);
+    background: var(--taling-purple);
+  }
+
+  .info-feature-media :global(.info-feature-img),
+  .info-feature-media :global(img),
+  .info-feature-fallback {
+    width: 100%;
+    height: min(58vw, 520px);
+    min-height: 340px;
+    object-fit: cover;
+  }
+
+  .info-feature-fallback {
+    display: grid;
+    place-items: center;
+    color: var(--taling-yellow);
+    font-family: var(--taling-font-serif);
+    font-size: 7rem;
+  }
+
+  .info-feature-copy {
+    display: grid;
+    gap: 1.2rem;
+  }
+
+  .info-outline {
+    margin: 0;
+    color: transparent;
+    font-family: var(--taling-font-sans);
+    font-size: clamp(3rem, 7vw, 6.6rem);
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    line-height: 0.9;
+    -webkit-text-stroke: 2px var(--taling-purple);
+  }
+
+  .info-feature-copy a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .info-feature h2 {
+    margin: 0;
+    color: #1f1520;
+    font-family: var(--taling-font-serif);
+    font-size: clamp(2.4rem, 5vw, 4.4rem);
+    line-height: 1;
+  }
+
+  .info-feature-rule {
+    width: 100%;
+    height: 12px;
+    background: var(--taling-purple);
+  }
+
+  .info-feature-copy p:not(.info-outline) {
+    margin: 0;
+    max-width: 62ch;
+    color: #241422;
+    font-weight: 800;
+    line-height: 1.48;
+  }
+
+  .info-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .info-feature :global(.taling-section-link) {
+    width: fit-content;
+    background: var(--taling-purple);
+    color: var(--taling-white);
+  }
+
+  .info-strip {
+    position: relative;
+    overflow: hidden;
+    padding: 6rem 0 7rem;
+    background: linear-gradient(180deg, #18072e 0%, #12051f 100%);
+    color: var(--taling-white);
+  }
+
+  .info-strip-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 4rem;
+    border-bottom: 2px solid rgba(255, 253, 248, 0.78);
+    padding-bottom: 2rem;
+  }
+
+  .info-strip h2 {
+    margin: 0;
+    color: var(--taling-white);
+    font-family: var(--taling-font-serif);
+    font-size: clamp(3rem, 6.8vw, 6rem);
+    line-height: 1;
+  }
+
+  .info-strip-heading p {
+    max-width: 34ch;
+    margin: 0;
+    color: color-mix(in srgb, var(--taling-white) 74%, transparent);
+    font-weight: 800;
+    line-height: 1.45;
+  }
+
+  .info-card-strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(240px, 313px);
+    gap: 1.4rem;
+    margin-inline: calc((100vw - min(1248px, calc(100vw - 3rem))) / -2);
+    padding-inline: calc((100vw - min(1248px, calc(100vw - 3rem))) / 2);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .info-card-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .info-card {
+    position: relative;
+    display: block;
+    height: 420px;
+    overflow: hidden;
+    color: var(--taling-white);
+    text-decoration: none;
+    scroll-snap-align: center;
+    background: var(--taling-purple);
+  }
+
+  .info-card-media,
+  .info-card-media :global(.info-card-img),
+  .info-card-media :global(img),
+  .info-card-fallback {
+    width: 100%;
+    height: 100%;
+  }
+
+  .info-card-media :global(img) {
+    object-fit: cover;
+  }
+
+  .info-card-fallback {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(
+      145deg,
+      rgba(42, 0, 120, 0.82),
+      rgba(255, 122, 26, 0.72)
+    );
+    color: var(--taling-yellow);
+    font-family: var(--taling-font-serif);
+    font-size: 5rem;
+  }
+
+  .info-card-copy {
+    position: absolute;
+    inset: auto 0 0;
+    display: grid;
+    gap: 0.45rem;
+    padding: 1rem;
+    background: linear-gradient(180deg, transparent, rgba(18, 5, 31, 0.9));
+  }
+
+  .info-card-copy span {
+    width: fit-content;
+    border: 1px solid color-mix(in srgb, var(--taling-yellow) 60%, transparent);
+    background: rgba(18, 5, 31, 0.62);
+    color: var(--taling-yellow);
+    padding: 0.25rem 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 900;
+  }
+
+  .info-card-copy strong {
+    font-size: 1.2rem;
+    line-height: 1.12;
+  }
+
+  .info-card-copy p {
+    margin: 0;
+    color: color-mix(in srgb, var(--taling-white) 78%, transparent);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .info-empty,
+  .info-pagination {
+    padding: 4rem 0;
+    background: linear-gradient(135deg, #ffd344 0%, #ffb13a 32%, #ff7a1a 100%);
+  }
+
+  .info-empty h2,
+  .info-empty p {
+    margin: 0 0 1rem;
+  }
+
+  .info-pagination-inner {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-weight: 900;
+  }
+
+  .info-pagination-inner p {
+    margin: 0;
+  }
+
+  .info-pagination-inner div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  @media (max-width: 819px) {
+    .info-hero,
+    .info-feature,
+    .info-strip {
+      padding: 4.25rem 0 5rem;
+    }
+
+    .info-hero-grid,
+    .info-feature-grid,
+    .info-filter-form {
+      grid-template-columns: 1fr;
+    }
+
+    .info-star-left {
+      left: -88px;
+      width: 255px;
+    }
+
+    .info-star-right {
+      right: -104px;
+      bottom: 86px;
+      width: 210px;
+    }
+
+    .info-strip-heading,
+    .info-search-note,
+    .info-pagination-inner {
+      display: grid;
+    }
+
+    .info-card-strip {
+      grid-auto-columns: minmax(236px, 78vw);
+      margin-inline: -0.75rem;
+      padding-inline: 0.75rem;
+    }
+
+    .info-card {
+      height: 350px;
+    }
+  }
+</style>
