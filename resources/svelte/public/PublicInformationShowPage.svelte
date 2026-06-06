@@ -2,7 +2,6 @@
   import { ArrowRight } from "lucide-svelte";
   import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import OptimizedImage from "../components/OptimizedImage.svelte";
-  import TerminalTextReveal from "../components/TerminalTextReveal.svelte";
 
   let {
     homeUrl = "/",
@@ -65,142 +64,213 @@
   {/if}
 </svelte:head>
 
-<article class="space-y-8">
-  <nav
-    class="flex flex-wrap items-center gap-2 text-sm text-[var(--landing-terminal-soft-resolved)]"
-  >
-    <a
-      href={homeUrl}
-      class="landing-inline-link transition-colors hover:text-[var(--landing-terminal-text-resolved)]"
-      >Beranda</a
-    >
-    <span>/</span>
-    <a
-      href={infoUrl}
-      class="landing-inline-link transition-colors hover:text-[var(--landing-terminal-text-resolved)]"
-      >Arsip Informasi</a
-    >
-    <span>/</span>
-    <span class="text-[var(--landing-terminal-heading-resolved)]"
-      >{article.title}</span
-    >
-  </nav>
-
-  <header
-    class="max-w-[70ch] space-y-4 border-b border-[var(--landing-terminal-line-resolved)] pb-6"
-  >
-    <TerminalTextReveal
-      animate={false}
-      tag="h1"
-      text={article.title}
-      textClass="text-4xl leading-tight text-[var(--landing-terminal-heading-resolved)] md:text-5xl"
-    />
-
-    <div
-      class="flex flex-wrap gap-3 text-sm text-[var(--landing-terminal-muted-resolved)]"
-    >
-      <span>{article.dateLabel || "-"}</span>
-      <span>{article.author}</span>
-    </div>
-
-    {#if article.categories?.length}
-      <div class="flex flex-wrap gap-2">
-        {#each article.categories as category (category)}
-          <span
-            class="rounded-[8px] border border-[var(--landing-terminal-line-resolved)] bg-[var(--landing-terminal-panel-resolved)] px-2.5 py-1 text-xs font-medium text-[var(--landing-terminal-text-resolved)]"
-            >{category}</span
-          >
-        {/each}
-      </div>
-    {/if}
-  </header>
-
-  {#if article.coverImage}
-    <div class="landing-frame overflow-hidden">
-      <div class="landing-frame__media">
-        <OptimizedImage
-          src={article.coverImage}
-          alt={article.title}
-          class="w-full"
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
-          sizes="(min-width: 1280px) 72rem, 100vw"
-          onerror={handleImageError}
-        />
-      </div>
-    </div>
-  {/if}
-
-  <div class="grid gap-8 lg:grid-cols-[minmax(0,1.12fr)_18rem] lg:items-start">
-    <section class="min-w-0">
-      <div
-        class="public-article-content public-article-content-shell max-w-[72ch] px-5 py-5 text-[1.02rem] leading-8 text-[var(--landing-terminal-text-resolved)]"
-      >
-        {@html article.contentHtml}
-      </div>
-    </section>
-
-    <aside class="grid gap-6 lg:sticky lg:top-24">
-      <div class="landing-panel px-5 py-5">
-        <div
-          class="text-sm font-semibold text-[var(--landing-terminal-heading-resolved)]"
-        >
-          Arsip publik
+<article class="public-info-show">
+  <section class="info-show-hero" aria-labelledby="article-heading">
+    <span class="info-show-star" aria-hidden="true"></span>
+    <div class="taling-section-shell info-show-hero-grid">
+      <div class="info-show-copy">
+        <nav class="info-show-breadcrumb" aria-label="Breadcrumb">
+          <a href={homeUrl}>Beranda</a>
+          <span>/</span>
+          <a href={infoUrl}>Kabar Terbaru</a>
+        </nav>
+        <p class="taling-page-kicker">Publikasi Organisasi</p>
+        <h1 id="article-heading" class="taling-page-title">{article.title}</h1>
+        <div class="info-show-rule" aria-hidden="true"></div>
+        <div class="taling-meta-line">
+          <span>{article.dateLabel || "-"}</span>
+          <span>{article.author}</span>
         </div>
-        <p
-          class="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-        >
-          Pengumuman dan dokumentasi resmi.
-        </p>
-        <a
-          href={infoUrl}
-          class="landing-inline-link mt-5 inline-flex items-center gap-2 text-sm font-medium text-[var(--landing-terminal-interactive-resolved)] hover:text-[var(--landing-terminal-text-resolved)]"
-        >
-          Kembali ke arsip
-          <ArrowRight size={16} />
-        </a>
-      </div>
-
-      <div class="landing-panel px-5 py-5">
-        <h2 class="text-lg text-[var(--landing-terminal-heading-resolved)]">
-          Artikel lainnya
-        </h2>
-
-        {#if !latestArticles.length}
-          <p
-            class="mt-3 text-sm leading-7 text-[var(--landing-terminal-soft-resolved)]"
-          >
-            Belum ada artikel lain.
-          </p>
-        {:else}
-          <div class="mt-4 grid gap-4">
-            {#each latestArticles as latest (latest.href)}
-              <a
-                href={latest.href}
-                class="landing-article-row border-t border-[var(--landing-terminal-line-resolved)] pt-4 text-inherit no-underline first:border-t-0 first:pt-0 hover:text-[var(--landing-terminal-interactive-resolved)]"
-              >
-                <strong
-                  class="block text-base leading-7 text-[var(--landing-terminal-heading-resolved)]"
-                  >{latest.title}</strong
-                >
-                <span
-                  class="mt-1 block text-sm text-[var(--landing-terminal-muted-resolved)]"
-                  >{latest.dateLabel || "-"}</span
-                >
-              </a>
+        {#if article.categories?.length}
+          <div class="info-show-chips">
+            {#each article.categories as category (category)}
+              <span class="taling-chip">{category}</span>
             {/each}
           </div>
         {/if}
       </div>
-    </aside>
-  </div>
+
+      {#if article.coverImage}
+        <figure class="info-show-cover">
+          <OptimizedImage
+            src={article.coverImage}
+            alt={article.title}
+            class="info-show-cover-img"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+            sizes="(min-width: 900px) 520px, 100vw"
+            onerror={handleImageError}
+          />
+        </figure>
+      {/if}
+    </div>
+  </section>
+
+  <section class="info-show-body">
+    <div class="taling-section-shell info-show-body-grid">
+      <div class="info-show-content public-article-content">
+        {@html article.contentHtml}
+      </div>
+
+      <aside class="info-show-aside">
+        <div class="info-aside-block">
+          <p class="info-aside-label">Arsip publik</p>
+          <h2>Kabar HIMATEKKOM</h2>
+          <p>Pengumuman dan dokumentasi resmi kabinet.</p>
+          <a href={infoUrl}>
+            Kembali ke arsip
+            <ArrowRight size={16} />
+          </a>
+        </div>
+
+        <div class="info-aside-block info-aside-list">
+          <p class="info-aside-label">Artikel lainnya</p>
+          {#if !latestArticles.length}
+            <p>Belum ada artikel lain.</p>
+          {:else}
+            {#each latestArticles as latest (latest.href)}
+              <a href={latest.href}>
+                <strong>{latest.title}</strong>
+                <span>{latest.dateLabel || "-"}</span>
+              </a>
+            {/each}
+          {/if}
+        </div>
+      </aside>
+    </div>
+  </section>
 </article>
 
 <style>
-  .public-article-content-shell {
-    border: 1px solid var(--landing-terminal-line-resolved);
-    background: var(--landing-terminal-bg-resolved);
+  .info-show-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 5.5rem 0 6.5rem;
+    background:
+      radial-gradient(
+        circle at 18% 18%,
+        rgba(255, 211, 68, 0.16),
+        transparent 26rem
+      ),
+      linear-gradient(180deg, #18072e 0%, #12051f 100%);
+    color: var(--taling-white);
+  }
+
+  .info-show-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.15;
+    background-image: linear-gradient(
+      45deg,
+      transparent 46%,
+      rgba(255, 211, 68, 0.22) 47%,
+      transparent 48%
+    );
+    background-size: 46px 46px;
+  }
+
+  .info-show-hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.72fr);
+    gap: clamp(2.5rem, 7vw, 6rem);
+    align-items: center;
+  }
+
+  .info-show-copy {
+    display: grid;
+    gap: 1.35rem;
+  }
+
+  .info-show-hero h1 {
+    color: var(--taling-white);
+  }
+
+  .info-show-rule {
+    width: min(534px, 68vw);
+    height: 18px;
+    background: var(--taling-yellow);
+    box-shadow: 0 0 24px rgba(255, 211, 68, 0.52);
+  }
+
+  .info-show-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    color: color-mix(in srgb, var(--taling-white) 70%, transparent);
+    font-weight: 800;
+  }
+
+  .info-show-breadcrumb a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .info-show-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .info-show-cover {
+    margin: 0;
+    overflow: hidden;
+    border: 10px solid color-mix(in srgb, var(--taling-yellow) 68%, transparent);
+    background: var(--taling-purple);
+  }
+
+  .info-show-cover :global(.info-show-cover-img),
+  .info-show-cover :global(img) {
+    width: 100%;
+    height: min(54vw, 560px);
+    min-height: 340px;
+    object-fit: cover;
+  }
+
+  .info-show-star {
+    position: absolute;
+    right: -92px;
+    bottom: 42px;
+    z-index: 1;
+    width: 250px;
+    aspect-ratio: 1;
+    background: var(--taling-yellow);
+    clip-path: polygon(
+      50% 0,
+      59% 35%,
+      98% 35%,
+      66% 56%,
+      78% 96%,
+      50% 70%,
+      22% 96%,
+      34% 56%,
+      2% 35%,
+      41% 35%
+    );
+    opacity: 0.72;
+  }
+
+  .info-show-body {
+    padding: 6rem 0 7rem;
+    background: #fffdf8;
+  }
+
+  .info-show-body-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+    gap: clamp(2.5rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .info-show-content {
+    max-width: 76ch;
+    color: var(--taling-ink);
+    font-size: 1.08rem;
+    font-weight: 700;
+    line-height: 1.78;
   }
 
   .public-article-content :global(h1),
@@ -212,50 +282,134 @@
   .public-article-content :global(ol),
   .public-article-content :global(blockquote) {
     margin-top: 0;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.35rem;
   }
 
   .public-article-content :global(h2),
   .public-article-content :global(h3),
   .public-article-content :global(h4) {
-    color: var(--landing-terminal-heading-resolved);
-    font-family: var(
-      --font-terminal,
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      "Liberation Mono",
-      "Courier New",
-      monospace
-    );
-    line-height: 1.2;
+    color: var(--taling-purple);
+    font-family: var(--taling-font-serif);
+    line-height: 1.08;
   }
 
   .public-article-content :global(a) {
-    color: var(--landing-terminal-interactive-resolved);
+    color: var(--taling-purple);
+    font-weight: 900;
     text-decoration: underline;
     text-underline-offset: 0.2rem;
   }
 
   .public-article-content :global(ul),
   .public-article-content :global(ol) {
-    padding-left: 1.1rem;
+    padding-left: 1.2rem;
   }
 
   .public-article-content :global(blockquote) {
     margin-left: 0;
-    padding: 1rem 1.1rem;
-    border: 1px solid var(--landing-terminal-line-resolved);
-    border-radius: 0.5rem;
-    background: var(--landing-terminal-panel-soft-resolved);
-    color: var(--landing-terminal-soft-resolved);
+    padding: 1.25rem 1.4rem;
+    border-left: 0;
+    background: var(--taling-cream);
+    color: var(--taling-purple);
+    font-weight: 900;
   }
 
   .public-article-content :global(img) {
     max-width: 100%;
     height: auto;
-    border-radius: 0.5rem;
+  }
+
+  .info-show-aside {
+    display: grid;
+    gap: 2rem;
+    position: sticky;
+    top: 108px;
+  }
+
+  .info-aside-block {
+    border-top: 8px solid var(--taling-purple);
+    padding-top: 1rem;
+  }
+
+  .info-aside-label {
+    margin: 0 0 0.85rem;
+    color: var(--taling-orange);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .info-aside-block h2 {
+    margin: 0;
+    color: var(--taling-purple);
+    font-family: var(--taling-font-serif);
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .info-aside-block p:not(.info-aside-label) {
+    margin: 1rem 0 0;
+    color: color-mix(in srgb, var(--taling-ink) 74%, transparent);
+    font-weight: 800;
+    line-height: 1.55;
+  }
+
+  .info-aside-block a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 1.15rem;
+    color: var(--taling-purple);
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  .info-aside-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .info-aside-list a {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+    border-top: 1px solid color-mix(in srgb, var(--taling-ink) 18%, transparent);
+    padding-top: 1rem;
+    color: var(--taling-ink);
+  }
+
+  .info-aside-list strong {
+    color: var(--taling-purple);
+    font-family: var(--taling-font-serif);
+    font-size: 1.3rem;
+    line-height: 1.05;
+  }
+
+  .info-aside-list span {
+    color: color-mix(in srgb, var(--taling-ink) 62%, transparent);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+
+  @media (max-width: 819px) {
+    .info-show-hero,
+    .info-show-body {
+      padding: 4.25rem 0 5rem;
+    }
+
+    .info-show-hero-grid,
+    .info-show-body-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .info-show-star {
+      right: -104px;
+      bottom: 86px;
+      width: 210px;
+    }
+
+    .info-show-aside {
+      position: static;
+    }
   }
 </style>

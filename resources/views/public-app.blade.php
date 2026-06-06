@@ -17,6 +17,8 @@
         ? app(\App\Services\SvelteSsrRenderer::class)->renderPage($page)
         : ['html' => '', 'head' => '', 'rendered' => false];
     $fontCss = str_replace('url("', 'url("'.asset('fonts').'/', file_get_contents(public_path('fonts/public-sans.css')) ?: '');
+    $talingFontCss = str_replace('url("', 'url("'.asset('fonts').'/', file_get_contents(public_path('fonts/taling-fonts.css')) ?: '');
+    $usesTalingFonts = isset($page['component']) && in_array($page['component'], ['LandingPage', 'PublicApp', 'PublicComingSoonPage'], true);
 @endphp
 <!DOCTYPE html>
 <html lang="id" data-theme="public" data-brand="{{ $themeColor }}" data-js="false"@if($landingStyle) style="{{ $landingStyle }}"@endif>
@@ -33,14 +35,43 @@
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
     <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{{ asset('fonts/jetbrains-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    @if ($usesTalingFonts)
+        <link rel="preload" href="{{ asset('fonts/playfair-display-700.woff2') }}" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="{{ asset('fonts/josefin-sans-400.woff2') }}" as="font" type="font/woff2" crossorigin>
+    @endif
     <style>{!! $fontCss !!}</style>
+    @if ($usesTalingFonts)
+        <style>{!! $talingFontCss !!}</style>
+    @endif
     <style>
         .no-js-shell {
-            --font-terminal: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            --taling-public-cream: oklch(0.985 0.018 92);
+            --taling-public-paper: oklch(0.955 0.035 88);
+            --taling-public-yellow: oklch(0.86 0.16 87);
+            --taling-public-orange: oklch(0.73 0.19 50);
+            --taling-public-purple: oklch(0.32 0.2 300);
+            --taling-public-purple-deep: oklch(0.24 0.15 302);
+            --taling-public-ink: oklch(0.22 0.025 300);
+            --font-terminal: 'Playfair Display', Georgia, 'Times New Roman', serif;
+            --font-public: 'Josefin Sans', 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+            --landing-terminal-bg: var(--taling-public-cream);
+            --landing-terminal-panel: color-mix(in oklch, var(--taling-public-cream) 82%, var(--taling-public-yellow));
+            --landing-terminal-panel-soft: color-mix(in oklch, var(--taling-public-yellow) 42%, var(--taling-public-cream));
+            --landing-terminal-line: color-mix(in oklch, var(--taling-public-purple) 58%, transparent);
+            --landing-terminal-text: var(--taling-public-ink);
+            --landing-terminal-heading: var(--taling-public-purple-deep);
+            --landing-terminal-soft: color-mix(in oklch, var(--taling-public-ink) 76%, var(--taling-public-cream));
+            --landing-terminal-muted: color-mix(in oklch, var(--taling-public-ink) 58%, var(--taling-public-cream));
+            --landing-terminal-accent: var(--taling-public-yellow);
+            --landing-terminal-interactive: var(--taling-public-purple);
+            --landing-terminal-command: var(--taling-public-orange);
+            --landing-terminal-button-text: var(--taling-public-purple-deep);
             min-height: 100vh;
-            background: var(--page-bg, #18141e);
-            color: var(--landing-terminal-text, #f0e6c8);
-            font-family: 'Public Sans', sans-serif;
+            background:
+                radial-gradient(circle at 10% 8%, color-mix(in oklch, var(--taling-public-yellow) 34%, transparent), transparent 18rem),
+                linear-gradient(180deg, var(--taling-public-cream), var(--taling-public-paper));
+            color: var(--landing-terminal-text, #241c2d);
+            font-family: var(--font-public);
         }
 
         .no-js-header,
@@ -51,8 +82,9 @@
         }
 
         .no-js-header {
-            border-bottom: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border-bottom: 2px solid var(--landing-terminal-line, #6d2ca8);
             background: var(--landing-terminal-bg, #18141e);
+            box-shadow: 0 10px 0 color-mix(in oklch, var(--taling-public-purple) 8%, transparent);
         }
 
         .no-js-header-inner,
@@ -89,7 +121,7 @@
 
         .no-js-brand-title {
             font-size: 0.95rem;
-            font-weight: 600;
+            font-weight: 900;
         }
 
         .no-js-brand-subtitle,
@@ -102,12 +134,18 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
+            font-weight: 800;
         }
 
         .no-js-nav a,
         .no-js-link {
-            color: inherit;
+            color: var(--landing-terminal-interactive, var(--taling-public-purple));
             text-decoration: none;
+        }
+
+        .no-js-nav a:hover,
+        .no-js-link:hover {
+            color: var(--landing-terminal-command, var(--taling-public-orange));
         }
 
         .no-js-main {
@@ -122,8 +160,10 @@
         .no-js-section,
         .no-js-card,
         .no-js-article {
-            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border: 2px solid var(--landing-terminal-line, #8a7a3c);
+            border-radius: 0.35rem;
             background: var(--landing-terminal-panel, #221f2e);
+            box-shadow: 8px 8px 0 color-mix(in oklch, var(--taling-public-purple) 18%, transparent);
         }
 
         .no-js-section,
@@ -167,14 +207,17 @@
             justify-content: center;
             min-height: 2.75rem;
             padding: 0.65rem 1rem;
-            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border: 2px solid var(--taling-public-purple, #2a0078);
+            border-radius: 999px;
             color: inherit;
+            font-weight: 900;
             text-decoration: none;
         }
 
         .no-js-button-primary {
-            background: var(--landing-terminal-accent, #d9ae43);
+            background: linear-gradient(90deg, var(--taling-public-orange, #ff7a1a), var(--landing-terminal-accent, #d9ae43));
             color: var(--landing-terminal-button-text, #251c0a);
+            box-shadow: 5px 5px 0 color-mix(in oklch, var(--taling-public-purple) 24%, transparent);
         }
 
         .no-js-grid {
@@ -219,8 +262,10 @@
             align-items: center;
             padding: 0.25rem 0.6rem;
             border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border-radius: 999px;
             background: color-mix(in srgb, var(--landing-terminal-panel-soft, #2c283a) 72%, transparent);
             font-size: 0.75rem;
+            font-weight: 800;
         }
 
         .no-js-divider {
@@ -269,8 +314,10 @@
         .no-js-gallery-strip,
         .no-js-panel,
         .no-js-footer {
-            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border: 2px solid var(--landing-terminal-line, #8a7a3c);
+            border-radius: 0.35rem;
             background: var(--landing-terminal-panel, #221f2e);
+            box-shadow: 8px 8px 0 color-mix(in oklch, var(--taling-public-purple) 18%, transparent);
         }
 
         .no-js-hero,
@@ -295,7 +342,8 @@
         .no-js-canvas-frame,
         .no-js-frame,
         .no-js-panel-sub {
-            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border: 2px solid var(--landing-terminal-line, #8a7a3c);
+            border-radius: 0.35rem;
             background: var(--landing-terminal-panel, #221f2e);
         }
 
@@ -307,7 +355,7 @@
         .no-js-canvas-media,
         .no-js-frame-media {
             overflow: hidden;
-            border-bottom: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border-bottom: 2px solid var(--landing-terminal-line, #8a7a3c);
         }
 
         .no-js-canvas-head {
@@ -315,7 +363,7 @@
             justify-content: space-between;
             gap: 1rem;
             padding: 0.75rem 0.9rem;
-            border-bottom: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border-bottom: 2px solid var(--landing-terminal-line, #8a7a3c);
             color: var(--landing-terminal-soft, #cabe9e);
             font-family: var(--font-terminal);
             font-size: 0.72rem;
@@ -343,7 +391,8 @@
 
         .no-js-command-block {
             display: grid;
-            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border: 2px solid var(--landing-terminal-line, #8a7a3c);
+            border-radius: 0.35rem;
             background: var(--landing-terminal-panel, #221f2e);
         }
 
@@ -353,7 +402,7 @@
             gap: 0.75rem;
             grid-template-columns: 3rem minmax(0, 1fr);
             padding: 0.95rem 1rem;
-            border-top: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border-top: 2px solid var(--landing-terminal-line, #8a7a3c);
         }
 
         .no-js-command-row:first-child,
@@ -383,7 +432,8 @@
             margin: 1.25rem 0 0;
             padding: 0;
             list-style: none;
-            border: 1px solid var(--landing-terminal-line, #8a7a3c);
+            border: 2px solid var(--landing-terminal-line, #8a7a3c);
+            border-radius: 0.35rem;
             background: var(--landing-terminal-panel, #221f2e);
         }
 

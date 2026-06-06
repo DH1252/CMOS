@@ -337,6 +337,20 @@
     var(--line-strong) 54%,
     var(--brand-primary) 46%
   );
+
+  /* Landing page / TALING design tokens */
+  --taling-purple: var(--brand-primary);
+  --taling-yellow: #eeb74a;
+  --taling-white: #fffaf0;
+  --taling-ink: #1a1a1a;
+  --taling-surface: color-mix(in srgb, var(--brand-light-base) 5%, #ffffff);
+  --taling-text: var(--text-strong);
+  --taling-text-soft: var(--text-soft);
+  --taling-text-muted: var(--text-muted);
+  --taling-line: var(--line-soft);
+  --taling-font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --taling-font-body: "Josefin Sans", "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --taling-font-heading: "Josefin Sans", "Public Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 [data-theme="dark"] {

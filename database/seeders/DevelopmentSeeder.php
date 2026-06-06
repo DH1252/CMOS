@@ -9,6 +9,7 @@ use App\Models\AnnouncementReaction;
 use App\Models\Department;
 use App\Models\DriveAccount;
 use App\Models\Evaluation;
+use App\Models\Event;
 use App\Models\InformationBoard;
 use App\Models\InformationCategory;
 use App\Models\Message;
@@ -42,6 +43,7 @@ class DevelopmentSeeder extends Seeder
         $this->seedMessages($users);
         $this->seedEvaluations($users);
         $this->seedInformationBoards($users);
+        $this->seedEvents($users);
         $this->seedOperationalNotifications($users, $programs);
         $this->seedActivityLogs($users, $programs);
     }
@@ -885,6 +887,66 @@ class DevelopmentSeeder extends Seeder
                 collect($article['categories'])
                     ->map(fn (string $slug) => $categories[$slug]->id)
                     ->all()
+            );
+        }
+    }
+
+    /**
+     * @param  array<string, User>  $users
+     */
+    private function seedEvents(array $users): void
+    {
+        $events = [
+            [
+                'slug' => 'lkmm-td-2026',
+                'title' => 'LKMM TD 2026',
+                'description' => '<p>Latihan Keterampilan Manajemen Mahasiswa Tingkat Dasar untuk kader baru HIMATEKKOM ITS. Materi mencakup manajemen organisasi, kepemimpinan, dan kerja tim.</p>',
+                'location' => 'Gedung Teknik Komputer ITS',
+                'starts_at' => now()->addWeeks(2)->setTime(8, 0),
+                'ends_at' => now()->addWeeks(2)->setTime(16, 0),
+                'status' => 'published',
+                'published_at' => now()->subDays(2),
+                'user_id' => $users['psdm_head']->id,
+            ],
+            [
+                'slug' => 'tekkom-insight-night',
+                'title' => 'TEKKOM Insight Night',
+                'description' => '<p>Malam diskusi keprofesian Teknik Komputer bersama praktisi industri. Sesi sharing karier, tren teknologi, dan tanya jawab terbuka.</p>',
+                'location' => 'Daring (Zoom)',
+                'starts_at' => now()->addWeeks(5)->setTime(19, 0),
+                'ends_at' => now()->addWeeks(5)->setTime(21, 0),
+                'status' => 'published',
+                'published_at' => now()->subDay(),
+                'user_id' => $users['medinfo_head']->id,
+            ],
+            [
+                'slug' => 'company-visit-draft',
+                'title' => 'Company Visit (Draft)',
+                'description' => '<p>Kunjungan industri yang masih dalam tahap perencanaan dan belum dipublikasikan.</p>',
+                'location' => null,
+                'starts_at' => now()->addWeeks(8)->setTime(9, 0),
+                'ends_at' => null,
+                'status' => 'draft',
+                'published_at' => null,
+                'user_id' => $users['humas_head']->id,
+            ],
+            [
+                'slug' => 'open-recruitment-2026',
+                'title' => 'Open Recruitment Staff 2026 (Selesai)',
+                'description' => '<p>Pembukaan pendaftaran staf baru HIMATEKKOM ITS yang telah berlangsung.</p>',
+                'location' => 'Lapangan Teknik Komputer',
+                'starts_at' => now()->subWeeks(3)->setTime(8, 0),
+                'ends_at' => now()->subWeeks(3)->setTime(15, 0),
+                'status' => 'published',
+                'published_at' => now()->subWeeks(4),
+                'user_id' => $users['psdm_head']->id,
+            ],
+        ];
+
+        foreach ($events as $event) {
+            Event::updateOrCreate(
+                ['slug' => $event['slug']],
+                $event,
             );
         }
     }

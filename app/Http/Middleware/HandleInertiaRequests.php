@@ -26,7 +26,13 @@ class HandleInertiaRequests extends Middleware
 
     public function rootView(Request $request): string
     {
-        if ($request->routeIs('home') || $request->routeIs('informasi.*')) {
+        if ($request->routeIs('home')
+            || $request->routeIs('informasi.*')
+            || $request->routeIs('acara.*')
+            || $request->routeIs('tentang')
+            || $request->routeIs('departemen')
+            || $request->routeIs('kompetisi')
+        ) {
             return 'public-app';
         }
 

@@ -1,7 +1,7 @@
 @php
     $appName = \App\Models\Setting::get('app_name', 'CMOS');
     $themeColor = \App\Models\Setting::get('theme_color', \App\Support\ThemePalette::defaultName());
-    $isPublicRoute = request()->routeIs('home') || request()->routeIs('informasi.*');
+    $isPublicRoute = request()->routeIs('home') || request()->routeIs('informasi.*') || request()->routeIs('acara.*') || request()->routeIs('login');
     $landingStyle = '';
 
     if ($isPublicRoute) {
@@ -49,6 +49,9 @@
     <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     @if ($isPublicRoute)
         <link rel="preload" href="{{ asset('fonts/jetbrains-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+        {{-- Josefin Sans (navbar) and Playfair Display (section headings) for landing page --}}
+        <link rel="preload" href="{{ asset('fonts/josefin-sans-400.woff2') }}" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="{{ asset('fonts/playfair-display-700.woff2') }}" as="font" type="font/woff2" crossorigin>
     @endif
     {{-- Self-hosted font CSS (subsetted woff2, ~85 KB total) --}}
     <link rel="preload" href="{{ asset('fonts/public-sans.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -62,22 +65,28 @@
             <link rel="stylesheet" href="{{ asset('fonts/font-awesome/css/all.min.css') }}">
         </noscript>
     @endunless
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @inertiaHead
     @if ($isPublicRoute)
-    <script>
-        window.addEventListener('message', function (e) {
-            if (e.data && e.data.type === 'preview-css' && e.data.vars) {
-                var html = document.documentElement;
-                for (var key in e.data.vars) {
-                    if (e.data.vars.hasOwnProperty(key)) {
-                        html.style.setProperty(key, e.data.vars[key]);
-                    }
+        <style>
+            /* Landing page / TALING design tokens — injected from server-side theme settings */
+            @layer base {
+                [data-theme="public"] {
+                    --taling-purple: var(--brand-primary);
+                    --taling-yellow: #eeb74a;
+                    --taling-white: #fffaf0;
+                    --taling-ink: #120622;
+                    --taling-surface: color-mix(in srgb, var(--brand-light-base) 5%, #ffffff);
+                    --taling-text: var(--text-strong);
+                    --taling-text-soft: var(--text-soft);
+                    --taling-text-muted: var(--text-muted);
+                    --taling-line: var(--line-soft);
+                    --taling-font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
                 }
             }
-        });
-    </script>
+        </style>
+        <style>{!! str_replace('url("', 'url("'.asset('fonts').'/', file_get_contents(public_path('fonts/taling-fonts.css')) ?: '') !!}</style>
     @endif
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @inertiaHead
 </head>
 <body>
     <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
