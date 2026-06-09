@@ -425,6 +425,7 @@
           src={`${assetBase}/dept-hero-graphic.svg`}
           alt="Department Hero Graphic"
           class="animate-float-logo h-auto w-full drop-shadow-2xl"
+          style="width: 100%; max-width: var(--hero-max-width, 280px); height: auto;"
           width="598"
           height="748"
         />
@@ -756,6 +757,7 @@
     transform: translateX(-50%);
     width: 100%;
     max-width: 280px;
+    --hero-max-width: 280px;
   }
 
   @media (min-width: 768px) {
@@ -765,6 +767,7 @@
       left: calc(50% - 398px / 2 + 44px);
       transform: none;
       max-width: none;
+      --hero-max-width: 398px;
     }
   }
 
