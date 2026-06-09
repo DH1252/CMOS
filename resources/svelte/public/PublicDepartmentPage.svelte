@@ -575,9 +575,9 @@
                     dept.orbit === "outer" ? angleOuter : angleInner}
                   {@const theta = dept.baseAngle + rad}
                   {@const dx =
-                    (dept.orbit === "outer" ? 580 : 400) * Math.cos(theta)}
+                    (dept.orbit === "outer" ? 600 : 430) * Math.cos(theta)}
                   {@const dy =
-                    (dept.orbit === "outer" ? 340 : 220) * Math.sin(theta)}
+                    (dept.orbit === "outer" ? 360 : 250) * Math.sin(theta)}
                   {@const x = 720 + dx * cosTilt - dy * sinTilt}
                   {@const y = 450 + dx * sinTilt + dy * cosTilt}
                   {@const bp = getBadgeProgress(i)}
@@ -1023,10 +1023,10 @@
   /* Orbit Rings (Ellipses centered at x=720, y=450 relative to orbit-system) */
   .orbit-ring-outer {
     position: absolute;
-    left: 140px; /* Center 720 - 580 horizontal radius */
-    top: 110px; /* Center 450 - 340 vertical radius */
-    width: 1160px; /* 580 * 2 */
-    height: 680px; /* 340 * 2 */
+    left: 120px; /* Center 720 - 600 horizontal radius */
+    top: 90px; /* Center 450 - 360 vertical radius */
+    width: 1200px; /* 600 * 2 */
+    height: 720px; /* 360 * 2 */
     border: 1.5px solid rgba(255, 255, 255, 0.22);
     border-radius: 50%;
     pointer-events: none;
@@ -1039,10 +1039,10 @@
 
   .orbit-ring-inner {
     position: absolute;
-    left: 320px; /* Center 720 - 400 horizontal radius */
-    top: 230px; /* Center 450 - 220 vertical radius */
-    width: 800px; /* 400 * 2 */
-    height: 440px; /* 220 * 2 */
+    left: 290px; /* Center 720 - 430 horizontal radius */
+    top: 200px; /* Center 450 - 250 vertical radius */
+    width: 860px; /* 430 * 2 */
+    height: 500px; /* 250 * 2 */
     border: 1.2px solid rgba(255, 211, 68, 0.28);
     border-radius: 50%;
     pointer-events: none;
