@@ -18,7 +18,7 @@
         : ['html' => '', 'head' => '', 'rendered' => false];
     $fontCss = str_replace('url("', 'url("'.asset('fonts').'/', file_get_contents(public_path('fonts/public-sans.css')) ?: '');
     $talingFontCss = str_replace('url("', 'url("'.asset('fonts').'/', file_get_contents(public_path('fonts/taling-fonts.css')) ?: '');
-    $usesTalingFonts = isset($page['component']) && in_array($page['component'], ['LandingPage', 'PublicApp', 'PublicComingSoonPage'], true);
+    $usesTalingFonts = isset($page['component']) && (in_array($page['component'], ['LandingPage', 'PublicApp', 'PublicComingSoonPage'], true) || str_starts_with($page['component'], 'public/'));
 @endphp
 <!DOCTYPE html>
 <html lang="id" data-theme="public" data-brand="{{ $themeColor }}" data-js="false"@if($landingStyle) style="{{ $landingStyle }}"@endif>

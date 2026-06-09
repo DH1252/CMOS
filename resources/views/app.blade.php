@@ -1,7 +1,7 @@
 @php
     $appName = \App\Models\Setting::get('app_name', 'CMOS');
     $themeColor = \App\Models\Setting::get('theme_color', \App\Support\ThemePalette::defaultName());
-    $isPublicRoute = request()->routeIs('home') || request()->routeIs('informasi.*') || request()->routeIs('acara.*') || request()->routeIs('login');
+    $isPublicRoute = request()->routeIs('home') || request()->routeIs('informasi.*') || request()->routeIs('acara.*') || request()->routeIs('login') || request()->routeIs('departemen');
     $landingStyle = '';
 
     if ($isPublicRoute) {

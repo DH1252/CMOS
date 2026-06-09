@@ -312,7 +312,7 @@
         <source srcset={`${assetBase}/botanical.avif`} type="image/avif" />
         <source srcset={`${assetBase}/botanical.webp`} type="image/webp" />
         <img
-          class="absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
+          class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
           src={`${assetBase}/botanical.png`}
           alt=""
         />
@@ -342,19 +342,19 @@
       />
 
       <!-- Text Content -->
-      <h1
-        class="animate-fade-up absolute top-[504px] left-1/2 -translate-x-1/2 font-['Playfair_Display'] text-5xl whitespace-nowrap text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] md:text-[96px]"
+      <div
+        class="animate-fade-up pointer-events-none absolute inset-0 opacity-0"
       >
-        Departemen
-      </h1>
+        <h1 class="hero-title">Departemen</h1>
+      </div>
 
       <div
-        class="animate-fade-in absolute top-[623px] left-1/2 h-[22px] w-full max-w-[534px] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent opacity-80 blur-[2px]"
+        class="animate-fade-in-center absolute top-[623px] left-1/2 h-[22px] w-full max-w-[534px] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent opacity-0 opacity-80 blur-[2px] delay-200"
       ></div>
 
       <!-- Slogan Bottom Left -->
       <div
-        class="animate-fade-left absolute bottom-6 left-6 flex items-center gap-4 font-bold tracking-wider text-white md:bottom-[36px] md:left-[49px]"
+        class="animate-fade-left absolute bottom-6 left-6 flex items-center gap-4 font-bold tracking-wider text-white opacity-0 delay-300 md:bottom-[36px] md:left-[49px]"
       >
         <img
           src={`${assetBase}/logo-mark.svg`}
@@ -400,7 +400,7 @@
           <div
             class="relative z-10 mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end lg:mb-4"
           >
-            <div>
+            <div class="animate-fade-up opacity-0 delay-100">
               <span
                 class="text-sm font-bold tracking-wider text-[#ffd344] uppercase"
                 >DEPARTEMENT REVEAL</span
@@ -411,12 +411,12 @@
                 Departemen Himatekkom
               </h2>
               <p class="mt-4 max-w-2xl text-lg text-white/80">
-                Sepuluh ruang gerak untuk bertumbuh, berkarya, dan membawa
+                Sepuluh ruang gerak untuk bertumbuh, berkarya, and membawa
                 semangat #OKE ke setiap kolaborasi.
               </p>
             </div>
             <div
-              class="flex items-center gap-4 self-start rounded-full border border-white/20 bg-white/10 px-6 py-3 shadow-lg backdrop-blur-md"
+              class="animate-fade-up flex items-center gap-4 self-start rounded-full border border-white/20 bg-white/10 px-6 py-3 opacity-0 shadow-lg backdrop-blur-md delay-300"
             >
               <span class="text-4xl leading-none font-bold text-white">10</span>
               <span class="text-sm leading-tight font-medium text-white/80"
@@ -459,7 +459,7 @@
                 </div>
 
                 <!-- Orbiting Badges -->
-                {#each departments as dept}
+                {#each departments as dept, i}
                   {@const rad =
                     dept.orbit === "outer" ? angleOuter : angleInner}
                   {@const theta = dept.baseAngle + rad}
@@ -477,7 +477,8 @@
                       : ''} {selectedDeptId && selectedDeptId !== dept.id
                       ? 'blurred-out'
                       : ''}"
-                    style="left: {x - 34}px; top: {y - 24}px;"
+                    style="left: {x - 34}px; top: {y -
+                      24}px; animation-delay: {0.4 + i * 0.08}s;"
                     onclick={(e) => handleDeptClick(dept, e)}
                   >
                     <span class="badge-dot bg-gradient-to-tr {dept.dotColor}"
@@ -497,7 +498,7 @@
             : 'panel-closed'}"
         >
           {#if activeDept}
-            <div class="w-full">
+            <div class="w-full" transition:fade={{ duration: 250 }}>
               <span
                 class="text-xs font-bold tracking-widest text-[#ffd344] uppercase"
                 >Fokus Departemen</span
@@ -518,9 +519,11 @@
                   Key Focus Areas
                 </h4>
                 <div class="flex flex-col gap-2.5">
-                  {#each activeDept.focus as f}
+                  {#each activeDept.focus as f, idx}
                     <div
                       class="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 px-4 py-3 transition-colors duration-300 hover:bg-white/10"
+                      style="animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: {idx *
+                        0.08}s;"
                     >
                       <span class="h-2 w-2 rounded-full bg-[#ffd344]"></span>
                       <span class="text-xs font-semibold text-white/95"
@@ -575,6 +578,167 @@
 </div>
 
 <style>
+  /* Core Page Animations */
+  .animate-slow-pan {
+    animation: slowPan 25s ease-in-out infinite alternate;
+    transform-origin: center center;
+  }
+
+  .animate-fade-up-center {
+    animation: fadeUpCenter 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-fade-in-center {
+    animation: fadeInCenter 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-fade-left {
+    animation: fadeLeft 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Delay utility classes */
+  .delay-100 {
+    animation-delay: 0.1s !important;
+  }
+  .delay-200 {
+    animation-delay: 0.2s !important;
+  }
+  .delay-300 {
+    animation-delay: 0.3s !important;
+  }
+  .delay-400 {
+    animation-delay: 0.4s !important;
+  }
+  .delay-500 {
+    animation-delay: 0.5s !important;
+  }
+
+  .hero-title {
+    position: absolute;
+    width: 280px;
+    height: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 504px;
+
+    font-family: "The Seasons", "Playfair Display", Georgia, serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 3rem;
+    line-height: 1.2;
+    text-align: center;
+
+    color: #ffffff;
+    text-shadow: 0px 0px 20px #ffffff;
+  }
+
+  @media (min-width: 768px) {
+    .hero-title {
+      position: absolute;
+      width: 542px;
+      height: 124px;
+      left: calc(50% - 542px / 2 + 44px);
+      top: calc(50% - 124px / 2 + 124px);
+      font-family: "The Seasons";
+      font-style: normal;
+      font-weight: 300;
+      font-size: 96px;
+      line-height: 125px;
+      text-align: center;
+      color: #ffffff;
+      text-shadow: 0px 0px 20px #ffffff;
+      transform: none;
+    }
+  }
+
+  @keyframes slowPan {
+    0% {
+      transform: scale(1) translate(0, 0);
+    }
+    100% {
+      transform: scale(1.08) translate(2%, -1%);
+    }
+  }
+
+  @keyframes fadeUpCenter {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 20px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  @keyframes fadeInCenter {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 0) scaleX(0.8);
+    }
+    to {
+      opacity: 0.8;
+      transform: translate(-50%, 0) scaleX(1);
+    }
+  }
+
+  @keyframes fadeLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   .star-large {
     position: absolute;
     top: -60px;
@@ -724,7 +888,9 @@
     border: 8px solid rgba(255, 122, 26, 0.9);
     border-radius: 50%;
     box-shadow: 0px 4px 100px 19px rgba(255, 211, 68, 0.5);
-    animation: pulseGlow 4s infinite alternate;
+    animation:
+      pulseGlow 4s infinite alternate,
+      scaleIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
     transition:
       filter 0.4s ease,
       opacity 0.4s ease;
@@ -737,6 +903,7 @@
     width: 298px;
     height: 298px;
     z-index: 5;
+    animation: scaleIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
     transition:
       filter 0.4s ease,
       opacity 0.4s ease;
@@ -764,6 +931,7 @@
     padding: 10px 20px;
     cursor: pointer;
     z-index: 10;
+    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
     transition:
       background 0.4s ease,
       border-color 0.4s ease,
