@@ -69,10 +69,18 @@ Route::get('/tentang', fn () => $comingSoon(
     'Tentang Kami',
     'Profil lengkap Kabinet Sentra Sinergi HIMATEKKOM ITS sedang kami siapkan.',
 ))->name('tentang');
-Route::get('/departemen', fn () => $comingSoon(
-    'Departemen',
-    'Informasi departemen dan program kerja HIMATEKKOM ITS sedang kami siapkan.',
-))->name('departemen');
+Route::get('/departemen/{slug?}', function (?string $slug = null) {
+    $organizationName = (string) \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
+
+    return Inertia::render('public/PublicDepartmentPage', [
+        'organizationName' => $organizationName,
+        'homeUrl' => route('home'),
+        'loginUrl' => route('login'),
+        'infoUrl' => route('informasi.index'),
+        'acaraUrl' => route('acara.index'),
+        'selectedSlug' => $slug,
+    ]);
+})->name('departemen');
 Route::get('/kompetisi', fn () => $comingSoon(
     'Kompetisi',
     'Informasi kompetisi dan ajang HIMATEKKOM ITS sedang kami siapkan.',

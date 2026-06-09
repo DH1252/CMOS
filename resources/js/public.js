@@ -6,6 +6,7 @@ const pages = {
   ...import.meta.glob("../svelte/LandingPage.svelte", { eager: true }),
   ...import.meta.glob("../svelte/PublicApp.svelte"),
   ...import.meta.glob("../svelte/PublicComingSoonPage.svelte"),
+  ...import.meta.glob("../svelte/public/**/*.svelte"),
 };
 
 const resolvePublicPage = async (name) => {
