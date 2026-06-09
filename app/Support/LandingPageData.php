@@ -220,6 +220,10 @@ class LandingPageData
                 'instagramPrefix' => 'Ikuti',
                 'instagramSuffix' => 'di Instagram',
             ],
+            'cabinetSection' => [
+                'title' => 'KABINET KAMI',
+                'description' => 'Kabinet Sentra Sinergi HIMATEKKOM ITS 2026.',
+            ],
             'footer' => [
                 'description' => 'Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember.',
                 'address' => 'Gedung Teknik Komputer, Kampus ITS Sukolilo, Surabaya.',

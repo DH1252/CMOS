@@ -65,7 +65,9 @@
           <div class="article-meta-top">
             <div class="article-status-row">
               {#each event.badges || [] as badge, index (badge.label || index)}
-                <span class={`article-status-pill article-status-${badge.tone}`}>
+                <span
+                  class={`article-status-pill article-status-${badge.tone}`}
+                >
                   {#if badge.icon}
                     <i class={badge.icon}></i>
                   {/if}
