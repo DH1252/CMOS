@@ -65,6 +65,10 @@
         'instagramPrefix' => 'Ikuti',
         'instagramSuffix' => 'di Instagram',
     ];
+    $landingCabinetSection = $landingProps['cabinetSection'] ?? [
+        'title' => 'KABINET KAMI',
+        'description' => 'Kabinet Sentra Sinergi HIMATEKKOM ITS 2026.',
+    ];
     $landingFooter = $landingProps['footer'] ?? [
         'description' => 'Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember.',
         'address' => 'Gedung Teknik Komputer, Kampus ITS Sukolilo, Surabaya.',
@@ -361,6 +365,11 @@
                         <a href="{{ $landingCtaSection['instagramUrl'] ?? 'https://www.instagram.com/sentrasinergi/' }}" class="no-js-link">{{ $landingCtaSection['instagramLabel'] ?? '@sentrasinergi' }}</a>
                         {{ $landingCtaSection['instagramSuffix'] ?? 'di Instagram' }}
                     </p>
+                </section>
+
+                <section class="no-js-section no-js-panel no-js-cta">
+                    <h2 class="no-js-section-title">{{ $landingCabinetSection['title'] ?? 'KABINET KAMI' }}</h2>
+                    <p class="no-js-copy">{{ $landingCabinetSection['description'] ?? 'Kabinet Sentra Sinergi HIMATEKKOM ITS 2026.' }}</p>
                 </section>
 
                 <footer class="no-js-footer no-js-panel">

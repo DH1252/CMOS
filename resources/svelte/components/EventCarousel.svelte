@@ -24,9 +24,9 @@
   };
 
   const visibleEvents = $derived(
-    events.slice(currentIndex, currentIndex + 3).concat(
-      events.length < 3 ? events.slice(0, 3 - events.length) : [],
-    ),
+    events
+      .slice(currentIndex, currentIndex + 3)
+      .concat(events.length < 3 ? events.slice(0, 3 - events.length) : []),
   );
 
   // Unique key that handles duplicates and null URLs
@@ -62,11 +62,7 @@
 
       <div class="taling-carousel-cards">
         {#each visibleEvents as event, i (getEventKey(event, i))}
-          <a
-            href={event.url}
-            class="taling-carousel-card"
-            data-slot={i}
-          >
+          <a href={event.url} class="taling-carousel-card" data-slot={i}>
             {#if event.poster}
               <div class="taling-carousel-card-media">
                 <OptimizedImage
@@ -92,8 +88,18 @@
               <h3 class="taling-carousel-card-title">{event.title}</h3>
               {#if event.location}
                 <div class="taling-carousel-card-location">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
+                    ></path>
                     <circle cx="12" cy="10" r="3"></circle>
                   </svg>
                   {event.location}
@@ -207,7 +213,9 @@
     border-radius: 0.5rem;
     color: var(--taling-white);
     cursor: pointer;
-    transition: background 160ms ease, opacity 160ms ease;
+    transition:
+      background 160ms ease,
+      opacity 160ms ease;
   }
 
   .taling-carousel-nav:hover:not(:disabled) {
@@ -368,11 +376,7 @@
     position: absolute;
     inset: -3px;
     border-radius: 0.85rem;
-    background: linear-gradient(
-      135deg,
-      #ff7a1a 0%,
-      #ffca3a 100%
-    );
+    background: linear-gradient(135deg, #ff7a1a 0%, #ffca3a 100%);
     z-index: -1;
     opacity: 0.8;
   }
@@ -391,7 +395,9 @@
     background: rgba(255, 255, 255, 0.3);
     border: none;
     cursor: pointer;
-    transition: background 160ms ease, transform 160ms ease;
+    transition:
+      background 160ms ease,
+      transform 160ms ease;
   }
 
   .taling-carousel-dot:hover {
