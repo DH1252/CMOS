@@ -216,9 +216,9 @@
     const systemY = rect.top + rect.height * 0.45;
 
     // Start progress (0) when system center is 75% down the viewport height
-    // End progress (1) when system center reaches the vertical middle of the viewport (50%)
+    // End progress (1) when system center reaches 25% down the viewport height (giving a wide 50% viewport range)
     const startY = viewportHeight * 0.75;
-    const endY = viewportHeight * 0.5;
+    const endY = viewportHeight * 0.25;
 
     const progress = (startY - systemY) / (startY - endY);
     scrollProgress = Math.max(0, Math.min(1, progress));
