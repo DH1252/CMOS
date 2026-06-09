@@ -319,9 +319,7 @@
       </picture>
 
       <!-- Center Hero Graphic -->
-      <div
-        class="absolute top-[120px] left-1/2 flex w-full max-w-[398px] -translate-x-1/2 flex-col items-center"
-      >
+      <div class="hero-logo-container">
         <img
           src={`${assetBase}/dept-hero-graphic.svg`}
           alt="Department Hero Graphic"
@@ -348,9 +346,12 @@
         <h1 class="hero-title">Departemen</h1>
       </div>
 
-      <div
-        class="animate-fade-in-center absolute top-[623px] left-1/2 h-[22px] w-full max-w-[534px] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent opacity-0 opacity-80 blur-[2px] delay-200"
-      ></div>
+      <!-- Glow Line under title -->
+      <div class="hero-glow-wrapper">
+        <div
+          class="animate-fade-in-line h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[2px] delay-200"
+        ></div>
+      </div>
 
       <!-- Slogan Bottom Left -->
       <div
@@ -615,6 +616,61 @@
   }
   .delay-500 {
     animation-delay: 0.5s !important;
+  }
+
+  .hero-logo-container {
+    position: absolute;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 280px;
+  }
+
+  @media (min-width: 768px) {
+    .hero-logo-container {
+      top: calc(50% - 328px / 2 - 124px);
+      width: 398px;
+      left: calc(50% - 398px / 2 + 44px);
+      transform: none;
+      max-width: none;
+    }
+  }
+
+  .hero-glow-wrapper {
+    position: absolute;
+    top: 623px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 280px;
+    height: 22px;
+  }
+
+  @media (min-width: 768px) {
+    .hero-glow-wrapper {
+      top: calc(50% - 22px / 2 + 185px);
+      width: 534px;
+      left: calc(50% - 534px / 2 + 44px);
+      transform: none;
+      max-width: none;
+    }
+  }
+
+  .animate-fade-in-line {
+    opacity: 0;
+    animation: fadeInLine 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fadeInLine {
+    from {
+      opacity: 0;
+      transform: scaleX(0.8);
+    }
+    to {
+      opacity: 0.8;
+      transform: scaleX(1);
+    }
   }
 
   .hero-title {
