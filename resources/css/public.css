@@ -4,9 +4,8 @@
 @source "../svelte/PublicApp.svelte";
 @source "../svelte/PublicComingSoonPage.svelte";
 @source "../svelte/public/**/*.svelte";
-@source "../svelte/components/TerminalHeroCanvas.svelte";
-@source "../svelte/components/TerminalTextReveal.svelte";
-@source "../svelte/components/OptimizedImage.svelte";
+@source "../svelte/components/**/*.svelte";
+@source "../svelte/lib/components/ui/**/*.svelte";
 
 @theme {
   --font-sans:
