@@ -226,6 +226,8 @@
     isMouseOver = false;
   }
 
+  let isTrackingScroll = false;
+
   onMount(() => {
     let frameId;
     let lastTime = performance.now();
@@ -246,20 +248,51 @@
       angleOuter += baseSpeed * speedModifier * delta;
       angleInner -= baseSpeed * 1.5 * speedModifier * delta;
 
-      // Update scroll progress calculations on every animation frame
-      handleScroll();
+      // Only calculate scroll position when the section is visible in the viewport
+      if (isTrackingScroll) {
+        handleScroll();
+      }
 
       frameId = requestAnimationFrame(update);
     };
     frameId = requestAnimationFrame(update);
 
-    // Register scroll and resize event listeners
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll, { passive: true });
-    handleScroll();
+    // Setup intersection observer to toggle scroll event listeners dynamically
+    let observer;
+    if (typeof IntersectionObserver !== "undefined" && sectionEl) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              if (!isTrackingScroll) {
+                isTrackingScroll = true;
+                window.addEventListener("scroll", handleScroll, {
+                  passive: true,
+                });
+                window.addEventListener("resize", handleScroll, {
+                  passive: true,
+                });
+                handleScroll();
+              }
+            } else {
+              if (isTrackingScroll) {
+                isTrackingScroll = false;
+                window.removeEventListener("scroll", handleScroll);
+                window.removeEventListener("resize", handleScroll);
+              }
+            }
+          });
+        },
+        { rootMargin: "100px 0px 100px 0px" },
+      );
+      observer.observe(sectionEl);
+    }
 
     return () => {
       cancelAnimationFrame(frameId);
+      if (observer) {
+        observer.disconnect();
+      }
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
