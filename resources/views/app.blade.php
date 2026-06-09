@@ -43,9 +43,14 @@
         })();
     </script>
     <title>{{ $appName }}</title>
-    <link rel="icon" type="image/avif" href="{{ asset('images/logokabinet.avif') }}">
     <link rel="icon" type="image/webp" href="{{ asset('images/logokabinet.webp') }}">
+    <link rel="icon" type="image/avif" href="{{ asset('images/logokabinet.avif') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+    </style>
     <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     @if ($isPublicRoute)
         <link rel="preload" href="{{ asset('fonts/jetbrains-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
