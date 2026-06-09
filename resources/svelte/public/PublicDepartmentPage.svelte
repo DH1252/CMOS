@@ -169,6 +169,52 @@
     Math.min(orbitWrapperWidth / 1440, orbitWrapperHeight / 900),
   );
 
+  let sectionEl = $state(null);
+  let scrollProgress = $state(0);
+
+  const headerOpacity = $derived(scrollProgress);
+  const headerTranslateY = $derived((1 - scrollProgress) * 30);
+
+  const badgeHeaderOpacity = $derived(
+    Math.max(0, Math.min(1, (scrollProgress - 0.15) / 0.85)),
+  );
+  const badgeHeaderTranslateY = $derived(
+    (1 - Math.max(0, Math.min(1, (scrollProgress - 0.15) / 0.85))) * 30,
+  );
+
+  const outerRingOpacity = $derived(scrollProgress);
+  const innerRingOpacity = $derived(
+    Math.max(0, Math.min(1, (scrollProgress - 0.1) / 0.9)),
+  );
+
+  const coreOpacity = $derived(scrollProgress);
+  const coreScale = $derived(0.8 + 0.2 * scrollProgress);
+
+  function getBadgeProgress(i) {
+    const startProgress = i * 0.04;
+    const progress = (scrollProgress - startProgress) / (1 - startProgress);
+    const bp = Math.max(0, Math.min(1, progress));
+    return {
+      opacity: bp,
+      scale: 0.8 + 0.2 * bp,
+    };
+  }
+
+  function handleScroll() {
+    if (!sectionEl) return;
+    const rect = sectionEl.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    // Start progress (0) when section top touches bottom of viewport
+    // End progress (1) when section top reaches 15% from the top of the viewport
+    const startY = viewportHeight;
+    const endY = viewportHeight * 0.15;
+
+    const currentY = rect.top;
+    const progress = (startY - currentY) / (startY - endY);
+    scrollProgress = Math.max(0, Math.min(1, progress));
+  }
+
   function handleMouseMove(e) {
     const rect = e.currentTarget.getBoundingClientRect();
     mouseX = e.clientX - rect.left;
@@ -200,10 +246,23 @@
       angleOuter += baseSpeed * speedModifier * delta;
       angleInner -= baseSpeed * 1.5 * speedModifier * delta;
 
+      // Update scroll progress calculations on every animation frame
+      handleScroll();
+
       frameId = requestAnimationFrame(update);
     };
     frameId = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(frameId);
+
+    // Register scroll and resize event listeners
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   });
 
   // Sync state if selectedSlug changes via router back/forward
@@ -379,6 +438,7 @@
 
     <!-- Reveal & Orbit Section -->
     <section
+      bind:this={sectionEl}
       class="relative overflow-hidden border-t border-white/10 bg-[#2a0078] text-white lg:h-screen lg:min-h-[800px]"
     >
       <!-- Glow texture matching Figma Atmosphere -->
@@ -401,7 +461,10 @@
           <div
             class="relative z-10 mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end lg:mb-4"
           >
-            <div class="animate-fade-up opacity-0 delay-100">
+            <div
+              style="opacity: {headerOpacity}; transform: translateY({headerTranslateY}px);"
+              class="transition-all duration-100 ease-out"
+            >
               <span
                 class="text-sm font-bold tracking-wider text-[#ffd344] uppercase"
                 >DEPARTEMENT REVEAL</span
@@ -417,7 +480,8 @@
               </p>
             </div>
             <div
-              class="animate-fade-up flex items-center gap-4 self-start rounded-full border border-white/20 bg-white/10 px-6 py-3 opacity-0 shadow-lg backdrop-blur-md delay-300"
+              style="opacity: {badgeHeaderOpacity}; transform: translateY({badgeHeaderTranslateY}px);"
+              class="flex items-center gap-4 self-start rounded-full border border-white/20 bg-white/10 px-6 py-3 shadow-lg backdrop-blur-md transition-all duration-100 ease-out"
             >
               <span class="text-4xl leading-none font-bold text-white">10</span>
               <span class="text-sm leading-tight font-medium text-white/80"
@@ -440,17 +504,21 @@
                 <!-- Orbit Rings (Perfect Ellipses centered at 720, 450) -->
                 <div
                   class="orbit-ring-outer {selectedDeptId ? 'blurred-out' : ''}"
+                  style="opacity: {outerRingOpacity};"
                 ></div>
                 <div
                   class="orbit-ring-inner {selectedDeptId ? 'blurred-out' : ''}"
+                  style="opacity: {innerRingOpacity};"
                 ></div>
 
                 <!-- Center Core Badge with Sun Glow -->
                 <div
                   class="orbit-core-ring {selectedDeptId ? 'blurred-out' : ''}"
+                  style="opacity: {coreOpacity}; transform: scale({coreScale});"
                 ></div>
                 <div
                   class="orbit-core-badge {selectedDeptId ? 'blurred-out' : ''}"
+                  style="opacity: {coreOpacity}; transform: scale({coreScale});"
                 >
                   <img
                     src={`${assetBase}/dept-core-badge.svg`}
@@ -470,22 +538,31 @@
                     (dept.orbit === "outer" ? 340 : 220) * Math.sin(theta)}
                   {@const x = 720 + dx * cosTilt - dy * sinTilt}
                   {@const y = 450 + dx * sinTilt + dy * cosTilt}
+                  {@const bp = getBadgeProgress(i)}
 
-                  <button
-                    type="button"
-                    class="orbit-badge-btn {selectedDeptId === dept.id
-                      ? 'active'
-                      : ''} {selectedDeptId && selectedDeptId !== dept.id
-                      ? 'blurred-out'
-                      : ''}"
-                    style="left: {x - 34}px; top: {y -
-                      24}px; animation-delay: {0.4 + i * 0.08}s;"
-                    onclick={(e) => handleDeptClick(dept, e)}
+                  <div
+                    style="position: absolute; left: {x - 34}px; top: {y -
+                      24}px; opacity: {bp.opacity}; transform: scale({bp.scale}); pointer-events: {bp.opacity >
+                    0.15
+                      ? 'auto'
+                      : 'none'};"
+                    class="transition-opacity duration-300 ease-out"
                   >
-                    <span class="badge-dot bg-gradient-to-tr {dept.dotColor}"
-                    ></span>
-                    <span class="badge-label">{dept.name}</span>
-                  </button>
+                    <button
+                      type="button"
+                      class="orbit-badge-btn {selectedDeptId === dept.id
+                        ? 'active'
+                        : ''} {selectedDeptId && selectedDeptId !== dept.id
+                        ? 'blurred-out'
+                        : ''}"
+                      style="position: relative;"
+                      onclick={(e) => handleDeptClick(dept, e)}
+                    >
+                      <span class="badge-dot bg-gradient-to-tr {dept.dotColor}"
+                      ></span>
+                      <span class="badge-label">{dept.name}</span>
+                    </button>
+                  </div>
                 {/each}
               </div>
             </div>
@@ -944,12 +1021,11 @@
     border: 8px solid rgba(255, 122, 26, 0.9);
     border-radius: 50%;
     box-shadow: 0px 4px 100px 19px rgba(255, 211, 68, 0.5);
-    animation:
-      pulseGlow 4s infinite alternate,
-      scaleIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: pulseGlow 4s infinite alternate;
     transition:
       filter 0.4s ease,
-      opacity 0.4s ease;
+      opacity 0.4s ease,
+      transform 0.4s ease;
   }
 
   .orbit-core-badge {
@@ -959,10 +1035,10 @@
     width: 298px;
     height: 298px;
     z-index: 5;
-    animation: scaleIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
     transition:
       filter 0.4s ease,
-      opacity 0.4s ease;
+      opacity 0.4s ease,
+      transform 0.4s ease;
   }
 
   @keyframes pulseGlow {
@@ -987,7 +1063,6 @@
     padding: 10px 20px;
     cursor: pointer;
     z-index: 10;
-    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
     transition:
       background 0.4s ease,
       border-color 0.4s ease,
@@ -1018,7 +1093,7 @@
   .orbit-core-ring.blurred-out,
   .orbit-core-badge.blurred-out {
     filter: blur(4px);
-    opacity: 0.35;
+    opacity: 0.35 !important;
   }
 
   .badge-dot {
