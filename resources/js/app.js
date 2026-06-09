@@ -364,8 +364,24 @@ if (typeof document !== "undefined") {
     });
   }
 
+  let resolveTransition = null;
+
+  router.on("success", () => {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        return new Promise((resolve) => {
+          resolveTransition = resolve;
+        });
+      });
+    }
+  });
+
   router.on("navigate", (event) => {
     capturePostHogPageview(event?.detail?.page || null);
+    if (resolveTransition) {
+      resolveTransition();
+      resolveTransition = null;
+    }
   });
 }
 

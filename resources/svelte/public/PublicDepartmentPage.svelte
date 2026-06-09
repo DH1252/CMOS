@@ -425,6 +425,8 @@
           src={`${assetBase}/dept-hero-graphic.svg`}
           alt="Department Hero Graphic"
           class="animate-float-logo h-auto w-full drop-shadow-2xl"
+          width="598"
+          height="748"
         />
       </div>
 
@@ -433,11 +435,15 @@
         src={`${assetBase}/star-large.svg`}
         alt=""
         class="star-large animate-float-large pointer-events-none opacity-80 drop-shadow-2xl"
+        width="492"
+        height="463"
       />
       <img
         src={`${assetBase}/star-small.svg`}
         alt=""
         class="star-small animate-float-small pointer-events-none opacity-80 drop-shadow-2xl"
+        width="375"
+        height="404"
       />
 
       <!-- Text Content -->
@@ -462,11 +468,15 @@
           src={`${assetBase}/logo-mark.svg`}
           alt=""
           class="w-[60px] md:w-[90px]"
+          width="98"
+          height="54"
         />
         <img
           src={`${assetBase}/text-logo.svg`}
           alt="Sentra Sinergi"
           class="w-[50px] md:w-[80px]"
+          width="88"
+          height="43"
         />
         <div class="h-[49px] w-px bg-white/70"></div>
         <div class="text-xs leading-tight md:text-sm">
@@ -566,6 +576,8 @@
                     src={`${assetBase}/dept-core-badge.svg`}
                     alt="Himatekkom Shield"
                     class="h-full w-full object-contain"
+                    width="298"
+                    height="298"
                   />
                 </div>
 
@@ -575,9 +587,9 @@
                     dept.orbit === "outer" ? angleOuter : angleInner}
                   {@const theta = dept.baseAngle + rad}
                   {@const dx =
-                    (dept.orbit === "outer" ? 600 : 430) * Math.cos(theta)}
+                    (dept.orbit === "outer" ? 630 : 420) * Math.cos(theta)}
                   {@const dy =
-                    (dept.orbit === "outer" ? 360 : 250) * Math.sin(theta)}
+                    (dept.orbit === "outer" ? 380 : 240) * Math.sin(theta)}
                   {@const x = 720 + dx * cosTilt - dy * sinTilt}
                   {@const y = 450 + dx * sinTilt + dy * cosTilt}
                   {@const bp = getBadgeProgress(i)}
@@ -1023,10 +1035,10 @@
   /* Orbit Rings (Ellipses centered at x=720, y=450 relative to orbit-system) */
   .orbit-ring-outer {
     position: absolute;
-    left: 120px; /* Center 720 - 600 horizontal radius */
-    top: 90px; /* Center 450 - 360 vertical radius */
-    width: 1200px; /* 600 * 2 */
-    height: 720px; /* 360 * 2 */
+    left: 90px; /* Center 720 - 630 horizontal radius */
+    top: 70px; /* Center 450 - 380 vertical radius */
+    width: 1260px; /* 630 * 2 */
+    height: 760px; /* 380 * 2 */
     border: 1.5px solid rgba(255, 255, 255, 0.22);
     border-radius: 50%;
     pointer-events: none;
@@ -1039,10 +1051,10 @@
 
   .orbit-ring-inner {
     position: absolute;
-    left: 290px; /* Center 720 - 430 horizontal radius */
-    top: 200px; /* Center 450 - 250 vertical radius */
-    width: 860px; /* 430 * 2 */
-    height: 500px; /* 250 * 2 */
+    left: 300px; /* Center 720 - 420 horizontal radius */
+    top: 210px; /* Center 450 - 240 vertical radius */
+    width: 840px; /* 420 * 2 */
+    height: 480px; /* 240 * 2 */
     border: 1.2px solid rgba(255, 211, 68, 0.28);
     border-radius: 50%;
     pointer-events: none;
