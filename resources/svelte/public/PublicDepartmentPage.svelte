@@ -172,31 +172,38 @@
   let sectionEl = $state(null);
   let scrollProgress = $state(0);
 
-  const headerOpacity = $derived(scrollProgress);
-  const headerTranslateY = $derived((1 - scrollProgress) * 30);
+  const headerOpacity = $derived(easeOutQuart(scrollProgress));
+  const headerTranslateY = $derived((1 - easeOutQuart(scrollProgress)) * 30);
 
   const badgeHeaderOpacity = $derived(
-    Math.max(0, Math.min(1, (scrollProgress - 0.15) / 0.85)),
+    easeOutQuart(Math.max(0, Math.min(1, (scrollProgress - 0.15) / 0.85))),
   );
   const badgeHeaderTranslateY = $derived(
-    (1 - Math.max(0, Math.min(1, (scrollProgress - 0.15) / 0.85))) * 30,
+    (1 -
+      easeOutQuart(Math.max(0, Math.min(1, (scrollProgress - 0.15) / 0.85)))) *
+      30,
   );
 
-  const outerRingOpacity = $derived(scrollProgress);
+  const outerRingOpacity = $derived(easeOutQuart(scrollProgress));
   const innerRingOpacity = $derived(
-    Math.max(0, Math.min(1, (scrollProgress - 0.1) / 0.9)),
+    easeOutQuart(Math.max(0, Math.min(1, (scrollProgress - 0.1) / 0.9))),
   );
 
-  const coreOpacity = $derived(scrollProgress);
-  const coreScale = $derived(0.8 + 0.2 * scrollProgress);
+  const coreOpacity = $derived(easeOutQuart(scrollProgress));
+  const coreScale = $derived(0.8 + 0.2 * easeOutQuart(scrollProgress));
+
+  function easeOutQuart(t) {
+    return 1 - Math.pow(1 - t, 4);
+  }
 
   function getBadgeProgress(i) {
     const startProgress = i * 0.04;
     const progress = (scrollProgress - startProgress) / (1 - startProgress);
     const bp = Math.max(0, Math.min(1, progress));
+    const eased = easeOutQuart(bp);
     return {
-      opacity: bp,
-      scale: 0.8 + 0.2 * bp,
+      opacity: eased,
+      scale: 0.8 + 0.2 * eased,
     };
   }
 
