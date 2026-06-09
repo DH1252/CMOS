@@ -7,6 +7,7 @@ import AuthLayout from "../svelte/layouts/AuthLayout.svelte";
 const pages = {
   ...import.meta.glob("../svelte/*Page.svelte"),
   ...import.meta.glob("../svelte/pages/**/*.svelte"),
+  ...import.meta.glob("../svelte/public/**/*.svelte"),
   ...import.meta.glob("../svelte/PublicApp.svelte"),
 };
 

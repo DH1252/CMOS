@@ -8,6 +8,9 @@ const publicImagesDir = path.join(root, "public/images");
 const sourcePattern = /\.(?:png|jpe?g|svg)$/i;
 const maxDimension = 1600;
 
+const cacheDir = path.join(root, "node_modules/.cache");
+const cachePath = path.join(cacheDir, "optimize-static-images.json");
+
 const fileExists = async (filePath) => {
   try {
     await fs.access(filePath);
@@ -19,6 +22,24 @@ const fileExists = async (filePath) => {
 
 if (!(await fileExists(publicImagesDir))) {
   process.exit(0);
+}
+
+// Load Cache
+let cache = {};
+try {
+  const cacheData = await fs.readFile(cachePath, "utf-8");
+  cache = JSON.parse(cacheData);
+} catch {
+  // Cache doesn't exist yet
+}
+
+async function saveCache() {
+  try {
+    await fs.mkdir(cacheDir, { recursive: true });
+    await fs.writeFile(cachePath, JSON.stringify(cache, null, 2), "utf-8");
+  } catch (error) {
+    console.error("Failed to save optimization cache:", error);
+  }
 }
 
 async function walk(dir) {
@@ -48,10 +69,42 @@ for (const file of sourceFiles) {
     continue;
   }
 
+  // Get current file statistics
+  let stats;
+  try {
+    stats = await fs.stat(file);
+  } catch (error) {
+    console.error(`Failed to stat ${parsed.base}:`, error);
+    continue;
+  }
+
+  const isSvg = parsed.ext.toLowerCase() === ".svg";
+
+  // Check if we can skip this file
+  let canSkip = false;
+  if (cache[file] && cache[file].mtimeMs === stats.mtimeMs && cache[file].size === stats.size) {
+    if (isSvg) {
+      canSkip = true;
+    } else {
+      const webpPath = path.join(parsed.dir, `${parsed.name}.webp`);
+      const avifPath = path.join(parsed.dir, `${parsed.name}.avif`);
+      const webpExists = await fileExists(webpPath);
+      const avifExists = await fileExists(avifPath);
+      if (webpExists && avifExists) {
+        canSkip = true;
+      }
+    }
+  }
+
+  if (canSkip) {
+    console.log(`Skipping already optimized: ${path.relative(root, file)}`);
+    continue;
+  }
+
   console.log(`Optimizing ${path.relative(root, file)}...`);
 
   try {
-    if (parsed.ext.toLowerCase() === ".svg") {
+    if (isSvg) {
       const content = await fs.readFile(file, "utf-8");
       const result = optimize(content, {
         path: file,
@@ -68,6 +121,15 @@ for (const file of sourceFiles) {
         ],
       });
       await fs.writeFile(file, result.data, "utf-8");
+
+      // Update cache with post-optimization stats
+      const newStats = await fs.stat(file);
+      cache[file] = {
+        mtimeMs: newStats.mtimeMs,
+        size: newStats.size,
+      };
+      await saveCache();
+
       console.log(`Successfully optimized SVG: ${parsed.base}`);
       continue;
     }
@@ -108,6 +170,15 @@ for (const file of sourceFiles) {
 
     // Overwrite the original file
     await fs.rename(tempPath, file);
+
+    // Update cache with post-optimization stats
+    const newStats = await fs.stat(file);
+    cache[file] = {
+      mtimeMs: newStats.mtimeMs,
+      size: newStats.size,
+    };
+    await saveCache();
+
     console.log(`Successfully optimized ${parsed.base}`);
   } catch (error) {
     console.error(`Failed to optimize ${parsed.base}:`, error);
