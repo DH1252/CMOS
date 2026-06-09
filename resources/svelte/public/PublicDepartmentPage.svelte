@@ -407,6 +407,7 @@
           class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay"
           src={`${assetBase}/hero-bg.png`}
           alt=""
+          style="position: absolute;"
         />
       </picture>
       <picture class="contents">
@@ -416,11 +417,12 @@
           class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
           src={`${assetBase}/botanical.png`}
           alt=""
+          style="position: absolute;"
         />
       </picture>
 
       <!-- Center Hero Graphic -->
-      <div class="hero-logo-container">
+      <div class="hero-logo-container" style="position: absolute;">
         <img
           src={`${assetBase}/dept-hero-graphic.svg`}
           alt="Department Hero Graphic"
@@ -438,6 +440,7 @@
         class="star-large animate-float-large pointer-events-none opacity-80 drop-shadow-2xl"
         width="492"
         height="463"
+        style="position: absolute;"
       />
       <img
         src={`${assetBase}/star-small.svg`}
@@ -445,6 +448,7 @@
         class="star-small animate-float-small pointer-events-none opacity-80 drop-shadow-2xl"
         width="375"
         height="404"
+        style="position: absolute;"
       />
 
       <!-- Text Content -->
@@ -455,7 +459,7 @@
       </div>
 
       <!-- Glow Line under title -->
-      <div class="hero-glow-wrapper">
+      <div class="hero-glow-wrapper" style="position: absolute;">
         <div
           class="animate-fade-in-line h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[2px] delay-200"
         ></div>
@@ -464,6 +468,7 @@
       <!-- Slogan Bottom Left -->
       <div
         class="animate-fade-left absolute bottom-6 left-6 flex items-center gap-4 font-bold tracking-wider text-white opacity-0 delay-300 md:bottom-[36px] md:left-[49px]"
+        style="position: absolute;"
       >
         <img
           src={`${assetBase}/logo-mark.svg`}
