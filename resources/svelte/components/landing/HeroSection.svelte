@@ -47,36 +47,52 @@
     />
   </picture>
 
-  <div
-    class="absolute top-[120px] left-1/2 flex w-full max-w-[398px] flex-col items-center {logoLoaded
-      ? 'animate-fade-scale'
-      : 'opacity-0'}"
-  >
-    <div class="animate-float-logo flex w-full flex-col items-center">
-      <img
-        bind:this={logoMarkEl}
-        onload={() => {
-          logoMarkLoaded = true;
-        }}
-        src={`${assetBase}/logo-mark.svg`}
-        alt="Logo Mark"
-        class="h-auto w-full drop-shadow-xl"
-        loading="eager"
-        decoding="async"
-        fetchpriority="high"
-      />
-      <img
-        bind:this={logoTextEl}
-        onload={() => {
-          logoTextLoaded = true;
-        }}
-        src={`${assetBase}/text-logo.svg`}
-        alt="Logo Text"
-        class="-mt-3 h-auto w-[330px] drop-shadow-md"
-        loading="eager"
-        decoding="async"
-        fetchpriority="high"
-      />
+  <!-- Center Hero Graphic, Title, and Glow Wrapper -->
+  <div class="hero-content-wrapper">
+    <!-- Center Hero Graphic -->
+    <div
+      class="hero-logo-container {logoLoaded
+        ? 'animate-fade-scale'
+        : 'opacity-0'}"
+    >
+      <div class="animate-float-logo flex w-full flex-col items-center">
+        <img
+          bind:this={logoMarkEl}
+          onload={() => {
+            logoMarkLoaded = true;
+          }}
+          src={`${assetBase}/logo-mark.svg`}
+          alt="Logo Mark"
+          class="h-auto w-full drop-shadow-xl"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+        <img
+          bind:this={logoTextEl}
+          onload={() => {
+            logoTextLoaded = true;
+          }}
+          src={`${assetBase}/text-logo.svg`}
+          alt="Logo Text"
+          class="-mt-3 h-auto w-[83%] max-w-[330px] drop-shadow-md"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </div>
+    </div>
+
+    <!-- Title -->
+    <h1 class="hero-title animate-fade-up">
+      dari kita<br class="md:hidden" /> untuk kita
+    </h1>
+
+    <!-- Glow Line under title -->
+    <div class="hero-glow-wrapper animate-fade-in">
+      <div
+        class="h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[2px]"
+      ></div>
     </div>
   </div>
 
@@ -90,16 +106,6 @@
     alt=""
     class="star-small animate-float-small pointer-events-none opacity-80 drop-shadow-2xl"
   />
-
-  <h1
-    class="animate-fade-up absolute top-[504px] left-1/2 font-['Playfair_Display'] text-5xl whitespace-nowrap text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.8)] md:text-[96px]"
-  >
-    dari kita untuk kita
-  </h1>
-
-  <div
-    class="animate-fade-in absolute top-[623px] left-1/2 h-[22px] w-full max-w-[534px] bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent opacity-80 blur-[2px]"
-  ></div>
 
   <div
     class="animate-fade-left absolute bottom-6 left-6 flex items-center gap-4 font-bold tracking-wider text-white md:bottom-[36px] md:left-[49px]"
@@ -173,6 +179,93 @@
     }
   }
 
+  .hero-content-wrapper {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  @media (min-width: 768px) {
+    .hero-content-wrapper {
+      position: absolute;
+      inset: 0;
+      display: block;
+      padding: 0;
+    }
+  }
+
+  .hero-logo-container {
+    position: relative;
+    width: 100%;
+    max-width: 220px;
+    margin: 0 auto;
+    pointer-events: auto;
+  }
+
+  @media (min-width: 768px) {
+    .hero-logo-container {
+      position: absolute;
+      top: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 398px;
+      margin: 0;
+    }
+  }
+
+  .hero-title {
+    font-family: "Playfair Display", "Playfair_Display", Georgia, serif;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    text-align: center;
+    color: #ffffff;
+    text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.8);
+    white-space: normal;
+  }
+
+  @media (min-width: 768px) {
+    .hero-title {
+      position: absolute;
+      top: 504px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 96px;
+      line-height: 125px;
+      white-space: nowrap;
+    }
+  }
+
+  .hero-glow-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 240px;
+    height: 12px;
+    margin: 0 auto;
+    opacity: 0.8;
+  }
+
+  @media (min-width: 768px) {
+    .hero-glow-wrapper {
+      position: absolute;
+      top: 623px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 534px;
+      height: 22px;
+      margin: 0;
+    }
+  }
+
   .animate-fade-scale {
     animation: scaleFadeIn 1000ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
@@ -188,6 +281,21 @@
     animation: fadeInLeft 1000ms cubic-bezier(0.16, 1, 0.3, 1) 500ms forwards;
     opacity: 0;
   }
+
+  @media (min-width: 768px) {
+    .animate-fade-scale {
+      animation: scaleFadeInCenter 1000ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-fade-up {
+      animation: fadeInUpCenter 1000ms cubic-bezier(0.16, 1, 0.3, 1) 200ms
+        forwards;
+    }
+    .animate-fade-in {
+      animation: fadeInCenter 1000ms cubic-bezier(0.16, 1, 0.3, 1) 400ms
+        forwards;
+    }
+  }
+
   .animate-float-large {
     animation: floatLarge 8s ease-in-out infinite;
   }
@@ -201,6 +309,17 @@
   @keyframes scaleFadeIn {
     from {
       opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes scaleFadeInCenter {
+    from {
+      opacity: 0;
       transform: translate(-50%, 0) scale(0.95);
     }
     to {
@@ -212,6 +331,17 @@
   @keyframes fadeInUp {
     from {
       opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInUpCenter {
+    from {
+      opacity: 0;
       transform: translate(-50%, 16px);
     }
     to {
@@ -221,6 +351,15 @@
   }
 
   @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 0.8;
+    }
+  }
+
+  @keyframes fadeInCenter {
     from {
       opacity: 0;
       transform: translate(-50%, 0);

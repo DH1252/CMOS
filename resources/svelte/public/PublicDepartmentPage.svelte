@@ -424,11 +424,9 @@
       </picture>
 
       <!-- Center Hero Graphic, Title, and Glow Wrapper -->
-      <div
-        class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 pt-16 pb-24 md:block md:p-0"
-      >
+      <div class="hero-content-wrapper">
         <!-- Center Hero Graphic -->
-        <div class="hero-logo-container pointer-events-auto">
+        <div class="hero-logo-container">
           <img
             src={`${assetBase}/dept-hero-graphic.svg`}
             alt="Department Hero Graphic"
@@ -440,16 +438,14 @@
         </div>
 
         <!-- Text Content -->
-        <div
-          class="animate-fade-up pointer-events-none relative flex w-full justify-center opacity-0 md:absolute md:inset-0"
-        >
+        <div class="hero-title-container">
           <h1 class="hero-title">Departemen</h1>
         </div>
 
         <!-- Glow Line under title -->
         <div class="hero-glow-wrapper">
           <div
-            class="animate-fade-in-line h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[2px] delay-200"
+            class="animate-fade-in-line h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[2px]"
           ></div>
         </div>
       </div>
@@ -762,47 +758,116 @@
     animation-delay: 0.5s !important;
   }
 
+  .hero-content-wrapper {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 4rem;
+    padding-bottom: 6rem;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  @media (min-width: 768px) {
+    .hero-content-wrapper {
+      position: absolute;
+      inset: 0;
+      display: block;
+      padding: 0;
+    }
+  }
+
   .hero-logo-container {
     position: relative;
     width: 100%;
-    max-width: 260px;
-    --hero-max-width: 260px;
-    margin: 0 auto;
+    max-width: 360px;
+    --hero-max-width: 360px;
+    margin: 0 auto -160px auto;
+    pointer-events: auto;
+  }
+
+  .hero-logo-container img {
+    margin-left: 8.3%;
   }
 
   @media (min-width: 768px) {
     .hero-logo-container {
-      top: calc(50% - 328px / 2 - 124px);
-      width: 398px;
-      left: calc(50% - 398px / 2 + 44px);
-      transform: none;
-      max-width: none;
-      --hero-max-width: 398px;
+      position: absolute;
+      top: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 598px;
+      --hero-max-width: 598px;
+      margin: 0;
+    }
+  }
+
+  .hero-title-container {
+    opacity: 0;
+    pointer-events: none;
+    animation: fadeUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @media (min-width: 768px) {
+    .hero-title-container {
+      position: absolute;
+      top: 504px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      animation: fadeUpCenter 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  }
+
+  .hero-title {
+    font-family: "The Seasons", "Playfair Display", Georgia, serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 3.75rem;
+    line-height: 1.2;
+    text-align: center;
+    color: #ffffff;
+    text-shadow: 0px 0px 20px #ffffff;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 768px) {
+    .hero-title {
+      font-size: 96px;
+      line-height: 125px;
     }
   }
 
   .hero-glow-wrapper {
     position: relative;
     width: 100%;
-    max-width: 240px;
-    height: 12px;
+    max-width: 300px;
+    height: 16px;
     margin: 0 auto;
   }
 
   @media (min-width: 768px) {
     .hero-glow-wrapper {
-      top: calc(50% - 22px / 2 + 185px);
-      width: 534px;
-      left: calc(50% - 534px / 2 + 44px);
+      position: absolute;
+      top: 623px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 534px;
       height: 22px;
-      transform: none;
-      max-width: none;
+      margin: 0;
     }
   }
 
   .animate-fade-in-line {
     opacity: 0;
     animation: fadeInLine 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.2s !important;
   }
 
   @keyframes fadeInLine {
@@ -813,42 +878,6 @@
     to {
       opacity: 0.8;
       transform: scaleX(1);
-    }
-  }
-
-  .hero-title {
-    position: relative;
-    width: 100%;
-    max-width: 280px;
-    height: auto;
-
-    font-family: "The Seasons", "Playfair Display", Georgia, serif;
-    font-style: normal;
-    font-weight: 300;
-    font-size: 2.75rem;
-    line-height: 1.2;
-    text-align: center;
-
-    color: #ffffff;
-    text-shadow: 0px 0px 20px #ffffff;
-  }
-
-  @media (min-width: 768px) {
-    .hero-title {
-      position: absolute;
-      width: 542px;
-      height: 124px;
-      left: calc(50% - 542px / 2 + 44px);
-      top: calc(50% - 124px / 2 + 124px);
-      font-family: "The Seasons";
-      font-style: normal;
-      font-weight: 300;
-      font-size: 96px;
-      line-height: 125px;
-      text-align: center;
-      color: #ffffff;
-      text-shadow: 0px 0px 20px #ffffff;
-      transform: none;
     }
   }
 
