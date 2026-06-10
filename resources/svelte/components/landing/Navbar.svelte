@@ -1,12 +1,14 @@
 <script>
   import { ChevronDown } from "lucide-svelte";
-  import { fly } from "svelte/transition";
+  import { fly, slide } from "svelte/transition";
   import { cubicOut } from "svelte/easing";
   import TalingNavbarLogo from "../TalingNavbarLogo.svelte";
 
   let { homeUrl = "/", loginUrl = "/login", navigationItems = [] } = $props();
 
   let openMenu = $state(null);
+  let mobileMenuOpen = $state(false);
+  let activeMobileSubmenu = $state(null);
 
   const toggleMenu = (label) => {
     openMenu = openMenu === label ? null : label;
@@ -15,7 +17,40 @@
   const closeMenu = () => {
     openMenu = null;
   };
+
+  const toggleMobileMenu = () => {
+    mobileMenuOpen = !mobileMenuOpen;
+    if (!mobileMenuOpen) {
+      activeMobileSubmenu = null;
+    }
+  };
+
+  const toggleMobileSubmenu = (label) => {
+    activeMobileSubmenu = activeMobileSubmenu === label ? null : label;
+  };
+
+  const closeMobileMenu = () => {
+    mobileMenuOpen = false;
+    activeMobileSubmenu = null;
+  };
+
+  $effect(() => {
+    if (mobileMenuOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  });
 </script>
+
+<svelte:window
+  onresize={() => {
+    if (window.innerWidth >= 768) closeMobileMenu();
+  }}
+/>
 
 <nav
   class="relative z-50 flex h-[74px] w-full items-center justify-between bg-white px-6 py-[10px] shadow-sm md:px-[60px] lg:px-[139px]"
@@ -67,10 +102,121 @@
     {/each}
   </div>
 
-  <a
-    href={loginUrl}
-    class="hidden h-[34px] w-[107px] items-center justify-center rounded-full bg-gradient-to-tr from-[#ff7a1a] to-[#ffd344] text-sm font-bold tracking-wide text-white shadow-md transition-all duration-150 hover:scale-105 active:scale-95 md:flex"
+  <div class="hidden md:flex">
+    <a
+      href={loginUrl}
+      class="flex h-[34px] w-[107px] items-center justify-center rounded-full bg-gradient-to-tr from-[#ff7a1a] to-[#ffd344] text-sm font-bold tracking-wide text-white shadow-md transition-all duration-150 hover:scale-105 active:scale-95"
+    >
+      Masuk
+    </a>
+  </div>
+
+  <!-- Mobile Hamburger Button -->
+  <button
+    type="button"
+    class="z-50 flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 md:hidden"
+    onclick={toggleMobileMenu}
+    aria-expanded={mobileMenuOpen}
+    aria-label="Toggle menu"
   >
-    Masuk
-  </a>
+    <span
+      class="h-[2px] w-5 rounded bg-[#222] transition-all duration-300 {mobileMenuOpen
+        ? 'translate-y-[8px] rotate-45'
+        : ''}"
+    ></span>
+    <span
+      class="h-[2px] w-5 rounded bg-[#222] transition-all duration-300 {mobileMenuOpen
+        ? 'scale-x-0 opacity-0'
+        : ''}"
+    ></span>
+    <span
+      class="h-[2px] w-5 rounded bg-[#222] transition-all duration-300 {mobileMenuOpen
+        ? '-translate-y-[8px] -rotate-45'
+        : ''}"
+    ></span>
+  </button>
+
+  <!-- Mobile Drawer Menu -->
+  {#if mobileMenuOpen}
+    <div
+      transition:fly={{ y: -20, duration: 300, easing: cubicOut }}
+      class="absolute top-[74px] left-0 z-40 flex w-full flex-col border-b border-gray-100 bg-white/95 px-6 py-6 shadow-xl backdrop-blur-md md:hidden"
+    >
+      <div class="flex flex-col gap-5">
+        {#each navigationItems as item, idx (item.href)}
+          <div
+            transition:fly={{
+              x: -10,
+              delay: idx * 40,
+              duration: 300,
+              easing: cubicOut,
+            }}
+            class="flex flex-col border-b border-gray-50 pb-4 last:border-none last:pb-0"
+          >
+            {#if item.children?.length}
+              <button
+                type="button"
+                class="flex w-full items-center justify-between text-left text-base font-semibold text-[#222] transition-colors hover:text-[#ff7a1a]"
+                onclick={() => toggleMobileSubmenu(item.label)}
+                aria-expanded={activeMobileSubmenu === item.label}
+              >
+                <span>{item.label}</span>
+                <ChevronDown
+                  size={18}
+                  strokeWidth={2.4}
+                  class="transition-transform duration-300 {activeMobileSubmenu ===
+                  item.label
+                    ? 'rotate-180 text-[#ff7a1a]'
+                    : 'text-gray-400'}"
+                />
+              </button>
+
+              {#if activeMobileSubmenu === item.label}
+                <div
+                  transition:slide={{ duration: 250, easing: cubicOut }}
+                  class="mt-3 flex flex-col gap-3 border-l border-orange-100 pl-4"
+                >
+                  {#each item.children as child (child.href)}
+                    <a
+                      href={child.href}
+                      class="py-1 text-sm font-medium text-gray-600 transition-colors hover:text-[#ff7a1a]"
+                      onclick={closeMobileMenu}
+                    >
+                      {child.label}
+                    </a>
+                  {/each}
+                </div>
+              {/if}
+            {:else}
+              <a
+                href={item.href}
+                class="text-base font-semibold text-[#222] transition-colors hover:text-[#ff7a1a]"
+                onclick={closeMobileMenu}
+              >
+                {item.label}
+              </a>
+            {/if}
+          </div>
+        {/each}
+
+        <div
+          transition:fly={{
+            y: 10,
+            delay: navigationItems.length * 40,
+            duration: 300,
+            easing: cubicOut,
+          }}
+          class="mt-4 flex w-full"
+        >
+          <a
+            href={loginUrl}
+            class="flex h-11 w-full items-center justify-center rounded-full bg-gradient-to-tr from-[#ff7a1a] to-[#ffd344] text-base font-bold tracking-wide text-white shadow-md transition-all duration-150 hover:scale-[1.02] active:scale-95"
+            onclick={closeMobileMenu}
+          >
+            Masuk
+          </a>
+        </div>
+      </div>
+    </div>
+  {/if}
 </nav>
