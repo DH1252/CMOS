@@ -151,6 +151,8 @@
           class="pointer-events-none absolute inset-0 h-full min-h-full w-full object-cover opacity-10 mix-blend-color-burn"
           src={`${assetBase}/botanical.png`}
           alt=""
+          width="1600"
+          height="1066"
         />
       </picture>
       <div class="relative z-10 w-full">
