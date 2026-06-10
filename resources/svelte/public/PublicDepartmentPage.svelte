@@ -528,7 +528,7 @@
                 >DEPARTEMENT REVEAL</span
               >
               <h2
-                class="mt-2 font-['Playfair_Display'] text-4xl font-bold md:text-6xl"
+                class="mt-2 font-['Playfair_Display'] text-4xl font-bold text-white md:text-6xl"
               >
                 Departemen Himatekkom
               </h2>
@@ -686,7 +686,7 @@
           >READY TO REVEAL</span
         >
         <h2
-          class="mt-4 font-['Playfair_Display'] text-3xl font-bold md:text-5xl"
+          class="mt-4 font-['Playfair_Display'] text-3xl font-bold text-white md:text-5xl"
         >
           Temukan departemenmu. Mulai ceritamu.
         </h2>
