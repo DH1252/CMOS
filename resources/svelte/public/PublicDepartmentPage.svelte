@@ -165,6 +165,15 @@
   // Responsive scaling factor based on the remaining space in Orbit Wrapper (native size 1440x900)
   let orbitWrapperWidth = $state(1440);
   let orbitWrapperHeight = $state(900);
+  let orbitWrapperEl = $state(null);
+
+  function updateOrbitDimensions() {
+    if (orbitWrapperEl) {
+      orbitWrapperWidth = orbitWrapperEl.clientWidth || 1440;
+      orbitWrapperHeight = orbitWrapperEl.clientHeight || 900;
+    }
+  }
+
   const scaleFactor = $derived(
     Math.min(orbitWrapperWidth / 1440, orbitWrapperHeight / 900),
   );
@@ -266,6 +275,16 @@
     };
     frameId = requestAnimationFrame(update);
 
+    // Initial measurement
+    updateOrbitDimensions();
+
+    const handleResize = () => {
+      updateOrbitDimensions();
+      handleScroll();
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
+
     // Setup intersection observer to toggle scroll event listeners dynamically
     let observer;
     if (typeof IntersectionObserver !== "undefined" && sectionEl) {
@@ -278,16 +297,12 @@
                 window.addEventListener("scroll", handleScroll, {
                   passive: true,
                 });
-                window.addEventListener("resize", handleScroll, {
-                  passive: true,
-                });
                 handleScroll();
               }
             } else {
               if (isTrackingScroll) {
                 isTrackingScroll = false;
                 window.removeEventListener("scroll", handleScroll);
-                window.removeEventListener("resize", handleScroll);
               }
             }
           });
@@ -303,13 +318,20 @@
         observer.disconnect();
       }
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
+      window.removeEventListener("resize", handleResize);
     };
   });
 
   // Sync state if selectedSlug changes via router back/forward
   $effect(() => {
     selectedDeptId = selectedSlug;
+  });
+
+  $effect(() => {
+    selectedDeptId;
+    updateOrbitDimensions();
+    const timer = setTimeout(updateOrbitDimensions, 200);
+    return () => clearTimeout(timer);
   });
 
   function handleDeptClick(dept, event) {
@@ -524,7 +546,6 @@
           >
             <div
               style="opacity: {headerOpacity}; transform: translateY({headerTranslateY}px);"
-              class="transition-all duration-100 ease-out"
             >
               <span
                 class="text-sm font-bold tracking-wider text-[#ffd344] uppercase"
@@ -542,7 +563,7 @@
             </div>
             <div
               style="opacity: {badgeHeaderOpacity}; transform: translateY({badgeHeaderTranslateY}px);"
-              class="flex items-center gap-4 self-start rounded-full border border-white/20 bg-white/10 px-6 py-3 shadow-lg backdrop-blur-md transition-all duration-100 ease-out"
+              class="flex items-center gap-4 self-start rounded-full border border-white/20 bg-white/10 px-6 py-3 shadow-lg backdrop-blur-md"
             >
               <span class="text-4xl leading-none font-bold text-white">10</span>
               <span class="text-sm leading-tight font-medium text-white/80"
@@ -553,9 +574,8 @@
 
           <!-- Orbit Wrapper (centered and scaled aspect-fit inside remaining height) -->
           <div
+            bind:this={orbitWrapperEl}
             class="relative flex min-h-[400px] w-full flex-1 items-center justify-center lg:min-h-0"
-            bind:clientWidth={orbitWrapperWidth}
-            bind:clientHeight={orbitWrapperHeight}
           >
             <div
               class="orbit-scale-wrapper"
@@ -1117,8 +1137,7 @@
     animation: pulseGlow 4s infinite alternate;
     transition:
       filter 0.4s ease,
-      opacity 0.4s ease,
-      transform 0.4s ease;
+      opacity 0.4s ease;
   }
 
   .orbit-core-badge {
@@ -1130,8 +1149,7 @@
     z-index: 5;
     transition:
       filter 0.4s ease,
-      opacity 0.4s ease,
-      transform 0.4s ease;
+      opacity 0.4s ease;
   }
 
   @keyframes pulseGlow {
