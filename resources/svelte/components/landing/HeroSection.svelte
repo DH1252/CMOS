@@ -30,6 +30,9 @@
       class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay"
       src={`${assetBase}/hero-bg.png`}
       alt=""
+      loading="eager"
+      decoding="async"
+      fetchpriority="high"
     />
   </picture>
   <picture class="contents">
@@ -56,6 +59,9 @@
         src={`${assetBase}/logo-mark.svg`}
         alt="Logo Mark"
         class="h-auto w-full drop-shadow-xl"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
       />
       <img
         bind:this={logoTextEl}
@@ -65,6 +71,9 @@
         src={`${assetBase}/text-logo.svg`}
         alt="Logo Text"
         class="-mt-3 h-auto w-[330px] drop-shadow-md"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
       />
     </div>
   </div>

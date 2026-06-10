@@ -47,7 +47,7 @@
     </div>
   </header>
 
-  <main id="main-content">
+  <main id="main-content" tabindex="-1" class="outline-none">
     <section class="coming-hero" aria-labelledby="coming-heading">
       <div class="coming-hero-media" aria-hidden="true">
         <OptimizedImage
