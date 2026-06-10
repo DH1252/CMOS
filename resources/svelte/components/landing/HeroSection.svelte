@@ -42,6 +42,8 @@
       class="absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
       src={`${assetBase}/botanical.png`}
       alt=""
+      width="1600"
+      height="1066"
     />
   </picture>
 

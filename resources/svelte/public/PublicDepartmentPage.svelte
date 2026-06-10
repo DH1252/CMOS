@@ -418,6 +418,8 @@
           src={`${assetBase}/botanical.png`}
           alt=""
           style="position: absolute;"
+          width="1600"
+          height="1066"
         />
       </picture>
 

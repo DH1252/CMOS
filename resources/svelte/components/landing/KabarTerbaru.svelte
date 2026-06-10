@@ -57,11 +57,13 @@
     <source srcset={`${assetBase}/botanical.avif`} type="image/avif" />
     <source srcset={`${assetBase}/botanical.webp`} type="image/webp" />
     <img
-      class="botanical-bg pointer-events-none absolute -top-[120%] -left-[18%] h-[260%] w-[170%] mix-blend-darken {isIntersecting
+      class="botanical-bg pointer-events-none absolute -top-[120%] -left-[18%] h-[260%] w-[170%] object-cover mix-blend-darken {isIntersecting
         ? 'revealed'
         : ''}"
       src={`${assetBase}/botanical.png`}
       alt=""
+      width="1600"
+      height="1066"
     />
   </picture>
 

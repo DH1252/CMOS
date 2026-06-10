@@ -136,9 +136,22 @@ for (const file of sourceFiles) {
 
     const tempPath = path.join(parsed.dir, `_temp_${parsed.base}`);
 
+    let targetWidth = maxDimension;
+    let webpQuality = 75;
+    let avifQuality = 48;
+    let pngQuality = 75;
+    let jpegQuality = 75;
+
+    if (parsed.name === "botanical") {
+      targetWidth = 800;
+      webpQuality = 50;
+      avifQuality = 25;
+      pngQuality = 60;
+    }
+
     const pipeline = sharp(file, { animated: false }).rotate().resize({
-      width: maxDimension,
-      height: maxDimension,
+      width: targetWidth,
+      height: targetWidth,
       fit: "inside",
       withoutEnlargement: true,
     });
@@ -146,25 +159,25 @@ for (const file of sourceFiles) {
     // 1. Generate WebP
     await pipeline
       .clone()
-      .webp({ quality: 75, effort: 6 })
+      .webp({ quality: webpQuality, effort: 6 })
       .toFile(path.join(parsed.dir, `${parsed.name}.webp`));
 
     // 2. Generate AVIF
     await pipeline
       .clone()
-      .avif({ quality: 48, effort: 7 })
+      .avif({ quality: avifQuality, effort: 7 })
       .toFile(path.join(parsed.dir, `${parsed.name}.avif`));
 
     // 3. Compress original in-place
     if (parsed.ext.toLowerCase() === ".png") {
       await pipeline
         .clone()
-        .png({ quality: 75, compressionLevel: 9, palette: true })
+        .png({ quality: pngQuality, compressionLevel: 9, palette: true })
         .toFile(tempPath);
     } else {
       await pipeline
         .clone()
-        .jpeg({ quality: 75 })
+        .jpeg({ quality: jpegQuality })
         .toFile(tempPath);
     }
 
