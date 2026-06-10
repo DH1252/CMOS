@@ -420,7 +420,7 @@
   <main>
     <!-- Hero Section -->
     <section
-      class="relative h-[calc(100dvh-74px)] min-h-[600px] w-full overflow-hidden bg-gradient-to-br from-[#5d0077] to-[#2a0078] md:h-[896px]"
+      class="relative h-[calc(100svh-74px)] min-h-[600px] w-full overflow-hidden bg-gradient-to-br from-[#5d0077] to-[#2a0078] md:h-[896px]"
     >
       <picture class="contents">
         <source srcset={`${assetBase}/hero-bg.avif`} type="image/avif" />
@@ -624,8 +624,9 @@
                   {@const bp = getBadgeProgress(i)}
 
                   <div
-                    style="position: absolute; left: {x - 34}px; top: {y -
-                      24}px; opacity: {bp.opacity}; transform: scale({bp.scale}); pointer-events: {bp.opacity >
+                    style="position: absolute; left: 0; top: 0; transform: translate({x -
+                      34}px, {y -
+                      24}px) scale({bp.scale}); opacity: {bp.opacity}; pointer-events: {bp.opacity >
                     0.15
                       ? 'auto'
                       : 'none'};"
