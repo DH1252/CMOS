@@ -659,12 +659,35 @@
             : 'panel-closed'}"
         >
           {#if activeDept}
-            <div class="w-full" transition:fade={{ duration: 250 }}>
+            <div class="relative w-full" transition:fade={{ duration: 250 }}>
+              <!-- Close Button -->
+              <button
+                type="button"
+                onclick={handleDeselect}
+                class="absolute -top-4 right-0 rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                aria-label="Close details"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  class="h-6 w-6"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+
               <span
                 class="text-xs font-bold tracking-widest text-[#ffd344] uppercase"
                 >Fokus Departemen</span
               >
-              <h3 class="mt-2 text-4xl font-extrabold text-white">
+              <h3 class="mt-2 pr-10 text-4xl font-extrabold text-white">
                 {activeDept.name}
               </h3>
               <div
@@ -1223,67 +1246,44 @@
 
   /* Dynamic Slide-out Detail Panel */
   .detail-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
     width: 100%;
-    flex-shrink: 0;
-    background-color: rgba(30, 0, 88, 0.9);
-    position: relative;
     z-index: 20;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+    background-color: rgba(30, 0, 88, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     flex-direction: column;
     justify-content: center;
     overflow: hidden;
-    transition: all 0.12s ease-out;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  /* Desktop style transitions */
-  @media (min-width: 1024px) {
-    .detail-panel {
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-      pointer-events: none; /* Make click-through to prevent hover-flicker on overlay */
-    }
+  .detail-panel.panel-open {
+    max-width: 100%;
+    padding: 2rem;
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  @media (min-width: 768px) {
     .detail-panel.panel-open {
-      width: 420px;
-      padding: 2rem;
-      opacity: 1;
-      transform: translateX(0);
-      pointer-events: auto; /* Enable interaction when open */
-    }
-    .detail-panel.panel-closed {
-      width: 0px;
-      padding: 2rem 0;
-      opacity: 0;
-      transform: translateX(50px);
-      border-left: 1px solid transparent;
-      pointer-events: none; /* Prevent interaction when closed */
+      max-width: 420px;
     }
   }
 
-  /* Mobile/Tablet style transitions */
-  @media (max-width: 1023px) {
-    .detail-panel {
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      max-height: 500px;
-      overflow: hidden;
-    }
-    .detail-panel.panel-open {
-      max-height: 500px;
-      padding: 2rem;
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto; /* Enable interaction when open */
-    }
-    .detail-panel.panel-closed {
-      max-height: 0px;
-      padding: 0 2rem;
-      opacity: 0;
-      transform: translateY(50px);
-      border-top: 1px solid transparent;
-      pointer-events: none; /* Prevent interaction when closed */
-    }
+  .detail-panel.panel-closed {
+    max-width: 0px;
+    padding: 2rem 0;
+    opacity: 0;
+    transform: translateX(100%);
+    border-left: 1px solid transparent;
+    pointer-events: none;
   }
 </style>
