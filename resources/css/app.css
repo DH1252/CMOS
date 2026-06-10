@@ -620,83 +620,85 @@ html[data-js="false"] .terminal-reveal__overlay {
   display: none !important;
 }
 
-body {
-  margin: 0;
-  font-family: var(--font-body);
-  background: var(--page-bg);
-  color: var(--text-strong);
-  line-height: 1.6;
-  overflow-x: clip;
-}
+@layer base {
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    background: var(--page-bg);
+    color: var(--text-strong);
+    line-height: 1.6;
+    overflow-x: clip;
+  }
 
-[data-theme="public"] body {
-  background: var(--page-bg);
-  color: var(--text-strong);
-}
+  [data-theme="public"] body {
+    background: var(--page-bg);
+    color: var(--text-strong);
+  }
 
-a {
-  color: color-mix(in srgb, var(--brand-primary) 88%, black);
-  text-decoration: none;
-}
+  a {
+    color: color-mix(in srgb, var(--brand-primary) 88%, black);
+    text-decoration: none;
+  }
 
-a:hover {
-  color: var(--brand-hover);
-}
+  a:hover {
+    color: var(--brand-hover);
+  }
 
-[data-theme="public"] a {
-  color: inherit;
-}
+  [data-theme="public"] a {
+    color: inherit;
+  }
 
-[data-theme="public"] a:hover {
-  color: inherit;
-}
+  [data-theme="public"] a:hover {
+    color: inherit;
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin-top: 0;
-  font-family: var(--font-display);
-  line-height: 1.2;
-  color: var(--text-strong);
-}
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-top: 0;
+    font-family: var(--font-display);
+    line-height: 1.2;
+    color: var(--text-strong);
+  }
 
-[data-theme="public"] h1,
-[data-theme="public"] h2,
-[data-theme="public"] h3,
-[data-theme="public"] h4 {
-  letter-spacing: -0.025em;
-}
+  [data-theme="public"] h1,
+  [data-theme="public"] h2,
+  [data-theme="public"] h3,
+  [data-theme="public"] h4 {
+    letter-spacing: -0.025em;
+  }
 
-p {
-  margin-top: 0;
-}
+  p {
+    margin-top: 0;
+  }
 
-img {
-  max-width: 100%;
-  height: auto;
-}
+  img {
+    max-width: 100%;
+    height: auto;
+  }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-:where(
-  a,
   button,
   input,
-  select,
   textarea,
-  summary,
-  [tabindex]:not([tabindex="-1"])
-):focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+  select {
+    font: inherit;
+  }
+
+  :where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
 
 .skip-link {
