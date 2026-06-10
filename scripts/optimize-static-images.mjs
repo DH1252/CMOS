@@ -146,25 +146,25 @@ for (const file of sourceFiles) {
     // 1. Generate WebP
     await pipeline
       .clone()
-      .webp({ quality: 82, effort: 6 })
+      .webp({ quality: 75, effort: 6 })
       .toFile(path.join(parsed.dir, `${parsed.name}.webp`));
 
     // 2. Generate AVIF
     await pipeline
       .clone()
-      .avif({ quality: 58, effort: 7 })
+      .avif({ quality: 48, effort: 7 })
       .toFile(path.join(parsed.dir, `${parsed.name}.avif`));
 
     // 3. Compress original in-place
     if (parsed.ext.toLowerCase() === ".png") {
       await pipeline
         .clone()
-        .png({ quality: 80, compressionLevel: 9, palette: true })
+        .png({ quality: 75, compressionLevel: 9, palette: true })
         .toFile(tempPath);
     } else {
       await pipeline
         .clone()
-        .jpeg({ quality: 80 })
+        .jpeg({ quality: 75 })
         .toFile(tempPath);
     }
 

@@ -132,7 +132,7 @@
 >
   <Navbar {homeUrl} {loginUrl} {navigationItems} />
 
-  <main>
+  <main id="main-content" tabindex="-1" class="outline-none">
     <HeroSection {assetBase} />
     <KabarTerbaru
       {assetBase}

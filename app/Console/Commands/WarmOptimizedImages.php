@@ -12,7 +12,7 @@ class WarmOptimizedImages extends Command
         {path? : Public disk directory or image path to warm}
         {--width=* : Widths to pre-generate for responsive images}
         {--format=* : Formats to pre-generate in priority order}
-        {--quality=85 : Encoded image quality from 1 to 100}
+        {--quality=75 : Encoded image quality from 1 to 100}
         {--limit=0 : Maximum number of source images to process}';
 
     protected $description = 'Warm cached optimized image variants on the public disk';
@@ -90,7 +90,7 @@ class WarmOptimizedImages extends Command
     {
         $quality = filter_var($value, FILTER_VALIDATE_INT);
 
-        return $quality === false || $quality < 1 || $quality > 100 ? 85 : $quality;
+        return $quality === false || $quality < 1 || $quality > 100 ? 75 : $quality;
     }
 
     private function resolveLimit(mixed $value): int

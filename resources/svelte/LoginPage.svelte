@@ -87,7 +87,7 @@
     </div>
   </header>
 
-  <main id="main-content">
+  <main id="main-content" tabindex="-1" class="outline-none">
     <section class="login-hero" aria-labelledby="login-heading">
       <div class="login-hero-media" aria-hidden="true">
         <OptimizedImage

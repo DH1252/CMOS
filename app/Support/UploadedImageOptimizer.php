@@ -39,7 +39,7 @@ class UploadedImageOptimizer
         string $directory,
         int $maxWidth = 1600,
         int $maxHeight = 1600,
-        int $quality = 82,
+        int $quality = 75,
     ): array {
         if (! $this->canOptimize($file)) {
             return $this->storeOriginal($file, $directory);

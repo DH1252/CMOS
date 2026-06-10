@@ -44,7 +44,6 @@
     </script>
     <title>{{ $appName }}</title>
     <link rel="icon" type="image/webp" href="{{ asset('images/logokabinet.webp') }}">
-    <link rel="icon" type="image/avif" href="{{ asset('images/logokabinet.avif') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logokabinet.png') }}">
     <style>
         @view-transition {

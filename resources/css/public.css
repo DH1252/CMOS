@@ -322,8 +322,13 @@ html[data-js="false"] .terminal-reveal__overlay {
   box-shadow: var(--shadow-md);
 }
 
+.skip-link:focus,
 .skip-link:focus-visible {
   transform: translateY(0);
+}
+
+main[tabindex="-1"]:focus {
+  outline: none;
 }
 
 @keyframes terminalReveal {

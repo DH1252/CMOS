@@ -96,13 +96,13 @@ class ImageController extends Controller
     private function resolveQuality(mixed $value): int
     {
         if ($value === null || $value === '') {
-            return 85;
+            return 75;
         }
 
         $int = filter_var($value, FILTER_VALIDATE_INT);
 
         if ($int === false || $int < 1 || $int > 100) {
-            return 85;
+            return 75;
         }
 
         return $int;

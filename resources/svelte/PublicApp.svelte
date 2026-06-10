@@ -145,7 +145,7 @@
     </div>
   </header>
 
-  <main id="main-content">
+  <main id="main-content" tabindex="-1" class="outline-none">
     {#if isInfoIndex}
       <PublicInformationIndexPage {...infoIndex} {homeUrl} {infoUrl} {seo} />
     {:else if isInfoShow}

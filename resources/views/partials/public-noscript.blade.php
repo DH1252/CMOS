@@ -187,7 +187,7 @@
         </div>
     </header>
 
-    <main id="main-content" class="no-js-main">
+    <main id="main-content" tabindex="-1" class="no-js-main outline-none">
         @if ($isHome)
             <div class="no-js-stack">
                 <section class="no-js-hero no-js-section">

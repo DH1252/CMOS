@@ -708,7 +708,11 @@
       </div>
     </header>
 
-    <main id="main-content" class="px-4 py-5 md:px-6 lg:px-8">
+    <main
+      id="main-content"
+      tabindex="-1"
+      class="px-4 py-5 outline-none md:px-6 lg:px-8"
+    >
       <div class="grid gap-4">
         {#if flash.success}
           <div class="alert alert-success animate-fadeIn">
