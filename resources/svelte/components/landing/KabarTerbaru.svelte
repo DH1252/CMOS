@@ -135,7 +135,7 @@
                 class="mb-5 h-[3px] w-[100px] bg-[#ffd344] shadow-[0_0_8px_#ffd344] transition-all duration-300 group-hover:w-[150px]"
               ></div>
               <p
-                class="mb-5 w-max rounded-sm bg-[#ffd344] px-3 py-1 text-xs font-semibold tracking-wider text-[#222] uppercase"
+                class="mb-5 w-fit max-w-full rounded-sm bg-[#ffd344] px-3 py-1 text-xs font-semibold tracking-wider break-words text-[#222] uppercase"
               >
                 {item.category}
               </p>
