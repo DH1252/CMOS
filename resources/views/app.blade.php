@@ -75,15 +75,16 @@
             /* Landing page / TALING design tokens — injected from server-side theme settings */
             @layer base {
                 [data-theme="public"] {
-                    --taling-purple: var(--brand-primary);
-                    --taling-yellow: #eeb74a;
+                    --taling-purple: #2a0078;
+                    --taling-yellow: #ffd344;
+                    --taling-orange: #ff7a1a;
                     --taling-white: #fffaf0;
                     --taling-ink: #120622;
-                    --taling-surface: color-mix(in srgb, var(--brand-light-base) 5%, #ffffff);
-                    --taling-text: var(--text-strong);
-                    --taling-text-soft: var(--text-soft);
-                    --taling-text-muted: var(--text-muted);
-                    --taling-line: var(--line-soft);
+                    --taling-surface: #ffffff;
+                    --taling-text: #120622;
+                    --taling-text-soft: rgba(18, 6, 34, 0.74);
+                    --taling-text-muted: rgba(18, 6, 34, 0.55);
+                    --taling-line: rgba(18, 6, 34, 0.14);
                     --taling-font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
                 }
             }
