@@ -398,7 +398,7 @@
   <main>
     <!-- Hero Section -->
     <section
-      class="relative h-[896px] w-full overflow-hidden bg-gradient-to-br from-[#5d0077] to-[#2a0078]"
+      class="relative h-[calc(100dvh-74px)] min-h-[600px] w-full overflow-hidden bg-gradient-to-br from-[#5d0077] to-[#2a0078] md:h-[896px]"
     >
       <picture class="contents">
         <source srcset={`${assetBase}/hero-bg.avif`} type="image/avif" />
@@ -423,16 +423,35 @@
         />
       </picture>
 
-      <!-- Center Hero Graphic -->
-      <div class="hero-logo-container" style="position: absolute;">
-        <img
-          src={`${assetBase}/dept-hero-graphic.svg`}
-          alt="Department Hero Graphic"
-          class="animate-float-logo h-auto w-full drop-shadow-2xl"
-          style="width: 100%; max-width: var(--hero-max-width, 280px); height: auto;"
-          width="598"
-          height="748"
-        />
+      <!-- Center Hero Graphic, Title, and Glow Wrapper -->
+      <div
+        class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 pt-16 pb-24 md:block md:p-0"
+      >
+        <!-- Center Hero Graphic -->
+        <div class="hero-logo-container pointer-events-auto">
+          <img
+            src={`${assetBase}/dept-hero-graphic.svg`}
+            alt="Department Hero Graphic"
+            class="animate-float-logo h-auto w-full drop-shadow-2xl"
+            style="width: 100%; max-width: var(--hero-max-width, 280px); height: auto;"
+            width="598"
+            height="748"
+          />
+        </div>
+
+        <!-- Text Content -->
+        <div
+          class="animate-fade-up pointer-events-none relative flex w-full justify-center opacity-0 md:absolute md:inset-0"
+        >
+          <h1 class="hero-title">Departemen</h1>
+        </div>
+
+        <!-- Glow Line under title -->
+        <div class="hero-glow-wrapper">
+          <div
+            class="animate-fade-in-line h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[2px] delay-200"
+          ></div>
+        </div>
       </div>
 
       <!-- Left and Right Stars -->
@@ -452,20 +471,6 @@
         height="404"
         style="position: absolute;"
       />
-
-      <!-- Text Content -->
-      <div
-        class="animate-fade-up pointer-events-none absolute inset-0 opacity-0"
-      >
-        <h1 class="hero-title">Departemen</h1>
-      </div>
-
-      <!-- Glow Line under title -->
-      <div class="hero-glow-wrapper" style="position: absolute;">
-        <div
-          class="animate-fade-in-line h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[2px] delay-200"
-        ></div>
-      </div>
 
       <!-- Slogan Bottom Left -->
       <div
@@ -758,13 +763,11 @@
   }
 
   .hero-logo-container {
-    position: absolute;
-    top: 120px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: relative;
     width: 100%;
-    max-width: 280px;
-    --hero-max-width: 280px;
+    max-width: 260px;
+    --hero-max-width: 260px;
+    margin: 0 auto;
   }
 
   @media (min-width: 768px) {
@@ -779,13 +782,11 @@
   }
 
   .hero-glow-wrapper {
-    position: absolute;
-    top: 623px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: relative;
     width: 100%;
-    max-width: 280px;
-    height: 22px;
+    max-width: 240px;
+    height: 12px;
+    margin: 0 auto;
   }
 
   @media (min-width: 768px) {
@@ -793,6 +794,7 @@
       top: calc(50% - 22px / 2 + 185px);
       width: 534px;
       left: calc(50% - 534px / 2 + 44px);
+      height: 22px;
       transform: none;
       max-width: none;
     }
@@ -815,17 +817,15 @@
   }
 
   .hero-title {
-    position: absolute;
-    width: 280px;
+    position: relative;
+    width: 100%;
+    max-width: 280px;
     height: auto;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 504px;
 
     font-family: "The Seasons", "Playfair Display", Georgia, serif;
     font-style: normal;
     font-weight: 300;
-    font-size: 3rem;
+    font-size: 2.75rem;
     line-height: 1.2;
     text-align: center;
 
