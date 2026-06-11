@@ -298,39 +298,97 @@
     // Dynamically load GSAP for SSR safety
     import("gsap").then(async ({ gsap }) => {
       const { DrawSVGPlugin } = await import("gsap/DrawSVGPlugin");
-      gsap.registerPlugin(DrawSVGPlugin);
+      const { MorphSVGPlugin } = await import("gsap/MorphSVGPlugin");
+      gsap.registerPlugin(DrawSVGPlugin, MorphSVGPlugin);
       gsapInstance = gsap;
 
       if (graphicEl) {
-        const paths = graphicEl.querySelectorAll("path");
-        const tl = gsap.timeline({
-          defaults: { ease: "power2.out" },
-          onComplete: () => {
-            deptStrokeColor = "transparent";
-            deptStrokeWidth = "0";
-            graphicLoaded = true;
-          },
-        });
+        const paths = Array.from(graphicEl.querySelectorAll("path"));
+        const emblemPaths = paths.slice(0, 8);
+        const textPaths = paths.slice(8);
+        const isFromLanding =
+          typeof window !== "undefined" && window.__lastPathname === "/";
 
-        // 1. Draw outline of logo paths
-        tl.fromTo(
-          paths,
-          { drawSVG: "0%" },
-          { drawSVG: "100%", duration: 1.5, stagger: 0.04 },
-        );
+        if (isFromLanding) {
+          // --- MORPH ANIMATION (when navigating from Landing Page) ---
+          // 1. Instantly set fill opacity to 1 and remove outline stroke settings
+          deptFillOpacity = "1";
+          deptStrokeColor = "transparent";
+          deptStrokeWidth = "0";
+          graphicLoaded = true;
 
-        // 2. Fade in colored fills
-        tl.to(
-          { val: 0 },
-          {
-            val: 1,
-            duration: 0.6,
-            onUpdate: function () {
-              deptFillOpacity = this.targets()[0].val.toString();
+          // Define landing page logo mark path coordinates (starting shapes)
+          const logoMarkPaths = [
+            "M18.36 14.677c-5.137 2.564-8.573 5.564-9.706 7.762-.986 1.91-.899 3.566-.899 3.566.018.297.096 1.23.559 2.224.968 2.023 2.93 2.913 3.976 3.393 5.032 2.284 13.317.052 14.12-.175 0 1.343 0 2.695-.01 4.046 0 .053.01.35.262.594.244.226.55.218.602.209.828-.096 1.674-.21 2.537-.331a64 64 0 0 0 5.826-1.178q.013.892.157 1.954c.113.854.288 1.622.47 2.293-3.296.62-13.83 2.337-22.63-.663-5.616-1.936-7.587-4.752-8.092-5.546-.506-.785-1.404-2.198-1.518-4.186-.235-3.767 2.52-6.619 3.863-8.014 1.605-1.657 3.175-2.555 4.753-3.462a29 29 0 0 1 5.73-2.486",
+            "M28.005 31.09v3.854c5.084-.863 6.898-1.308 7.282-1.526.017-.017.392-.236.88-.262.27-.008.402.044.471.096.201.122.288.34.34.54.314 1.16.724 4.771.75 4.99a87.8 87.8 0 0 0 19.727-8.05 87.5 87.5 0 0 0 18.497-13.788c-.68.062-1.396.149-2.128.262-2.11.34-3.96.89-5.512 1.474a102 102 0 0 1-10.848 7.343 103 103 0 0 1-8.782 4.613c-1.055-.62-2.12-1.238-3.175-1.857l9.497-6.01-4.107-2.877c-1.064.637-2.573 1.552-4.413 2.599-3.619 2.067-6.497 3.715-10.116 5.372a80 80 0 0 1-8.363 3.227",
+            "M41.74 20.18c.933.636 1.849 1.282 2.782 1.918a84 84 0 0 1 7.883-4.456 94 94 0 0 1 4.579-2.11.7.7 0 0 1 .261-.035.68.68 0 0 1 .428.174c.453.314.907.628 1.36.95.052.044.078.105.07.158-.009.052-.053.078-.061.096a2601 2601 0 0 1-5.093 3.035c1.003.671 1.997 1.334 2.982 2.005a52 52 0 0 1 5.172-2.782 49 49 0 0 1 5.354-2.119c2.067-.706 3.733-1.264 6.035-1.622a27 27 0 0 1 2.808-.296 14.5 14.5 0 0 1 1.692-3.418 21 21 0 0 0-4.657.156c-.75.105-1.456.244-2.093.41-.113.017-.349.052-.488-.07-.166-.157-.079-.47-.053-.619.218-.898 2.146-4.134 2.468-4.666a64 64 0 0 0-9.444 2.146c-6.907 2.162-12.035 5.11-16.43 7.674a119 119 0 0 0-5.555 3.47",
+            "M74.975 6.602-2.163 3.924a22.9 22.9 0 0 1 6.846-.026.3.3 0 0 1 .183.122c.105.13.044.296.035.314-.393.776-.794 1.552-1.186 2.328 3.488-.13 6.61 1.36 7.997 3.96.741 1.386.82 2.781.767 3.688h6.436c.035-1.3-.078-3.75-1.378-6.4-.279-.576-2.128-4.248-6.331-6.35-2.625-1.325-5.084-1.473-7.168-1.622a25.5 25.5 0 0 0-4.038.062",
+            "M63.995 29.747c1.692 1.046 4.483 2.406 8.11 2.73 1.666.147 6.01.522 10.038-2.129.933-.61 3.026-2.032 4.308-4.761.593-1.265.829-2.407.933-3.21h6.419a16.8 16.8 0 0 1-1.239 4.806c-2.843 6.688-9.278 9.47-11.441 10.412-8.224 3.567-15.855 1.526-18.532.785a31 31 0 0 1-7.822-3.462 37 37 0 0 0 3.4-1.5 36.6 36.6 0 0 0 5.826-3.671",
+            "M32.104 41.075a64 64 0 0 0 2.145-.218c6.907-.864 12.915-3.035 17.965-5.634 1.168.733 2.346 1.474 3.514 2.206-5.006 2.94-10.003 5.878-15.008 8.817-2.87-1.727-5.747-3.445-8.616-5.171",
+            "M21.01 31.002V11.354L40.85 0l16.57 9.55-6.872 3.819-9.706-5.765-13.509 7.901.027 13.657z",
+            "M29.897 28.473V16.63l10.91-6.41c2.424 1.43 4.84 2.861 7.264 4.291a59 59 0 0 0-3.732 2.242 56 56 0 0 0-4.988 3.68c1.125.81 2.25 1.622 3.366 2.433a78 78 0 0 1-7.526 3.619 77 77 0 0 1-5.294 1.988",
+          ];
+
+          // Store original d attributes dynamically in data-original-d before changing them
+          emblemPaths.forEach((path, i) => {
+            const originalD = path.getAttribute("d") || "";
+            path.setAttribute("data-original-d", originalD);
+            path.setAttribute("d", logoMarkPaths[i]);
+          });
+
+          // Set text paths to opacity 0 initially so they fade in during the morph
+          gsap.set(textPaths, { opacity: 0 });
+
+          const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+          // Morph paths to their original shapes
+          tl.to(emblemPaths, {
+            morphSVG: (i, target) =>
+              target.getAttribute("data-original-d") || "",
+            duration: 1.0,
+            stagger: 0.03,
+          });
+
+          // Smoothly fade in the text paths
+          tl.to(
+            textPaths,
+            {
+              opacity: 1,
+              duration: 0.6,
             },
-          },
-          "-=0.5",
-        );
+            "-=0.6",
+          );
+        } else {
+          // --- DRAW OUTLINE ANIMATION (on initial page load / direct visit) ---
+          const tl = gsap.timeline({
+            defaults: { ease: "power2.out" },
+            onComplete: () => {
+              deptStrokeColor = "transparent";
+              deptStrokeWidth = "0";
+              graphicLoaded = true;
+            },
+          });
+
+          // 1. Draw outline of logo paths
+          tl.fromTo(
+            paths,
+            { drawSVG: "0%" },
+            { drawSVG: "100%", duration: 1.5, stagger: 0.04 },
+          );
+
+          // 2. Fade in colored fills
+          tl.to(
+            { val: 0 },
+            {
+              val: 1,
+              duration: 0.6,
+              onUpdate: function () {
+                deptFillOpacity = this.targets()[0].val.toString();
+              },
+            },
+            "-=0.5",
+          );
+        }
       }
     });
 

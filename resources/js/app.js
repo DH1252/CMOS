@@ -410,6 +410,12 @@ if (typeof document !== "undefined") {
     }
   });
 
+  router.on("before", () => {
+    if (typeof window !== "undefined") {
+      window.__lastPathname = window.location.pathname;
+    }
+  });
+
   router.on("navigate", (event) => {
     capturePostHogPageview(event?.detail?.page || null);
     if (resolveTransition) {
