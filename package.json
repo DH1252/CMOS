@@ -43,6 +43,7 @@
         "@humanspeak/svelte-motion": "^0.2.0",
         "@inertiajs/svelte": "^3.0.3",
         "@tinymce/tinymce-svelte": "^4.0.1",
+        "gsap": "^3.15.0",
         "image-to-ascii": "^3.3.0",
         "laravel-echo": "^2.2.4",
         "lighthouse": "^13.1.0",
