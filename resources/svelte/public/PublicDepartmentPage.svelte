@@ -341,12 +341,17 @@
 
           const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-          // Morph paths to their original shapes
-          tl.to(emblemPaths, {
-            morphSVG: (i, target) =>
-              target.getAttribute("data-original-d") || "",
-            duration: 1.0,
-            stagger: 0.03,
+          // Morph paths to their original shapes in a loop to ensure 100% robustness
+          emblemPaths.forEach((path, i) => {
+            const originalD = path.getAttribute("data-original-d") || "";
+            tl.to(
+              path,
+              {
+                morphSVG: originalD,
+                duration: 1.0,
+              },
+              i * 0.03, // manual stagger offset
+            );
           });
 
           // Smoothly fade in the text paths
@@ -376,14 +381,15 @@
             { drawSVG: "100%", duration: 1.5, stagger: 0.04 },
           );
 
-          // 2. Fade in colored fills
+          // 2. Fade in colored fills without using this.targets()
+          let fillObj = { val: 0 };
           tl.to(
-            { val: 0 },
+            fillObj,
             {
               val: 1,
               duration: 0.6,
-              onUpdate: function () {
-                deptFillOpacity = this.targets()[0].val.toString();
+              onUpdate: () => {
+                deptFillOpacity = fillObj.val.toString();
               },
             },
             "-=0.5",
