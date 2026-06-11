@@ -5,6 +5,8 @@
 <svg
   class={className}
   viewBox="0 0 75.4899 69.4054"
+  width="75"
+  height="69"
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
   aria-hidden={title === ""}
