@@ -364,14 +364,48 @@ if (typeof document !== "undefined") {
     });
   }
 
+  let navigationDirection = "forward";
+
+  if (typeof window !== "undefined" && window.navigation) {
+    window.navigation.addEventListener("navigate", (event) => {
+      const destinationIndex = event.destination?.index;
+      const currentIndex = window.navigation.currentEntry?.index;
+
+      if (destinationIndex !== undefined && currentIndex !== undefined) {
+        if (destinationIndex < currentIndex) {
+          navigationDirection = "backward";
+        } else {
+          navigationDirection = "forward";
+        }
+      } else {
+        navigationDirection = "forward";
+      }
+    });
+  }
+
   let resolveTransition = null;
 
   router.on("success", () => {
     if (document.startViewTransition) {
-      document.startViewTransition(() => {
+      document.documentElement.classList.remove(
+        "back-transition",
+        "forward-transition",
+      );
+      document.documentElement.classList.add(
+        `${navigationDirection}-transition`,
+      );
+
+      const transition = document.startViewTransition(() => {
         return new Promise((resolve) => {
           resolveTransition = resolve;
         });
+      });
+
+      transition.finished.then(() => {
+        document.documentElement.classList.remove(
+          "back-transition",
+          "forward-transition",
+        );
       });
     }
   });
