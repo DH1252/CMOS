@@ -185,10 +185,10 @@
   const scaleFactor = $derived(
     Math.min(orbitWrapperWidth / 1440, orbitWrapperHeight / 900),
   );
-
   let sectionEl = $state(null);
   let scrollProgress = $state(0);
-
+  let graphicLoaded = $state(false);
+  let graphicEl = $state(null);
   const headerOpacity = $derived(easeOutQuart(scrollProgress));
   const headerTranslateY = $derived((1 - easeOutQuart(scrollProgress)) * 30);
 
@@ -285,6 +285,10 @@
 
     // Initial measurement
     updateOrbitDimensions();
+
+    if (graphicEl?.complete) {
+      graphicLoaded = true;
+    }
 
     const handleResize = () => {
       updateOrbitDimensions();
@@ -456,8 +460,19 @@
       <!-- Center Hero Graphic, Title, and Glow Wrapper -->
       <div class="hero-content-wrapper">
         <!-- Center Hero Graphic -->
-        <div class="hero-logo-container">
+        <div
+          class="hero-logo-container transition-opacity duration-300 {graphicLoaded
+            ? 'opacity-100'
+            : 'opacity-0'}"
+          style="view-transition-name: hero-logo; {!graphicLoaded
+            ? 'opacity: 0;'
+            : ''}"
+        >
           <img
+            bind:this={graphicEl}
+            onload={() => {
+              graphicLoaded = true;
+            }}
             src={`${assetBase}/dept-hero-graphic.svg`}
             alt="Department Hero Graphic"
             class="animate-float-logo h-auto w-full drop-shadow-2xl"

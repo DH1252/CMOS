@@ -54,6 +54,9 @@
       class="hero-logo-container {logoLoaded
         ? 'animate-fade-scale'
         : 'opacity-0'}"
+      style="view-transition-name: hero-logo; {!logoLoaded
+        ? 'opacity: 0;'
+        : ''}"
     >
       <div class="animate-float-logo flex w-full flex-col items-center">
         <img
