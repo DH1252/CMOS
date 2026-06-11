@@ -53,9 +53,15 @@
 />
 
 <nav
+  style="view-transition-name: main-navbar;"
   class="relative z-50 flex h-[74px] w-full items-center justify-between bg-white px-6 py-[10px] shadow-sm md:px-[60px] lg:px-[139px]"
 >
-  <a href={homeUrl} class="h-[69px] w-[75px] flex-shrink-0" aria-label="Home">
+  <a
+    href={homeUrl}
+    style="view-transition-name: navbar-logo;"
+    class="h-[69px] w-[75px] flex-shrink-0"
+    aria-label="Home"
+  >
     <TalingNavbarLogo />
   </a>
 

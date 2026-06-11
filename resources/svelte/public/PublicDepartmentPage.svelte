@@ -163,8 +163,14 @@
   let isMouseOver = $state(false);
 
   // Responsive scaling factor based on the remaining space in Orbit Wrapper (native size 1440x900)
-  let orbitWrapperWidth = $state(1440);
-  let orbitWrapperHeight = $state(900);
+  // Initialize with browser window dimensions to prevent initial layout flash on mount
+  const isBrowser = typeof window !== "undefined";
+  let orbitWrapperWidth = $state(
+    isBrowser ? (window.innerWidth < 1024 ? window.innerWidth : 1440) : 1440,
+  );
+  let orbitWrapperHeight = $state(
+    isBrowser ? (window.innerWidth < 1024 ? 400 : 900) : 900,
+  );
   let orbitWrapperEl = $state(null);
 
   function updateOrbitDimensions() {
