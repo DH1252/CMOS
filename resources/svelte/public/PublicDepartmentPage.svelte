@@ -1,6 +1,7 @@
 <script>
   import Navbar from "../components/landing/Navbar.svelte";
   import Footer from "../components/landing/Footer.svelte";
+  import TalingDeptHeroGraphic from "../components/landing/TalingDeptHeroGraphic.svelte";
   import { onMount } from "svelte";
   import { router } from "@inertiajs/svelte";
   import { fade, scale } from "svelte/transition";
@@ -189,6 +190,11 @@
   let scrollProgress = $state(0);
   let graphicLoaded = $state(false);
   let graphicEl = $state(null);
+  let deptStrokeColor = $state("white");
+  let deptStrokeWidth = $state("1.2");
+  let deptFillOpacity = $state("0");
+  let outerOrbitEl = $state(null);
+  let innerOrbitEl = $state(null);
   const headerOpacity = $derived(easeOutQuart(scrollProgress));
   const headerTranslateY = $derived((1 - easeOutQuart(scrollProgress)) * 30);
 
@@ -286,9 +292,47 @@
     // Initial measurement
     updateOrbitDimensions();
 
-    if (graphicEl?.complete) {
-      graphicLoaded = true;
-    }
+    let gsapInstance;
+    let orbitsDrawn = false;
+
+    // Dynamically load GSAP for SSR safety
+    import("gsap").then(async ({ gsap }) => {
+      const { DrawSVGPlugin } = await import("gsap/DrawSVGPlugin");
+      gsap.registerPlugin(DrawSVGPlugin);
+      gsapInstance = gsap;
+
+      if (graphicEl) {
+        const paths = graphicEl.querySelectorAll("path");
+        const tl = gsap.timeline({
+          defaults: { ease: "power2.out" },
+          onComplete: () => {
+            deptStrokeColor = "transparent";
+            deptStrokeWidth = "0";
+            graphicLoaded = true;
+          },
+        });
+
+        // 1. Draw outline of logo paths
+        tl.fromTo(
+          paths,
+          { drawSVG: "0%" },
+          { drawSVG: "100%", duration: 1.5, stagger: 0.04 },
+        );
+
+        // 2. Fade in colored fills
+        tl.to(
+          { val: 0 },
+          {
+            val: 1,
+            duration: 0.6,
+            onUpdate: function () {
+              deptFillOpacity = this.targets()[0].val.toString();
+            },
+          },
+          "-=0.5",
+        );
+      }
+    });
 
     const handleResize = () => {
       updateOrbitDimensions();
@@ -310,6 +354,28 @@
                   passive: true,
                 });
                 handleScroll();
+              }
+              // Draw orbit paths once when the section enters viewport
+              if (
+                !orbitsDrawn &&
+                outerOrbitEl &&
+                innerOrbitEl &&
+                gsapInstance
+              ) {
+                orbitsDrawn = true;
+                const tl = gsapInstance.timeline({
+                  defaults: { ease: "power2.out" },
+                });
+                tl.fromTo(
+                  outerOrbitEl,
+                  { drawSVG: "0%", opacity: 0 },
+                  { drawSVG: "100%", opacity: 1, duration: 1.5 },
+                ).fromTo(
+                  innerOrbitEl,
+                  { drawSVG: "0%", opacity: 0 },
+                  { drawSVG: "100%", opacity: 1, duration: 1.2 },
+                  "-=0.8",
+                );
               }
             } else {
               if (isTrackingScroll) {
@@ -468,17 +534,13 @@
             ? 'opacity: 0;'
             : ''}"
         >
-          <img
-            bind:this={graphicEl}
-            onload={() => {
-              graphicLoaded = true;
-            }}
-            src={`${assetBase}/dept-hero-graphic.svg`}
-            alt="Department Hero Graphic"
+          <TalingDeptHeroGraphic
+            bindRef={graphicEl}
+            stroke={deptStrokeColor}
+            strokeWidth={deptStrokeWidth}
+            fillOpacity={deptFillOpacity}
             class="animate-float-logo h-auto w-full drop-shadow-2xl"
             style="width: 100%; max-width: var(--hero-max-width, 280px); height: auto;"
-            width="598"
-            height="748"
           />
         </div>
 
@@ -606,14 +668,43 @@
             >
               <div class="orbit-system">
                 <!-- Orbit Rings (Perfect Ellipses centered at 720, 450) -->
-                <div
-                  class="orbit-ring-outer {selectedDeptId ? 'blurred-out' : ''}"
-                  style="opacity: {outerRingOpacity};"
-                ></div>
-                <div
-                  class="orbit-ring-inner {selectedDeptId ? 'blurred-out' : ''}"
-                  style="opacity: {innerRingOpacity};"
-                ></div>
+                <svg
+                  class="pointer-events-none absolute inset-0 h-[900px] w-[1440px] overflow-visible"
+                  viewBox="0 0 1440 900"
+                >
+                  <!-- Outer Orbit -->
+                  <ellipse
+                    bind:this={outerOrbitEl}
+                    cx="720"
+                    cy="450"
+                    rx="630"
+                    ry="380"
+                    transform="rotate(-28, 720, 450)"
+                    stroke="rgba(255, 255, 255, 0.22)"
+                    stroke-width="1.5"
+                    fill="none"
+                    class="orbit-ring-outer-svg {selectedDeptId
+                      ? 'blurred-out'
+                      : ''}"
+                    style="opacity: {outerRingOpacity}; transition: filter 0.4s ease, opacity 0.4s ease;"
+                  />
+                  <!-- Inner Orbit -->
+                  <ellipse
+                    bind:this={innerOrbitEl}
+                    cx="720"
+                    cy="450"
+                    rx="420"
+                    ry="240"
+                    transform="rotate(-28, 720, 450)"
+                    stroke="rgba(255, 211, 68, 0.28)"
+                    stroke-width="1.2"
+                    fill="none"
+                    class="orbit-ring-inner-svg {selectedDeptId
+                      ? 'blurred-out'
+                      : ''}"
+                    style="opacity: {innerRingOpacity}; transition: filter 0.4s ease, opacity 0.4s ease;"
+                  />
+                </svg>
 
                 <!-- Center Core Badge with Sun Glow -->
                 <div
@@ -1246,8 +1337,8 @@
 
   /* Focus and Blur Effects */
   .orbit-badge-btn.blurred-out,
-  .orbit-ring-outer.blurred-out,
-  .orbit-ring-inner.blurred-out,
+  .orbit-ring-outer-svg.blurred-out,
+  .orbit-ring-inner-svg.blurred-out,
   .orbit-core-ring.blurred-out,
   .orbit-core-badge.blurred-out {
     filter: blur(4px);

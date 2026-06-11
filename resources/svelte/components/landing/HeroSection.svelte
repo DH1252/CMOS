@@ -1,22 +1,66 @@
 <script>
   import { onMount } from "svelte";
+  import TalingLogoMark from "./TalingLogoMark.svelte";
+  import TalingTextLogo from "./TalingTextLogo.svelte";
 
   let { assetBase = "/images/figma-taling" } = $props();
-
-  let logoMarkLoaded = $state(false);
-  let logoTextLoaded = $state(false);
-  const logoLoaded = $derived(logoMarkLoaded && logoTextLoaded);
 
   let logoMarkEl = $state(null);
   let logoTextEl = $state(null);
 
-  onMount(() => {
-    if (logoMarkEl?.complete) {
-      logoMarkLoaded = true;
-    }
-    if (logoTextEl?.complete) {
-      logoTextLoaded = true;
-    }
+  // Bind values for drawing animation
+  let strokeColor = $state("white");
+  let strokeWidth = $state("1.2");
+  let fillOpacity = $state("0");
+
+  onMount(async () => {
+    if (typeof window === "undefined") return;
+
+    // Dynamically import GSAP to prevent SSR issues
+    const { gsap } = await import("gsap");
+    const { DrawSVGPlugin } = await import("gsap/DrawSVGPlugin");
+    gsap.registerPlugin(DrawSVGPlugin);
+
+    if (!logoMarkEl || !logoTextEl) return;
+
+    const logoMarkPaths = logoMarkEl.querySelectorAll("path");
+    const logoTextPaths = logoTextEl.querySelectorAll("path");
+
+    const tl = gsap.timeline({
+      defaults: { ease: "power2.out" },
+      onComplete: () => {
+        strokeColor = "transparent";
+        strokeWidth = "0";
+      },
+    });
+
+    // 1. Draw outline of logo mark
+    tl.fromTo(
+      logoMarkPaths,
+      { drawSVG: "0%" },
+      { drawSVG: "100%", duration: 1.2, stagger: 0.05 },
+    );
+
+    // 2. Draw outline of text logo
+    tl.fromTo(
+      logoTextPaths,
+      { drawSVG: "0%" },
+      { drawSVG: "100%", duration: 1.0, stagger: 0.02 },
+      "-=0.6",
+    );
+
+    // 3. Smoothly fade in fills
+    tl.to(
+      { val: 0 },
+      {
+        val: 1,
+        duration: 0.6,
+        onUpdate: function () {
+          fillOpacity = this.targets()[0].val.toString();
+        },
+      },
+      "-=0.4",
+    );
   });
 </script>
 
@@ -50,38 +94,21 @@
   <!-- Center Hero Graphic, Title, and Glow Wrapper -->
   <div class="hero-content-wrapper">
     <!-- Center Hero Graphic -->
-    <div
-      class="hero-logo-container {logoLoaded
-        ? 'animate-fade-scale'
-        : 'opacity-0'}"
-      style="view-transition-name: hero-logo; {!logoLoaded
-        ? 'opacity: 0;'
-        : ''}"
-    >
+    <div class="hero-logo-container" style="view-transition-name: hero-logo;">
       <div class="animate-float-logo flex w-full flex-col items-center">
-        <img
-          bind:this={logoMarkEl}
-          onload={() => {
-            logoMarkLoaded = true;
-          }}
-          src={`${assetBase}/logo-mark.svg`}
-          alt="Logo Mark"
+        <TalingLogoMark
+          bindRef={logoMarkEl}
+          stroke={strokeColor}
+          {strokeWidth}
+          {fillOpacity}
           class="h-auto w-full drop-shadow-xl"
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
         />
-        <img
-          bind:this={logoTextEl}
-          onload={() => {
-            logoTextLoaded = true;
-          }}
-          src={`${assetBase}/text-logo.svg`}
-          alt="Logo Text"
+        <TalingTextLogo
+          bindRef={logoTextEl}
+          stroke={strokeColor}
+          {strokeWidth}
+          {fillOpacity}
           class="-mt-3 h-auto w-[83%] max-w-[330px] drop-shadow-md"
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
         />
       </div>
     </div>
