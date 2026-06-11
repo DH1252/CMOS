@@ -50,13 +50,14 @@
     );
 
     // 3. Smoothly fade in fills
+    let fillObj = { val: 0 };
     tl.to(
-      { val: 0 },
+      fillObj,
       {
         val: 1,
         duration: 0.6,
-        onUpdate: function () {
-          fillOpacity = this.targets()[0].val.toString();
+        onUpdate: () => {
+          fillOpacity = fillObj.val.toString();
         },
       },
       "-=0.4",
