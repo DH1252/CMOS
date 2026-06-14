@@ -427,38 +427,39 @@
 </script>
 
 <section
-  class="relative h-[896px] w-full overflow-hidden bg-gradient-to-br from-[#5d0077] to-[#2a0078] {skipEntry
+  class="relative isolate h-[896px] w-full overflow-hidden {skipEntry
     ? 'skip-animations'
     : ''}"
 >
-  <picture class="contents">
-    <source srcset={`${assetBase}/hero-bg.avif`} type="image/avif" />
-    <source srcset={`${assetBase}/hero-bg.webp`} type="image/webp" />
-    <img
-      class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay"
-      src={`${assetBase}/hero-bg.png`}
-      alt=""
-      loading="eager"
-      decoding="async"
-      fetchpriority="high"
-      style="view-transition-name: hero-bg-texture;"
-    />
-  </picture>
-  <picture class="contents">
-    <source srcset={`${assetBase}/botanical.avif`} type="image/avif" />
-    <source srcset={`${assetBase}/botanical.webp`} type="image/webp" />
-    <img
-      class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
-      src={`${assetBase}/botanical.png`}
-      alt=""
-      width="1600"
-      height="1066"
-      loading="eager"
-      decoding="async"
-      fetchpriority="high"
-      style="view-transition-name: hero-botanical; animation-delay: {botanicalDelay};"
-    />
-  </picture>
+  <div class="absolute inset-0 bg-gradient-to-br from-[#5d0077] to-[#2a0078] -z-10" style="view-transition-name: hero-background;">
+    <picture class="contents">
+      <source srcset={`${assetBase}/hero-bg.avif`} type="image/avif" />
+      <source srcset={`${assetBase}/hero-bg.webp`} type="image/webp" />
+      <img
+        class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay"
+        src={`${assetBase}/hero-bg.png`}
+        alt=""
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+      />
+    </picture>
+    <picture class="contents">
+      <source srcset={`${assetBase}/botanical.avif`} type="image/avif" />
+      <source srcset={`${assetBase}/botanical.webp`} type="image/webp" />
+      <img
+        class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
+        src={`${assetBase}/botanical.png`}
+        alt=""
+        width="1600"
+        height="1066"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+        style="animation-delay: {botanicalDelay};"
+      />
+    </picture>
+  </div>
 
   <!-- Center Hero Graphic, Title, and Glow Wrapper -->
   <div class="hero-content-wrapper">
