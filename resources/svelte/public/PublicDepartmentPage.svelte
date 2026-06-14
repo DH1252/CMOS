@@ -18,10 +18,20 @@
 
   const assetBase = "/images/figma-taling";
 
-  const now = typeof Date !== "undefined" ? Date.now() : 0;
-  const largeStarDelay = `-${(now % 8000) / 1000}s`;
-  const smallStarDelay = `-${(now % 10000) / 1000}s`;
-  const botanicalDelay = `-${(now % 25000) / 1000}s`;
+  const getElapsedDelay = (periodMs) => {
+    if (typeof window !== "undefined") {
+      if (!window.__initialAnimationTimestamp) {
+        window.__initialAnimationTimestamp = Date.now();
+      }
+      const elapsedMs = Date.now() - window.__initialAnimationTimestamp;
+      return `-${(elapsedMs % periodMs) / 1000}s`;
+    }
+    return "0s";
+  };
+
+  const largeStarDelay = getElapsedDelay(8000);
+  const smallStarDelay = getElapsedDelay(10000);
+  const botanicalDelay = getElapsedDelay(25000);
 
   // Hardcoded Figma Departments with placeholder texts
   const departments = [
@@ -759,7 +769,10 @@
           class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay"
           src={`${assetBase}/hero-bg.png`}
           alt=""
-          style="position: absolute; view-transition-name: hero-bg-texture;"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+          style="view-transition-name: hero-bg-texture;"
         />
       </picture>
       <picture class="contents">
@@ -769,9 +782,12 @@
           class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
           src={`${assetBase}/botanical.png`}
           alt=""
-          style="position: absolute; view-transition-name: hero-botanical; animation-delay: {botanicalDelay};"
           width="1600"
           height="1066"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+          style="view-transition-name: hero-botanical; animation-delay: {botanicalDelay};"
         />
       </picture>
 

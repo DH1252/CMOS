@@ -30,10 +30,20 @@
 
   let logoLoaded = $state(isFromDepartment || skipEntry ? true : false);
 
-  const now = typeof Date !== "undefined" ? Date.now() : 0;
-  const largeStarDelay = `-${(now % 8000) / 1000}s`;
-  const smallStarDelay = `-${(now % 10000) / 1000}s`;
-  const botanicalDelay = `-${(now % 25000) / 1000}s`;
+  const getElapsedDelay = (periodMs) => {
+    if (typeof window !== "undefined") {
+      if (!window.__initialAnimationTimestamp) {
+        window.__initialAnimationTimestamp = Date.now();
+      }
+      const elapsedMs = Date.now() - window.__initialAnimationTimestamp;
+      return `-${(elapsedMs % periodMs) / 1000}s`;
+    }
+    return "0s";
+  };
+
+  const largeStarDelay = getElapsedDelay(8000);
+  const smallStarDelay = getElapsedDelay(10000);
+  const botanicalDelay = getElapsedDelay(25000);
 
   // Bind values for drawing animation
   let strokeColor = $state(isFromDepartment ? "transparent" : "white");
@@ -443,6 +453,9 @@
       alt=""
       width="1600"
       height="1066"
+      loading="eager"
+      decoding="async"
+      fetchpriority="high"
       style="view-transition-name: hero-botanical; animation-delay: {botanicalDelay};"
     />
   </picture>
