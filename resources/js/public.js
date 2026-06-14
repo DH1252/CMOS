@@ -197,6 +197,27 @@ const bootPublicInertiaApp = () => {
       page: initialInertiaPage,
       resolve: resolvePublicPage,
       layout: () => undefined,
+      defaults: {
+        visitOptions: () => {
+          if (typeof document !== "undefined" && document.startViewTransition) {
+            return {
+              viewTransition: (transition) => {
+                transition.ready.catch(() => {});
+                transition.updateCallbackDone.catch(() => {});
+                transition.finished
+                  .then(() => {
+                    document.documentElement.classList.remove(
+                      "back-transition",
+                      "forward-transition",
+                    );
+                  })
+                  .catch(() => {});
+              },
+            };
+          }
+          return {};
+        },
+      },
       setup({ el, App, props }) {
         if (el?.hasAttribute("data-server-rendered")) {
           hydrate(App, { target: el, props });
@@ -209,36 +230,6 @@ const bootPublicInertiaApp = () => {
   }
 
   return publicAppBootPromise;
-};
-
-const deferPublicAppBoot = () => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const boot = () => {
-    void bootPublicInertiaApp().catch((error) => {
-      console.error("Failed to boot public Inertia app.", error);
-    });
-  };
-
-  const schedule = () => {
-    const idleCallback =
-      window.requestIdleCallback ||
-      ((callback) => window.setTimeout(callback, 0));
-
-    idleCallback(boot, { timeout: 750 });
-  };
-
-  if (
-    document.readyState === "complete" ||
-    document.readyState === "interactive"
-  ) {
-    schedule();
-    return;
-  }
-
-  window.addEventListener("DOMContentLoaded", schedule, { once: true });
 };
 
 if (typeof document !== "undefined" && initialInertiaPage) {
@@ -264,5 +255,48 @@ if (typeof document !== "undefined" && initialInertiaPage) {
     deferBootstrapForPublic(initialInertiaPage);
   }
 
-  deferPublicAppBoot();
+  void bootPublicInertiaApp().catch((error) => {
+    console.error("Failed to boot public Inertia app.", error);
+  });
+
+  let navigationDirection = "forward";
+
+  if (typeof window !== "undefined" && window.navigation) {
+    window.navigation.addEventListener("navigate", (event) => {
+      const destinationIndex = event.destination?.index;
+      const currentIndex = window.navigation.currentEntry?.index;
+
+      if (destinationIndex !== undefined && currentIndex !== undefined) {
+        if (destinationIndex < currentIndex) {
+          navigationDirection = "backward";
+        } else {
+          navigationDirection = "forward";
+        }
+      } else {
+        navigationDirection = "forward";
+      }
+    });
+  }
+
+  router.on("success", () => {
+    if (document.startViewTransition) {
+      document.documentElement.classList.remove(
+        "back-transition",
+        "forward-transition",
+      );
+      document.documentElement.classList.add(
+        `${navigationDirection}-transition`,
+      );
+    }
+  });
+
+  router.on("before", () => {
+    if (typeof window !== "undefined") {
+      window.__lastPathname = window.location.pathname;
+    }
+  });
+
+  router.on("navigate", (event) => {
+    capturePostHogPageview(event?.detail?.page || null);
+  });
 }

@@ -55,7 +55,13 @@ class HandleInertiaRequests extends Middleware
      */
     public function version(Request $request): ?string
     {
-        return parent::version($request);
+        if (file_exists(public_path('hot'))) {
+            return $this->rootView($request);
+        }
+
+        $parentVersion = parent::version($request);
+
+        return $parentVersion ? $parentVersion.':'.$this->rootView($request) : $this->rootView($request);
     }
 
     /**

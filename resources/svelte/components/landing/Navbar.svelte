@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from "svelte";
   import { ChevronDown } from "lucide-svelte";
   import { fly, slide } from "svelte/transition";
   import { cubicOut } from "svelte/easing";
@@ -9,6 +10,79 @@
   let openMenu = $state(null);
   let mobileMenuOpen = $state(false);
   let activeMobileSubmenu = $state(null);
+
+  // Navbar logo animation state
+  let logoEl = $state(null);
+  let strokeColor = $state(
+    typeof window !== "undefined" && window.__navbarLogoAnimated
+      ? "transparent"
+      : "currentColor",
+  );
+  let strokeWidth = $state(
+    typeof window !== "undefined" && window.__navbarLogoAnimated ? "0" : "1.2",
+  );
+  let fillOpacity = $state(
+    typeof window !== "undefined" && window.__navbarLogoAnimated ? "1" : "0",
+  );
+
+  onMount(async () => {
+    if (typeof window === "undefined") return;
+
+    if (window.__navbarLogoAnimated) {
+      strokeColor = "transparent";
+      strokeWidth = "0";
+      fillOpacity = "1";
+      return;
+    }
+
+    // Mark as animated so it only draws once per session
+    window.__navbarLogoAnimated = true;
+
+    // Dynamically import GSAP to prevent SSR issues
+    const { gsap } = await import("gsap");
+    const { DrawSVGPlugin } = await import("gsap/DrawSVGPlugin");
+    gsap.registerPlugin(DrawSVGPlugin);
+
+    // Wait if Svelte 5 bindings are not ready yet
+    if (!logoEl) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      if (!logoEl) return;
+    }
+
+    // Query only paths that are meant to be outlined (excluding path 2)
+    const paths = logoEl.querySelectorAll("path[stroke]");
+
+    const tl = gsap.timeline({
+      defaults: { ease: "power2.out" },
+      onComplete: () => {
+        strokeColor = "transparent";
+        strokeWidth = "0";
+      },
+    });
+
+    // 1. Draw outline of logo paths
+    tl.fromTo(
+      paths,
+      { drawSVG: "0%" },
+      { drawSVG: "100%", duration: 1.0, stagger: 0.05 },
+    );
+
+    // 2. Smoothly fade in fills and thin the strokes
+    let animObj = { fill: 0, strokeW: 1.2 };
+    tl.to(
+      animObj,
+      {
+        fill: 1,
+        strokeW: 0,
+        duration: 0.6,
+        onUpdate: () => {
+          fillOpacity = animObj.fill.toString();
+          strokeWidth = animObj.strokeW.toString();
+        },
+      },
+      "-=0.4",
+    );
+  });
 
   const toggleMenu = (label) => {
     openMenu = openMenu === label ? null : label;
@@ -62,7 +136,12 @@
     class="h-[69px] w-[75px] flex-shrink-0"
     aria-label="Home"
   >
-    <TalingNavbarLogo />
+    <TalingNavbarLogo
+      bind:bindRef={logoEl}
+      stroke={strokeColor}
+      {strokeWidth}
+      {fillOpacity}
+    />
   </a>
 
   <div

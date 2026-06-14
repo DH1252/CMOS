@@ -1,4 +1,5 @@
 <script>
+  import { inertiaEnhance } from "$lib/inertia-enhance.js";
   import { ArrowLeft } from "lucide-svelte";
   import brandLogo from "../images/logokabinet.png?enhanced&w=96;192";
   import heroPhoto from "../images/himatekkom.jpg?enhanced&w=720;1200;1600";
@@ -27,7 +28,7 @@
   <meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="coming-page">
+<div use:inertiaEnhance class="coming-page">
   <header class="coming-header">
     <div class="coming-header-inner">
       <a href={homeUrl} class="coming-brand" aria-label={organizationName}>

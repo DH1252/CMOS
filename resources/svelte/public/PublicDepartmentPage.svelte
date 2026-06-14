@@ -5,6 +5,7 @@
   import { onMount } from "svelte";
   import { router } from "@inertiajs/svelte";
   import { fade, scale } from "svelte/transition";
+  import { inertiaEnhance } from "../lib/inertia-enhance.js";
 
   let {
     organizationName = "HIMATEKKOM ITS",
@@ -16,6 +17,10 @@
   } = $props();
 
   const assetBase = "/images/figma-taling";
+
+  const now = typeof Date !== "undefined" ? Date.now() : 0;
+  const largeStarDelay = `-${(now % 8000) / 1000}s`;
+  const smallStarDelay = `-${(now % 10000) / 1000}s`;
 
   // Hardcoded Figma Departments with placeholder texts
   const departments = [
@@ -190,6 +195,9 @@
   let scrollProgress = $state(0);
   let graphicLoaded = $state(false);
   let graphicEl = $state(null);
+  let skipEntry = $state(
+    typeof window !== "undefined" && !!window.__skipEntryAnimation,
+  );
   let deptStrokeColor = $state("white");
   let deptStrokeWidth = $state("1.2");
   let deptFillOpacity = $state("0");
@@ -261,6 +269,158 @@
   let isTrackingScroll = false;
 
   onMount(() => {
+    // Reset bypass animation flag
+    window.__bypassExitAnimation = false;
+
+    window.playGlobalExitAnimation = (targetUrl, callback) => {
+      if (!isBrowser) {
+        callback();
+        return;
+      }
+      playExitAnimation(gsapInstance, targetUrl, callback);
+    };
+
+    function playExitAnimation(gsap, targetUrl, onCompleteCallback) {
+      const isTargetingLanding = targetUrl === "/";
+      const brandColors = [
+        "#ffd344",
+        "#4e00de",
+        "#ff7a1a",
+        "#2a0078",
+        "#ffd344",
+        "#5d0077",
+        "#5d0077",
+        "#ff7a1a",
+      ];
+
+      const tl = gsap.timeline({
+        defaults: { ease: "power3.inOut" },
+        onComplete: onCompleteCallback,
+      });
+
+      const titleEl = document.querySelector(".hero-title-container");
+      const glowEl = document.querySelector(".hero-glow-wrapper");
+      const orbitEl = document.querySelector(".orbit-system");
+      const sloganEl = document.querySelector(".animate-fade-left");
+
+      // Disable CSS animations to allow GSAP inline styles to take effect
+      if (titleEl) {
+        titleEl.style.opacity = "1";
+        titleEl.style.animation = "none";
+      }
+      if (glowEl) {
+        glowEl.style.opacity = "0.8";
+        glowEl.style.animation = "none";
+        const lineEl = glowEl.querySelector(".animate-fade-in-line");
+        if (lineEl) {
+          lineEl.classList.remove("animate-fade-in-line");
+        }
+      }
+      if (sloganEl) {
+        sloganEl.classList.remove("animate-fade-left", "delay-300");
+        sloganEl.style.opacity = "1";
+      }
+
+      // 1. Fade out title, glow, orbit system, slogan
+      if (titleEl) tl.to(titleEl, { opacity: 0, y: -30, duration: 0.8 }, 0);
+      if (glowEl) tl.to(glowEl, { opacity: 0, scaleX: 0.8, duration: 0.8 }, 0);
+      if (orbitEl) tl.to(orbitEl, { opacity: 0, scale: 0.9, duration: 0.8 }, 0);
+      if (sloganEl) tl.to(sloganEl, { opacity: 0, x: -30, duration: 0.8 }, 0);
+
+      if (graphicEl) {
+        const paths = Array.from(graphicEl.querySelectorAll("path"));
+        const emblemPaths = paths.slice(0, 8);
+        const textPaths = paths.slice(8);
+
+        if (isTargetingLanding) {
+          // Morph Anticipation Flow:
+          // - Slide/fade out text paths
+          if (textPaths.length > 0) {
+            tl.to(textPaths, { opacity: 0, x: 30, duration: 0.8 }, 0);
+          }
+          // - Scale down the emblem container slightly to anticipate the landing page size
+          tl.to(
+            graphicEl,
+            { scale: 0.93, transformOrigin: "50% 50%", duration: 0.8 },
+            0,
+          );
+          // - Animate fill colors back to white
+          emblemPaths.forEach((path, i) => {
+            gsap.set(path, { fill: brandColors[i] || "#ffffff" });
+            tl.to(path, { fill: "#ffffff", duration: 0.8 }, 0);
+          });
+        } else {
+          // Synchronously set stroke attributes to white/1.2 on all paths so GSAP can initialize DrawSVG
+          const allDeptPaths = Array.from(graphicEl.querySelectorAll("path"));
+          allDeptPaths.forEach((p) => {
+            p.setAttribute("stroke", "white");
+            p.setAttribute("stroke-width", "1.2");
+          });
+
+          // Animate the fill-opacity attribute of all paths directly
+          if (allDeptPaths.length > 0) {
+            tl.to(
+              allDeptPaths,
+              {
+                fillOpacity: 0,
+                duration: 0.3,
+                ease: "power2.inOut",
+              },
+              0,
+            );
+          }
+
+          // - Undraw emblem paths
+          if (emblemPaths.length > 0) {
+            tl.to(
+              emblemPaths,
+              {
+                drawSVG: "0%",
+                duration: 0.5,
+                stagger: 0.03,
+                ease: "power2.in",
+              },
+              0.2,
+            );
+          }
+
+          // - Undraw text logo paths
+          if (textPaths.length > 0) {
+            tl.to(
+              textPaths,
+              {
+                drawSVG: "0%",
+                duration: 0.5,
+                stagger: 0.01,
+                ease: "power2.in",
+              },
+              0.2,
+            );
+          }
+
+          // - Scale down container over 0.8s and fade out only at the end
+          tl.to(
+            graphicEl,
+            {
+              scale: 0.9,
+              duration: 0.8,
+              ease: "power3.inOut",
+            },
+            0,
+          );
+          tl.to(
+            graphicEl,
+            {
+              opacity: 0,
+              duration: 0.3,
+              ease: "power2.in",
+            },
+            0.5,
+          );
+        }
+      }
+    }
+
     let frameId;
     let lastTime = performance.now();
     const update = (time) => {
@@ -280,14 +440,12 @@
       angleOuter += baseSpeed * speedModifier * delta;
       angleInner -= baseSpeed * 1.5 * speedModifier * delta;
 
-      // Only calculate scroll position when the section is visible in the viewport
-      if (isTrackingScroll) {
-        handleScroll();
-      }
-
       frameId = requestAnimationFrame(update);
     };
     frameId = requestAnimationFrame(update);
+
+    // Decouple scroll handling from animation frame
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     // Initial measurement
     updateOrbitDimensions();
@@ -301,6 +459,24 @@
       const { MorphSVGPlugin } = await import("gsap/MorphSVGPlugin");
       gsap.registerPlugin(DrawSVGPlugin, MorphSVGPlugin);
       gsapInstance = gsap;
+
+      if (skipEntry) {
+        if (typeof window !== "undefined") {
+          window.__skipEntryAnimation = false;
+        }
+        deptStrokeColor = "transparent";
+        deptStrokeWidth = "0";
+        deptFillOpacity = "1";
+        graphicLoaded = true;
+        orbitsDrawn = true;
+        if (outerOrbitEl) {
+          gsap.set(outerOrbitEl, { drawSVG: "100%", opacity: 1 });
+        }
+        if (innerOrbitEl) {
+          gsap.set(innerOrbitEl, { drawSVG: "100%", opacity: 1 });
+        }
+        return;
+      }
 
       if (graphicEl) {
         const paths = Array.from(graphicEl.querySelectorAll("path"));
@@ -556,13 +732,16 @@
 
 <div
   class="min-h-screen w-full bg-white font-['Plus_Jakarta_Sans',sans-serif] text-[#222]"
+  use:inertiaEnhance
 >
   <Navbar {homeUrl} {loginUrl} {navigationItems} />
 
   <main>
     <!-- Hero Section -->
     <section
-      class="relative h-[calc(100svh-74px)] min-h-[600px] w-full overflow-hidden bg-gradient-to-br from-[#5d0077] to-[#2a0078] md:h-[896px]"
+      class="relative h-[calc(100svh-74px)] min-h-[600px] w-full overflow-hidden bg-gradient-to-br from-[#5d0077] to-[#2a0078] md:h-[896px] {skipEntry
+        ? 'skip-animations'
+        : ''}"
     >
       <picture class="contents">
         <source srcset={`${assetBase}/hero-bg.avif`} type="image/avif" />
@@ -599,7 +778,7 @@
             : ''}"
         >
           <TalingDeptHeroGraphic
-            bindRef={graphicEl}
+            bind:bindRef={graphicEl}
             stroke={deptStrokeColor}
             strokeWidth={deptStrokeWidth}
             fillOpacity={deptFillOpacity}
@@ -628,7 +807,7 @@
         class="star-large animate-float-large pointer-events-none opacity-80 drop-shadow-2xl"
         width="492"
         height="463"
-        style="position: absolute;"
+        style="position: absolute; view-transition-name: star-large; animation-delay: {largeStarDelay};"
       />
       <img
         src={`${assetBase}/star-small.svg`}
@@ -636,7 +815,7 @@
         class="star-small animate-float-small pointer-events-none opacity-80 drop-shadow-2xl"
         width="375"
         height="404"
-        style="position: absolute;"
+        style="position: absolute; view-transition-name: star-small; animation-delay: {smallStarDelay};"
       />
 
       <!-- Slogan Bottom Left -->
@@ -1464,5 +1643,21 @@
     transform: translateX(100%);
     border-left: 1px solid transparent;
     pointer-events: none;
+  }
+
+  :global(.skip-animations) .hero-title-container {
+    animation: none !important;
+    opacity: 1;
+  }
+  :global(.skip-animations) .animate-fade-in-line {
+    animation: none !important;
+    opacity: 1;
+  }
+  :global(.skip-animations) .animate-fade-left {
+    animation: none !important;
+    opacity: 1;
+  }
+  :global(.skip-animations) .animate-slow-pan {
+    animation: none !important;
   }
 </style>
