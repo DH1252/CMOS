@@ -21,6 +21,7 @@
   const now = typeof Date !== "undefined" ? Date.now() : 0;
   const largeStarDelay = `-${(now % 8000) / 1000}s`;
   const smallStarDelay = `-${(now % 10000) / 1000}s`;
+  const botanicalDelay = `-${(now % 25000) / 1000}s`;
 
   // Hardcoded Figma Departments with placeholder texts
   const departments = [
@@ -750,7 +751,7 @@
           class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay"
           src={`${assetBase}/hero-bg.png`}
           alt=""
-          style="position: absolute;"
+          style="position: absolute; view-transition-name: hero-bg-texture;"
         />
       </picture>
       <picture class="contents">
@@ -760,7 +761,7 @@
           class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
           src={`${assetBase}/botanical.png`}
           alt=""
-          style="position: absolute;"
+          style="position: absolute; view-transition-name: hero-botanical; animation-delay: {botanicalDelay};"
           width="1600"
           height="1066"
         />
