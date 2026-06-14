@@ -21,6 +21,7 @@
   const now = typeof Date !== "undefined" ? Date.now() : 0;
   const largeStarDelay = `-${(now % 8000) / 1000}s`;
   const smallStarDelay = `-${(now % 10000) / 1000}s`;
+  const botanicalDelay = `-${(now % 25000) / 1000}s`;
 
   // Bind values for drawing animation
   let strokeColor = $state(isFromDepartment ? "transparent" : "white");
@@ -413,17 +414,19 @@
       loading="eager"
       decoding="async"
       fetchpriority="high"
+      style="view-transition-name: hero-bg-texture;"
     />
   </picture>
   <picture class="contents">
     <source srcset={`${assetBase}/botanical.avif`} type="image/avif" />
     <source srcset={`${assetBase}/botanical.webp`} type="image/webp" />
     <img
-      class="absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
+      class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
       src={`${assetBase}/botanical.png`}
       alt=""
       width="1600"
       height="1066"
+      style="view-transition-name: hero-botanical; animation-delay: {botanicalDelay};"
     />
   </picture>
 
@@ -799,5 +802,23 @@
   :global(.skip-animations) .animate-fade-in {
     animation: none !important;
     opacity: 0.8;
+  }
+
+  .animate-slow-pan {
+    animation: slowPan 25s ease-in-out infinite alternate;
+    transform-origin: center center;
+  }
+
+  @keyframes slowPan {
+    0% {
+      transform: scale(1) translate(0, 0);
+    }
+    100% {
+      transform: scale(1.08) translate(2%, -1%);
+    }
+  }
+
+  :global(.skip-animations) .animate-slow-pan {
+    animation: none !important;
   }
 </style>
