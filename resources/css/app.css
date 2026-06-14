@@ -1655,3 +1655,11 @@ ul {
   animation: 400ms cubic-bezier(0.16, 1, 0.3, 1) both slide-from-left;
   mix-blend-mode: normal;
 }
+
+/* Pause floating stars during transition to prevent snapping */
+.forward-transition .star-large,
+.forward-transition .star-small,
+.back-transition .star-large,
+.back-transition .star-small {
+  animation-play-state: paused !important;
+}

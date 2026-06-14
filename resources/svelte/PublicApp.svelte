@@ -1,4 +1,5 @@
 <script>
+  import { inertiaEnhance } from "$lib/inertia-enhance.js";
   import brandLogo from "../images/logokabinet.png?enhanced&w=80;160";
   import OptimizedImage from "./components/OptimizedImage.svelte";
   import PublicInformationIndexPage from "./public/PublicInformationIndexPage.svelte";
@@ -79,7 +80,7 @@
   {/if}
 </svelte:head>
 
-<div class="taling-public">
+<div use:inertiaEnhance class="taling-public">
   <a href="#main-content" class="skip-link">Langsung ke konten</a>
 
   <header class="taling-header">

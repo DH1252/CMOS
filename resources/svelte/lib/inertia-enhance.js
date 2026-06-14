@@ -90,7 +90,33 @@ export const inertiaEnhance = (node, enabled = true) => {
     }
 
     event.preventDefault();
-    router.visit(href);
+
+    let isCurrentPage = false;
+    try {
+      const targetUrl = new URL(href, window.location.href);
+      isCurrentPage =
+        targetUrl.pathname === window.location.pathname &&
+        targetUrl.search === window.location.search;
+    } catch {
+      // Ignore URL parsing errors
+    }
+
+    if (isCurrentPage) {
+      window.__skipEntryAnimation = true;
+    }
+
+    if (
+      window.playGlobalExitAnimation &&
+      !window.__bypassExitAnimation &&
+      !isCurrentPage
+    ) {
+      window.playGlobalExitAnimation(href, () => {
+        window.__bypassExitAnimation = true;
+        router.visit(href);
+      });
+    } else {
+      router.visit(href);
+    }
   };
 
   const handleSubmit = (event) => {

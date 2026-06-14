@@ -383,8 +383,6 @@ if (typeof document !== "undefined") {
     });
   }
 
-  let resolveTransition = null;
-
   router.on("success", () => {
     if (document.startViewTransition) {
       document.documentElement.classList.remove(
@@ -394,19 +392,6 @@ if (typeof document !== "undefined") {
       document.documentElement.classList.add(
         `${navigationDirection}-transition`,
       );
-
-      const transition = document.startViewTransition(() => {
-        return new Promise((resolve) => {
-          resolveTransition = resolve;
-        });
-      });
-
-      transition.finished.then(() => {
-        document.documentElement.classList.remove(
-          "back-transition",
-          "forward-transition",
-        );
-      });
     }
   });
 
@@ -418,10 +403,6 @@ if (typeof document !== "undefined") {
 
   router.on("navigate", (event) => {
     capturePostHogPageview(event?.detail?.page || null);
-    if (resolveTransition) {
-      resolveTransition();
-      resolveTransition = null;
-    }
   });
 }
 
@@ -473,6 +454,27 @@ if (inertiaRoot && initialInertiaPage && !shouldBootStandaloneLogin) {
             description: page.props.description,
           },
         ];
+      },
+      defaults: {
+        visitOptions: () => {
+          if (typeof document !== "undefined" && document.startViewTransition) {
+            return {
+              viewTransition: (transition) => {
+                transition.ready.catch(() => {});
+                transition.updateCallbackDone.catch(() => {});
+                transition.finished
+                  .then(() => {
+                    document.documentElement.classList.remove(
+                      "back-transition",
+                      "forward-transition",
+                    );
+                  })
+                  .catch(() => {});
+              },
+            };
+          }
+          return {};
+        },
       },
       setup({ el, App, props }) {
         const brandFromProps =

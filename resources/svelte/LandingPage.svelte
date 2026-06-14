@@ -1,4 +1,5 @@
 <script>
+  import { inertiaEnhance } from "$lib/inertia-enhance.js";
   import Navbar from "./components/landing/Navbar.svelte";
   import HeroSection from "./components/landing/HeroSection.svelte";
   import KabarTerbaru from "./components/landing/KabarTerbaru.svelte";
@@ -128,6 +129,7 @@
 </svelte:head>
 
 <div
+  use:inertiaEnhance
   class="min-h-screen w-full bg-white font-['Plus_Jakarta_Sans',sans-serif] text-[#222]"
 >
   <Navbar {homeUrl} {loginUrl} {navigationItems} />
