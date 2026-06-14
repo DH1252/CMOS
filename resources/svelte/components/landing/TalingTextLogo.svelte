@@ -1,6 +1,7 @@
 <script>
   let {
     class: className = "",
+    style = "",
     stroke = "transparent",
     strokeWidth = "0",
     fillOpacity = "1",
@@ -13,7 +14,7 @@
   xmlns="http://www.w3.org/2000/svg"
   fill="none"
   overflow="visible"
-  style="display:block"
+  style="display:block; {style}"
   viewBox="0 0 88.018 42.538"
   class={className}
 >
