@@ -74,6 +74,7 @@
     scroll-behavior: smooth;
     overflow-x: hidden;
     scrollbar-gutter: stable;
+    background-color: var(--page-bg);
   }
 
   * {
