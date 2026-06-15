@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { router } from "@inertiajs/svelte";
   import TalingLogoMark from "./TalingLogoMark.svelte";
   import TalingTextLogo from "./TalingTextLogo.svelte";
@@ -32,13 +32,12 @@
 
   const getElapsedDelay = (periodMs, type) => {
     if (typeof window !== "undefined") {
-      // Use captured time from previous page if available and fresh (under 6 seconds)
+      // Use captured time from previous page if available and fresh (under 2 seconds)
       if (window.__lastAnimationTimes && window.__lastAnimationTimes[type]) {
         const { time, timestamp } = window.__lastAnimationTimes[type];
         const elapsedSinceCapture = Date.now() - timestamp;
-        if (elapsedSinceCapture < 6000) {
-          const currentMs = time + elapsedSinceCapture;
-          return `-${(currentMs % periodMs) / 1000}s`;
+        if (elapsedSinceCapture < 2000) {
+          return `-${(time % periodMs) / 1000}s`;
         }
       }
 
@@ -56,9 +55,11 @@
   const botanicalDelay = getElapsedDelay(25000, "botanical");
 
   // Bind values for drawing animation
-  let strokeColor = $state(isFromDepartment ? "transparent" : "white");
-  let strokeWidth = $state(isFromDepartment ? "0" : "1.2");
-  let fillOpacity = $state(isFromDepartment ? "1" : "0");
+  let strokeColor = $state(
+    isFromDepartment || skipEntry ? "transparent" : "white",
+  );
+  let strokeWidth = $state(isFromDepartment || skipEntry ? "0" : "1.2");
+  let fillOpacity = $state(isFromDepartment || skipEntry ? "1" : "0");
 
   const brandColors = [
     "#ffd344",
@@ -433,6 +434,31 @@
         );
       }
     });
+  });
+
+  onDestroy(() => {
+    if (typeof window !== "undefined") {
+      window.__lastAnimationTimes = {};
+      const captureAnim = (selector, key, animNameSub) => {
+        const el = document.querySelector(selector);
+        if (el) {
+          const anims = el.getAnimations();
+          const anim = anims.find(
+            (a) => a.animationName && a.animationName.includes(animNameSub),
+          );
+          if (anim && anim.currentTime !== null) {
+            window.__lastAnimationTimes[key] = {
+              time: anim.currentTime,
+              timestamp: Date.now(),
+            };
+          }
+        }
+      };
+
+      captureAnim(".animate-slow-pan", "botanical", "slowPan");
+      captureAnim(".star-large", "starLarge", "floatLarge");
+      captureAnim(".star-small", "starSmall", "floatSmall");
+    }
   });
 </script>
 
