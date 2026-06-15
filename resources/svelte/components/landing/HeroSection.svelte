@@ -316,7 +316,7 @@
 </script>
 
 <section
-  class="relative isolate h-[896px] w-full overflow-hidden {skipEntry
+  class="relative isolate h-[calc(100svh-74px)] min-h-[600px] w-full overflow-hidden {skipEntry
     ? 'skip-animations'
     : ''}"
 >
@@ -340,7 +340,7 @@
       <source srcset={`${assetBase}/botanical.avif`} type="image/avif" />
       <source srcset={`${assetBase}/botanical.webp`} type="image/webp" />
       <img
-        class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
+        class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] max-w-none object-cover opacity-25 mix-blend-soft-light"
         src={`${assetBase}/botanical.png`}
         alt=""
         width="1600"
@@ -384,9 +384,7 @@
     </div>
 
     <!-- Title -->
-    <h1 class="hero-title animate-fade-up">
-      dari kita<br class="md:hidden" /> untuk kita
-    </h1>
+    <h1 class="hero-title animate-fade-up">dari kita untuk kita</h1>
 
     <!-- Glow Line under title -->
     <div class="hero-glow-wrapper animate-fade-in">
@@ -509,7 +507,7 @@
   .hero-logo-container {
     position: relative;
     width: 100%;
-    max-width: 220px;
+    max-width: 280px;
     margin: 0 auto;
     pointer-events: auto;
   }
@@ -527,12 +525,12 @@
 
   .hero-title {
     font-family: "Playfair Display", "Playfair_Display", Georgia, serif;
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     line-height: 1.2;
     text-align: center;
     color: #ffffff;
     text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.8);
-    white-space: normal;
+    white-space: nowrap;
   }
 
   @media (min-width: 768px) {
@@ -551,8 +549,8 @@
     position: relative;
     width: 100%;
     max-width: 240px;
-    height: 12px;
-    margin: 0 auto;
+    height: 22px;
+    margin: -1.25rem auto 0 auto;
     opacity: 0.8;
   }
 
@@ -565,6 +563,18 @@
       max-width: 534px;
       height: 22px;
       margin: 0;
+    }
+  }
+
+  @media (min-width: 768px) and (max-height: 900px) {
+    .hero-logo-container {
+      top: 60px;
+    }
+    .hero-title {
+      top: 400px;
+    }
+    .hero-glow-wrapper {
+      top: 510px;
     }
   }
 

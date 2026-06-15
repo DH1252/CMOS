@@ -712,7 +712,7 @@
   <main>
     <!-- Hero Section -->
     <section
-      class="relative isolate h-[calc(100svh-74px)] min-h-[600px] w-full overflow-hidden md:h-[896px] {skipEntry
+      class="relative isolate h-[calc(100svh-74px)] min-h-[600px] w-full overflow-hidden {skipEntry
         ? 'skip-animations'
         : ''}"
     >
@@ -736,7 +736,7 @@
           <source srcset={`${assetBase}/botanical.avif`} type="image/avif" />
           <source srcset={`${assetBase}/botanical.webp`} type="image/webp" />
           <img
-            class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] object-cover opacity-25 mix-blend-soft-light"
+            class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] max-w-none object-cover opacity-25 mix-blend-soft-light"
             src={`${assetBase}/botanical.png`}
             alt=""
             width="1600"
@@ -767,7 +767,7 @@
             fillColors={null}
             textOpacity={deptTextOpacity}
             class="animate-float-logo h-auto w-full drop-shadow-2xl"
-            style="width: 100%; max-width: var(--hero-max-width, 280px); height: auto;"
+            style="width: 100%; max-width: var(--hero-max-width, 280px); height: auto; margin-left: 8.3%;"
           />
         </div>
 
@@ -1229,8 +1229,8 @@
     position: relative;
     width: 100%;
     max-width: 300px;
-    height: 16px;
-    margin: 0 auto;
+    height: 22px;
+    margin: -1.25rem auto 0 auto;
   }
 
   @media (min-width: 768px) {
@@ -1242,6 +1242,18 @@
       max-width: 534px;
       height: 22px;
       margin: 0;
+    }
+  }
+
+  @media (min-width: 768px) and (max-height: 900px) {
+    .hero-logo-container {
+      top: 60px;
+    }
+    .hero-title-container {
+      top: 400px;
+    }
+    .hero-glow-wrapper {
+      top: 510px;
     }
   }
 

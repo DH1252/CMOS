@@ -104,8 +104,10 @@
   };
 
   const closeMobileMenu = () => {
-    mobileMenuOpen = false;
-    activeMobileSubmenu = null;
+    setTimeout(() => {
+      mobileMenuOpen = false;
+      activeMobileSubmenu = null;
+    }, 0);
   };
 
   $effect(() => {
