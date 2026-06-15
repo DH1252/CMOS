@@ -217,29 +217,25 @@
   let skipEntry = $state(
     typeof window !== "undefined" && !!window.__skipEntryAnimation,
   );
-  const isFromLanding =
-    typeof window !== "undefined" && window.__lastPathname === "/";
-
-  const logoMarkPaths = [
-    "M18.36 14.677c-5.137 2.564-8.573 5.564-9.706 7.762-.986 1.91-.899 3.566-.899 3.566.018.297.096 1.23.559 2.224.968 2.023 2.93 2.913 3.976 3.393 5.032 2.284 13.317.052 14.12-.175 0 1.343 0 2.695-.01 4.046 0 .053.01.35.262.594.244.226.55.218.602.209.828-.096 1.674-.21 2.537-.331a64 64 0 0 0 5.826-1.178q.013.892.157 1.954c.113.854.288 1.622.47 2.293-3.296.62-13.83 2.337-22.63-.663-5.616-1.936-7.587-4.752-8.092-5.546-.506-.785-1.404-2.198-1.518-4.186-.235-3.767 2.52-6.619 3.863-8.014 1.605-1.657 3.175-2.555 4.753-3.462a29 29 0 0 1 5.73-2.486",
-    "M28.005 31.09v3.854c5.084-.863 6.898-1.308 7.282-1.526.017-.017.392-.236.88-.262.27-.008.402.044.471.096.201.122.288.34.34.54.314 1.16.724 4.771.75 4.99a87.8 87.8 0 0 0 19.727-8.05 87.5 87.5 0 0 0 18.497-13.788c-.68.062-1.396.149-2.128.262-2.11.34-3.96.89-5.512 1.474a102 102 0 0 1-10.848 7.343 103 103 0 0 1-8.782 4.613c-1.055-.62-2.12-1.238-3.175-1.857l9.497-6.01-4.107-2.877c-1.064.637-2.573 1.552-4.413 2.599-3.619 2.067-6.497 3.715-10.116 5.372a80 80 0 0 1-8.363 3.227",
-    "M41.74 20.18c.933.636 1.849 1.282 2.782 1.918a84 84 0 0 1 7.883-4.456 94 94 0 0 1 4.579-2.11.7.7 0 0 1 .261-.035.68.68 0 0 1 .428.174c.453.314.907.628 1.36.95.052.044.078.105.07.158-.009.052-.053.078-.061.096a2601 2601 0 0 1-5.093 3.035c1.003.671 1.997 1.334 2.982 2.005a52 52 0 0 1 5.172-2.782 49 49 0 0 1 5.354-2.119c2.067-.706 3.733-1.264 6.035-1.622a27 27 0 0 1 2.808-.296 14.5 14.5 0 0 1 1.692-3.418 21 21 0 0 0-4.657.156c-.75.105-1.456.244-2.093.41-.113.017-.349.052-.488-.07-.166-.157-.079-.47-.053-.619.218-.898 2.146-4.134 2.468-4.666a64 64 0 0 0-9.444 2.146c-6.907 2.162-12.035 5.11-16.43 7.674a119 119 0 0 0-5.555 3.47",
-    "M74.975 6.602-2.163 3.924a22.9 22.9 0 0 1 6.846-.026.3.3 0 0 1 .183.122c.105.13.044.296.035.314-.393.776-.794 1.552-1.186 2.328 3.488-.13 6.61 1.36 7.997 3.96.741 1.386.82 2.781.767 3.688h6.436c.035-1.3-.078-3.75-1.378-6.4-.279-.576-2.128-4.248-6.331-6.35-2.625-1.325-5.084-1.473-7.168-1.622a25.5 25.5 0 0 0-4.038.062",
-    "M63.995 29.747c1.692 1.046 4.483 2.406 8.11 2.73 1.666.147 6.01.522 10.038-2.129.933-.61 3.026-2.032 4.308-4.761.593-1.265.829-2.407.933-3.21h6.419a16.8 16.8 0 0 1-1.239 4.806c-2.843 6.688-9.278 9.47-11.441 10.412-8.224 3.567-15.855 1.526-18.532.785a31 31 0 0 1-7.822-3.462 37 37 0 0 0 3.4-1.5 36.6 36.6 0 0 0 5.826-3.671",
-    "M32.104 41.075a64 64 0 0 0 2.145-.218c6.907-.864 12.915-3.035 17.965-5.634 1.168.733 2.346 1.474 3.514 2.206-5.006 2.94-10.003 5.878-15.008 8.817-2.87-1.727-5.747-3.445-8.616-5.171",
-    "M21.01 31.002V11.354L40.85 0l16.57 9.55-6.872 3.819-9.706-5.765-13.509 7.901.027 13.657z",
-    "M29.897 28.473V16.63l10.91-6.41c2.424 1.43 4.84 2.861 7.264 4.291a59 59 0 0 0-3.732 2.242 56 56 0 0 0-4.988 3.68c1.125.81 2.25 1.622 3.366 2.433a78 78 0 0 1-7.526 3.619 77 77 0 0 1-5.294 1.988",
-  ];
-
-  let graphicLoaded = $state(isFromLanding || skipEntry ? true : false);
-  let deptStrokeColor = $state(
-    isFromLanding || skipEntry ? "transparent" : "white",
-  );
-  let deptStrokeWidth = $state(isFromLanding || skipEntry ? "0" : "1.2");
-  let deptFillOpacity = $state(isFromLanding || skipEntry ? "1" : "0");
-  let deptTextOpacity = $state(isFromLanding ? 0 : 1);
+  let graphicLoaded = $state(skipEntry ? true : false);
+  let deptStrokeColor = $state(skipEntry ? "transparent" : "white");
+  let deptStrokeWidth = $state(skipEntry ? "0" : "1.2");
+  let deptFillOpacity = $state(skipEntry ? "1" : "0");
+  let deptTextOpacity = $state(1);
   let outerOrbitEl = $state(null);
   let innerOrbitEl = $state(null);
+
+  const brandColors = [
+    "#ffd344",
+    "#4e00de",
+    "#ff7a1a",
+    "#2a0078",
+    "#ffd344",
+    "#5d0077",
+    "#5d0077",
+    "#ff7a1a",
+  ];
+  let currentFillColors = $state(null);
   const headerOpacity = $derived(easeOutQuart(scrollProgress));
   const headerTranslateY = $derived((1 - easeOutQuart(scrollProgress)) * 30);
 
@@ -318,20 +314,8 @@
     };
 
     function playExitAnimation(gsap, targetUrl, onCompleteCallback) {
-      const isTargetingLanding = targetUrl === "/";
-      const brandColors = [
-        "#ffd344",
-        "#4e00de",
-        "#ff7a1a",
-        "#2a0078",
-        "#ffd344",
-        "#5d0077",
-        "#5d0077",
-        "#ff7a1a",
-      ];
-
       const tl = gsap.timeline({
-        defaults: { ease: "power3.inOut" },
+        defaults: { ease: "power3.in" },
         onComplete: onCompleteCallback,
       });
 
@@ -365,96 +349,78 @@
       if (sloganEl) tl.to(sloganEl, { opacity: 0, x: -30, duration: 0.8 }, 0);
 
       if (graphicEl) {
+        graphicEl.classList.remove("animate-float-logo");
         const paths = Array.from(graphicEl.querySelectorAll("path"));
         const emblemPaths = paths.slice(0, 8);
         const textPaths = paths.slice(8);
 
-        if (isTargetingLanding) {
-          // Morph Anticipation Flow:
-          // - Slide/fade out text paths
-          if (textPaths.length > 0) {
-            tl.to(textPaths, { opacity: 0, x: 30, duration: 0.8 }, 0);
-          }
-          // - Scale down the emblem container slightly to anticipate the landing page size
+        // Synchronously set stroke attributes to white/1.2 on all paths so GSAP can initialize DrawSVG
+        const allDeptPaths = Array.from(graphicEl.querySelectorAll("path"));
+        allDeptPaths.forEach((p) => {
+          p.setAttribute("stroke", "white");
+          p.setAttribute("stroke-width", "1.2");
+        });
+
+        // Animate the fill-opacity attribute of all paths directly
+        if (allDeptPaths.length > 0) {
           tl.to(
-            graphicEl,
-            { scale: 0.93, transformOrigin: "50% 50%", duration: 0.8 },
-            0,
-          );
-          // - Animate fill colors back to white
-          emblemPaths.forEach((path, i) => {
-            gsap.set(path, { fill: brandColors[i] || "#ffffff" });
-            tl.to(path, { fill: "#ffffff", duration: 0.8 }, 0);
-          });
-        } else {
-          // Synchronously set stroke attributes to white/1.2 on all paths so GSAP can initialize DrawSVG
-          const allDeptPaths = Array.from(graphicEl.querySelectorAll("path"));
-          allDeptPaths.forEach((p) => {
-            p.setAttribute("stroke", "white");
-            p.setAttribute("stroke-width", "1.2");
-          });
-
-          // Animate the fill-opacity attribute of all paths directly
-          if (allDeptPaths.length > 0) {
-            tl.to(
-              allDeptPaths,
-              {
-                fillOpacity: 0,
-                duration: 0.3,
-                ease: "power2.inOut",
-              },
-              0,
-            );
-          }
-
-          // - Undraw emblem paths
-          if (emblemPaths.length > 0) {
-            tl.to(
-              emblemPaths,
-              {
-                drawSVG: "0%",
-                duration: 0.5,
-                stagger: 0.03,
-                ease: "power2.in",
-              },
-              0.2,
-            );
-          }
-
-          // - Undraw text logo paths
-          if (textPaths.length > 0) {
-            tl.to(
-              textPaths,
-              {
-                drawSVG: "0%",
-                duration: 0.5,
-                stagger: 0.01,
-                ease: "power2.in",
-              },
-              0.2,
-            );
-          }
-
-          // - Scale down container over 0.8s and fade out only at the end
-          tl.to(
-            graphicEl,
+            allDeptPaths,
             {
-              scale: 0.9,
-              duration: 0.8,
-              ease: "power3.inOut",
-            },
-            0,
-          );
-          tl.to(
-            graphicEl,
-            {
-              opacity: 0,
+              fillOpacity: 0,
               duration: 0.3,
-              ease: "power2.in",
+              ease: "power2.inOut",
             },
-            0.5,
+            0,
           );
         }
+
+        // - Undraw emblem paths
+        if (emblemPaths.length > 0) {
+          tl.to(
+            emblemPaths,
+            {
+              drawSVG: "0%",
+              duration: 0.5,
+              stagger: 0.03,
+              ease: "power2.in",
+            },
+            0.2,
+          );
+        }
+
+        // - Undraw text logo paths
+        if (textPaths.length > 0) {
+          tl.to(
+            textPaths,
+            {
+              drawSVG: "0%",
+              duration: 0.5,
+              stagger: 0.01,
+              ease: "power2.in",
+            },
+            0.2,
+          );
+        }
+
+        // - Scale down container over 0.8s and fade out only at the end
+        tl.to(
+          graphicEl,
+          {
+            scale: 0.9,
+            duration: 0.8,
+            ease: "power3.inOut",
+          },
+          0,
+        );
+        tl.to(
+          graphicEl,
+          {
+            opacity: 0,
+            duration: 0.3,
+            ease: "power2.in",
+          },
+          0.5,
+        );
       }
     }
 
@@ -517,88 +483,42 @@
 
       if (graphicEl) {
         const paths = Array.from(graphicEl.querySelectorAll("path"));
-        const emblemPaths = paths.slice(0, 8);
-        const textPaths = paths.slice(8);
-        if (isFromLanding) {
-          // --- MORPH ANIMATION (when navigating from Landing Page) ---
-          // 1. Instantly set fill opacity to 1 and remove outline stroke settings
-          deptFillOpacity = "1";
-          deptStrokeColor = "transparent";
-          deptStrokeWidth = "0";
-          graphicLoaded = true;
 
-          const deptDefaultPaths = [
-            "M108.576 79.981c-22.741 11.351-37.953 24.633-42.973 34.363-4.363 8.456-3.976 15.792-3.976 15.792.077 1.312.424 5.444 2.47 9.845 4.286 8.958 12.974 12.896 17.607 15.019 22.278 10.116 58.957.232 62.509-.772 0 5.946 0 11.931-.038 17.915 0 .232.038 1.545 1.158 2.626 1.081 1.004 2.432.965 2.664.926 3.668-.424 7.413-.926 11.236-1.467 9.227-1.428 17.837-3.204 25.791-5.212.039 2.625.27 5.521.695 8.648.502 3.784 1.274 7.182 2.085 10.155-14.595 2.741-61.235 10.347-100.193-2.934-24.865-8.572-33.59-21.043-35.83-24.556-2.24-3.475-6.216-9.73-6.718-18.533-1.043-16.68 11.158-29.305 17.104-35.483C69.271 98.977 76.221 95 83.21 90.985a128 128 0 0 1 25.366-11.004",
-            "M151.279 152.645v17.066c22.509-3.823 30.54-5.792 32.239-6.757.077-.077 1.737-1.043 3.9-1.158 1.196-.039 1.776.193 2.084.424.888.541 1.275 1.506 1.506 2.394 1.39 5.135 3.205 21.12 3.321 22.085 23.899-6.486 54.44-17.297 87.336-35.637a387.5 387.5 0 0 0 81.892-61.042c-3.012.27-6.178.656-9.421 1.158-9.344 1.506-17.529 3.938-24.402 6.525a452 452 0 0 1-48.031 32.51 457 457 0 0 1-38.88 20.424c-4.672-2.741-9.382-5.482-14.054-8.224l42.046-26.602-18.185-12.741c-4.711 2.818-11.39 6.872-19.537 11.506-16.023 9.15-28.764 16.447-44.787 23.783-8.997 4.093-21.468 9.228-37.027 14.286",
-            "M212.089 104.344c4.132 2.818 8.186 5.675 12.317 8.494a373 373 0 0 1 34.903-19.73 416 416 0 0 1 20.271-9.344c.27-.077.695-.192 1.158-.154.965.039 1.66.54 1.892.772a563 563 0 0 1 6.023 4.209c.232.193.347.463.309.695-.039.231-.232.347-.27.424-7.491 4.48-15.02 8.958-22.549 13.437 4.44 2.973 8.842 5.907 13.205 8.88a231 231 0 0 1 22.896-12.317c10.424-4.864 18.648-7.683 23.706-9.382 9.151-3.127 16.525-5.598 26.718-7.181a119 119 0 0 1 12.433-1.313 60 60 0 0 1 2.934-7.181 64 64 0 0 1 4.556-7.954c-5.869-.463-12.857-.425-20.618.695-3.32.463-6.447 1.081-9.266 1.814-.502.078-1.544.232-2.162-.308-.734-.695-.348-2.085-.232-2.742.965-3.977 9.498-18.3 10.927-20.656-17.838 2.664-32.046 6.486-41.815 9.498-30.579 9.575-53.282 22.626-72.741 33.977a529 529 0 0 0-24.595 15.367",
-            "m359.232 44.228-9.575 17.374a101 101 0 0 1 16.68-1.197c5.019.039 9.614.502 13.629 1.081.154.039.54.155.811.54.463.58.193 1.314.154 1.39-1.737 3.437-3.513 6.874-5.251 10.31 15.444-.58 29.267 6.023 35.406 17.529 3.282 6.139 3.629 12.316 3.397 16.332h28.495c.154-5.753-.348-16.603-6.101-28.34-1.235-2.548-9.421-18.803-28.031-28.108-11.621-5.869-22.509-6.525-31.737-7.182-7.259-.502-13.436-.115-17.877.27",
-            "M310.622 146.699c7.491 4.633 19.846 10.656 35.908 12.085 7.374.656 26.602 2.316 44.44-9.421 4.131-2.703 13.397-8.996 19.073-21.081a48 48 0 0 0 4.131-14.209h28.417c-.579 5.367-1.93 12.935-5.482 21.274-12.587 29.614-41.081 41.931-50.657 46.101-36.409 15.791-70.193 6.757-82.046 3.475-15.367-4.363-27.066-10.657-34.633-15.328a162 162 0 0 0 15.058-6.641 162 162 0 0 0 25.791-16.255",
-            "M169.425 196.853c3.128-.27 6.294-.579 9.499-.965 30.579-3.822 57.181-13.436 79.536-24.942 5.174 3.243 10.386 6.525 15.56 9.768-22.162 13.012-44.286 26.024-66.448 39.035-12.703-7.645-25.444-15.251-38.147-22.896",
-            "M120.314 152.259V65.27L208.152 15l73.359 42.278-30.425 16.911-42.973-25.521-59.807 34.98.116 60.464z",
-            "M159.658 141.061V88.629l48.301-28.378c10.733 6.332 21.428 12.664 32.162 18.996-5.29 2.896-10.811 6.216-16.525 9.923a249 249 0 0 0-22.085 16.293c4.981 3.591 9.961 7.182 14.903 10.772a346 346 0 0 1-33.32 16.023 340 340 0 0 1-23.436 8.803",
-          ];
+        // --- DRAW OUTLINE ANIMATION (on page entry) ---
+        const tl = gsap.timeline({
+          defaults: { ease: "power2.out" },
+          onComplete: () => {
+            deptStrokeColor = "transparent";
+            deptStrokeWidth = "0";
+            graphicLoaded = true;
+          },
+        });
 
-          const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+        // Make container visible at the start of the drawing animation
+        gsap.set(graphicEl.closest(".hero-logo-container"), { opacity: 1 });
 
-          // Morph paths to their original shapes in a loop to ensure 100% robustness
-          emblemPaths.forEach((path, i) => {
-            tl.to(
-              path,
-              {
-                morphSVG: deptDefaultPaths[i],
-                duration: 1.0,
-              },
-              i * 0.03, // manual stagger offset
-            );
-          });
+        // 1. Draw outline of logo paths
+        tl.fromTo(
+          paths,
+          { drawSVG: "0%" },
+          { drawSVG: "100%", duration: 1.5, stagger: 0.04 },
+        );
 
-          // Smoothly fade in the entire text group
-          const textGroup = graphicEl.querySelector('g[filter*="filter2_d"]');
-          if (textGroup) {
-            tl.to(
-              textGroup,
-              {
-                opacity: 1,
-                duration: 0.6,
-              },
-              "-=0.6",
-            );
-          }
-        } else {
-          // --- DRAW OUTLINE ANIMATION (on initial page load / direct visit) ---
-          const tl = gsap.timeline({
-            defaults: { ease: "power2.out" },
-            onComplete: () => {
-              deptStrokeColor = "transparent";
-              deptStrokeWidth = "0";
-              graphicLoaded = true;
+        // 2. Fade in colored fills and thin the strokes smoothly
+        let animObj = { fill: 0, strokeW: 1.2 };
+        tl.to(
+          animObj,
+          {
+            fill: 1,
+            strokeW: 0,
+            duration: 0.8,
+            onUpdate: () => {
+              deptFillOpacity = animObj.fill.toString();
+              deptStrokeWidth = animObj.strokeW.toString();
             },
-          });
-
-          // Make container visible at the start of the drawing animation
-          gsap.set(graphicEl.closest(".hero-logo-container"), { opacity: 1 });
-
-          // 1. Draw outline of logo paths
-          tl.fromTo(
-            paths,
-            { drawSVG: "0%" },
-            { drawSVG: "100%", duration: 1.5, stagger: 0.04 },
-          );
-
-          // 2. Fade in colored fills without using this.targets()
-          let fillObj = { val: 0 };
-          tl.to(
-            fillObj,
-            {
-              val: 1,
-              duration: 0.6,
-              onUpdate: () => {
-                deptFillOpacity = fillObj.val.toString();
-              },
-            },
-            "-=0.5",
-          );
-        }
+          },
+          "-=0.5",
+        );
       }
     });
 
@@ -836,17 +756,15 @@
           class="hero-logo-container transition-opacity duration-300 {graphicLoaded
             ? 'opacity-100'
             : 'opacity-0'}"
-          style="view-transition-name: hero-logo; {!graphicLoaded
-            ? 'opacity: 0;'
-            : ''}"
+          style={!graphicLoaded ? "opacity: 0;" : ""}
         >
           <TalingDeptHeroGraphic
             bind:bindRef={graphicEl}
             stroke={deptStrokeColor}
             strokeWidth={deptStrokeWidth}
             fillOpacity={deptFillOpacity}
-            paths={isFromLanding ? logoMarkPaths : null}
-            fillColors={isFromLanding ? "white" : null}
+            paths={null}
+            fillColors={null}
             textOpacity={deptTextOpacity}
             class="animate-float-logo h-auto w-full drop-shadow-2xl"
             style="width: 100%; max-width: var(--hero-max-width, 280px); height: auto;"
