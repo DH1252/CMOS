@@ -293,28 +293,6 @@ if (typeof document !== "undefined" && initialInertiaPage) {
   router.on("before", () => {
     if (typeof window !== "undefined") {
       window.__lastPathname = window.location.pathname;
-
-      // Capture running state of floating/pan animations to seamlessly transition them
-      window.__lastAnimationTimes = {};
-      const captureAnim = (selector, key, animNameSub) => {
-        const el = document.querySelector(selector);
-        if (el) {
-          const anims = el.getAnimations();
-          const anim = anims.find(
-            (a) => a.animationName && a.animationName.includes(animNameSub),
-          );
-          if (anim && anim.currentTime !== null) {
-            window.__lastAnimationTimes[key] = {
-              time: anim.currentTime,
-              timestamp: Date.now(),
-            };
-          }
-        }
-      };
-
-      captureAnim(".animate-slow-pan", "botanical", "slowPan");
-      captureAnim(".star-large", "starLarge", "floatLarge");
-      captureAnim(".star-small", "starSmall", "floatSmall");
     }
   });
 
