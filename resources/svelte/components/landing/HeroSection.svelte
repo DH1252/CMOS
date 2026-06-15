@@ -30,8 +30,18 @@
 
   let logoLoaded = $state(isFromDepartment || skipEntry ? true : false);
 
-  const getElapsedDelay = (periodMs) => {
+  const getElapsedDelay = (periodMs, type) => {
     if (typeof window !== "undefined") {
+      // Use captured time from previous page if available and fresh (under 6 seconds)
+      if (window.__lastAnimationTimes && window.__lastAnimationTimes[type]) {
+        const { time, timestamp } = window.__lastAnimationTimes[type];
+        const elapsedSinceCapture = Date.now() - timestamp;
+        if (elapsedSinceCapture < 6000) {
+          const currentMs = time + elapsedSinceCapture;
+          return `-${(currentMs % periodMs) / 1000}s`;
+        }
+      }
+
       if (!window.__initialAnimationTimestamp) {
         window.__initialAnimationTimestamp = Date.now();
       }
@@ -41,9 +51,9 @@
     return "0s";
   };
 
-  const largeStarDelay = getElapsedDelay(8000);
-  const smallStarDelay = getElapsedDelay(10000);
-  const botanicalDelay = getElapsedDelay(25000);
+  const largeStarDelay = getElapsedDelay(8000, "starLarge");
+  const smallStarDelay = getElapsedDelay(10000, "starSmall");
+  const botanicalDelay = getElapsedDelay(25000, "botanical");
 
   // Bind values for drawing animation
   let strokeColor = $state(isFromDepartment ? "transparent" : "white");
@@ -431,7 +441,10 @@
     ? 'skip-animations'
     : ''}"
 >
-  <div class="absolute inset-0 bg-gradient-to-br from-[#5d0077] to-[#2a0078] -z-10" style="view-transition-name: hero-background;">
+  <div
+    class="absolute inset-0 -z-10 bg-gradient-to-br from-[#5d0077] to-[#2a0078]"
+    style="view-transition-name: hero-background;"
+  >
     <picture class="contents">
       <source srcset={`${assetBase}/hero-bg.avif`} type="image/avif" />
       <source srcset={`${assetBase}/hero-bg.webp`} type="image/webp" />
@@ -843,23 +856,5 @@
   :global(.skip-animations) .animate-fade-in {
     animation: none !important;
     opacity: 0.8;
-  }
-
-  .animate-slow-pan {
-    animation: slowPan 25s ease-in-out infinite alternate;
-    transform-origin: center center;
-  }
-
-  @keyframes slowPan {
-    0% {
-      transform: scale(1) translate(0, 0);
-    }
-    100% {
-      transform: scale(1.08) translate(2%, -1%);
-    }
-  }
-
-  :global(.skip-animations) .animate-slow-pan {
-    animation: none !important;
   }
 </style>
