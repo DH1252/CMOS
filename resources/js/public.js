@@ -283,10 +283,15 @@ if (typeof document !== "undefined" && initialInertiaPage) {
       document.documentElement.classList.remove(
         "back-transition",
         "forward-transition",
+        "same-page-transition",
       );
-      document.documentElement.classList.add(
-        `${navigationDirection}-transition`,
-      );
+      if (window.location.pathname === window.__lastPathname) {
+        document.documentElement.classList.add("same-page-transition");
+      } else {
+        document.documentElement.classList.add(
+          `${navigationDirection}-transition`,
+        );
+      }
     }
   });
 

@@ -1657,6 +1657,28 @@ ul {
   mix-blend-mode: normal;
 }
 
+/* Same Page Navigation (Instant, no blinking or sliding) */
+html.same-page-transition {
+  view-transition-name: none !important;
+}
+
+html.same-page-transition .animate-fade-up,
+html.same-page-transition .animate-fade-left,
+html.same-page-transition .animate-fade-in {
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+.same-page-transition::view-transition-old(root),
+.same-page-transition::view-transition-new(root),
+.same-page-transition::view-transition-group(root),
+.same-page-transition::view-transition-old(*),
+.same-page-transition::view-transition-new(*),
+.same-page-transition::view-transition-group(*) {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+}
+
 /* Pause floating stars during transition to prevent snapping */
 .forward-transition .star-large,
 .forward-transition .star-small,

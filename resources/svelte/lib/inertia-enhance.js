@@ -102,14 +102,11 @@ export const inertiaEnhance = (node, enabled = true) => {
     }
 
     if (isCurrentPage) {
-      window.__skipEntryAnimation = true;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
     }
 
-    if (
-      window.playGlobalExitAnimation &&
-      !window.__bypassExitAnimation &&
-      !isCurrentPage
-    ) {
+    if (window.playGlobalExitAnimation && !window.__bypassExitAnimation) {
       window.playGlobalExitAnimation(href, () => {
         window.__bypassExitAnimation = true;
         router.visit(href);
