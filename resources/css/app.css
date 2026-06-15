@@ -1664,3 +1664,18 @@ ul {
 .back-transition .star-small {
   animation-play-state: paused !important;
 }
+
+/* Global botanical pan animation to prevent Svelte scoping layout jumps */
+.animate-slow-pan {
+  animation: slowPan 25s ease-in-out infinite alternate !important;
+  transform-origin: center center;
+}
+
+@keyframes slowPan {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.08) translate(2%, -1%);
+  }
+}
