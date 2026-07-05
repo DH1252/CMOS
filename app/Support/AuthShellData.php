@@ -21,11 +21,6 @@ class AuthShellData
 
         $appName = Setting::get('app_name', 'CMOS');
         $organizationName = Setting::get('organization_name', 'HIMATEKKOM ITS');
-        $themeSettings = Setting::query()
-            ->whereIn('key', array_merge(['theme_color'], ThemePalette::settingKeys(), ThemePalette::cssVariableKeys()))
-            ->pluck('value', 'key')
-            ->all();
-        $themePayload = ThemePalette::payloadFromSettings($themeSettings);
 
         $navSections = [
             [
@@ -125,8 +120,7 @@ class AuthShellData
                 'title' => 'Pengaturan',
                 'description' => 'Kontrol identitas aplikasi dan pengaturan dasar workspace.',
                 'items' => [
-                    ['label' => 'Pengaturan Umum', 'icon' => 'fas fa-gear', 'href' => route('settings.index'), 'active' => $request->routeIs('settings.index') || $request->routeIs('settings.update'), 'meta' => 'Identitas, warna, dan cadence evaluasi'],
-                    ['label' => 'Tampilan Landing', 'icon' => 'fas fa-palette', 'href' => route('settings.landing'), 'active' => $request->routeIs('settings.landing'), 'meta' => 'Warna dan pratinjau halaman publik'],
+                    ['label' => 'Pengaturan Umum', 'icon' => 'fas fa-gear', 'href' => route('settings.index'), 'active' => $request->routeIs('settings.index') || $request->routeIs('settings.update'), 'meta' => 'Identitas dan cadence evaluasi'],
                 ],
             ];
         }
@@ -134,9 +128,6 @@ class AuthShellData
         return [
             'appName' => $appName,
             'organizationName' => $organizationName,
-            'themeColor' => $themePayload['color'],
-            'themeVariables' => $themePayload['variables'],
-            'themeCustomCss' => $themePayload['customCss'],
             'csrfToken' => csrf_token(),
             'user' => [
                 'id' => $currentUser->id,

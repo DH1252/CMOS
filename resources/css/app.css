@@ -102,7 +102,7 @@
   --destructive-foreground: var(--white-soft);
   --border: var(--line-soft);
   --input: var(--line-soft);
-  --ring: color-mix(in srgb, var(--brand-primary) 28%, white);
+  --ring: var(--brand-primary);
   --sidebar: #f8f1e3;
   --sidebar-foreground: var(--text-strong);
   --sidebar-accent: #efe4cc;
@@ -274,6 +274,20 @@
   --primary-foreground-base: #ffffff;
 }
 
+/* Internal workspace palette — yellow & gold.
+   Deep amber primary keeps >=4.5:1 contrast on light surfaces and pairs
+   with a dark foreground so gold buttons stay legible. Dark mode swaps the
+   primary to a brighter gold for high-contrast text/links on dark panels. */
+[data-brand="gold"] {
+  --brand-primary-base: #b45309;
+  --brand-hover-base: #92400e;
+  --brand-soft-base: #f59e0b;
+  --brand-light-base: #fef3c7;
+  --brand-secondary-base: #78350f;
+  --brand-secondary-soft-base: #fde68a;
+  --primary-foreground-base: #1f2937;
+}
+
 [data-theme="public"] {
   --font-display: "Public Sans", sans-serif;
   --font-body: "Public Sans", sans-serif;
@@ -390,8 +404,8 @@
   );
   --white-soft: #fffaf0;
 
-  --brand-primary: var(--brand-primary-base);
-  --brand-hover: var(--brand-hover-base);
+  --brand-primary: var(--brand-soft-base);
+  --brand-hover: var(--brand-primary-base);
   --brand-soft: color-mix(in srgb, var(--brand-primary-base) 34%, #0b0b0b);
   --brand-light: color-mix(in srgb, var(--brand-primary-base) 20%, #121212);
   --brand-secondary: var(--brand-secondary-base);
@@ -417,7 +431,7 @@
   --accent-foreground: #f0c34a;
   --border: var(--line-soft);
   --input: var(--line-soft);
-  --ring: rgba(240, 195, 74, 0.18);
+  --ring: rgba(245, 158, 11, 0.6);
   --sidebar: #1b181d;
   --sidebar-foreground: var(--text-strong);
   --sidebar-accent: #29262d;
@@ -637,7 +651,7 @@ html[data-js="false"] .terminal-reveal__overlay {
   }
 
   a {
-    color: color-mix(in srgb, var(--brand-primary) 88%, black);
+    color: var(--brand-primary);
     text-decoration: none;
   }
 
