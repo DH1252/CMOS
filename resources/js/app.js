@@ -25,81 +25,6 @@ const ensureBootstrapModule = async () => {
   return bootstrapModulePromise;
 };
 
-const applyBrandTheme = (themeName) => {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  const fallbackTheme = "purple";
-  const resolvedTheme =
-    typeof themeName === "string" && themeName.length > 0
-      ? themeName
-      : fallbackTheme;
-
-  document.documentElement.setAttribute("data-brand", resolvedTheme);
-};
-
-const isDarkModeActive = () => {
-  if (typeof document === "undefined") {
-    return false;
-  }
-
-  return document.documentElement.getAttribute("data-theme") === "dark";
-};
-
-const applyThemeVariables = (variables = null) => {
-  if (
-    typeof document === "undefined" ||
-    !variables ||
-    typeof variables !== "object"
-  ) {
-    return;
-  }
-
-  // Skip on public pages — the blade template manages its own CSS variables
-  if (document.documentElement.getAttribute("data-theme") === "public") {
-    return;
-  }
-
-  // Handle legacy flat variable format
-  if (!variables.customCss && !variables.light && !variables.dark) {
-    Object.entries(variables).forEach(([token, value]) => {
-      if (typeof token !== "string" || typeof value !== "string") {
-        return;
-      }
-
-      document.documentElement.style.setProperty(`--${token}`, value);
-    });
-
-    return;
-  }
-
-  const customCss = variables.customCss || variables;
-  const isDark = isDarkModeActive();
-
-  // Apply shared variables (signal colors, etc.)
-  if (customCss.shared && typeof customCss.shared === "object") {
-    Object.entries(customCss.shared).forEach(([token, value]) => {
-      if (typeof token !== "string" || typeof value !== "string") {
-        return;
-      }
-
-      document.documentElement.style.setProperty(`--${token}`, value);
-    });
-  }
-
-  // Apply mode-specific variables
-  const modeVars = isDark ? customCss.dark || {} : customCss.light || {};
-
-  Object.entries(modeVars).forEach(([token, value]) => {
-    if (typeof token !== "string" || typeof value !== "string") {
-      return;
-    }
-
-    document.documentElement.style.setProperty(`--${token}`, value);
-  });
-};
-
 const isTruthyDisabledFlag = (value) => {
   return ["1", "true", "yes", "on"].includes(String(value).toLowerCase());
 };
@@ -332,26 +257,6 @@ const deferBootstrapForLanding = (initialPage) => {
 };
 
 if (typeof document !== "undefined") {
-  const rootBrand = document.documentElement.getAttribute("data-brand");
-  const pageBrand =
-    initialInertiaPage?.props?.themeColor ||
-    initialInertiaPage?.props?.shell?.themeColor ||
-    initialInertiaPage?.props?.theme?.color ||
-    rootBrand ||
-    "purple";
-  const themeVariables =
-    initialInertiaPage?.props?.themeVariables ||
-    initialInertiaPage?.props?.shell?.themeVariables ||
-    initialInertiaPage?.props?.theme?.variables ||
-    null;
-  const themeCustomCss =
-    initialInertiaPage?.props?.themeCustomCss ||
-    initialInertiaPage?.props?.shell?.themeCustomCss ||
-    initialInertiaPage?.props?.theme?.customCss ||
-    null;
-
-  applyBrandTheme(pageBrand);
-  applyThemeVariables({ ...themeVariables, customCss: themeCustomCss });
   applyPostHogConfig(initialInertiaPage?.props?.posthog || null);
 
   if (initialInertiaPage?.component === "LandingPage") {
@@ -492,27 +397,6 @@ if (inertiaRoot && initialInertiaPage && !shouldBootStandaloneLogin) {
         },
       },
       setup({ el, App, props }) {
-        const brandFromProps =
-          props?.initialPage?.props?.themeColor ||
-          props?.initialPage?.props?.shell?.themeColor ||
-          props?.initialPage?.props?.theme?.color ||
-          "purple";
-        const variablesFromProps =
-          props?.initialPage?.props?.themeVariables ||
-          props?.initialPage?.props?.shell?.themeVariables ||
-          props?.initialPage?.props?.theme?.variables ||
-          null;
-        const customCssFromProps =
-          props?.initialPage?.props?.themeCustomCss ||
-          props?.initialPage?.props?.shell?.themeCustomCss ||
-          props?.initialPage?.props?.theme?.customCss ||
-          null;
-        applyBrandTheme(brandFromProps);
-        applyThemeVariables({
-          ...variablesFromProps,
-          customCss: customCssFromProps,
-        });
-
         if (el?.hasAttribute("data-server-rendered")) {
           hydrate(App, { target: el, props });
 

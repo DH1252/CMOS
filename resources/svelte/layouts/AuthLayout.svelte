@@ -83,8 +83,6 @@
   const shellOrganizationName = $derived(
     shell.organizationName || "HIMATEKKOM ITS",
   );
-  const shellThemeColor = $derived(shell.themeColor || "purple");
-  const shellThemeVariables = $derived(shell.themeVariables || null);
   const shellCsrfToken = $derived(shell.csrfToken || "");
   const shellUserId = $derived(shellUser.id ? String(shellUser.id) : "");
   const errorMessages = $derived(
@@ -103,34 +101,12 @@
     document.documentElement.setAttribute("data-theme", value);
   };
 
-  const applyBrandThemeColor = (value) => {
-    if (!value) {
-      return;
-    }
-
+  const applyDefaultBrandTheme = () => {
     if (typeof document === "undefined") {
       return;
     }
 
-    document.documentElement.setAttribute("data-brand", value);
-  };
-
-  const applyThemeVariables = (variables) => {
-    if (!variables || typeof variables !== "object") {
-      return;
-    }
-
-    if (typeof document === "undefined") {
-      return;
-    }
-
-    Object.entries(variables).forEach(([token, value]) => {
-      if (typeof token !== "string" || typeof value !== "string") {
-        return;
-      }
-
-      document.documentElement.style.setProperty(`--${token}`, value);
-    });
+    document.documentElement.setAttribute("data-brand", "gold");
   };
 
   const identifyPostHogUser = () => {
@@ -509,8 +485,7 @@
     const savedTheme = readThemeMode();
 
     applyThemeMode(savedTheme);
-    applyBrandThemeColor(shellThemeColor);
-    applyThemeVariables(shellThemeVariables);
+    applyDefaultBrandTheme();
     identifyPostHogUser();
     window.__CMOS_AUTH_PROPS__ = shell;
     deferredUiCleanup = scheduleAfterPaint(() => {
@@ -558,14 +533,6 @@
     deferredShellBootCleanup?.();
     deferredUiCleanup?.();
     liveUpdatesCleanup?.();
-  });
-
-  $effect(() => {
-    applyBrandThemeColor(shellThemeColor);
-  });
-
-  $effect(() => {
-    applyThemeVariables(shellThemeVariables);
   });
 
   $effect(() => {

@@ -2,6 +2,7 @@
     $appName = \App\Models\Setting::get('app_name', 'CMOS');
     $themeColor = \App\Models\Setting::get('theme_color', \App\Support\ThemePalette::defaultName());
     $isPublicRoute = request()->routeIs('home') || request()->routeIs('informasi.*') || request()->routeIs('acara.*') || request()->routeIs('login') || request()->routeIs('departemen');
+    $internalBrand = $isPublicRoute ? $themeColor : 'gold';
     $landingStyle = '';
 
     if ($isPublicRoute) {
@@ -22,7 +23,7 @@
     }
 @endphp
 <!DOCTYPE html>
-<html lang="id" data-theme="{{ $isPublicRoute ? 'public' : 'dark' }}" data-brand="{{ $themeColor }}" data-js="false"@if($landingStyle) style="{{ $landingStyle }}"@endif>
+<html lang="id" data-theme="{{ $isPublicRoute ? 'public' : 'dark' }}" data-brand="{{ $internalBrand }}" data-js="false"@if($landingStyle) style="{{ $landingStyle }}"@endif>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
