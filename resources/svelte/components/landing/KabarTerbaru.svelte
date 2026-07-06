@@ -106,7 +106,7 @@
               <OptimizedImage
                 src={item.coverImage}
                 alt={item.title}
-                class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                class="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-110"
                 loading={index === 0 ? "eager" : "lazy"}
                 sizes="313px"
               />
