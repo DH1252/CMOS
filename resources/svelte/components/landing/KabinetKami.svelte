@@ -198,7 +198,7 @@
     font-style: italic;
     font-weight: 700;
     font-size: 120px;
-    line-height: 120px;
+    line-height: 1.22;
     text-align: center;
     letter-spacing: -0.08em;
 

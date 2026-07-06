@@ -139,7 +139,7 @@
 
             <a
               href={role === "role-active" ? event.url : undefined}
-              class="carousel-card {role} block overflow-hidden rounded-sm"
+              class="carousel-card {role} block overflow-hidden rounded-sm bg-[#f7f3ec]"
               tabindex={role === "role-active" ? 0 : -1}
               aria-hidden={role === "role-active" ? undefined : "true"}
             >
@@ -147,7 +147,7 @@
                 <OptimizedImage
                   src={getPosterImage(event.poster)}
                   alt={event.title}
-                  class="h-full w-full object-cover"
+                  class="h-full w-full object-contain"
                 />
               {:else}
                 <div
@@ -214,10 +214,14 @@
                   {currentEvent.startsAtLabel}
                 </div>
                 <h3
-                  class="mb-8 text-center font-['Josefin_Sans'] text-[50px] leading-none font-bold tracking-[0.04em] md:text-[70px]"
-                  style="background: linear-gradient(39deg, #ff7a1a 0%, #ffd344 97%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; -webkit-text-stroke: 2px #5d0077;"
+                  class="acara-event-title mb-8 text-center font-['Josefin_Sans'] text-[50px] leading-[1.18] font-bold tracking-[0.04em] md:text-[70px]"
                 >
-                  {currentEvent.title}
+                  <span class="acara-event-title-stroke" aria-hidden="true"
+                    >{currentEvent.title}</span
+                  >
+                  <span class="acara-event-title-fill"
+                    >{currentEvent.title}</span
+                  >
                 </h3>
                 <!-- Glowing horizontal gradient bar -->
                 <div
@@ -342,6 +346,33 @@
     text-align: center;
     color: #222222;
     text-shadow: 0px 0px 20px #ffffff;
+  }
+
+  .acara-event-title {
+    position: relative;
+    display: inline-block;
+  }
+
+  .acara-event-title-stroke,
+  .acara-event-title-fill {
+    display: block;
+    width: 100%;
+  }
+
+  .acara-event-title-stroke {
+    position: absolute;
+    inset: 0;
+    -webkit-text-stroke: 2px #5d0077;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .acara-event-title-fill {
+    position: relative;
+    background: linear-gradient(39deg, #ff7a1a 0%, #ffd344 97%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   @media (min-width: 1280px) {
