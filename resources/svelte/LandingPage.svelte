@@ -55,7 +55,8 @@
         return {
           ...item,
           children: [
-            { href: item.href, label: "Profil departemen" },
+            { href: "/departemen", label: "Orbit departemen" },
+            { href: "/departemen/bph", label: "Detail departemen" },
             { href: tentangUrl, label: "Sejarah himpunan" },
           ],
         };
