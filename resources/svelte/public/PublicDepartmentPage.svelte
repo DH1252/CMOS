@@ -629,7 +629,7 @@
         return {
           ...item,
           children: [
-            { href: "/departemen", label: "Orbit departemen" },
+            { href: "/departemen", label: "Departemen" },
             {
               href: `/departemen/${selectedDeptId || "bph"}`,
               label: "Detail departemen",
