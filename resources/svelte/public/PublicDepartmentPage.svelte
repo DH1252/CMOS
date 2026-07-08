@@ -603,30 +603,12 @@
   function handleDeptClick(dept, event) {
     event.stopPropagation();
     selectedDeptId = dept.id;
-    const url = `/departemen/${dept.id}`;
-    window.history.pushState(
-      {
-        ...window.history.state,
-        url: url,
-      },
-      "",
-      url,
-    );
   }
 
   // Deselect on empty space click
   function handleDeselect() {
     if (selectedDeptId) {
       selectedDeptId = null;
-      const url = "/departemen";
-      window.history.pushState(
-        {
-          ...window.history.state,
-          url: url,
-        },
-        "",
-        url,
-      );
     }
   }
 
@@ -647,7 +629,11 @@
         return {
           ...item,
           children: [
-            { href: item.href, label: "Profil departemen" },
+            { href: "/departemen", label: "Orbit departemen" },
+            {
+              href: `/departemen/${selectedDeptId || "bph"}`,
+              label: "Detail departemen",
+            },
             { href: tentangUrl, label: "Sejarah himpunan" },
           ],
         };
@@ -1058,6 +1044,44 @@
                     </div>
                   {/each}
                 </div>
+
+                <div
+                  class="mt-8 border-t border-white/10 pt-6"
+                  style="animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: {(activeDept
+                    .focus?.length || 0) * 0.08}s;"
+                >
+                  <button
+                    type="button"
+                    onclick={() => router.visit(`/departemen/${activeDept.id}`)}
+                    class="group flex w-full items-center justify-between rounded-xl bg-gradient-to-r from-[#ff7a1a]/20 to-[#ffd344]/20 p-4 transition-all hover:from-[#ff7a1a]/30 hover:to-[#ffd344]/30"
+                  >
+                    <div class="flex flex-col items-start">
+                      <span class="font-bold text-white">Detail Departemen</span
+                      >
+                      <span class="text-xs text-white/70"
+                        >Lihat profil dan struktur pengurus</span
+                      >
+                    </div>
+                    <div
+                      class="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffd344] text-[#2a0078] transition-transform group-hover:scale-110"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2.5"
+                        stroke="currentColor"
+                        class="h-4 w-4"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           {/if}
@@ -1171,10 +1195,6 @@
     --hero-max-width: 360px;
     margin: 0 auto -160px auto;
     pointer-events: auto;
-  }
-
-  .hero-logo-container img {
-    margin-left: 8.3%;
   }
 
   @media (min-width: 768px) {
