@@ -55,7 +55,7 @@
         return {
           ...item,
           children: [
-            { href: "/departemen", label: "Orbit departemen" },
+            { href: "/departemen", label: "Departemen" },
             { href: "/departemen/bph", label: "Detail departemen" },
             { href: tentangUrl, label: "Sejarah himpunan" },
           ],

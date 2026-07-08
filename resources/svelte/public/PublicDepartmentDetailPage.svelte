@@ -147,7 +147,7 @@
         return {
           ...item,
           children: [
-            { href: "/departemen", label: "Orbit departemen" },
+            { href: "/departemen", label: "Departemen" },
             {
               href: `/departemen/${selectedSlug || "bph"}`,
               label: "Detail departemen",
