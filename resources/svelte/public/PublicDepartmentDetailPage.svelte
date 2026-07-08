@@ -201,13 +201,13 @@
 </svelte:head>
 
 <div
-  class="min-h-screen w-full overflow-x-hidden bg-white font-['Josefin_Sans',sans-serif] text-[#222]"
+  class="min-h-screen w-full bg-white font-['Josefin_Sans',sans-serif] text-[#222]"
   use:inertiaEnhance
 >
   <Navbar {homeUrl} {loginUrl} {navigationItems} />
 
   <main
-    class="relative isolate min-h-[calc(100vh-74px)] bg-[#222222] pb-32 text-white"
+    class="relative isolate min-h-[calc(100vh-74px)] overflow-hidden bg-[#222222] pb-32 text-white"
   >
     <!-- Atmosphere Background - Combination B uses Dark Charcoal -->
     <div
