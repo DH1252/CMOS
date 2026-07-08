@@ -69,8 +69,34 @@ Route::get('/tentang', fn () => $comingSoon(
     'Tentang Kami',
     'Profil lengkap Kabinet Sentra Sinergi HIMATEKKOM ITS sedang kami siapkan.',
 ))->name('tentang');
+
+Route::get('/departemen/overview', function () {
+    $organizationName = (string) \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
+    return Inertia::render('public/PublicDepartmentOverviewPage', [
+        'organizationName' => $organizationName,
+        'homeUrl' => route('home'),
+        'loginUrl' => route('login'),
+        'infoUrl' => route('informasi.index'),
+        'acaraUrl' => route('acara.index'),
+    ]);
+})->name('departemen.overview');
+
 Route::get('/departemen/{slug?}', function (?string $slug = null) {
     $organizationName = (string) \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
+
+    if ($slug) {
+        $validSlugs = ['personalia', 'risprof', 'kwu', 'psdm', 'dagri', 'bph', 'hublu', 'kesma', 'medfo', 'kaderisasi'];
+        if (in_array(strtolower($slug), $validSlugs)) {
+            return Inertia::render('public/PublicDepartmentDetailPage', [
+                'organizationName' => $organizationName,
+                'homeUrl' => route('home'),
+                'loginUrl' => route('login'),
+                'infoUrl' => route('informasi.index'),
+                'acaraUrl' => route('acara.index'),
+                'selectedSlug' => strtolower($slug),
+            ]);
+        }
+    }
 
     return Inertia::render('public/PublicDepartmentPage', [
         'organizationName' => $organizationName,
