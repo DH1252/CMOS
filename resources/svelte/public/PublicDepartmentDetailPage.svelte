@@ -149,7 +149,7 @@
           children: [
             { href: "/departemen", label: "Departemen" },
             {
-              href: `/departemen/${selectedSlug || "bph"}`,
+              href: `/departemen/overview`,
               label: "Detail departemen",
             },
             { href: tentangUrl, label: "Sejarah himpunan" },

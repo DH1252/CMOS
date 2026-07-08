@@ -56,7 +56,7 @@
           ...item,
           children: [
             { href: "/departemen", label: "Departemen" },
-            { href: "/departemen/bph", label: "Detail departemen" },
+            { href: "/departemen/overview", label: "Detail departemen" },
             { href: tentangUrl, label: "Sejarah himpunan" },
           ],
         };
