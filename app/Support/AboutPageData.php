@@ -51,12 +51,12 @@ class AboutPageData
                 'eyebrow' => 'Profil Kabinet',
                 'title' => 'Visi & Misi',
                 'visionLabel' => 'Visi',
-                'vision' => 'Menjadikan HIMATEKKOM ITS sebagai himpunan yang progresif, inklusif, dan berdampak, dengan tata kelola organisasi yang profesional serta budaya kolaborasi yang kuat dalam semangat Kabinet Sentra Sinergi.',
+                'vision' => 'Mewujudkan HIMATEKKOM sebagai poros pergerakan yang unggul melalui optimalissasi sistem dan kolaborasi strategis, demi tercapainya ekspansi kebermanfaatan yang berkelanjutan.',
                 'missionLabel' => 'Misi',
                 'missionItems' => [
-                    'Menguatkan pelayanan internal melalui sistem kerja terstruktur, evaluasi berkala, dan pengembangan kapasitas pengurus yang berkelanjutan.',
-                    'Mendorong kolaborasi lintas pihak, mulai dari mahasiswa, alumni, departemen, hingga mitra kegiatan, untuk memperluas dampak program kerja.',
-                    'Mewujudkan transparansi informasi melalui publikasi kegiatan, dokumentasi terpusat, dan akses informasi yang mudah bagi warga Teknik Komputer ITS.',
+                    'Mengoptimalkan tata kelola dan sistem monitoring organisasi yang terintegrasi, guna menjamin solidaritas internal serta konsistensi kinerja yang berkelanjutan.',
+                    'Membangun kolaborasi strategis dengan stakeholder external untuk memperkuat relasi, menjawab kebutuhan mahasiswa, serta mewujudkan kemandirian organisasi.',
+                    'Melakukan ekspansi ekosistem pengembangan mahasiswa yang adaptif serta meningkatkan eksistensi HIMATEKKKOM di lingkup eksternal.',
                 ],
             ],
 

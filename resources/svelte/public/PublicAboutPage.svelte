@@ -1,4 +1,4 @@
-P<script>
+<script>
   import Navbar from "../components/landing/Navbar.svelte";
   import Footer from "../components/landing/Footer.svelte";
   import { inertiaEnhance } from "../lib/inertia-enhance.js";
@@ -164,7 +164,7 @@ P<script>
           Jelajahi departemen dan program kerja kabinet untuk melihat
           bagaimana kami bekerja.
         </p>
-        
+        <a 
           href={departemenUrl}
           class="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#ff7a1a] to-[#ffd344] px-8 py-3 text-sm font-bold tracking-wide text-[#2a0078] uppercase shadow-lg"
         >
