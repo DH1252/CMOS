@@ -42,15 +42,11 @@
     { href: "/tentang", label: "Tentang Kami" },
   ];
 
-
-
   const departemenUrl = $derived(
     getNavigationHref("Departemen", "/departemen"),
   );
   const kompetisiUrl = $derived(getNavigationHref("Kompetisi", "/kompetisi"));
   const tentangUrl = $derived(getNavigationHref("Tentang Kami", "/tentang"));
-
-
 
   const newsCards = $derived.by(() =>
     (Array.isArray(latestInfo) ? latestInfo : []).slice(0, 5),

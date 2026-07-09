@@ -612,7 +612,6 @@
     }
   }
 
-
   const departemenUrl = "/departemen";
   const kompetisiUrl = "/kompetisi";
   const tentangUrl = "/tentang";

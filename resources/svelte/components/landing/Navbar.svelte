@@ -5,7 +5,11 @@
   import { cubicOut } from "svelte/easing";
   import TalingNavbarLogo from "../TalingNavbarLogo.svelte";
 
-  let { homeUrl = "/", loginUrl = "/login", navigationItems = undefined } = $props();
+  let {
+    homeUrl = "/",
+    loginUrl = "/login",
+    navigationItems = undefined,
+  } = $props();
 
   const defaultNavigationItems = $derived([
     { href: homeUrl, label: "Beranda" },
@@ -29,7 +33,9 @@
     { href: "/tentang", label: "Tentang Kami" },
   ]);
 
-  const resolvedNavigationItems = $derived(navigationItems?.length ? navigationItems : defaultNavigationItems);
+  const resolvedNavigationItems = $derived(
+    navigationItems?.length ? navigationItems : defaultNavigationItems,
+  );
 
   let openMenu = $state(null);
   let mobileMenuOpen = $state(false);

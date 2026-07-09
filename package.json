@@ -16,12 +16,12 @@
         "@inertiajs/vite": "^3.1.1",
         "@internationalized/date": "^3.12.0",
         "@lucide/svelte": "^1.8.0",
-        "@sveltejs/enhanced-img": "^0.10.4",
+        "@sveltejs/enhanced-img": "^0.11.0",
         "@sveltejs/vite-plugin-svelte": "^7.1.2",
         "@tailwindcss/vite": "^4.0.0",
         "axios": "^1.11.0",
         "bits-ui": "^2.17.3",
-        "concurrently": "^9.0.1",
+        "concurrently": "^10.0.3",
         "eslint": "^10.3.0",
         "eslint-plugin-svelte": "^3.17.1",
         "globals": "^17.6.0",
@@ -29,7 +29,7 @@
         "mode-watcher": "^1.1.0",
         "playwright": "^1.59.1",
         "prettier": "^3.8.3",
-        "prettier-plugin-svelte": "^3.5.1",
+        "prettier-plugin-svelte": "^4.1.1",
         "prettier-plugin-tailwindcss": "^0.8.0",
         "svelte": "^5.28.2",
         "svelte-sonner": "^1.1.0",
@@ -40,7 +40,7 @@
         "vite": "^8.0.11"
     },
     "dependencies": {
-        "@humanspeak/svelte-motion": "^0.2.0",
+        "@humanspeak/svelte-motion": "^0.7.13",
         "@inertiajs/svelte": "^3.0.3",
         "@tinymce/tinymce-svelte": "^4.0.1",
         "gsap": "^3.15.0",
@@ -51,7 +51,7 @@
         "motion": "^12.38.0",
         "posthog-js": "^1.369.2",
         "pusher-js": "^8.4.0-rc2",
-        "textmode.js": "^0.12.0",
+        "textmode.js": "^0.17.0",
         "tinymce": "^8.5.0"
     }
 }

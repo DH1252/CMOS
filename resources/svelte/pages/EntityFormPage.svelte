@@ -130,7 +130,7 @@
                       >
                     {/each}
                   </select>
-                {:else if field.type === 'staff-graphics'}
+                {:else if field.type === "staff-graphics"}
                   <StaffGraphicsEditor {field} />
                 {:else}
                   <Input
