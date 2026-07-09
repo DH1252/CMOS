@@ -5,6 +5,7 @@
   import { Textarea } from "$lib/components/ui/textarea/index.js";
   import FormActions from "../components/FormActions.svelte";
   import PageHeader from "../components/PageHeader.svelte";
+  import StaffGraphicsEditor from "../components/StaffGraphicsEditor.svelte";
 
   let {
     title = "Form",
@@ -129,6 +130,8 @@
                       >
                     {/each}
                   </select>
+                {:else if field.type === 'staff-graphics'}
+                  <StaffGraphicsEditor {field} />
                 {:else}
                   <Input
                     id={field.name}

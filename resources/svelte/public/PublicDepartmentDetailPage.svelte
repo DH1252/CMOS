@@ -14,6 +14,7 @@
     infoUrl = "/informasi",
     acaraUrl = "/acara",
     selectedSlug = null,
+    staffGraphics = []
   } = $props();
 
   const assetBase = "/images/figma-taling";
@@ -22,6 +23,144 @@
   const largeStarDelay = "0s";
   const smallStarDelay = "-2s";
   const botanicalDelay = "-5s";
+
+  let isDescriptionExpanded = $state(false);
+  let galleryHeight = $state(400);
+  let naturalWidths = $state({});
+  let naturalHeights = $state({});
+  
+  let sliderRef;
+  let isDown = false;
+  let startX = 0;
+  let scrollLeft = 0;
+
+  let minNaturalHeight = $derived.by(() => {
+    let min = Infinity;
+    if (staffGraphics) {
+      for (let i = 0; i < staffGraphics.length; i++) {
+        if (naturalHeights[i] && naturalHeights[i] < min) {
+          min = naturalHeights[i];
+        }
+      }
+    }
+    return min === Infinity ? 400 : min;
+  });
+
+  let globalScale = $derived(galleryHeight / minNaturalHeight);
+
+  function getVerticalOffset(gIndex, graphic, gScale) {
+    if (!naturalHeights[gIndex]) return 0;
+    const scaledHeight = naturalHeights[gIndex] * gScale;
+    const extraHeight = scaledHeight - galleryHeight;
+    if (extraHeight <= 0) return 0;
+
+    let cy = 50;
+    if (graphic.overlays && graphic.overlays.length > 0) {
+      let sumY = 0;
+      for (let o of graphic.overlays) {
+        sumY += (o.y !== undefined ? o.y : 50);
+      }
+      cy = sumY / graphic.overlays.length;
+      cy = Math.max(0, cy - 15);
+    }
+    
+    let topPx = (galleryHeight / 2) - ((cy / 100) * scaledHeight);
+    topPx = Math.max(-extraHeight, Math.min(0, topPx));
+    
+    return topPx;
+  }
+
+  function handleMouseDown(e) {
+    if (!sliderRef) return;
+    isDown = true;
+    sliderRef.classList.add('cursor-grabbing');
+    sliderRef.classList.remove('cursor-grab');
+    startX = e.pageX - sliderRef.offsetLeft;
+    scrollLeft = sliderRef.scrollLeft;
+  }
+  function handleMouseLeave() {
+    if (!sliderRef) return;
+    isDown = false;
+    sliderRef.classList.remove('cursor-grabbing');
+    sliderRef.classList.add('cursor-grab');
+  }
+  function handleMouseUp() {
+    if (!sliderRef) return;
+    isDown = false;
+    sliderRef.classList.remove('cursor-grabbing');
+    sliderRef.classList.add('cursor-grab');
+  }
+  function handleMouseMove(e) {
+    if (!isDown || !sliderRef) return;
+    e.preventDefault();
+    const x = e.pageX - sliderRef.offsetLeft;
+    const walk = (x - startX) * 2; 
+    sliderRef.scrollLeft = scrollLeft - walk;
+  }
+  
+  function scrollGallery(direction) {
+    if (sliderRef && typeof window !== 'undefined') {
+      sliderRef.scrollBy({ left: direction * (window.innerWidth * 0.5), behavior: 'smooth' });
+    }
+  }
+
+  let slideRefs = [];
+
+  let staffList = $derived.by(() => {
+    let list = [];
+    if (staffGraphics) {
+      staffGraphics.forEach((graphic, graphicIndex) => {
+        if (graphic.overlays) {
+          graphic.overlays.forEach((overlay) => {
+            const fullName = overlay.name || '';
+            const match = fullName.match(/(.*?)\s+(CE\s*\d+)$/i);
+            let name = fullName;
+            let batch = null;
+            if (match) {
+              name = match[1];
+              batch = match[2].toUpperCase().replace(/\s+/, '');
+            }
+            list.push({
+              name,
+              batch,
+              role: overlay.role || '',
+              picture: overlay.picture || null,
+              graphicIndex
+            });
+          });
+        }
+      });
+    }
+    return list;
+  });
+
+  let activeStaffName = $state(null);
+
+  function scrollToStaff(staff) {
+    activeStaffName = staff.name;
+    const graphicIndex = staff.graphicIndex;
+    
+    if (slideRefs[graphicIndex] && sliderRef) {
+      const slide = slideRefs[graphicIndex];
+      // Calculate offset relative to slider
+      const scrollLeft = slide.offsetLeft - sliderRef.offsetLeft;
+      
+      // Center the slide slightly if possible
+      const centerOffset = (sliderRef.clientWidth - slide.clientWidth) / 2;
+      const targetScroll = Math.max(0, scrollLeft - centerOffset);
+      
+      sliderRef.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+
+      // Scroll the entire page to center the gallery
+      sliderRef.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  }
 
   // Fallback metadata for department descriptions and focus areas
   const departmentInfoMap = {
@@ -191,7 +330,11 @@
   }
 
   function handleBack() {
-    router.visit("/departemen");
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      router.visit("/departemen");
+    }
   }
 </script>
 
@@ -267,7 +410,7 @@
             d="M10 19l-7-7m0 0l7-7m-7 7h18"
           />
         </svg>
-        Kembali ke Orbit
+        Kembali
       </button>
 
       <!-- Department Introduction Section -->
@@ -278,7 +421,7 @@
             >PROFIL DEPARTEMEN</span
           >
           <h1
-            class="mt-4 font-['Playfair_Display','Playfair_Display',serif] text-5xl leading-[1.1] font-bold tracking-tight text-[#ffd344] md:text-7xl"
+            class="mt-4 font-['The_Seasons',serif] text-5xl leading-[1.1] font-bold tracking-tight text-[#ffd344] md:text-7xl"
             style="text-wrap: balance;"
           >
             {deptInfo.name}
@@ -322,18 +465,134 @@
         <div
           class="mb-20 flex flex-col items-center justify-center text-center"
         >
-          <span
-            class="text-xs font-bold tracking-widest text-[#ff7a1a] uppercase"
-            >#OKE Sentra Sinergi</span
-          >
           <h2
-            class="mt-3 font-['Playfair_Display','Playfair_Display',serif] text-4xl font-bold text-[#ffd344] md:text-5xl"
+            class="mt-3 font-['The_Seasons',serif] text-4xl font-bold text-[#ffd344] md:text-5xl"
           >
             Struktur Pengurus
           </h2>
         </div>
 
-        {#if teamData.members.length === 0}
+        {#if staffGraphics && staffGraphics.length > 0}
+          <div class="mb-24 relative rounded-2xl shadow-2xl ring-1 ring-white/10 w-full group overflow-hidden">
+            
+            <button 
+              class="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-black/50 text-white hover:bg-[#ff7a1a] transition-colors opacity-0 group-hover:opacity-100 backdrop-blur-md border border-white/10"
+              onclick={() => scrollGallery(-1)}
+              aria-label="Previous"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <div 
+              bind:this={sliderRef}
+              bind:clientHeight={galleryHeight}
+              class="flex flex-row overflow-x-auto cursor-grab active:cursor-grabbing [&::-webkit-scrollbar]:hidden h-[400px] md:h-[600px] bg-black/20"
+              style="scrollbar-width: none;"
+              onmousedown={handleMouseDown}
+              onmouseleave={handleMouseLeave}
+              onmouseup={handleMouseUp}
+              onmousemove={handleMouseMove}
+            >
+              {#each staffGraphics as graphic, graphicIndex}
+                {@const gScale = globalScale || 1}
+                {@const sWidth = (naturalWidths[graphicIndex] || 400) * gScale}
+                {@const topPx = getVerticalOffset(graphicIndex, graphic, gScale)}
+                
+                <div 
+                  bind:this={slideRefs[graphicIndex]}
+                  class="relative flex-none overflow-hidden h-full border-r border-white/5 last:border-r-0 select-none"
+                  style="width: {sWidth}px;"
+                >
+                  <div class="absolute left-0 w-full pointer-events-none" style="height: {(naturalHeights[graphicIndex] || 400) * gScale}px; top: {topPx}px;">
+                    <img 
+                      src={graphic.image} 
+                      alt="Struktur Staff" 
+                      class="w-full h-full block max-w-none pointer-events-none" 
+                      draggable="false"
+                      onload={(e) => {
+                        naturalWidths[graphicIndex] = e.target.naturalWidth;
+                        naturalHeights[graphicIndex] = e.target.naturalHeight;
+                      }}
+                    />
+                    
+                    {#if graphic.overlays && graphic.overlays.length > 0}
+                      <div class="absolute inset-0 pointer-events-none">
+                        {#each graphic.overlays as overlay}
+                          {@const parsedName = (() => {
+                            const fullName = overlay.name || '';
+                            const match = fullName.match(/(.*?)\s+(CE\s*\d+)$/i);
+                            if (match) return { name: match[1], batch: match[2].toUpperCase().replace(/\s+/, '') };
+                            return { name: fullName, batch: null };
+                          })()}
+                          <div class="pointer-events-auto absolute transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 backdrop-blur-sm p-2 md:p-3 flex flex-col justify-center shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all hover:shadow-[0_8px_32px_rgba(255,165,0,0.15)] w-max max-w-[200px] md:max-w-[250px]
+                            {parsedName.name === activeStaffName ? 'border border-[#ff7a1a] shadow-[0_0_20px_rgba(255,122,26,0.6)] scale-110 z-50 ring-2 ring-[#ff7a1a]/30' : 'border border-white/10 z-10'}"
+                               style="left: {overlay.x !== undefined ? overlay.x : 50}%; top: {overlay.y !== undefined ? overlay.y : 50}%;">
+                            <p class="text-xs md:text-sm font-['The_Seasons',serif] font-normal tracking-wide leading-tight text-white/95 drop-shadow-sm text-left text-balance">
+                              {overlay.role}
+                            </p>
+                            <h4 class="font-['The_Seasons',serif] text-sm md:text-base font-normal tracking-wide text-white drop-shadow-md text-left flex items-baseline gap-1 mt-1">
+                              {parsedName.name}
+                              {#if parsedName.batch}
+                                <span class="text-[#FFB52E] font-sans font-bold tracking-wider text-xs md:text-sm [text-shadow:0_0_10px_rgba(255,165,0,1),0_0_20px_rgba(255,165,0,0.8),0_0_30px_rgba(255,165,0,0.6)]">{parsedName.batch}</span>
+                              {/if}
+                            </h4>
+                          </div>
+                        {/each}
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+              {/each}
+            </div>
+
+            <button 
+              class="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-black/50 text-white hover:bg-[#ff7a1a] transition-colors opacity-0 group-hover:opacity-100 backdrop-blur-md border border-white/10"
+              onclick={() => scrollGallery(1)}
+              aria-label="Next"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Staff List Section -->
+          {#if staffList.length > 0}
+            <div class="mb-24">
+              <h3
+                class="mb-10 text-sm font-semibold tracking-wider text-[#e2bb44] uppercase text-center"
+              >
+                Daftar Pengurus
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-4 md:px-0">
+                {#each staffList as staff}
+                  <button 
+                    onclick={() => scrollToStaff(staff)}
+                    class="flex flex-col items-start p-5 rounded-2xl bg-[#111111]/80 hover:bg-[#1a1a1a] border border-white/5 hover:border-[#ff7a1a]/50 transition-all text-left group w-full"
+                  >
+                    <div class="flex gap-4 items-center w-full">
+                      {#if staff.picture}
+                        <img src={staff.picture} alt={staff.name} class="w-12 h-12 shrink-0 object-cover rounded-full border border-white/10 group-hover:border-[#ff7a1a]/50 transition-colors" />
+                      {/if}
+                      <div class="flex flex-col items-start">
+                        <span class="text-[10px] font-bold tracking-widest text-[#ff7a1a] uppercase mb-1.5 leading-tight">{staff.role}</span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="text-base font-['The_Seasons',serif] text-white/90 group-hover:text-white transition-colors">{staff.name}</span>
+                          {#if staff.batch}
+                            <span class="text-[10px] font-bold text-[#FFB52E] bg-white/5 px-2 py-0.5 rounded-md">{staff.batch}</span>
+                          {/if}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                {/each}
+              </div>
+            </div>
+          {/if}
+
+        {:else if teamData.members.length === 0}
           <div class="py-12 text-center">
             <p class="text-lg font-light text-white/50">
               Data struktur kepengurusan departemen belum tersedia.
@@ -359,7 +618,7 @@
                       class="mb-6 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-[#2a0078] transition-all duration-300 group-hover:bg-[#5d0077]"
                     >
                       <span
-                        class="font-['Playfair_Display'] text-4xl font-extrabold text-[#ffd344]"
+                        class="font-['The_Seasons',serif] text-4xl font-extrabold text-[#ffd344]"
                       >
                         {getInitials(leader.name)}
                       </span>
@@ -400,7 +659,7 @@
                       class="mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-[#2a0078] transition-colors duration-300 group-hover:bg-[#5d0077]"
                     >
                       <span
-                        class="font-['Playfair_Display'] text-xl font-bold text-white opacity-90"
+                        class="font-['The_Seasons',serif] text-xl font-bold text-white opacity-90"
                       >
                         {getInitials(member.name)}
                       </span>

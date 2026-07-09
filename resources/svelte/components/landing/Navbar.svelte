@@ -5,7 +5,31 @@
   import { cubicOut } from "svelte/easing";
   import TalingNavbarLogo from "../TalingNavbarLogo.svelte";
 
-  let { homeUrl = "/", loginUrl = "/login", navigationItems = [] } = $props();
+  let { homeUrl = "/", loginUrl = "/login", navigationItems = undefined } = $props();
+
+  const defaultNavigationItems = $derived([
+    { href: homeUrl, label: "Beranda" },
+    {
+      href: "/departemen",
+      label: "Departemen",
+      children: [
+        { href: "/departemen", label: "Departemen" },
+        { href: "/departemen/overview", label: "Detail departemen" },
+        { href: "/tentang", label: "Sejarah himpunan" },
+      ],
+    },
+    {
+      href: "/kompetisi",
+      label: "Kompetisi",
+      children: [
+        { href: "/kompetisi", label: "Kompetisi" },
+        { href: "/kristal", label: "Kristal" },
+      ],
+    },
+    { href: "/tentang", label: "Tentang Kami" },
+  ]);
+
+  const resolvedNavigationItems = $derived(navigationItems?.length ? navigationItems : defaultNavigationItems);
 
   let openMenu = $state(null);
   let mobileMenuOpen = $state(false);
@@ -149,7 +173,7 @@
   <div
     class="hidden flex-1 items-center justify-center gap-8 md:flex lg:gap-[35px]"
   >
-    {#each navigationItems as item (item.href)}
+    {#each resolvedNavigationItems as item (item.href)}
       {#if item.children?.length}
         <div class="group relative">
           <button
@@ -230,7 +254,7 @@
       class="absolute top-[74px] left-0 z-40 flex w-full flex-col border-b border-gray-100 bg-white/95 px-6 py-6 shadow-xl backdrop-blur-md md:hidden"
     >
       <div class="flex flex-col gap-5">
-        {#each navigationItems as item, idx (item.href)}
+        {#each resolvedNavigationItems as item, idx (item.href)}
           <div
             transition:fly={{
               x: -10,
@@ -289,7 +313,7 @@
         <div
           transition:fly={{
             y: 10,
-            delay: navigationItems.length * 40,
+            delay: resolvedNavigationItems.length * 40,
             duration: 300,
             easing: cubicOut,
           }}

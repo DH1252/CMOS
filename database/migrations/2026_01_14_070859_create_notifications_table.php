@@ -17,7 +17,7 @@ return new class extends Migration
             $table->json('data')->nullable(); // Extra data (task_id, etc.)
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['user_id', 'read_at']);
             $table->index('created_at');
         });

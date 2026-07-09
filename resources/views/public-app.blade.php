@@ -42,7 +42,7 @@
     @if ($usesTalingFonts)
         <link rel="preload" href="{{ asset('fonts/plus-jakarta-sans-400.woff2') }}" as="font" type="font/woff2" crossorigin>
         <link rel="preload" href="{{ asset('fonts/plus-jakarta-sans-600.woff2') }}" as="font" type="font/woff2" crossorigin>
-        <link rel="preload" href="{{ asset('fonts/playfair-display-700.woff2') }}" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="{{ asset('fonts/seasons-display-700.woff2') }}" as="font" type="font/woff2" crossorigin>
         <link rel="preload" href="{{ asset('fonts/josefin-sans-400.woff2') }}" as="font" type="font/woff2" crossorigin>
     @endif
     <style>{!! $fontCss !!}</style>
@@ -58,7 +58,7 @@
             --taling-public-purple: oklch(0.32 0.2 300);
             --taling-public-purple-deep: oklch(0.24 0.15 302);
             --taling-public-ink: oklch(0.22 0.025 300);
-            --font-terminal: 'Playfair Display', Georgia, 'Times New Roman', serif;
+            --font-terminal: 'The Seasons', Georgia, 'Times New Roman', serif;
             --font-public: 'Josefin Sans', 'Public Sans', ui-sans-serif, system-ui, sans-serif;
             --landing-terminal-bg: var(--taling-public-cream);
             --landing-terminal-panel: color-mix(in oklch, var(--taling-public-cream) 82%, var(--taling-public-yellow));

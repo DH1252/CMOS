@@ -61,8 +61,10 @@ class Program extends Model
     public function getProgressAttribute(): int
     {
         $tasks = $this->tasks;
-        if ($tasks->isEmpty()) return 0;
-        
+        if ($tasks->isEmpty()) {
+            return 0;
+        }
+
         return (int) round($tasks->avg('progress'));
     }
 
@@ -92,9 +94,8 @@ class Program extends Model
     public function scopeForUser($query, $userId)
     {
         return $query->where(function ($q) use ($userId) {
-            $q->whereHas('members', fn($m) => $m->where('user_id', $userId))
-              ->orWhereHas('pics', fn($p) => $p->where('user_id', $userId));
+            $q->whereHas('members', fn ($m) => $m->where('user_id', $userId))
+                ->orWhereHas('pics', fn ($p) => $p->where('user_id', $userId));
         });
     }
 }
-

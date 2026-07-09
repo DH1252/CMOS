@@ -23,7 +23,10 @@ class PollOption extends Model
     public function getPercentageAttribute(): float
     {
         $total = $this->announcement->total_votes;
-        if ($total === 0) return 0;
+        if ($total === 0) {
+            return 0;
+        }
+
         return round(($this->votes_count / $total) * 100, 1);
     }
 }

@@ -358,7 +358,7 @@
   .login-copy h1 {
     margin: 0;
     color: var(--taling-white);
-    font-family: var(--taling-font-serif, "Playfair Display", Georgia, serif);
+    font-family: var(--taling-font-serif, "The Seasons", Georgia, serif);
     font-size: clamp(3.3rem, 7vw, 6.8rem);
     line-height: 1;
     text-shadow: 0 0 22px rgba(255, 253, 248, 0.72);
@@ -418,7 +418,7 @@
 
   .login-form-title :global([data-slot="card-title"]) {
     color: var(--taling-purple);
-    font-family: var(--taling-font-serif, "Playfair Display", Georgia, serif);
+    font-family: var(--taling-font-serif, "The Seasons", Georgia, serif);
     font-size: clamp(1.8rem, 4vw, 2.4rem);
     letter-spacing: -0.035em;
   }

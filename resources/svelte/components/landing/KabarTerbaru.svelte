@@ -80,7 +80,7 @@
       ></div>
       <div class="ml-4 md:ml-0">
         <h2
-          class="font-['Playfair_Display'] text-5xl leading-tight font-normal text-white drop-shadow-sm md:text-[64px]"
+          class="font-['The_Seasons'] text-5xl leading-tight font-normal text-white drop-shadow-sm md:text-[64px]"
         >
           Kabar Terbaru
         </h2>
@@ -124,7 +124,7 @@
               class="absolute inset-0 flex flex-col justify-end p-6 backdrop-blur-[1px]"
             >
               <h3
-                class="mb-1 font-['Playfair_Display'] text-[24px] font-bold text-white drop-shadow-md"
+                class="mb-1 font-['The_Seasons'] text-[24px] font-bold text-white drop-shadow-md"
               >
                 {item.title}
               </h3>

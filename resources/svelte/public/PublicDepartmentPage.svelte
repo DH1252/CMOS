@@ -612,44 +612,10 @@
     }
   }
 
-  // Navigation Items
-  const resolvedNavigation = $derived([
-    { href: homeUrl, label: "Beranda" },
-    { href: "/departemen", label: "Departemen" },
-    { href: "/kompetisi", label: "Kompetisi" },
-    { href: "/tentang", label: "Tentang Kami" },
-  ]);
 
   const departemenUrl = "/departemen";
   const kompetisiUrl = "/kompetisi";
   const tentangUrl = "/tentang";
-  const navigationItems = $derived(
-    resolvedNavigation.map((item) => {
-      if (item.label === "Departemen") {
-        return {
-          ...item,
-          children: [
-            { href: "/departemen", label: "Departemen" },
-            {
-              href: `/departemen/overview`,
-              label: "Detail departemen",
-            },
-            { href: tentangUrl, label: "Sejarah himpunan" },
-          ],
-        };
-      }
-      if (item.label === "Kompetisi") {
-        return {
-          ...item,
-          children: [
-            { href: item.href, label: "Kompetisi" },
-            { href: acaraUrl, label: "Agenda kegiatan" },
-          ],
-        };
-      }
-      return item;
-    }),
-  );
 
   const pageTitle = "Departemen HIMATEKKOM ITS | Kabinet Sentra Sinergi";
   const pageDescription =
@@ -693,7 +659,7 @@
   class="min-h-screen w-full bg-white font-['Plus_Jakarta_Sans',sans-serif] text-[#222]"
   use:inertiaEnhance
 >
-  <Navbar {homeUrl} {loginUrl} {navigationItems} />
+  <Navbar {homeUrl} {loginUrl} />
 
   <main>
     <!-- Hero Section -->
@@ -850,7 +816,7 @@
                 >DEPARTEMENT REVEAL</span
               >
               <h2
-                class="mt-2 font-['Playfair_Display'] text-4xl font-bold text-white md:text-6xl"
+                class="mt-2 font-['The_Seasons'] text-4xl font-bold text-white md:text-6xl"
               >
                 Departemen Himatekkom
               </h2>
@@ -1098,7 +1064,7 @@
           >READY TO REVEAL</span
         >
         <h2
-          class="mt-4 font-['Playfair_Display'] text-3xl font-bold text-white md:text-5xl"
+          class="mt-4 font-['The_Seasons'] text-3xl font-bold text-white md:text-5xl"
         >
           Temukan departemenmu. Mulai ceritamu.
         </h2>
@@ -1227,7 +1193,7 @@
   }
 
   .hero-title {
-    font-family: "The Seasons", "Playfair Display", Georgia, serif;
+    font-family: "The Seasons", "The Seasons", Georgia, serif;
     font-style: normal;
     font-weight: 300;
     font-size: 3.75rem;

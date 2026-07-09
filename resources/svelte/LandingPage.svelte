@@ -31,17 +31,18 @@
 
   const assetBase = "/images/figma-taling";
 
-  const resolvedNavigation = $derived(
-    navigation ?? [
-      { href: homeUrl, label: "Beranda" },
-      { href: "/departemen", label: "Departemen" },
-      { href: "/kompetisi", label: "Kompetisi" },
-      { href: "/tentang", label: "Tentang Kami" },
-    ],
-  );
-
   const getNavigationHref = (label, fallback) =>
-    resolvedNavigation.find((item) => item.label === label)?.href ?? fallback;
+    defaultNavigation.find((item) => item.label === label)?.href ?? fallback;
+
+  // Placeholder static default since Navbar handles its own
+  const defaultNavigation = [
+    { href: homeUrl, label: "Beranda" },
+    { href: "/departemen", label: "Departemen" },
+    { href: "/kompetisi", label: "Kompetisi" },
+    { href: "/tentang", label: "Tentang Kami" },
+  ];
+
+
 
   const departemenUrl = $derived(
     getNavigationHref("Departemen", "/departemen"),
@@ -49,32 +50,7 @@
   const kompetisiUrl = $derived(getNavigationHref("Kompetisi", "/kompetisi"));
   const tentangUrl = $derived(getNavigationHref("Tentang Kami", "/tentang"));
 
-  const navigationItems = $derived.by(() =>
-    resolvedNavigation.map((item) => {
-      if (item.label === "Departemen") {
-        return {
-          ...item,
-          children: [
-            { href: "/departemen", label: "Departemen" },
-            { href: "/departemen/overview", label: "Detail departemen" },
-            { href: tentangUrl, label: "Sejarah himpunan" },
-          ],
-        };
-      }
 
-      if (item.label === "Kompetisi") {
-        return {
-          ...item,
-          children: [
-            { href: item.href, label: "Kompetisi" },
-            { href: acaraUrl, label: "Agenda kegiatan" },
-          ],
-        };
-      }
-
-      return item;
-    }),
-  );
 
   const newsCards = $derived.by(() =>
     (Array.isArray(latestInfo) ? latestInfo : []).slice(0, 5),
@@ -133,7 +109,7 @@
   use:inertiaEnhance
   class="min-h-screen w-full bg-white font-['Plus_Jakarta_Sans',sans-serif] text-[#222]"
 >
-  <Navbar {homeUrl} {loginUrl} {navigationItems} />
+  <Navbar {homeUrl} {loginUrl} />
 
   <main id="main-content" tabindex="-1" class="outline-none">
     <HeroSection {assetBase} />

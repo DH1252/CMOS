@@ -9,6 +9,28 @@ use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
+    public function uploadGraphic(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|max:51200',
+        ]);
+
+        $file = $request->file('image');
+        // Optimize image: convert to WebP 80% quality without shrinking
+        $image = \Intervention\Image\Laravel\Facades\Image::decode($file->get());
+
+        $encoded = $image->encodeUsingFileExtension('webp', 80);
+        $filename = uniqid('staff_').'.webp';
+        $path = 'departments/graphics/'.$filename;
+
+        \Illuminate\Support\Facades\Storage::disk('public')->put($path, (string) $encoded);
+
+        return response()->json([
+            'url' => \Illuminate\Support\Facades\Storage::url($path),
+            'path' => $path,
+        ]);
+    }
+
     public function index()
     {
         $departments = Department::with(['cabinet', 'users'])
@@ -108,6 +130,7 @@ class DepartmentController extends Controller
                     'fields' => [
                         ['name' => 'name', 'label' => 'Nama Departemen', 'type' => 'text', 'required' => true, 'value' => old('name'), 'error' => session('errors')?->first('name')],
                         ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description'), 'error' => session('errors')?->first('description'), 'rows' => 3],
+                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics')],
                         [
                             'name' => 'cabinet_id',
                             'label' => 'Kabinet',
@@ -146,7 +169,12 @@ class DepartmentController extends Controller
             'description' => 'nullable|string',
             'cabinet_id' => 'nullable|exists:cabinets,id',
             'status' => 'required|in:active,inactive',
+            'staff_graphics' => 'nullable|string',
         ]);
+
+        if (isset($validated['staff_graphics'])) {
+            $validated['staff_graphics'] = json_decode($validated['staff_graphics'], true);
+        }
 
         $department = Department::create($validated);
 
@@ -245,6 +273,7 @@ class DepartmentController extends Controller
                     'fields' => [
                         ['name' => 'name', 'label' => 'Nama Departemen', 'type' => 'text', 'required' => true, 'value' => old('name', $department->name), 'error' => session('errors')?->first('name')],
                         ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description', $department->description), 'error' => session('errors')?->first('description'), 'rows' => 3],
+                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics', $department->staff_graphics)],
                         [
                             'name' => 'cabinet_id',
                             'label' => 'Kabinet',
@@ -283,7 +312,12 @@ class DepartmentController extends Controller
             'description' => 'nullable|string',
             'cabinet_id' => 'nullable|exists:cabinets,id',
             'status' => 'required|in:active,inactive',
+            'staff_graphics' => 'nullable|string',
         ]);
+
+        if (array_key_exists('staff_graphics', $validated) && $validated['staff_graphics'] !== null) {
+            $validated['staff_graphics'] = json_decode($validated['staff_graphics'], true);
+        }
 
         $department->update($validated);
 

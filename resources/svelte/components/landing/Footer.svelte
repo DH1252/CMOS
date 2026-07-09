@@ -78,7 +78,7 @@
         </div>
 
         <p
-          class="mb-6 font-['Playfair_Display'] text-[24px] tracking-wide text-black italic"
+          class="mb-6 font-['The_Seasons'] text-[24px] tracking-wide text-black italic"
         >
           sentra sinergi
         </p>
@@ -106,7 +106,7 @@
       <!-- Links: Hima -->
       <div class="col-span-1 flex flex-col md:col-span-3 md:items-end">
         <h3
-          class="mb-6 text-left font-['Playfair_Display'] text-[36px] font-semibold tracking-wide text-black lowercase md:text-right"
+          class="mb-6 text-left font-['The_Seasons'] text-[36px] font-semibold tracking-wide text-black lowercase md:text-right"
         >
           hima
         </h3>
@@ -140,7 +140,7 @@
       <!-- Links: Proker -->
       <div class="col-span-1 flex flex-col md:col-span-3 md:items-end">
         <h3
-          class="mb-6 text-left font-['Playfair_Display'] text-[36px] font-semibold tracking-wide text-black lowercase md:text-right"
+          class="mb-6 text-left font-['The_Seasons'] text-[36px] font-semibold tracking-wide text-black lowercase md:text-right"
         >
           proker
         </h3>

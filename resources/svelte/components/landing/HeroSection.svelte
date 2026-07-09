@@ -524,7 +524,7 @@
   }
 
   .hero-title {
-    font-family: "Playfair Display", "Playfair_Display", Georgia, serif;
+    font-family: "The Seasons", "The_Seasons", Georgia, serif;
     font-size: 2.25rem;
     line-height: 1.2;
     text-align: center;
