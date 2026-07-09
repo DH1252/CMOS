@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class EvaluationCriteria extends Model
 {
     protected $table = 'evaluation_criteria';
-    
+
     protected $fillable = ['name', 'description', 'max_score', 'weight', 'is_active'];
 
     protected $casts = [

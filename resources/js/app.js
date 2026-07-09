@@ -151,6 +151,7 @@ const pages = {
   ...import.meta.glob("../svelte/*Page.svelte"),
   ...import.meta.glob("../svelte/PublicApp.svelte"),
   ...import.meta.glob("../svelte/pages/**/*.svelte"),
+  ...import.meta.glob("../svelte/public/**/*.svelte"),
 };
 const isLoginPath =
   typeof window !== "undefined" && window.location.pathname === "/login";

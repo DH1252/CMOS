@@ -161,7 +161,7 @@
                     >{event.startsAtLabel}</span
                   >
                   <strong
-                    class="mt-4 font-['Playfair_Display'] text-4xl text-[#ff7a1a]"
+                    class="mt-4 font-['The_Seasons'] text-4xl text-[#ff7a1a]"
                     >{event.title}</strong
                   >
                 </div>
@@ -339,7 +339,7 @@
   }
 
   .acara-title {
-    font-family: "Playfair Display", serif;
+    font-family: "The Seasons", serif;
     font-size: 50px;
     line-height: 1.2;
     font-weight: 400;
@@ -383,7 +383,7 @@
       left: calc(50% - 624px / 2 - 42px);
       top: calc(50% - 107px / 2 - 32px);
 
-      font-family: "Playfair Display";
+      font-family: "The Seasons";
       font-style: normal;
       font-weight: 400;
       font-size: 80px;

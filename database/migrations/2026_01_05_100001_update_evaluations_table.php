@@ -10,7 +10,7 @@ return new class extends Migration
     {
         // Drop old evaluations table
         Schema::dropIfExists('evaluations');
-        
+
         // Create new evaluations with 1-5 scale and dual evaluator
         Schema::create('evaluations', function (Blueprint $table) {
             $table->id();
@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('evaluator_id')->constrained('users')->onDelete('cascade');
             $table->enum('evaluator_type', ['kabinet', 'bph']);
             $table->string('period', 50); // Q1 2026, Semester 1, etc
-            
+
             // Criteria with 1-5 scale
             $table->tinyInteger('kehadiran')->default(1); // 1-5
             $table->tinyInteger('kedisiplinan')->default(1);
@@ -26,15 +26,15 @@ return new class extends Migration
             $table->tinyInteger('kerjasama')->default(1);
             $table->tinyInteger('inisiatif')->default(1);
             $table->tinyInteger('komunikasi')->default(1);
-            
+
             $table->decimal('total_score', 3, 2)->default(0); // Average 1-5
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             // Unique constraint: 1 evaluator type per user per period
             $table->unique(['user_id', 'evaluator_type', 'period']);
         });
-        
+
         // Grade parameters table
         Schema::create('grade_parameters', function (Blueprint $table) {
             $table->id();

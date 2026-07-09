@@ -13,89 +13,82 @@
 
   const assetBase = "/images/figma-taling";
 
-  const departments = [
+  const departmentGroups = [
     {
-      slug: "bph",
-      name: "Badan Pengurus Harian (BPH/BPI)",
-      desc: "Inti koordinasi organisasi dan manajemen.",
+      title: "Inti & Manajemen",
+      departments: [
+        {
+          slug: "bph",
+          name: "Badan Pengurus Harian (BPH/BPI)",
+          desc: "Inti koordinasi organisasi dan manajemen.",
+        },
+        {
+          slug: "personalia",
+          name: "Personalia",
+          desc: "Harmonisasi internal dan pengawasan kinerja.",
+        },
+      ],
     },
     {
-      slug: "personalia",
-      name: "Personalia",
-      desc: "Harmonisasi internal dan pengawasan kinerja.",
+      title: "Pengembangan Mahasiswa",
+      departments: [
+        {
+          slug: "kaderisasi",
+          name: "Kaderisasi",
+          desc: "Pembinaan karakter dan kepemimpinan.",
+        },
+        {
+          slug: "psdm",
+          name: "PSDM",
+          desc: "Pengembangan bakat minat dan kaderisasi mahasiswa.",
+        },
+        {
+          slug: "risprof",
+          name: "Riset & Keprofesian",
+          desc: "Pengembangan kompetensi ilmiah dan karir.",
+        },
+      ],
     },
     {
-      slug: "risprof",
-      name: "Riset & Keprofesian",
-      desc: "Pengembangan kompetensi ilmiah dan karir.",
+      title: "Kesejahteraan & Relasi",
+      departments: [
+        {
+          slug: "kesma",
+          name: "Kesejahteraan Mahasiswa",
+          desc: "Advokasi akademik dan layanan mahasiswa.",
+        },
+        {
+          slug: "dagri",
+          name: "Dalam Negeri",
+          desc: "Sinergi komunitas dan internal engagement.",
+        },
+        {
+          slug: "hublu",
+          name: "Hubungan Luar",
+          desc: "Relasi eksternal dan ekspansi kemitraan.",
+        },
+      ],
     },
     {
-      slug: "kwu",
-      name: "Kewirausahaan",
-      desc: "Kemitraan bisnis dan pendanaan mandiri.",
-    },
-    {
-      slug: "psdm",
-      name: "PSDM",
-      desc: "Pengembangan bakat minat dan kaderisasi mahasiswa.",
-    },
-    {
-      slug: "dagri",
-      name: "Dalam Negeri",
-      desc: "Sinergi komunitas dan internal engagement.",
-    },
-    {
-      slug: "hublu",
-      name: "Hubungan Luar",
-      desc: "Relasi eksternal dan ekspansi kemitraan.",
-    },
-    {
-      slug: "kesma",
-      name: "Kesejahteraan Mahasiswa",
-      desc: "Advokasi akademik dan layanan mahasiswa.",
-    },
-    {
-      slug: "medfo",
-      name: "Media & Informasi",
-      desc: "Kreatif visual dan komunikasi publik.",
-    },
-    {
-      slug: "kaderisasi",
-      name: "Kaderisasi",
-      desc: "Pembinaan karakter dan kepemimpinan.",
+      title: "Kreatif & Kewirausahaan",
+      departments: [
+        {
+          slug: "medfo",
+          name: "Media & Informasi",
+          desc: "Kreatif visual dan komunikasi publik.",
+        },
+        {
+          slug: "kwu",
+          name: "Kewirausahaan",
+          desc: "Kemitraan bisnis dan pendanaan mandiri.",
+        },
+      ],
     },
   ];
 
+  const departemenUrl = "/departemen";
+  const kompetisiUrl = "/kompetisi";
   const tentangUrl = "/tentang";
-  const resolvedNavigation = [
-    { href: homeUrl, label: "Beranda" },
-    { href: "/departemen", label: "Departemen" },
-    { href: "/kompetisi", label: "Kompetisi" },
-    { href: "/tentang", label: "Tentang Kami" },
-  ];
-
-  const navigationItems = resolvedNavigation.map((item) => {
-    if (item.label === "Departemen") {
-      return {
-        ...item,
-        children: [
-          { href: "/departemen", label: "Departemen" },
-          { href: "/departemen/overview", label: "Detail departemen" },
-          { href: tentangUrl, label: "Sejarah himpunan" },
-        ],
-      };
-    }
-    if (item.label === "Kompetisi") {
-      return {
-        ...item,
-        children: [
-          { href: item.href, label: "Kompetisi" },
-          { href: "/kristal", label: "Kristal" },
-        ],
-      };
-    }
-    return item;
-  });
 </script>
 
 <svelte:head>
@@ -107,17 +100,15 @@
 </svelte:head>
 
 <div
-  class="min-h-screen w-full bg-white font-['Josefin_Sans',sans-serif] text-[#222]"
+  class="min-h-screen w-full bg-white font-['Plus_Jakarta_Sans',sans-serif] text-[#222]"
   use:inertiaEnhance
 >
-  <Navbar {homeUrl} {loginUrl} {navigationItems} />
+  <Navbar {homeUrl} {loginUrl} />
 
-  <main
-    class="relative isolate min-h-[calc(100vh-74px)] overflow-hidden bg-[#222222] pt-24 pb-32 text-white"
-  >
+  <main class="font-['Josefin_Sans',sans-serif] relative isolate min-h-[calc(100vh-74px)] overflow-hidden bg-[#222222] pt-24 pb-32 text-white">
     <!-- Atmosphere Background -->
     <div
-      class="absolute inset-0 -z-10 bg-gradient-to-br from-[#222222] to-[#111111]"
+      class="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-gradient-to-br from-[#222222] to-[#111111]"
     >
       <picture class="contents">
         <source srcset={`${assetBase}/hero-bg.avif`} type="image/avif" />
@@ -149,70 +140,52 @@
       width="320"
       height="301"
     />
-
+    
     <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
       <!-- Title Section -->
-      <div class="mt-10 mb-20 text-center">
-        <span
-          class="text-xs font-bold tracking-[0.15em] text-[#ff7a1a] uppercase"
-          >KABINET SENTRA SINERGI</span
-        >
-        <h1
-          class="mt-4 font-['Playfair_Display','Playfair_Display',serif] text-5xl font-bold tracking-tight text-[#ffd344] md:text-6xl"
-        >
-          Detail Departemen
+      <div class="mt-10 mb-24 max-w-prose">
+        <h1 class="font-['The_Seasons','The_Seasons',serif] text-balance text-5xl font-bold tracking-tight text-[#ffd344] md:text-7xl">
+          Departemen
         </h1>
-        <div class="mx-auto mt-8 h-[2px] w-16 bg-[#ffd344]"></div>
-        <p
-          class="mx-auto mt-8 max-w-2xl text-lg leading-relaxed font-light text-white md:text-xl"
-        >
+        <p class="mt-8 text-pretty text-lg leading-relaxed text-white/70 md:text-xl">
           Eksplorasi struktur dan fokus utama dari setiap departemen yang
           menjadi motor penggerak Kabinet Sentra Sinergi.
         </p>
       </div>
 
-      <!-- Department List -->
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {#each departments as dept}
-          <a
-            href={`/departemen/${dept.slug}`}
-            class="group relative flex flex-col justify-center border border-white/10 bg-white/5 p-8 transition-all duration-300 hover:border-[#ffd344] hover:bg-white/10"
-          >
-            <!-- Hover accent line -->
-            <div
-              class="absolute top-0 left-0 h-full w-[3px] scale-y-0 bg-[#ffd344] opacity-0 transition-all duration-300 group-hover:scale-y-100 group-hover:opacity-100"
-            ></div>
-
-            <h2
-              class="mb-2 font-['Playfair_Display',serif] text-2xl font-bold text-white transition-colors group-hover:text-[#ffd344]"
-            >
-              {dept.name}
-            </h2>
-            <p class="text-sm font-light text-white/70">
-              {dept.desc}
-            </p>
-
-            <!-- Minimal arrow indicator -->
-            <div
-              class="mt-6 flex items-center gap-2 text-xs font-semibold tracking-widest text-[#ff7a1a] uppercase transition-all group-hover:translate-x-2 group-hover:text-[#ffd344]"
-            >
-              Lihat Detail
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                />
-              </svg>
+      <div class="flex flex-col gap-24">
+        {#each departmentGroups as group}
+          <section class="grid grid-cols-1 items-start gap-12 lg:grid-cols-12 lg:gap-8">
+            <div class="lg:col-span-4 xl:col-span-3">
+              <h2 class="text-balance text-2xl font-bold tracking-tight text-white/90 md:text-3xl">
+                {group.title}
+              </h2>
+              <div class="mt-6 h-px w-12 bg-[#ff7a1a]"></div>
             </div>
-          </a>
+            
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:col-span-8 xl:col-span-9">
+              {#each group.departments as dept}
+                <a
+                  href={`/departemen/${dept.slug}`}
+                  class="group flex flex-col justify-between rounded-xl bg-white/[0.03] p-6 shadow-sm ring-1 ring-white/10 backdrop-blur-sm transition-all duration-300 ease-out hover:bg-white/[0.08] hover:shadow-lg hover:ring-white/20 active:scale-[0.98] active:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ffd344]"
+                >
+                  <div>
+                    <h3
+                      class="mb-3 text-balance text-xl font-bold tracking-tight text-white transition-colors group-hover:text-[#ffd344]"
+                    >
+                      {dept.name}
+                    </h3>
+                    <p class="text-pretty text-sm leading-relaxed text-white/60">
+                      {dept.desc}
+                    </p>
+                  </div>
+                  <div class="mt-8 flex items-center text-sm font-semibold tracking-wide text-[#ff7a1a] transition-colors group-hover:text-[#ffd344]">
+                    <span>Profil Lengkap &rarr;</span>
+                  </div>
+                </a>
+              {/each}
+            </div>
+          </section>
         {/each}
       </div>
     </div>

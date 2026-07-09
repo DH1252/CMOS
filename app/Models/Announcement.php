@@ -51,7 +51,10 @@ class Announcement extends Model
 
     public function hasUserVoted(?int $userId): bool
     {
-        if (!$userId) return false;
+        if (! $userId) {
+            return false;
+        }
+
         return PollVote::whereIn('poll_option_id', $this->pollOptions->pluck('id'))
             ->where('user_id', $userId)
             ->exists();
@@ -59,30 +62,41 @@ class Announcement extends Model
 
     public function getUserVoteOptionId(?int $userId): ?int
     {
-        if (!$userId) return null;
+        if (! $userId) {
+            return null;
+        }
         $vote = PollVote::whereIn('poll_option_id', $this->pollOptions->pluck('id'))
             ->where('user_id', $userId)
             ->first();
+
         return $vote?->poll_option_id;
     }
 
     public function isPollActive(): bool
     {
-        if (!$this->has_poll) return false;
-        if (!$this->poll_ends_at) return true;
+        if (! $this->has_poll) {
+            return false;
+        }
+        if (! $this->poll_ends_at) {
+            return true;
+        }
+
         return $this->poll_ends_at->isFuture();
     }
 
     public function getReactionCountsAttribute(): array
     {
         return $this->reactions->groupBy('type')
-            ->map(fn($group) => $group->count())
+            ->map(fn ($group) => $group->count())
             ->toArray();
     }
 
     public function getUserReaction(?int $userId): ?string
     {
-        if (!$userId) return null;
+        if (! $userId) {
+            return null;
+        }
+
         return $this->reactions->where('user_id', $userId)->first()?->type;
     }
 }

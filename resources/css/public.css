@@ -24,7 +24,7 @@
   --taling-text-soft: rgba(18, 6, 34, 0.74);
   --taling-text-muted: rgba(18, 6, 34, 0.55);
   --taling-line: rgba(18, 6, 34, 0.14);
-  --taling-font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --taling-font-serif: "The Seasons", Georgia, "Times New Roman", serif;
   --taling-font-body:
     "Josefin Sans", "Public Sans", ui-sans-serif, system-ui, sans-serif;
 }
@@ -844,7 +844,7 @@ main[tabindex="-1"]:focus {
     );
     --taling-line: color-mix(in srgb, var(--taling-white) 14%, transparent);
 
-    --taling-font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+    --taling-font-serif: "The Seasons", Georgia, "Times New Roman", serif;
     --taling-font-sans: "Josefin Sans", ui-sans-serif, system-ui, sans-serif;
 
     background: var(--taling-bg);

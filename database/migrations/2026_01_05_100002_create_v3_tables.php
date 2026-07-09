@@ -14,10 +14,10 @@ return new class extends Migration
             $table->foreignId('program_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->unique(['program_id', 'user_id']);
         });
-        
+
         // Google Drive Accounts
         Schema::create('drive_accounts', function (Blueprint $table) {
             $table->id();
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
-        
+
         // Messages
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->text('content');
             $table->boolean('is_read')->default(false);
             $table->timestamps();
-            
+
             $table->index(['sender_id', 'receiver_id']);
             $table->index(['receiver_id', 'is_read']);
         });

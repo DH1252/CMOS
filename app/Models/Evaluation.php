@@ -40,7 +40,7 @@ class Evaluation extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::saving(function ($evaluation) {
             $evaluation->total_score = $evaluation->calculateScore();
         });
@@ -61,7 +61,7 @@ class Evaluation extends Model
             $this->inisiatif,
             $this->komunikasi,
         ];
-        
+
         return round(array_sum($criteria) / count($criteria), 2);
     }
 
@@ -117,6 +117,7 @@ class Evaluation extends Model
             $date = now()->subMonths($i);
             $months[$date->format('Y-m')] = $date->translatedFormat('F Y');
         }
+
         return $months;
     }
 
@@ -158,26 +159,26 @@ class Evaluation extends Model
             ->where('period', $period)
             ->where('evaluator_type', 'kabinet')
             ->first();
-            
+
         $bphEval = self::where('user_id', $userId)
             ->where('period', $period)
             ->where('evaluator_type', 'bph')
             ->first();
-        
-        if (!$kabinetEval && !$bphEval) {
+
+        if (! $kabinetEval && ! $bphEval) {
             return null;
         }
-        
+
         $kabinetScore = $kabinetEval?->total_score ?? 0;
         $bphScore = $bphEval?->total_score ?? 0;
-        
+
         $count = ($kabinetEval ? 1 : 0) + ($bphEval ? 1 : 0);
         $finalScore = round(($kabinetScore + $bphScore) / $count, 2);
-        
+
         $grade = GradeParameter::where('min_score', '<=', $finalScore)
             ->where('max_score', '>=', $finalScore)
             ->first();
-        
+
         return [
             'kabinet_score' => $kabinetScore,
             'bph_score' => $bphScore,
@@ -193,22 +194,23 @@ class Evaluation extends Model
     public static function getMonthlyRanking(string $month, ?int $departmentId = null, int $limit = 10): array
     {
         $query = User::byRole('staff')->active()->with('department');
-        
+
         if ($departmentId) {
             $query->where('department_id', $departmentId);
         }
-        
+
         $staffMembers = $query->get()->map(function ($staff) use ($month) {
             $combined = self::getCombinedScore($staff->id, $month);
             $staff->evaluation_score = $combined['final_score'] ?? 0;
             $staff->evaluation_data = $combined;
+
             return $staff;
         })
-        ->filter(fn($s) => $s->evaluation_score > 0)
-        ->sortByDesc('evaluation_score')
-        ->take($limit)
-        ->values();
-        
+            ->filter(fn ($s) => $s->evaluation_score > 0)
+            ->sortByDesc('evaluation_score')
+            ->take($limit)
+            ->values();
+
         return $staffMembers->toArray();
     }
 }

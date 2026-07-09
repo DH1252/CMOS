@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Department extends Model
 {
-    protected $fillable = ['name', 'description', 'cabinet_id', 'status'];
+    protected $fillable = ['name', 'description', 'cabinet_id', 'status', 'staff_graphics'];
 
     protected $casts = [
         'status' => 'string',
+        'staff_graphics' => 'array',
     ];
 
     public function cabinet(): BelongsTo

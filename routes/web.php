@@ -72,6 +72,7 @@ Route::get('/tentang', fn () => $comingSoon(
 
 Route::get('/departemen/overview', function () {
     $organizationName = (string) \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
+
     return Inertia::render('public/PublicDepartmentOverviewPage', [
         'organizationName' => $organizationName,
         'homeUrl' => route('home'),
@@ -87,6 +88,15 @@ Route::get('/departemen/{slug?}', function (?string $slug = null) {
     if ($slug) {
         $validSlugs = ['personalia', 'risprof', 'kwu', 'psdm', 'dagri', 'bph', 'hublu', 'kesma', 'medfo', 'kaderisasi'];
         if (in_array(strtolower($slug), $validSlugs)) {
+            $search = match (strtolower($slug)) {
+                'risprof' => 'ristek',
+                'kwu' => 'kewirausahaan',
+                'hublu' => 'humas',
+                'medfo' => 'medinfo',
+                default => $slug,
+            };
+            $department = \App\Models\Department::where('name', 'LIKE', '%'.$search.'%')->first();
+
             return Inertia::render('public/PublicDepartmentDetailPage', [
                 'organizationName' => $organizationName,
                 'homeUrl' => route('home'),
@@ -94,6 +104,7 @@ Route::get('/departemen/{slug?}', function (?string $slug = null) {
                 'infoUrl' => route('informasi.index'),
                 'acaraUrl' => route('acara.index'),
                 'selectedSlug' => strtolower($slug),
+                'staffGraphics' => $department ? $department->staff_graphics : null,
             ]);
         }
     }
@@ -165,6 +176,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin,bph,kabinet')->group(function () {
         Route::resource('drives', DriveController::class)->except(['index', 'show']);
         Route::resource('cabinets', CabinetController::class);
+        Route::post('departments/upload-graphic', [\App\Http\Controllers\DepartmentController::class, 'uploadGraphic'])->name('departments.upload-graphic');
         Route::resource('departments', DepartmentController::class);
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/export/{type}', [ReportController::class, 'export'])->name('reports.export');

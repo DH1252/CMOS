@@ -1,7 +1,7 @@
 @php
     $appName = \App\Models\Setting::get('app_name', 'CMOS');
     $themeColor = \App\Models\Setting::get('theme_color', \App\Support\ThemePalette::defaultName());
-    $isPublicRoute = request()->routeIs('home') || request()->routeIs('informasi.*') || request()->routeIs('acara.*') || request()->routeIs('login') || request()->routeIs('departemen');
+    $isPublicRoute = request()->routeIs('home') || request()->routeIs('informasi.*') || request()->routeIs('acara.*') || request()->routeIs('login') || request()->routeIs('departemen') || request()->routeIs('departemen.*') || request()->routeIs('tentang') || request()->routeIs('kompetisi') || request()->routeIs('kristal');
     $internalBrand = $isPublicRoute ? $themeColor : 'gold';
     $landingStyle = '';
 
@@ -54,9 +54,9 @@
     <link rel="preload" href="{{ asset('fonts/public-sans-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     @if ($isPublicRoute)
         <link rel="preload" href="{{ asset('fonts/jetbrains-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
-        {{-- Josefin Sans (navbar) and Playfair Display (section headings) for landing page --}}
+        {{-- Josefin Sans (navbar) and The Seasons (section headings) for landing page --}}
         <link rel="preload" href="{{ asset('fonts/josefin-sans-400.woff2') }}" as="font" type="font/woff2" crossorigin>
-        <link rel="preload" href="{{ asset('fonts/playfair-display-700.woff2') }}" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="{{ asset('fonts/seasons-display-700.woff2') }}" as="font" type="font/woff2" crossorigin>
     @endif
     {{-- Self-hosted font CSS (subsetted woff2, ~85 KB total) --}}
     <link rel="preload" href="{{ asset('fonts/public-sans.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -85,7 +85,7 @@
                     --taling-text-soft: rgba(18, 6, 34, 0.74);
                     --taling-text-muted: rgba(18, 6, 34, 0.55);
                     --taling-line: rgba(18, 6, 34, 0.14);
-                    --taling-font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+                    --taling-font-serif: "The Seasons", Georgia, "Times New Roman", serif;
                 }
             }
         </style>

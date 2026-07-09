@@ -24,7 +24,7 @@ class GoogleCalendarService
     {
         $this->clearLastError();
 
-        if (!$this->enabled()) {
+        if (! $this->enabled()) {
             return null;
         }
 
@@ -66,7 +66,7 @@ class GoogleCalendarService
     {
         $this->clearLastError();
 
-        if (!$this->enabled() || !$googleEventId) {
+        if (! $this->enabled() || ! $googleEventId) {
             return false;
         }
 
@@ -101,16 +101,16 @@ class GoogleCalendarService
 
     private function calendarService()
     {
-        if (!class_exists(\Google\Client::class) || !class_exists(\Google\Service\Calendar::class) || !class_exists(\Google\Service\Calendar\Event::class)) {
+        if (! class_exists(\Google\Client::class) || ! class_exists(\Google\Service\Calendar::class) || ! class_exists(\Google\Service\Calendar\Event::class)) {
             throw new \RuntimeException('Google API client not installed. Run: composer require google/apiclient:^2.16');
         }
 
         $credentialsPath = (string) config('services.google_calendar.service_account_json');
-        if (!is_file($credentialsPath)) {
+        if (! is_file($credentialsPath)) {
             throw new \RuntimeException("Google service account JSON file not found at: {$credentialsPath}");
         }
 
-        $client = new \Google\Client();
+        $client = new \Google\Client;
         $client->setApplicationName((string) config('services.google_calendar.application_name', 'SAVANA'));
         $client->setAuthConfig($credentialsPath);
         $client->setScopes([\Google\Service\Calendar::CALENDAR]);
@@ -128,14 +128,14 @@ class GoogleCalendarService
         }
 
         $descriptionLines[] = 'Sumber: SAVANA Timeline';
-        $descriptionLines[] = 'Tipe: ' . ucfirst($timeline->type);
+        $descriptionLines[] = 'Tipe: '.ucfirst($timeline->type);
 
         if ($timeline->department?->name) {
-            $descriptionLines[] = 'Departemen: ' . $timeline->department->name;
+            $descriptionLines[] = 'Departemen: '.$timeline->department->name;
         }
 
         if ($timeline->program?->name) {
-            $descriptionLines[] = 'Program: ' . $timeline->program->name;
+            $descriptionLines[] = 'Program: '.$timeline->program->name;
         }
 
         $payload = [
