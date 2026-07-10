@@ -65,10 +65,9 @@ $comingSoon = static function (string $pageTitle, string $description) {
     ]);
 };
 
-Route::get('/tentang', fn () => $comingSoon(
-    'Tentang Kami',
-    'Profil lengkap Kabinet Sentra Sinergi HIMATEKKOM ITS sedang kami siapkan.',
-))->name('tentang');
+Route::get('/tentang', function () {
+    return Inertia::render('public/PublicAboutPage', app(\App\Support\AboutPageData::class)->props());
+})->name('tentang');
 
 Route::get('/departemen/overview', function () {
     $organizationName = (string) \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
