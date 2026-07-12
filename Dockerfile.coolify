@@ -42,6 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         pdo_mysql \
         xml \
         zip \
+    && curl -sSL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o - | sh -s imagick \
     && php -r 'if (! extension_loaded("gd") || ! (imagetypes() & IMG_JPEG) || ! (imagetypes() & IMG_PNG) || ! (imagetypes() & IMG_WEBP) || ! (imagetypes() & IMG_AVIF)) { fwrite(STDERR, "GD image optimization support is incomplete.\n"); exit(1); }' \
     && architecture="$(dpkg --print-architecture)" \
     && case "${architecture}" in \
