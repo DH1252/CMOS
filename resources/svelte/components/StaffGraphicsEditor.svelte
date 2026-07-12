@@ -281,6 +281,9 @@
                     style="left: {overlay.x !== undefined
                       ? overlay.x
                       : 50}%; top: {overlay.y !== undefined ? overlay.y : 50}%;"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Seret overlay {overlay.name || overlay.role || ''}"
                     onpointerdown={(e) => startDrag(e, gIndex, oIndex)}
                   >
                     <div
@@ -318,10 +321,13 @@
               </h4>
               <div class="grid grid-cols-3 gap-2">
                 <div>
-                  <label class="mb-1 block text-[10px] text-muted-foreground"
+                  <label
+                    for="graphic-scale-{gIndex}"
+                    class="mb-1 block text-[10px] text-muted-foreground"
                     >Scale (%)</label
                   >
                   <input
+                    id="graphic-scale-{gIndex}"
                     type="number"
                     step="0.1"
                     value={graphic.scale ?? 100}
@@ -334,10 +340,13 @@
                   />
                 </div>
                 <div>
-                  <label class="mb-1 block text-[10px] text-muted-foreground"
+                  <label
+                    for="graphic-x-{gIndex}"
+                    class="mb-1 block text-[10px] text-muted-foreground"
                     >Geser X (%)</label
                   >
                   <input
+                    id="graphic-x-{gIndex}"
                     type="number"
                     step="0.1"
                     value={graphic.xOffset ?? 0}
@@ -350,10 +359,13 @@
                   />
                 </div>
                 <div>
-                  <label class="mb-1 block text-[10px] text-muted-foreground"
+                  <label
+                    for="graphic-y-{gIndex}"
+                    class="mb-1 block text-[10px] text-muted-foreground"
                     >Geser Y (%)</label
                   >
                   <input
+                    id="graphic-y-{gIndex}"
                     type="number"
                     step="0.1"
                     value={graphic.yOffset ?? 0}
@@ -454,6 +466,7 @@
                   <button
                     type="button"
                     class="mt-2 shrink-0 text-muted-foreground hover:text-destructive"
+                    aria-label="Hapus overlay"
                     onclick={() => removeOverlay(gIndex, oIndex)}
                   >
                     <i class="fas fa-trash"></i>

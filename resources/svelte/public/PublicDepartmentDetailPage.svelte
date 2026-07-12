@@ -500,11 +500,14 @@
               </svg>
             </button>
 
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <div
               bind:this={sliderRef}
               bind:clientHeight={galleryHeight}
               class="flex h-[400px] cursor-grab flex-row overflow-x-auto bg-black/20 active:cursor-grabbing md:h-[600px] [&::-webkit-scrollbar]:hidden"
               style="scrollbar-width: none;"
+              role="application"
+              aria-label="Galeri staff grafis"
               onmousedown={handleMouseDown}
               onmouseleave={handleMouseLeave}
               onmouseup={handleMouseUp}
