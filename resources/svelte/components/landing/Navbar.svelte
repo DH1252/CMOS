@@ -1,6 +1,5 @@
 <script>
   import { onMount } from "svelte";
-  import { ChevronDown } from "lucide-svelte";
   import { fly, slide } from "svelte/transition";
   import { cubicOut } from "svelte/easing";
   import TalingNavbarLogo from "../TalingNavbarLogo.svelte";
@@ -189,7 +188,7 @@
             aria-expanded={openMenu === item.label}
           >
             {item.label}
-            <ChevronDown size={16} strokeWidth={2.4} />
+            <i class="fas fa-chevron-down text-[16px]" aria-hidden="true"></i>
           </button>
 
           {#if openMenu === item.label}
@@ -278,14 +277,13 @@
                 aria-expanded={activeMobileSubmenu === item.label}
               >
                 <span>{item.label}</span>
-                <ChevronDown
-                  size={18}
-                  strokeWidth={2.4}
-                  class="transition-transform duration-300 {activeMobileSubmenu ===
+                <i
+                  class="fas fa-chevron-down text-[18px] transition-transform duration-300 {activeMobileSubmenu ===
                   item.label
                     ? 'rotate-180 text-[#ff7a1a]'
                     : 'text-gray-400'}"
-                />
+                  aria-hidden="true"
+                ></i>
               </button>
 
               {#if activeMobileSubmenu === item.label}

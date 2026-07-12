@@ -1,6 +1,5 @@
 <script>
   import { inertiaEnhance } from "$lib/inertia-enhance.js";
-  import { ArrowLeft } from "lucide-svelte";
   import brandLogo from "../images/logokabinet.png?enhanced&w=96;192";
   import heroPhoto from "../images/himatekkom.jpg?enhanced&w=720;1200;1600";
   import OptimizedImage from "./components/OptimizedImage.svelte";
@@ -80,7 +79,7 @@
           <h2>{pageTitle}</h2>
           <p>{description}</p>
           <a href={homeUrl} class="coming-section-link">
-            <ArrowLeft size={18} />
+            <i class="fas fa-arrow-left text-[18px]" aria-hidden="true"></i>
             Kembali ke beranda
           </a>
         </div>

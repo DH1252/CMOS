@@ -1,5 +1,4 @@
 <script>
-  import { ArrowRight } from "lucide-svelte";
   import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import OptimizedImage from "../components/OptimizedImage.svelte";
 
@@ -169,7 +168,7 @@
           {/if}
           <a href={featured.href} class="taling-section-link">
             Baca artikel
-            <ArrowRight size={16} />
+            <i class="fas fa-arrow-right text-[16px]" aria-hidden="true"></i>
           </a>
         </div>
       </div>

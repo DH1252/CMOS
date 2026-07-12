@@ -1,6 +1,5 @@
 <script>
   import OptimizedImage from "./OptimizedImage.svelte";
-  import { ChevronLeft, ChevronRight } from "lucide-svelte";
 
   let {
     events = [],
@@ -42,7 +41,7 @@
     {#if archiveUrl}
       <a href={archiveUrl} class="taling-carousel-link">
         {archiveLabel}
-        <ChevronRight size={16} />
+        <i class="fas fa-chevron-right text-[16px]" aria-hidden="true"></i>
       </a>
     {/if}
   </div>
@@ -56,7 +55,7 @@
         aria-label="Sebelumnya"
       >
         <div class="taling-carousel-nav-icon">
-          <ChevronLeft size={20} />
+          <i class="fas fa-chevron-left text-[20px]" aria-hidden="true"></i>
         </div>
       </button>
 
@@ -121,7 +120,7 @@
         aria-label="Selanjutnya"
       >
         <div class="taling-carousel-nav-icon">
-          <ChevronRight size={20} />
+          <i class="fas fa-chevron-right text-[20px]" aria-hidden="true"></i>
         </div>
       </button>
     </div>

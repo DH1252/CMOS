@@ -132,7 +132,4 @@ export default defineConfig({
 			utils: path.resolve("./resources/svelte/lib/utils.js"),
 		},
 	},
-	ssr: {
-		noExternal: ["lucide-svelte"],
-	},
 });

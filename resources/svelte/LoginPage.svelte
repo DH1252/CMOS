@@ -1,6 +1,5 @@
 <script>
   import { onMount } from "svelte";
-  import { ArrowLeft, LogIn, ShieldCheck } from "lucide-svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
@@ -123,12 +122,12 @@
               class="login-back"
               aria-label="Kembali ke beranda"
             >
-              <ArrowLeft size={17} />
+              <i class="fas fa-arrow-left text-[17px]" aria-hidden="true"></i>
               <span>Kembali</span>
             </a>
 
             <div class="login-form-title">
-              <ShieldCheck size={22} />
+              <i class="fas fa-shield-halved text-[22px]" aria-hidden="true"></i>
               <div>
                 <Card.Title>Masuk pengurus</Card.Title>
                 <Card.Description>
@@ -212,7 +211,7 @@
                 </label>
 
                 <Button type="submit" class="login-submit">
-                  <LogIn size={17} />
+                  <i class="fas fa-right-to-bracket text-[17px]" aria-hidden="true"></i>
                   <span>Masuk ke CMOS</span>
                 </Button>
               </div>

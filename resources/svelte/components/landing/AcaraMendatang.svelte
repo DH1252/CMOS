@@ -1,5 +1,4 @@
 <script>
-  import { ChevronLeft, ChevronRight } from "lucide-svelte";
   import { fade, fly } from "svelte/transition";
   import { cubicOut } from "svelte/easing";
   import OptimizedImage from "../../components/OptimizedImage.svelte";
@@ -178,7 +177,7 @@
                 aria-label="Previous"
                 onclick={previousEvent}
               >
-                <ChevronLeft size={24} strokeWidth={3} />
+                <i class="fas fa-chevron-left text-[24px]" aria-hidden="true"></i>
               </button>
             </div>
             <div
@@ -189,7 +188,7 @@
                 aria-label="Next"
                 onclick={nextEvent}
               >
-                <ChevronRight size={24} strokeWidth={3} />
+                <i class="fas fa-chevron-right text-[24px]" aria-hidden="true"></i>
               </button>
             </div>
           {/if}

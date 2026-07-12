@@ -1,5 +1,4 @@
 <script>
-  import { ArrowRight } from "lucide-svelte";
   import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import OptimizedImage from "../components/OptimizedImage.svelte";
 
@@ -120,7 +119,7 @@
           <p>Pengumuman dan dokumentasi resmi kabinet.</p>
           <a href={infoUrl}>
             Kembali ke arsip
-            <ArrowRight size={16} />
+            <i class="fas fa-arrow-right text-[16px]" aria-hidden="true"></i>
           </a>
         </div>
 
