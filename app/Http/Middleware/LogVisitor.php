@@ -98,20 +98,20 @@ class LogVisitor
     private function resolveClientIp(Request $request): ?string
     {
         $cfIp = $request->headers->get('CF-Connecting-IP');
-        if (filter_var($cfIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV | FILTER_FLAG_NO_RES)) {
+        if (filter_var($cfIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
             return $cfIp;
         }
 
         $forwardedFor = $request->headers->get('X-Forwarded-For', '');
         foreach (explode(',', $forwardedFor) as $candidate) {
             $candidate = trim($candidate);
-            if ($candidate !== '' && filter_var($candidate, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV | FILTER_FLAG_NO_RES)) {
+            if ($candidate !== '' && filter_var($candidate, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
                 return $candidate;
             }
         }
 
         $realIp = $request->headers->get('X-Real-IP');
-        if (filter_var($realIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV | FILTER_FLAG_NO_RES)) {
+        if (filter_var($realIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
             return $realIp;
         }
 
