@@ -84,3 +84,4 @@ pnpm-debug.log*
 /error_log
 /lighthouse-desktop/
 /undefined:
+/composer.phar
