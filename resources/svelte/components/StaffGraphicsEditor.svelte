@@ -4,6 +4,7 @@
   let { field } = $props();
 
   let graphics = $state([]);
+  let containerHeights = $state([]);
   let isUploading = $state(false);
   let uploadError = $state("");
 
@@ -148,8 +149,9 @@
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
 
-    const dxPct = (dx / rect.width) * 100;
-    const dyPct = (dy / rect.height) * 100;
+    const zoom = (graphics[gIndex].scale ?? 100) / 100;
+    const dxPct = (dx / (rect.width * zoom)) * 100;
+    const dyPct = (dy / (rect.height * zoom)) * 100;
 
     let newX = origX + dxPct;
     let newY = origY + dyPct;
@@ -239,6 +241,7 @@
         <div class="w-1/3 shrink-0">
           {#if graphic.image}
             <div
+              bind:clientHeight={containerHeights[gIndex]}
               class="group image-container relative overflow-hidden rounded-md border border-border/50 bg-black/5"
             >
               <div
@@ -283,11 +286,15 @@
                       : 50}%; top: {overlay.y !== undefined ? overlay.y : 50}%;"
                     role="button"
                     tabindex="0"
-                    aria-label="Seret overlay {overlay.name || overlay.role || ''}"
+                    aria-label="Seret overlay {overlay.name ||
+                      overlay.role ||
+                      ''}"
                     onpointerdown={(e) => startDrag(e, gIndex, oIndex)}
                   >
                     <div
-                      class="pointer-events-none flex w-max max-w-[340px] origin-center scale-[0.3] flex-col justify-center border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover/overlay:shadow-[0_8px_32px_rgba(255,165,0,0.15)]"
+                      class="pointer-events-none flex w-max max-w-[340px] origin-center flex-col justify-center border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover/overlay:shadow-[0_8px_32px_rgba(255,165,0,0.15)]"
+                      style="transform: scale({(containerHeights[gIndex] ||
+                        200) / 600});"
                     >
                       <p
                         class="text-left font-['The_Seasons',serif] text-[20px] leading-tight font-normal tracking-wide text-balance text-white/95 drop-shadow-sm"
