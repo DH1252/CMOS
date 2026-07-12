@@ -8,8 +8,8 @@ bootstrap/cache/*.php
 bootstrap/ssr
 compose.yaml
 docker/*
-!docker/8.4/
-!docker/8.4/php.ini
+!docker/8.5/
+!docker/8.5/php.ini
 !docker/coolify/
 !docker/coolify/nginx.conf.template
 !docker/coolify/prepare-runtime.sh
