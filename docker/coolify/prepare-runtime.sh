@@ -15,10 +15,17 @@ chmod -R 775 storage bootstrap/cache
 rm -rf storage/framework/views/*
 rm -f bootstrap/cache/*.php
 
-php artisan view:clear >/dev/null 2>&1 || true
-php artisan config:clear >/dev/null 2>&1 || true
-php artisan route:clear >/dev/null 2>&1 || true
-php artisan event:clear >/dev/null 2>&1 || true
+if [ "${APP_ENV:-production}" = "production" ]; then
+	php artisan view:cache >/dev/null 2>&1 || true
+	php artisan config:cache >/dev/null 2>&1 || true
+	php artisan route:cache >/dev/null 2>&1 || true
+	php artisan event:cache >/dev/null 2>&1 || true
+else
+	php artisan view:clear >/dev/null 2>&1 || true
+	php artisan config:clear >/dev/null 2>&1 || true
+	php artisan route:clear >/dev/null 2>&1 || true
+	php artisan event:clear >/dev/null 2>&1 || true
+fi
 
 if [ -e public/storage ] && [ ! -L public/storage ]; then
 	rm -rf public/storage
