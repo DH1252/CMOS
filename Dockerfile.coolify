@@ -87,7 +87,7 @@ RUN set -eux; \
     mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache; \
     cleanup_build_artifacts; \
     chmod -R 775 storage bootstrap/cache; \
-    composer install --no-dev --optimize-autoloader --classmap-authoritative --no-interaction; \
+    composer install --no-dev --optimize-autoloader --classmap-authoritative --no-interaction --ignore-platform-req=php; \
     php artisan octane:install --server=frankenphp --no-interaction || true; \
     npm ci; \
     npm run build; \
