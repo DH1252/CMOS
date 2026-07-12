@@ -26,6 +26,10 @@
       return "metric-card-info";
     }
 
+    if (value === "secondary") {
+      return "metric-card-secondary";
+    }
+
     return "metric-card-primary";
   };
 </script>
@@ -61,27 +65,32 @@
 
 <style>
   .metric-card-primary {
-    background: color-mix(in srgb, var(--brand-light) 64%, white);
-    color: color-mix(in srgb, var(--brand-hover) 88%, black);
+    background: color-mix(in srgb, var(--brand-primary) 16%, transparent);
+    color: color-mix(in srgb, var(--brand-hover) 82%, white);
   }
 
   .metric-card-success {
-    background: color-mix(in srgb, var(--signal-success) 16%, white);
-    color: color-mix(in srgb, var(--signal-success) 82%, black);
+    background: color-mix(in srgb, var(--signal-success) 16%, transparent);
+    color: color-mix(in srgb, var(--signal-success) 82%, white);
   }
 
   .metric-card-warning {
-    background: color-mix(in srgb, var(--signal-warning) 18%, white);
-    color: color-mix(in srgb, var(--signal-warning) 82%, black);
+    background: color-mix(in srgb, var(--signal-warning) 18%, transparent);
+    color: color-mix(in srgb, var(--signal-warning) 82%, white);
   }
 
   .metric-card-danger {
-    background: color-mix(in srgb, var(--signal-danger) 16%, white);
-    color: color-mix(in srgb, var(--signal-danger) 84%, black);
+    background: color-mix(in srgb, var(--signal-danger) 16%, transparent);
+    color: color-mix(in srgb, var(--signal-danger) 84%, white);
   }
 
   .metric-card-info {
-    background: color-mix(in srgb, var(--signal-info) 14%, white);
-    color: color-mix(in srgb, var(--signal-info) 78%, black);
+    background: color-mix(in srgb, var(--signal-info) 14%, transparent);
+    color: color-mix(in srgb, var(--signal-info) 78%, white);
+  }
+
+  .metric-card-secondary {
+    background: color-mix(in srgb, var(--text-muted) 16%, transparent);
+    color: color-mix(in srgb, var(--text-muted) 82%, white);
   }
 </style>

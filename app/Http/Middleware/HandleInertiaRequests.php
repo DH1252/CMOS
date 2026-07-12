@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Setting;
 use App\Support\AuthShellData;
+use App\Support\SiteStatistics;
 use App\Support\ThemePalette;
 use Closure;
 use Illuminate\Http\Request;
@@ -84,6 +85,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'shell' => fn () => $this->authShellData->forRequest($request),
+            'visitorStats' => fn () => app(SiteStatistics::class)->visitorCounts(),
             'theme' => [
                 'color' => $themePayload['color'],
                 'variables' => $themePayload['variables'],

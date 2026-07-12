@@ -21,6 +21,7 @@ use App\Http\Controllers\PublicInformationController;
 use App\Http\Controllers\RealtimeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SiteStatisticsController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\UserController;
@@ -130,6 +131,7 @@ Route::get('/images/optimize/{path}', [ImageController::class, 'show'])
         StartSession::class,
         ShareErrorsFromSession::class,
         ValidateCsrfToken::class,
+        \App\Http\Middleware\LogVisitor::class,
     ])
     ->name('images.optimize');
 
@@ -169,6 +171,7 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('users', UserController::class);
         Route::resource('settings', SettingController::class)->only(['index', 'update']);
+        Route::get('/statistics', [SiteStatisticsController::class, 'index'])->name('statistics.index');
     });
 
     // Admin, BPH & Kabinet Routes

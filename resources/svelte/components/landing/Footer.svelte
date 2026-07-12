@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import VisitorCounter from "../VisitorCounter.svelte";
 
   let {
     infoUrl = "/",
@@ -169,8 +170,9 @@
 
     <!-- Copyright -->
     <div class="mb-6 h-[1px] w-full bg-gray-200"></div>
-    <div class="flex justify-start">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p class="text-[16px] font-normal text-black">© HIMATEKKOM ITS 2026</p>
+      <VisitorCounter />
     </div>
   </div>
 </footer>

@@ -2,6 +2,7 @@
   import { inertiaEnhance } from "$lib/inertia-enhance.js";
   import brandLogo from "../images/logokabinet.png?enhanced&w=80;160";
   import OptimizedImage from "./components/OptimizedImage.svelte";
+  import VisitorCounter from "./components/VisitorCounter.svelte";
   import PublicInformationIndexPage from "./public/PublicInformationIndexPage.svelte";
   import PublicInformationShowPage from "./public/PublicInformationShowPage.svelte";
   import PublicEventIndexPage from "./public/PublicEventIndexPage.svelte";
@@ -176,6 +177,7 @@
     </div>
     <div class="taling-footer-base">
       <span>&copy; {organizationName} 2026</span>
+      <VisitorCounter />
       <span>{appName}</span>
     </div>
   </footer>

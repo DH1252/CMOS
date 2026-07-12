@@ -726,6 +726,14 @@
         {@render children()}
       </div>
     </main>
+
+    <footer
+      class="border-t border-border bg-background px-4 py-3 md:px-6 lg:px-8"
+    >
+      <p class="m-0 text-center text-xs text-muted-foreground">
+        &copy; {new Date().getFullYear()} {shellOrganizationName}
+      </p>
+    </footer>
   </div>
 
   {#if ToasterComponent}

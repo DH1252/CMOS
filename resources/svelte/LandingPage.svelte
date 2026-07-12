@@ -34,13 +34,12 @@
   const getNavigationHref = (label, fallback) =>
     defaultNavigation.find((item) => item.label === label)?.href ?? fallback;
 
-  // Placeholder static default since Navbar handles its own
-  const defaultNavigation = [
+  const defaultNavigation = $derived([
     { href: homeUrl, label: "Beranda" },
     { href: "/departemen", label: "Departemen" },
     { href: "/kompetisi", label: "Kompetisi" },
     { href: "/tentang", label: "Tentang Kami" },
-  ];
+  ]);
 
   const departemenUrl = $derived(
     getNavigationHref("Departemen", "/departemen"),

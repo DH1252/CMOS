@@ -121,6 +121,7 @@ class AuthShellData
                 'description' => 'Kontrol identitas aplikasi dan pengaturan dasar workspace.',
                 'items' => [
                     ['label' => 'Pengaturan Umum', 'icon' => 'fas fa-gear', 'href' => route('settings.index'), 'active' => $request->routeIs('settings.index') || $request->routeIs('settings.update'), 'meta' => 'Identitas dan cadence evaluasi'],
+                    ['label' => 'Statistik Situs', 'icon' => 'fas fa-chart-line', 'href' => route('statistics.index'), 'active' => $request->routeIs('statistics.*'), 'meta' => 'Trafik dan aktivitas pengunjung'],
                 ],
             ];
         }
@@ -144,6 +145,7 @@ class AuthShellData
                 'announcementsIndex' => route('announcements.index'),
                 'profile' => route('profile.edit'),
                 'settings' => $currentUser->isAdmin() ? route('settings.index') : null,
+                'statistics' => $currentUser->isAdmin() ? route('statistics.index') : null,
                 'notifications' => route('notifications.index'),
                 'messages' => route('messages.index'),
                 'logout' => route('logout'),
