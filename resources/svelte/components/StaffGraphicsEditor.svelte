@@ -298,7 +298,7 @@
                       class="pointer-events-none flex w-max max-w-[340px] origin-center flex-col justify-center border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover/overlay:shadow-[0_8px_32px_rgba(255,165,0,0.15)]"
                       style="transform: scale({Math.max(
                         0.2,
-                        (graphic._height || 200) / 600,
+                        (graphic._height || 200) / 816,
                       )});"
                     >
                       <p
