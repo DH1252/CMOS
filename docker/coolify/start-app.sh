@@ -13,4 +13,4 @@ if [ "${IMAGE_CACHE_WARM:-true}" = "true" ]; then
 	php artisan images:warm-optimized --no-interaction --quiet >/dev/null 2>&1 &
 fi
 
-exec php artisan octane:start --server=frankenphp --host="${APP_SERVER_HOST}" --port="${APP_SERVER_PORT}"
+exec php artisan octane:start --server=frankenphp --host="${APP_SERVER_HOST}" --port="${APP_SERVER_PORT}" --workers=6 --max-requests=1000
