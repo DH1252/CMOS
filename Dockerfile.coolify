@@ -86,6 +86,7 @@ RUN set -eux; \
     cleanup_build_artifacts; \
     chmod -R 775 storage bootstrap/cache; \
     composer install --no-dev --optimize-autoloader --no-interaction; \
+    php artisan octane:install --server=frankenphp --no-interaction || true; \
     npm ci; \
     npm run build; \
     chmod -R 775 storage bootstrap/cache
