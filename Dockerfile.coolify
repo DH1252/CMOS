@@ -1,4 +1,4 @@
-FROM php:8.4-cli-bookworm
+FROM php:8.5-cli-bookworm
 
 ARG NODE_VERSION=24.14.0
 ARG NPM_VERSION=11.9.0
@@ -62,7 +62,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -f "node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" \
     && rm -rf /var/lib/apt/lists/*
 
-COPY docker/8.4/php.ini /usr/local/etc/php/conf.d/99-coolify.ini
+COPY docker/8.5/php.ini /usr/local/etc/php/conf.d/99-coolify.ini
 COPY docker/coolify/nginx.conf.template /etc/nginx/templates/coolify.conf.template
 COPY docker/coolify/prepare-runtime.sh /usr/local/bin/prepare-runtime
 COPY docker/coolify/start-all.sh /usr/local/bin/start-all
