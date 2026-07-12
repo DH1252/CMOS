@@ -120,8 +120,8 @@
     if (overlay.x === undefined) overlay.x = 50;
     if (overlay.y === undefined) overlay.y = 50;
 
-    const imgContainer = e.currentTarget.closest(".image-container");
-    const rect = imgContainer.getBoundingClientRect();
+    const innerContainer = e.currentTarget.parentElement;
+    const rect = innerContainer.getBoundingClientRect();
 
     activeOverlay = {
       gIndex,
@@ -148,9 +148,8 @@
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
 
-    const zoom = (graphics[gIndex].scale ?? 100) / 100;
-    const dxPct = (dx / (rect.width * zoom)) * 100;
-    const dyPct = (dy / (rect.height * zoom)) * 100;
+    const dxPct = (dx / rect.width) * 100;
+    const dyPct = (dy / rect.height) * 100;
 
     let newX = origX + dxPct;
     let newY = origY + dyPct;
@@ -189,11 +188,7 @@
 </script>
 
 <div class="staff-graphics-editor space-y-6">
-  <input
-    type="hidden"
-    name={field.name}
-    value={JSON.stringify(graphics.map(({ _height, ...rest }) => rest))}
-  />
+  <input type="hidden" name={field.name} value={JSON.stringify(graphics)} />
 
   {#if uploadError}
     <div class="mb-2 text-sm text-red-500">{uploadError}</div>
@@ -244,11 +239,10 @@
         <div class="w-1/3 shrink-0">
           {#if graphic.image}
             <div
-              bind:clientHeight={graphic._height}
-              class="group image-container relative overflow-hidden rounded-md border border-border/50 bg-black/5"
+              class="group image-container relative h-[240px] w-full overflow-x-auto overflow-y-hidden rounded-md border border-border/50 bg-black/5"
             >
               <div
-                class="relative h-full w-full transition-transform duration-75"
+                class="relative h-full w-fit transition-transform duration-75"
                 style="transform: scale({(graphic.scale ?? 100) /
                   100}) translate({graphic.xOffset ?? 0}%, {graphic.yOffset ??
                   0}%);"
@@ -256,7 +250,7 @@
                 <img
                   src={graphic.image}
                   alt="Staff Graphic"
-                  class="h-auto w-full object-cover"
+                  class="h-full w-auto block max-w-none"
                   draggable="false"
                 />
                 <label
@@ -296,10 +290,7 @@
                   >
                     <div
                       class="pointer-events-none flex w-max max-w-[340px] origin-center flex-col justify-center border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover/overlay:shadow-[0_8px_32px_rgba(255,165,0,0.15)]"
-                      style="transform: scale({Math.max(
-                        0.2,
-                        (graphic._height || 200) / 816,
-                      )});"
+                      style="transform: scale(0.3);"
                     >
                       <p
                         class="text-left font-['The_Seasons',serif] text-[20px] leading-tight font-normal tracking-wide text-balance text-white/95 drop-shadow-sm"
