@@ -56,7 +56,7 @@ class LogVisitor
     private function log(Request $request): void
     {
         try {
-            $ip = $request->ip();
+            $ip = $this->resolveClientIp($request);
 
             if (! $ip) {
                 return;
@@ -85,5 +85,36 @@ class LogVisitor
         } catch (\Exception $e) {
             Log::warning("Failed to log visitor: {$e->getMessage()}");
         }
+    }
+
+    /**
+     * Resolve the real client IP behind Docker proxies.
+     *
+     * Laravel's TrustProxies may return the Docker bridge IP when the
+     * upstream proxy (Coolify Traefik) doesn't send X-Forwarded-For.
+     * This checks Cloudflare and X-Forwarded-For directly for a public
+     * IP before falling back to $request->ip().
+     */
+    private function resolveClientIp(Request $request): ?string
+    {
+        $cfIp = $request->headers->get('CF-Connecting-IP');
+        if (filter_var($cfIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV | FILTER_FLAG_NO_RES)) {
+            return $cfIp;
+        }
+
+        $forwardedFor = $request->headers->get('X-Forwarded-For', '');
+        foreach (explode(',', $forwardedFor) as $candidate) {
+            $candidate = trim($candidate);
+            if ($candidate !== '' && filter_var($candidate, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV | FILTER_FLAG_NO_RES)) {
+                return $candidate;
+            }
+        }
+
+        $realIp = $request->headers->get('X-Real-IP');
+        if (filter_var($realIp, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV | FILTER_FLAG_NO_RES)) {
+            return $realIp;
+        }
+
+        return $request->ip();
     }
 }
