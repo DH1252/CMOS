@@ -56,7 +56,7 @@
         <link rel="preload" href="{{ asset('fonts/jetbrains-mono-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
         {{-- Josefin Sans (navbar) and The Seasons (section headings) for landing page --}}
         <link rel="preload" href="{{ asset('fonts/josefin-sans-400.woff2') }}" as="font" type="font/woff2" crossorigin>
-        <link rel="preload" href="{{ asset('fonts/seasons-display-700.woff2') }}" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="{{ asset('fonts/The Seasons Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
     @endif
     {{-- Self-hosted font CSS (subsetted woff2, ~85 KB total) --}}
     <link rel="preload" href="{{ asset('fonts/public-sans.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">

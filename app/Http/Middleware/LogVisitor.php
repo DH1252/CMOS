@@ -83,7 +83,7 @@ class LogVisitor
 
             Log::info("Unique visitor logged - IP: {$visitor->ip_address}, URL: {$visitor->url}");
         } catch (\Exception $e) {
-            // Ignore if table doesn't exist yet
+            Log::warning("Failed to log visitor: {$e->getMessage()}");
         }
     }
 }

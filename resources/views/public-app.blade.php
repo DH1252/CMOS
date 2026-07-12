@@ -42,7 +42,7 @@
     @if ($usesTalingFonts)
         <link rel="preload" href="{{ asset('fonts/plus-jakarta-sans-400.woff2') }}" as="font" type="font/woff2" crossorigin>
         <link rel="preload" href="{{ asset('fonts/plus-jakarta-sans-600.woff2') }}" as="font" type="font/woff2" crossorigin>
-        <link rel="preload" href="{{ asset('fonts/seasons-display-700.woff2') }}" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="{{ asset('fonts/The Seasons Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
         <link rel="preload" href="{{ asset('fonts/josefin-sans-400.woff2') }}" as="font" type="font/woff2" crossorigin>
     @endif
     <style>{!! $fontCss !!}</style>
