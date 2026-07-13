@@ -38,6 +38,11 @@
   let scrollDirection = 1;
   let isAutoScrollActive = $state(true);
   let currentScrollLeft = 0;
+  let lastInteractionTime = 0;
+
+  function registerInteraction() {
+    lastInteractionTime = Date.now();
+  }
 
   onMount(() => {
     if (typeof window === "undefined" || !sliderRef) return;
@@ -63,12 +68,28 @@
     );
     observer.observe(sliderRef);
 
+    // Touch event listeners to pause auto scroll on mobile swiping
+    const handleTouch = () => {
+      registerInteraction();
+      currentScrollLeft = sliderRef.scrollLeft;
+    };
+    sliderRef.addEventListener("touchstart", handleTouch, { passive: true });
+    sliderRef.addEventListener("touchmove", handleTouch, { passive: true });
+
     let animationId;
 
     function step() {
       if (!sliderRef) return;
 
-      if (isIntersecting && !isDown && isAutoScrollActive) {
+      const timeSinceLastInteraction = Date.now() - lastInteractionTime;
+      const isTemporarilyPaused = timeSinceLastInteraction < 5000;
+
+      if (
+        isIntersecting &&
+        !isDown &&
+        isAutoScrollActive &&
+        !isTemporarilyPaused
+      ) {
         const maxScroll = sliderRef.scrollWidth - sliderRef.clientWidth;
 
         if (maxScroll > 0) {
@@ -120,6 +141,10 @@
     return () => {
       observer.disconnect();
       cancelAnimationFrame(animationId);
+      if (sliderRef) {
+        sliderRef.removeEventListener("touchstart", handleTouch);
+        sliderRef.removeEventListener("touchmove", handleTouch);
+      }
     };
   });
 
@@ -172,6 +197,7 @@
   function handleMouseDown(e) {
     if (!sliderRef) return;
     isDown = true;
+    registerInteraction();
     sliderRef.classList.add("cursor-grabbing");
     sliderRef.classList.remove("cursor-grab");
     startX = e.pageX - sliderRef.offsetLeft;
@@ -192,12 +218,14 @@
   function handleMouseMove(e) {
     if (!isDown || !sliderRef) return;
     e.preventDefault();
+    registerInteraction();
     const x = e.pageX - sliderRef.offsetLeft;
     const walk = (x - startX) * 2;
     sliderRef.scrollLeft = scrollLeft - walk;
   }
 
   function scrollGallery(direction) {
+    registerInteraction();
     if (sliderRef && typeof window !== "undefined") {
       sliderRef.scrollBy({
         left: direction * (window.innerWidth * 0.5),
