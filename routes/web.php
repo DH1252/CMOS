@@ -118,10 +118,27 @@ Route::get('/departemen/{slug?}', function (?string $slug = null) {
         'selectedSlug' => $slug,
     ]);
 })->name('departemen');
-Route::get('/kompetisi', fn () => $comingSoon(
-    'Kompetisi',
-    'Informasi kompetisi dan ajang HIMATEKKOM ITS sedang kami siapkan.',
-))->name('kompetisi');
+Route::get('/kompetisi', function () {
+    $organizationName = (string) \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
+    $competitionsPath = storage_path('app/competitions.json');
+    $competitions = [];
+
+    if (file_exists($competitionsPath)) {
+        $competitions = json_decode(file_get_contents($competitionsPath), true) ?: [];
+    }
+
+    return Inertia::render('public/PublicCompetitionPage', [
+        'organizationName' => $organizationName,
+        'homeUrl' => route('home'),
+        'loginUrl' => route('login'),
+        'infoUrl' => route('informasi.index'),
+        'acaraUrl' => route('acara.index'),
+        'departemenUrl' => route('departemen'),
+        'kompetisiUrl' => route('kompetisi'),
+        'tentangUrl' => route('tentang'),
+        'competitions' => $competitions,
+    ]);
+})->name('kompetisi');
 
 // Optimized image serving
 Route::get('/images/optimize/{path}', [ImageController::class, 'show'])
