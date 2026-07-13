@@ -1,6 +1,7 @@
 <script>
   import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import OptimizedImage from "../components/OptimizedImage.svelte";
+  import heroBgImage from "../../images/hero-bg.png?enhanced&w=640;960;1280;1920";
 
   let {
     homeUrl = "/",
@@ -63,6 +64,19 @@
 
 <article class="public-event-show">
   <section class="event-show-hero" aria-labelledby="event-heading">
+    <!-- Texture Overlay -->
+    <div
+      class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay overflow-hidden"
+    >
+      <OptimizedImage
+        src={heroBgImage}
+        alt=""
+        class="w-full h-full object-cover object-center"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+      />
+    </div>
     <span class="event-show-star" aria-hidden="true"></span>
     <div class="taling-section-shell event-show-grid">
       <div class="event-show-poster-wrap">
