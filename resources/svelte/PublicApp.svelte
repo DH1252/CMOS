@@ -74,7 +74,6 @@
       children: [
         { href: "/departemen", label: "Departemen" },
         { href: "/departemen/overview", label: "Detail departemen" },
-        { href: "/tentang", label: "Sejarah himpunan" },
       ],
     },
     { href: "/kompetisi", label: "Kompetisi" },

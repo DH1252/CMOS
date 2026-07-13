@@ -262,9 +262,7 @@
               </div>
               <div class="event-card-copy">
                 <div class="event-card-date">
-                  <i
-                    class="far fa-calendar-alt text-xs mr-1"
-                    aria-hidden="true"
+                  <i class="far fa-calendar-alt text-xs mr-1" aria-hidden="true"
                   ></i>
                   <span>{event.dateLabel || "Segera"}</span>
                 </div>
