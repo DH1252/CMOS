@@ -53,7 +53,6 @@
     );
     observer.observe(sliderRef);
 
-    const scrollSpeed = 0.5; // pixels per frame
     let animationId;
 
     function step() {
@@ -69,6 +68,7 @@
             scrollDirection = 1;
           }
 
+          const scrollSpeed = window.innerWidth < 768 ? 1.2 : 0.5;
           sliderRef.scrollLeft += scrollDirection * scrollSpeed;
         }
       }
