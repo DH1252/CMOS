@@ -26,6 +26,50 @@
   let diagnosticLog = $state("");
   let lastSyncTime = $state(null);
 
+  let isEditing = $state(false);
+  let editSpreadsheetUrl = $state(competitionSettings.spreadsheetUrl);
+  let editScheduleTime = $state(competitionSettings.scheduleTime || "01:00");
+  let isSaving = $state(false);
+
+  async function saveSettings() {
+    if (isSaving) {
+      return;
+    }
+    
+    if (!editSpreadsheetUrl || !editSpreadsheetUrl.startsWith("http")) {
+      notify("Peringatan", "URL Spreadsheet tidak valid.", "warning");
+      return;
+    }
+    
+    if (!editScheduleTime || !editScheduleTime.match(/^(?:[01]\d|2[0-3]):[0-5]\d$/)) {
+      notify("Peringatan", "Format waktu tidak valid (harus HH:MM).", "warning");
+      return;
+    }
+
+    isSaving = true;
+    try {
+      const response = await axios.post("/statistics/settings", {
+        spreadsheetUrl: editSpreadsheetUrl,
+        scheduleTime: editScheduleTime,
+      });
+      
+      if (response.data.success) {
+        notify("Sukses", response.data.message || "Pengaturan berhasil disimpan.", "success");
+        competitionSettings.spreadsheetUrl = editSpreadsheetUrl;
+        competitionSettings.scheduleTime = editScheduleTime;
+        competitionSettings.scheduleInfo = `Setiap hari pukul ${editScheduleTime} WIB`;
+        isEditing = false;
+      } else {
+        notify("Gagal", "Gagal menyimpan pengaturan.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      notify("Gagal", err.response?.data?.message || "Terjadi kesalahan server.", "error");
+    } finally {
+      isSaving = false;
+    }
+  }
+
   const notify = (titleText, text, icon = "success") => {
     if (window.Swal) {
       window.Swal.fire({
@@ -418,67 +462,135 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <!-- Settings Info -->
       <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
-          <span
-            class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
-            >Spreadsheet Target</span
-          >
-          <a
-            href={competitionSettings.spreadsheetUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-sm font-semibold text-primary hover:underline flex items-center gap-1.5 break-all mt-1"
-          >
-            <span>Buka Google Sheets</span>
-            <i class="fas fa-external-link-alt text-xs"></i>
-          </a>
-        </div>
-
-        <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
-          <span
-            class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
-            >Jadwal Sync Otomatis</span
-          >
-          <span class="text-sm font-semibold mt-1">
-            {competitionSettings.scheduleInfo || "Setiap hari pukul 01:00 WIB"}
-          </span>
-        </div>
-
-        <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
-          <span
-            class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
-            >Status Google API Key</span
-          >
-          <div class="mt-1 flex">
-            {#if competitionSettings.hasApiKey}
-              <StatusBadge
-                label="Google API Key Aktif"
-                tone="success"
-                icon="fas fa-check-circle text-xs"
-              />
-            {:else}
-              <StatusBadge
-                label="API Key Tidak Ditemukan (Menggunakan Fallback)"
-                tone="warning"
-                icon="fas fa-exclamation-triangle text-xs"
-              />
-            {/if}
+        {#if !isEditing}
+          <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
+            <span
+              class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
+              >Spreadsheet Target</span
+            >
+            <a
+              href={competitionSettings.spreadsheetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-sm font-semibold text-primary hover:underline flex items-center gap-1.5 break-all mt-1"
+            >
+              <span>Buka Google Sheets</span>
+              <i class="fas fa-external-link-alt text-xs"></i>
+            </a>
           </div>
-        </div>
 
-        <div class="flex flex-col gap-1 pb-3">
-          <span
-            class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
-            >Sinkronisasi Terakhir</span
+          <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
+            <span
+              class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
+              >Jadwal Sync Otomatis</span
+            >
+            <span class="text-sm font-semibold mt-1">
+              {competitionSettings.scheduleInfo || "Setiap hari pukul 01:00 WIB"}
+            </span>
+          </div>
+
+          <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
+            <span
+              class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
+              >Status Google API Key</span
+            >
+            <div class="mt-1 flex">
+              {#if competitionSettings.hasApiKey}
+                <StatusBadge
+                  label="Google API Key Aktif"
+                  tone="success"
+                  icon="fas fa-check-circle text-xs"
+                />
+              {:else}
+                <StatusBadge
+                  label="API Key Tidak Ditemukan (Menggunakan Fallback)"
+                  tone="warning"
+                  icon="fas fa-exclamation-triangle text-xs"
+                />
+              {/if}
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1 pb-3">
+            <span
+              class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
+              >Sinkronisasi Terakhir</span
+            >
+            <span class="text-sm font-semibold mt-1">
+              {lastSyncTime
+                ? formatVisitedAt(lastSyncTime)
+                : (competitionSettings.lastFetched
+                    ? formatVisitedAt(competitionSettings.lastFetched)
+                    : "Belum pernah dilakukan")}
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            class="self-start flex items-center gap-1.5"
+            onclick={() => {
+              editSpreadsheetUrl = competitionSettings.spreadsheetUrl;
+              editScheduleTime = competitionSettings.scheduleTime || "01:00";
+              isEditing = true;
+            }}
           >
-          <span class="text-sm font-semibold mt-1">
-            {lastSyncTime
-              ? formatVisitedAt(lastSyncTime)
-              : (competitionSettings.lastFetched
-                  ? formatVisitedAt(competitionSettings.lastFetched)
-                  : "Belum pernah dilakukan")}
-          </span>
-        </div>
+            <i class="fas fa-edit text-xs"></i>
+            <span>Ubah Pengaturan</span>
+          </Button>
+        {:else}
+          <div class="flex flex-col gap-1.5">
+            <label
+              class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
+              for="spreadsheetUrl">Spreadsheet Target URL</label
+            >
+            <input
+              id="spreadsheetUrl"
+              type="text"
+              bind:value={editSpreadsheetUrl}
+              class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50"
+              disabled={isSaving}
+              placeholder="https://docs.google.com/spreadsheets/d/.../edit"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label
+              class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
+              for="scheduleTime">Jadwal Sync Otomatis (HH:MM WIB)</label
+            >
+            <input
+              id="scheduleTime"
+              type="text"
+              bind:value={editScheduleTime}
+              class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50"
+              disabled={isSaving}
+              placeholder="e.g. 01:00"
+            />
+          </div>
+
+          <div class="flex items-center gap-2 mt-2">
+            <Button
+              onclick={saveSettings}
+              disabled={isSaving}
+              class="flex items-center gap-1.5"
+            >
+              {#if isSaving}
+                <i class="fas fa-spinner fa-spin animate-spin"></i>
+                <span>Menyimpan...</span>
+              {:else}
+                <i class="fas fa-save text-xs"></i>
+                <span>Simpan</span>
+              {/if}
+            </Button>
+            <Button
+              variant="outline"
+              onclick={() => (isEditing = false)}
+              disabled={isSaving}
+            >
+              Batal
+            </Button>
+          </div>
+        {/if}
       </div>
 
       <!-- Sync Controls & Logs -->

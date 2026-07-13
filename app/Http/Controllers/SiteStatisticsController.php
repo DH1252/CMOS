@@ -28,8 +28,9 @@ class SiteStatisticsController extends Controller
             'topUrls' => $summary['topUrls'],
             'recentVisitors' => $summary['recentVisitors'],
             'competitionSettings' => [
-                'spreadsheetUrl' => 'https://docs.google.com/spreadsheets/d/1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4/edit',
-                'scheduleInfo' => 'Setiap hari pukul 01:00 WIB (Daily at 01:00 AM)',
+                'spreadsheetUrl' => \App\Models\Setting::get('competition_spreadsheet_url', 'https://docs.google.com/spreadsheets/d/1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4/edit'),
+                'scheduleTime' => \App\Models\Setting::get('competition_schedule_time', '01:00'),
+                'scheduleInfo' => 'Setiap hari pukul '.\App\Models\Setting::get('competition_schedule_time', '01:00').' WIB',
                 'lastFetched' => $lastFetched,
                 'hasApiKey' => ! empty(config('services.google.api_key')),
             ],
@@ -44,6 +45,22 @@ class SiteStatisticsController extends Controller
         return response()->json([
             'success' => $exitCode === 0,
             'output' => $output,
+        ]);
+    }
+
+    public function updateSettings(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $request->validate([
+            'spreadsheetUrl' => ['required', 'url'],
+            'scheduleTime' => ['required', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d$/'],
+        ]);
+
+        \App\Models\Setting::set('competition_spreadsheet_url', $request->input('spreadsheetUrl'));
+        \App\Models\Setting::set('competition_schedule_time', $request->input('scheduleTime'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pengaturan kompetisi berhasil disimpan.',
         ]);
     }
 }

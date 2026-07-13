@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import https from "node:https";
 
-const SPREADSHEET_ID = "1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4";
+const SPREADSHEET_ID = process.env.COMPETITION_SPREADSHEET_ID || "1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4";
 const OUTPUT_FILE = path.resolve("storage/app/competitions.json");
 
 // Custom lightweight env loader to read from Laravel's .env file

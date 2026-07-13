@@ -132,6 +132,36 @@ class SiteStatisticsTest extends TestCase
         $response->assertForbidden();
     }
 
+    public function test_admin_can_update_competition_settings(): void
+    {
+        $admin = $this->createUserWithRole('admin');
+
+        $response = $this->actingAs($admin)->post(route('statistics.update-settings'), [
+            'spreadsheetUrl' => 'https://docs.google.com/spreadsheets/d/1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4/edit',
+            'scheduleTime' => '02:30',
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+        ]);
+
+        $this->assertSame('https://docs.google.com/spreadsheets/d/1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4/edit', \App\Models\Setting::get('competition_spreadsheet_url'));
+        $this->assertSame('02:30', \App\Models\Setting::get('competition_schedule_time'));
+    }
+
+    public function test_non_admin_cannot_update_competition_settings(): void
+    {
+        $staff = $this->createUserWithRole('staff');
+
+        $response = $this->actingAs($staff)->post(route('statistics.update-settings'), [
+            'spreadsheetUrl' => 'https://docs.google.com/spreadsheets/d/1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4/edit',
+            'scheduleTime' => '02:30',
+        ]);
+
+        $response->assertForbidden();
+    }
+
     private function createUserWithRole(string $roleName): User
     {
         $role = Role::create([
