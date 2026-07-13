@@ -192,6 +192,104 @@ function resolveHeaderIndices(headers) {
   };
 }
 
+// Normalize URLs to start with absolute protocols to prevent browsers from treating them as relative
+function ensureAbsoluteUrl(url) {
+  if (!url) {
+    return "";
+  }
+  const cleaned = url.trim();
+  if (/^https?:\/\//i.test(cleaned)) {
+    return cleaned;
+  }
+  return `https://${cleaned}`;
+}
+
+// Extract multiple links from a cell using both inline textFormatRuns and regex fallbacks
+function getCellLinks(cell) {
+  if (!cell) {
+    return [];
+  }
+  const text = cell.formattedValue || "";
+  const links = [];
+
+  if (cell.hyperlink) {
+    links.push({ url: cell.hyperlink, label: "Daftar Lomba" });
+    return links;
+  }
+
+  if (cell.textFormatRuns && cell.textFormatRuns.length > 0) {
+    for (let idx = 0; idx < cell.textFormatRuns.length; idx++) {
+      const run = cell.textFormatRuns[idx];
+      const uri = run.format?.link?.uri;
+      if (uri) {
+        const start = run.startIndex || 0;
+        const nextRun = cell.textFormatRuns[idx + 1];
+        const end = nextRun ? nextRun.startIndex : text.length;
+        let label = text.substring(start, end).trim();
+        
+        // Clean label formatting (strip trailing/leading punctuation like colons, dashes, spaces)
+        label = label.replace(/^[:\-\s\r\n]+/g, "").replace(/[:\-\s\r\n]+$/g, "").trim();
+        if (!label || label.startsWith("http")) {
+          // Find preceding label text
+          const precedingText = text.substring(0, start);
+          const lines = precedingText.split("\n");
+          let prevLabel = "";
+          for (let l = lines.length - 1; l >= 0; l--) {
+            const candidate = lines[l].trim();
+            if (candidate && !candidate.startsWith("http")) {
+              prevLabel = candidate;
+              break;
+            }
+          }
+          label = prevLabel.replace(/^[:\-\s\r\n]+/g, "").replace(/[:\-\s\r\n]+$/g, "").trim();
+        }
+        if (!label || label.startsWith("http")) {
+          label = "Daftar Lomba";
+        }
+        links.push({ url: uri, label });
+      }
+    }
+  }
+
+  // Fallback: search raw text for URL patterns using regex (useful for CSV parsing as well)
+  if (links.length === 0 && text) {
+    const urlRegex = /(https?:\/\/[^\s\r\n]+)/g;
+    let match;
+    while ((match = urlRegex.exec(text)) !== null) {
+      const url = match[1];
+      const urlIndex = match.index;
+      const precedingText = text.substring(0, urlIndex);
+      const lines = precedingText.split("\n");
+      
+      let label = "";
+      for (let l = lines.length - 1; l >= 0; l--) {
+        const candidate = lines[l].trim();
+        if (candidate && !candidate.startsWith("http")) {
+          label = candidate;
+          break;
+        }
+      }
+
+      // Clean label
+      label = label.replace(/^[:\-\s\r\n]+/g, "").replace(/[:\-\s\r\n]+$/g, "").trim();
+      if (!label || label.startsWith("http")) {
+        label = "Daftar Lomba";
+      }
+
+      if (!links.some((l) => l.url === url)) {
+        links.push({ url, label });
+      }
+    }
+  }
+
+  // Last resort: check if text itself is a single clean URL
+  if (links.length === 0 && text.trim().startsWith("http")) {
+    links.push({ url: text.trim(), label: "Daftar Lomba" });
+  }
+
+  return links;
+}
+
 // Fetch and parse using Google Sheets API (handles cell rich links)
 async function fetchCompetitionsViaAPI(apiKey, sheetName, month) {
   console.log(`Fetching sheet data via API for "${sheetName}"...`);
@@ -224,13 +322,19 @@ async function fetchCompetitionsViaAPI(apiKey, sheetName, month) {
   } = resolveHeaderIndices(headers);
 
   const getCellText = (cell) => {
-    if (!cell) return "";
+    if (!cell) {
+      return "";
+    }
     return cell.formattedValue || (cell.userEnteredValue && cell.userEnteredValue.stringValue) || "";
   };
 
   const getCellLink = (cell) => {
-    if (!cell) return "";
-    if (cell.hyperlink) return cell.hyperlink;
+    if (!cell) {
+      return "";
+    }
+    if (cell.hyperlink) {
+      return cell.hyperlink;
+    }
     if (cell.textFormatRuns && cell.textFormatRuns[0] && cell.textFormatRuns[0].format && cell.textFormatRuns[0].format.link) {
       return cell.textFormatRuns[0].format.link.uri || "";
     }
@@ -241,13 +345,17 @@ async function fetchCompetitionsViaAPI(apiKey, sheetName, month) {
 
   for (let i = 1; i < rows.length; i++) {
     const cells = rows[i].values || [];
-    if (cells.length === 0) continue;
+    if (cells.length === 0) {
+      continue;
+    }
 
     const name = nameIdx !== -1 ? getCellText(cells[nameIdx]) : "";
     const organizer = organizerIdx !== -1 ? getCellText(cells[organizerIdx]) : "";
 
     // Skip empty spacer rows
-    if (!name && !organizer) continue;
+    if (!name && !organizer) {
+      continue;
+    }
 
     let description = descIdx !== -1 ? getCellText(cells[descIdx]) : "";
     if (feeIdx !== -1) {
@@ -263,8 +371,15 @@ async function fetchCompetitionsViaAPI(apiKey, sheetName, month) {
       }
     }
 
-    // Link parsing (prefer extracted hyperlink URI, fallback to formatted value)
-    const link = linkIdx !== -1 ? getCellLink(cells[linkIdx]) || getCellText(cells[linkIdx]) : "";
+    // Extract links
+    const cellValue = linkIdx !== -1 ? cells[linkIdx] : null;
+    const links = getCellLinks(cellValue);
+    const formattedLinks = links.map((l) => ({
+      url: ensureAbsoluteUrl(l.url),
+      label: l.label,
+    }));
+
+    const primaryLink = formattedLinks[0]?.url || (linkIdx !== -1 ? ensureAbsoluteUrl(getCellLink(cells[linkIdx]) || getCellText(cells[linkIdx])) : "");
     const qrLink = qrIdx !== -1 ? getCellLink(cells[qrIdx]) || getCellText(cells[qrIdx]) : "";
 
     competitions.push({
@@ -274,8 +389,9 @@ async function fetchCompetitionsViaAPI(apiKey, sheetName, month) {
       description,
       timeline: timelineIdx !== -1 ? getCellText(cells[timelineIdx]) : "",
       status: statusIdx !== -1 ? getCellText(cells[statusIdx]) : "Open",
-      qr_code_link: qrLink || null,
-      link: link,
+      qr_code_link: qrLink ? ensureAbsoluteUrl(qrLink) : null,
+      link: primaryLink,
+      links: formattedLinks,
       month: month,
     });
   }
@@ -363,6 +479,21 @@ async function main() {
             description += `\n👥 Jumlah Anggota: ${row[memberIdx].trim()}`;
           }
 
+          const rawLink = linkIdx !== -1 ? row[linkIdx]?.trim() || "" : "";
+          const links = [];
+          if (rawLink) {
+            const extracted = getCellLinks({ formattedValue: rawLink });
+            links.push(...extracted);
+          }
+
+          const formattedLinks = links.map((l) => ({
+            url: ensureAbsoluteUrl(l.url),
+            label: l.label,
+          }));
+
+          const primaryLink = formattedLinks[0]?.url || ensureAbsoluteUrl(rawLink);
+          const qrLink = qrIdx !== -1 ? row[qrIdx]?.trim() || null : null;
+
           allCompetitions.push({
             no: noIdx !== -1 ? Number.parseInt(row[noIdx]?.trim() || i.toString(), 10) : i,
             name: name,
@@ -370,8 +501,9 @@ async function main() {
             description: description,
             timeline: timelineIdx !== -1 ? row[timelineIdx]?.trim() || "" : "",
             status: statusIdx !== -1 ? row[statusIdx]?.trim() || "Open" : "Open",
-            qr_code_link: qrIdx !== -1 ? row[qrIdx]?.trim() || null : null,
-            link: linkIdx !== -1 ? row[linkIdx]?.trim() || "" : "",
+            qr_code_link: qrLink ? ensureAbsoluteUrl(qrLink) : null,
+            link: primaryLink,
+            links: formattedLinks,
             month: month, // Associated month from sheet tab name
           });
         }

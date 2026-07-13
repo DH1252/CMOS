@@ -392,11 +392,23 @@
         </div>
 
         <!-- Footer link controls -->
-        {#if activeCompetition.link || activeCompetition.qr_code_link}
+        {#if (activeCompetition.links && activeCompetition.links.length > 0) || activeCompetition.link || activeCompetition.qr_code_link}
           <div
             class="border-t border-gray-100 bg-gray-50/50 p-6 flex flex-col gap-3"
           >
-            {#if activeCompetition.link}
+            {#if activeCompetition.links && activeCompetition.links.length > 0}
+              {#each activeCompetition.links as linkItem}
+                <a
+                  href={linkItem.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2a0078] to-[#40008c] py-3.5 text-center text-sm font-bold tracking-wider text-white uppercase shadow-md transition-all duration-150 hover:opacity-95 active:scale-95"
+                >
+                  <span>{linkItem.label || "Daftar / Ikuti Lomba"}</span>
+                  <i class="fas fa-external-link-alt text-[12px]"></i>
+                </a>
+              {/each}
+            {:else if activeCompetition.link}
               <a
                 href={activeCompetition.link}
                 target="_blank"
