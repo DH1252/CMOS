@@ -41,12 +41,15 @@
   onMount(() => {
     if (typeof window === "undefined" || !sliderRef) return;
 
-    // Set up observer to scroll only when in viewport
+    // Set up observer to scroll only when in center of viewport
     const observer = new IntersectionObserver(
       ([entry]) => {
         isIntersecting = entry.isIntersecting;
       },
-      { threshold: 0.1 },
+      {
+        rootMargin: "-40% 0px -40% 0px",
+        threshold: 0,
+      },
     );
     observer.observe(sliderRef);
 
