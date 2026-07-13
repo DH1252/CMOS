@@ -55,6 +55,39 @@
         return matchesSearch && matchesMonth && matchesStatus;
       })
       .sort((a, b) => {
+        const monthA = a.month ? a.month.toLowerCase().trim() : "";
+        const monthB = b.month ? b.month.toLowerCase().trim() : "";
+        const monthMap = {
+          januari: 1,
+          january: 1,
+          februari: 2,
+          february: 2,
+          maret: 3,
+          march: 3,
+          april: 4,
+          mei: 5,
+          may: 5,
+          juni: 6,
+          june: 6,
+          juli: 7,
+          july: 7,
+          agustus: 8,
+          august: 8,
+          september: 9,
+          oktober: 10,
+          october: 10,
+          november: 11,
+          desember: 12,
+          december: 12,
+        };
+        const orderA = monthMap[monthA] || 0;
+        const orderB = monthMap[monthB] || 0;
+
+        if (orderA !== orderB) {
+          return orderB - orderA; // Recent months first (e.g. Juli index 7 before Mei index 5)
+        }
+
+        // Within the same month, sort Open first
         const aOpen = a.status.toLowerCase() === "open";
         const bOpen = b.status.toLowerCase() === "open";
         if (aOpen && !bOpen) {
@@ -63,7 +96,9 @@
         if (!aOpen && bOpen) {
           return 1;
         }
-        return 0;
+
+        // Fallback to row index order
+        return (a.no || 0) - (b.no || 0);
       }),
   );
 
