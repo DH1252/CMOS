@@ -389,14 +389,14 @@
             </div>
           </div>
 
-          <!-- Desktop Close Button -->
+          <!-- Close Button -->
           <button
             type="button"
             onclick={() => (activeCompetition = null)}
-            class="hidden md:flex h-10 w-10 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            class="flex h-10 w-10 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             aria-label="Tutup Detail"
           >
-            <i class="fas fa-times text-lg"></i>
+            <i class="fas fa-xmark text-lg"></i>
           </button>
         </div>
 
