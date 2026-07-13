@@ -85,3 +85,7 @@ pnpm-debug.log*
 /lighthouse-desktop/
 /undefined:
 /composer.phar
+
+**/caddy
+frankenphp
+frankenphp-worker.php

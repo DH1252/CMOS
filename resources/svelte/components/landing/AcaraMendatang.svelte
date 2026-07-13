@@ -177,7 +177,8 @@
                 aria-label="Previous"
                 onclick={previousEvent}
               >
-                <i class="fas fa-chevron-left text-[24px]" aria-hidden="true"></i>
+                <i class="fas fa-chevron-left text-[24px]" aria-hidden="true"
+                ></i>
               </button>
             </div>
             <div
@@ -188,7 +189,8 @@
                 aria-label="Next"
                 onclick={nextEvent}
               >
-                <i class="fas fa-chevron-right text-[24px]" aria-hidden="true"></i>
+                <i class="fas fa-chevron-right text-[24px]" aria-hidden="true"
+                ></i>
               </button>
             </div>
           {/if}

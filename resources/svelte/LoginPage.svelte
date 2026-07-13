@@ -127,7 +127,8 @@
             </a>
 
             <div class="login-form-title">
-              <i class="fas fa-shield-halved text-[22px]" aria-hidden="true"></i>
+              <i class="fas fa-shield-halved text-[22px]" aria-hidden="true"
+              ></i>
               <div>
                 <Card.Title>Masuk pengurus</Card.Title>
                 <Card.Description>
@@ -211,7 +212,10 @@
                 </label>
 
                 <Button type="submit" class="login-submit">
-                  <i class="fas fa-right-to-bracket text-[17px]" aria-hidden="true"></i>
+                  <i
+                    class="fas fa-right-to-bracket text-[17px]"
+                    aria-hidden="true"
+                  ></i>
                   <span>Masuk ke CMOS</span>
                 </Button>
               </div>

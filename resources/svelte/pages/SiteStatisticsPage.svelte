@@ -41,11 +41,12 @@
     return value || fallbackPalette[tone] || fallbackPalette.secondary;
   };
 
-  const maxTrendValue = $derived.by(() =>
-    visitorTrend.reduce(
-      (max, item) => Math.max(max, Number(item?.count || 0)),
-      0,
-    ) || 1,
+  const maxTrendValue = $derived.by(
+    () =>
+      visitorTrend.reduce(
+        (max, item) => Math.max(max, Number(item?.count || 0)),
+        0,
+      ) || 1,
   );
 
   const CHART_W = 760;
@@ -58,18 +59,22 @@
   const trendPoints = $derived.by(() => {
     if (!visitorTrend.length) return [];
     const max = maxTrendValue || 1;
-    const step = visitorTrend.length > 1 ? chartWidth / (visitorTrend.length - 1) : 0;
+    const step =
+      visitorTrend.length > 1 ? chartWidth / (visitorTrend.length - 1) : 0;
 
     return visitorTrend.map((item, i) => {
       const x = CHART_PAD.left + i * step;
-      const y = CHART_PAD.top + chartHeight * (1 - Number(item.count || 0) / max);
+      const y =
+        CHART_PAD.top + chartHeight * (1 - Number(item.count || 0) / max);
       return { x, y, ...item };
     });
   });
 
   const trendLinePath = $derived.by(() =>
     trendPoints
-      .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+      .map(
+        (p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`,
+      )
       .join(" "),
   );
 
@@ -123,9 +128,7 @@
 
   const truncate = (value, length = 64) => {
     if (!value) return "-";
-    return value.length > length
-      ? `${value.slice(0, length)}…`
-      : value;
+    return value.length > length ? `${value.slice(0, length)}…` : value;
   };
 </script>
 
@@ -200,8 +203,8 @@
                 x={CHART_PAD.left - 8}
                 y={tick.y + 4}
                 class="trend-axis-label"
-                text-anchor="end"
-              >{tick.value}</text>
+                text-anchor="end">{tick.value}</text
+              >
             {/each}
 
             <path d={trendAreaPath} fill={`url(#${chartGradientId})`} />
@@ -246,8 +249,8 @@
                 x={point.x}
                 y={CHART_H - 8}
                 class="trend-axis-label"
-                text-anchor="middle"
-              >{point.label}</text>
+                text-anchor="middle">{point.label}</text
+              >
             {/each}
 
             {#if hoveredIndex !== null && trendPoints[hoveredIndex]}
@@ -268,10 +271,12 @@
                     Math.max(trendPoints[hoveredIndex].x - 40, CHART_PAD.left),
                     CHART_W - CHART_PAD.right - 80,
                   ) + 40}
-                  y={Math.max(trendPoints[hoveredIndex].y - 38, CHART_PAD.top) + 18}
+                  y={Math.max(trendPoints[hoveredIndex].y - 38, CHART_PAD.top) +
+                    18}
                   class="trend-tooltip-text"
                   text-anchor="middle"
-                >{trendPoints[hoveredIndex].count} kunjungan</text>
+                  >{trendPoints[hoveredIndex].count} kunjungan</text
+                >
               </g>
             {/if}
           </svg>
@@ -348,7 +353,9 @@
         <div class="recent-row recent-head" role="row">
           <span class="recent-cell recent-ip" role="columnheader">IP</span>
           <span class="recent-cell recent-url" role="columnheader">URL</span>
-          <span class="recent-cell recent-agent" role="columnheader">User Agent</span>
+          <span class="recent-cell recent-agent" role="columnheader"
+            >User Agent</span
+          >
           <span class="recent-cell recent-time" role="columnheader">Waktu</span>
         </div>
         {#each recentVisitors as visitor, index (index)}
@@ -356,7 +363,11 @@
             <span class="recent-cell recent-ip" role="cell">
               {truncate(visitor.ip, 24)}
             </span>
-            <span class="recent-cell recent-url" role="cell" title={visitor.url}>
+            <span
+              class="recent-cell recent-url"
+              role="cell"
+              title={visitor.url}
+            >
               {truncate(visitor.url, 56)}
             </span>
             <span
@@ -427,7 +438,9 @@
 
   .trend-point {
     transition: r 0.15s ease;
-    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--brand-primary) 40%, transparent));
+    filter: drop-shadow(
+      0 0 4px color-mix(in srgb, var(--brand-primary) 40%, transparent)
+    );
   }
 
   .trend-point-group:focus-visible {
@@ -512,7 +525,9 @@
 
   .recent-row {
     display: grid;
-    grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.4fr) minmax(0, 1.1fr) minmax(0, 0.8fr);
+    grid-template-columns:
+      minmax(120px, 0.8fr) minmax(0, 1.4fr) minmax(0, 1.1fr)
+      minmax(0, 0.8fr);
     gap: 0.75rem;
     padding: 0.65rem 1rem;
     border-bottom: 1px solid var(--line-soft);
@@ -549,7 +564,10 @@
     }
 
     .recent-row {
-      grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1.6fr) minmax(0, 0.9fr);
+      grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1.6fr) minmax(
+          0,
+          0.9fr
+        );
     }
   }
 
