@@ -790,7 +790,9 @@
       class="relative overflow-hidden border-t border-white/10 bg-[#2a0078] text-white lg:h-screen lg:min-h-[800px]"
     >
       <!-- Glow texture matching Figma Atmosphere -->
-      <div class="absolute inset-0 opacity-10 mix-blend-overlay overflow-hidden">
+      <div
+        class="absolute inset-0 opacity-10 mix-blend-overlay overflow-hidden"
+      >
         <OptimizedImage
           src={heroBgImage}
           alt=""

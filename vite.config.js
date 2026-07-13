@@ -110,10 +110,7 @@ export default defineConfig({
   ],
   server: {
     watch: {
-      ignored: [
-        "**/storage/**",
-        "**/.playwright-mcp/**",
-      ],
+      ignored: ["**/storage/**", "**/.playwright-mcp/**"],
     },
   },
   resolve: {

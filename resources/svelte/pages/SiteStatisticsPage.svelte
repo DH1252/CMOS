@@ -45,14 +45,21 @@
     if (isSaving) {
       return;
     }
-    
+
     if (!editSpreadsheetUrl || !editSpreadsheetUrl.startsWith("http")) {
       notify("Peringatan", "URL Spreadsheet tidak valid.", "warning");
       return;
     }
-    
-    if (!editScheduleTime || !editScheduleTime.match(/^(?:[01]\d|2[0-3]):[0-5]\d$/)) {
-      notify("Peringatan", "Format waktu tidak valid (harus HH:MM).", "warning");
+
+    if (
+      !editScheduleTime ||
+      !editScheduleTime.match(/^(?:[01]\d|2[0-3]):[0-5]\d$/)
+    ) {
+      notify(
+        "Peringatan",
+        "Format waktu tidak valid (harus HH:MM).",
+        "warning",
+      );
       return;
     }
 
@@ -62,9 +69,13 @@
         spreadsheetUrl: editSpreadsheetUrl,
         scheduleTime: editScheduleTime,
       });
-      
+
       if (response.data.success) {
-        notify("Sukses", response.data.message || "Pengaturan berhasil disimpan.", "success");
+        notify(
+          "Sukses",
+          response.data.message || "Pengaturan berhasil disimpan.",
+          "success",
+        );
         currentSpreadsheetUrl = editSpreadsheetUrl;
         currentScheduleTime = editScheduleTime;
         currentScheduleInfo = `Setiap hari pukul ${editScheduleTime} WIB`;
@@ -74,7 +85,11 @@
       }
     } catch (err) {
       console.error(err);
-      notify("Gagal", err.response?.data?.message || "Terjadi kesalahan server.", "error");
+      notify(
+        "Gagal",
+        err.response?.data?.message || "Terjadi kesalahan server.",
+        "error",
+      );
     } finally {
       isSaving = false;
     }
@@ -529,9 +544,9 @@
             <span class="text-sm font-semibold mt-1">
               {lastSyncTime
                 ? formatVisitedAt(lastSyncTime)
-                : (competitionSettings.lastFetched
-                    ? formatVisitedAt(competitionSettings.lastFetched)
-                    : "Belum pernah dilakukan")}
+                : competitionSettings.lastFetched
+                  ? formatVisitedAt(competitionSettings.lastFetched)
+                  : "Belum pernah dilakukan"}
             </span>
           </div>
 

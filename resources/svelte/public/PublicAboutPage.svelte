@@ -56,7 +56,9 @@
     <section
       class="relative isolate flex min-h-[420px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#5d0077] to-[#2a0078] text-white"
     >
-      <div class="pointer-events-none absolute inset-0 opacity-20 mix-blend-overlay overflow-hidden">
+      <div
+        class="pointer-events-none absolute inset-0 opacity-20 mix-blend-overlay overflow-hidden"
+      >
         <OptimizedImage
           src={heroBgImage}
           alt=""
@@ -140,7 +142,9 @@
       <section
         class="relative w-full overflow-hidden bg-[#2a0078] py-20 text-white"
       >
-        <div class="pointer-events-none absolute inset-0 opacity-10 mix-blend-overlay overflow-hidden">
+        <div
+          class="pointer-events-none absolute inset-0 opacity-10 mix-blend-overlay overflow-hidden"
+        >
           <OptimizedImage
             src={heroBgImage}
             alt=""

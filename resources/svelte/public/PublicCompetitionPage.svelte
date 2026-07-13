@@ -33,6 +33,33 @@
   // Track currently active/selected competition for the side-drawer panel
   let activeCompetition = $state(null);
 
+  // Swipe gesture detection variables for mobile panel closure
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchEndX = 0;
+  let touchEndY = 0;
+
+  function handleTouchStart(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchEndX = e.touches[0].clientX;
+    touchEndY = e.touches[0].clientY;
+  }
+
+  function handleTouchMove(e) {
+    touchEndX = e.touches[0].clientX;
+    touchEndY = e.touches[0].clientY;
+  }
+
+  function handleTouchEnd() {
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+    // Check if the gesture is a swipe right (minimum 70px) and relatively horizontal
+    if (diffX > 70 && Math.abs(diffY) < 60) {
+      activeCompetition = null;
+    }
+  }
+
   const availableMonths = $derived([
     "All",
     ...new Set(competitions.map((c) => c.month).filter(Boolean)),
@@ -140,7 +167,9 @@
       class="relative isolate flex min-h-[380px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#2a0078] via-[#40008c] to-[#5d0077] text-white"
     >
       <!-- Background pattern -->
-      <div class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay overflow-hidden">
+      <div
+        class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay overflow-hidden"
+      >
         <OptimizedImage
           src={heroBgImage}
           alt=""
@@ -359,26 +388,19 @@
       ></div>
 
       <!-- Drawer Panel container -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         transition:fly={{ x: 500, duration: 300, easing: cubicOut }}
         class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col bg-white shadow-2xl border-l border-gray-100"
+        ontouchstart={handleTouchStart}
+        ontouchmove={handleTouchMove}
+        ontouchend={handleTouchEnd}
       >
         <!-- Header -->
         <div
           class="flex items-center justify-between border-b border-gray-100 p-6"
         >
           <div class="flex items-center gap-3">
-            <!-- Mobile Back Button -->
-            <button
-              type="button"
-              onclick={() => (activeCompetition = null)}
-              class="md:hidden flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors"
-              aria-label="Kembali"
-            >
-              <i class="fas fa-chevron-left text-lg"></i>
-              <span class="text-sm font-semibold">Kembali</span>
-            </button>
-
             <!-- Status Badges -->
             <div class="flex items-center gap-2.5">
               <span
@@ -511,7 +533,9 @@
       class="w-full bg-[#2a0078] py-20 text-center text-white relative overflow-hidden"
     >
       <!-- Background pattern -->
-      <div class="pointer-events-none absolute inset-0 opacity-10 mix-blend-overlay overflow-hidden">
+      <div
+        class="pointer-events-none absolute inset-0 opacity-10 mix-blend-overlay overflow-hidden"
+      >
         <OptimizedImage
           src={heroBgImage}
           alt=""
