@@ -6,6 +6,8 @@
   import { router } from "@inertiajs/svelte";
   import { fade, scale } from "svelte/transition";
   import { inertiaEnhance } from "../lib/inertia-enhance.js";
+  import heroBgImage from "../../images/hero-bg.png?enhanced&w=640;960;1280;1920";
+  import OptimizedImage from "../components/OptimizedImage.svelte";
 
   let {
     organizationName = "HIMATEKKOM ITS",
@@ -788,10 +790,15 @@
       class="relative overflow-hidden border-t border-white/10 bg-[#2a0078] text-white lg:h-screen lg:min-h-[800px]"
     >
       <!-- Glow texture matching Figma Atmosphere -->
-      <div
-        class="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-overlay"
-        style="background-image: url('{assetBase}/hero-bg.png')"
-      ></div>
+      <div class="absolute inset-0 opacity-10 mix-blend-overlay overflow-hidden">
+        <OptimizedImage
+          src={heroBgImage}
+          alt=""
+          class="w-full h-full object-cover object-center"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
 
       <div class="relative z-10 flex w-full flex-col lg:h-full lg:flex-row">
         <!-- Left Side: Orbit System Container -->

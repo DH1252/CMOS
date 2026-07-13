@@ -4,6 +4,8 @@
   import { inertiaEnhance } from "../lib/inertia-enhance.js";
   import { fly, fade } from "svelte/transition";
   import { cubicOut } from "svelte/easing";
+  import heroBgImage from "../../images/hero-bg.png?enhanced&w=640;960;1280;1920";
+  import OptimizedImage from "../components/OptimizedImage.svelte";
 
   let {
     organizationName = "HIMATEKKOM ITS",
@@ -138,10 +140,16 @@
       class="relative isolate flex min-h-[380px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#2a0078] via-[#40008c] to-[#5d0077] text-white"
     >
       <!-- Background pattern -->
-      <div
-        class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay"
-        style="background-image: url('/images/figma-taling/hero-bg.png'); background-size: cover; background-position: center;"
-      ></div>
+      <div class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay overflow-hidden">
+        <OptimizedImage
+          src={heroBgImage}
+          alt=""
+          class="w-full h-full object-cover object-center"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </div>
 
       <div class="relative z-10 mx-auto max-w-4xl px-6 py-20 text-center">
         <span
@@ -503,10 +511,15 @@
       class="w-full bg-[#2a0078] py-20 text-center text-white relative overflow-hidden"
     >
       <!-- Background pattern -->
-      <div
-        class="pointer-events-none absolute inset-0 opacity-10 mix-blend-overlay"
-        style="background-image: url('/images/figma-taling/hero-bg.png');"
-      ></div>
+      <div class="pointer-events-none absolute inset-0 opacity-10 mix-blend-overlay overflow-hidden">
+        <OptimizedImage
+          src={heroBgImage}
+          alt=""
+          class="w-full h-full object-cover object-center"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
 
       <div class="relative z-10 mx-auto max-w-3xl px-6">
         <h2
