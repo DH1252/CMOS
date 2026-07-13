@@ -511,7 +511,7 @@
             rel="noopener noreferrer"
             class="rounded-full bg-gradient-to-r from-[#ff7a1a] to-[#ffd344] px-8 py-3.5 text-sm font-bold tracking-wider text-[#2a0078] uppercase shadow-lg transition-transform hover:scale-105"
           >
-            Hubungi Instagram
+            Hubungi Himpunan
           </a>
         </div>
       </div>
