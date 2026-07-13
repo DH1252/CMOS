@@ -31,6 +31,10 @@
   let editScheduleTime = $state("");
   let isSaving = $state(false);
 
+  let currentSpreadsheetUrl = $state(competitionSettings.spreadsheetUrl);
+  let currentScheduleTime = $state(competitionSettings.scheduleTime || "01:00");
+  let currentScheduleInfo = $state(competitionSettings.scheduleInfo);
+
   async function saveSettings() {
     if (isSaving) {
       return;
@@ -55,9 +59,9 @@
       
       if (response.data.success) {
         notify("Sukses", response.data.message || "Pengaturan berhasil disimpan.", "success");
-        competitionSettings.spreadsheetUrl = editSpreadsheetUrl;
-        competitionSettings.scheduleTime = editScheduleTime;
-        competitionSettings.scheduleInfo = `Setiap hari pukul ${editScheduleTime} WIB`;
+        currentSpreadsheetUrl = editSpreadsheetUrl;
+        currentScheduleTime = editScheduleTime;
+        currentScheduleInfo = `Setiap hari pukul ${editScheduleTime} WIB`;
         isEditing = false;
       } else {
         notify("Gagal", "Gagal menyimpan pengaturan.", "error");
@@ -469,7 +473,7 @@
               >Spreadsheet Target</span
             >
             <a
-              href={competitionSettings.spreadsheetUrl}
+              href={currentSpreadsheetUrl}
               target="_blank"
               rel="noopener noreferrer"
               class="text-sm font-semibold text-primary hover:underline flex items-center gap-1.5 break-all mt-1"
@@ -485,7 +489,7 @@
               >Jadwal Sync Otomatis</span
             >
             <span class="text-sm font-semibold mt-1">
-              {competitionSettings.scheduleInfo || "Setiap hari pukul 01:00 WIB"}
+              {currentScheduleInfo || "Setiap hari pukul 01:00 WIB"}
             </span>
           </div>
 
@@ -529,8 +533,8 @@
             variant="outline"
             class="self-start flex items-center gap-1.5"
             onclick={() => {
-              editSpreadsheetUrl = competitionSettings.spreadsheetUrl;
-              editScheduleTime = competitionSettings.scheduleTime || "01:00";
+              editSpreadsheetUrl = currentSpreadsheetUrl;
+              editScheduleTime = currentScheduleTime;
               isEditing = true;
             }}
           >
