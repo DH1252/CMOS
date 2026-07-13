@@ -2,12 +2,12 @@
   import { inertiaEnhance } from "$lib/inertia-enhance.js";
   import brandLogo from "../images/logokabinet.png?enhanced&w=80;160";
   import OptimizedImage from "./components/OptimizedImage.svelte";
-  import VisitorCounter from "./components/VisitorCounter.svelte";
   import PublicInformationIndexPage from "./public/PublicInformationIndexPage.svelte";
   import PublicInformationShowPage from "./public/PublicInformationShowPage.svelte";
   import PublicEventIndexPage from "./public/PublicEventIndexPage.svelte";
   import PublicEventShowPage from "./public/PublicEventShowPage.svelte";
   import Navbar from "./components/landing/Navbar.svelte";
+  import Footer from "./components/landing/Footer.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
 
   let {
@@ -108,28 +108,14 @@
     {/if}
   </main>
 
-  <footer class="taling-footer">
-    <div class="taling-footer-inner">
-      <div>
-        <strong>{organizationName}</strong>
-        <p>
-          Kanal publik Kabinet Sentra Sinergi untuk membaca kabar, dokumentasi,
-          dan agenda resmi HIMATEKKOM ITS.
-        </p>
-      </div>
-      <div class="taling-footer-links">
-        <a href={homeUrl}>Beranda</a>
-        <a href={infoUrl}>Kabar Terbaru</a>
-        <a href={acaraUrl}>Acara Mendatang</a>
-        <a href={loginUrl}>Masuk</a>
-      </div>
-    </div>
-    <div class="taling-footer-base">
-      <span>&copy; {organizationName} 2026</span>
-      <VisitorCounter />
-      <span>{appName}</span>
-    </div>
-  </footer>
+  <Footer
+    {infoUrl}
+    {acaraUrl}
+    departemenUrl="/departemen"
+    tentangUrl="/tentang"
+    kompetisiUrl="/kompetisi"
+    {organizationName}
+  />
 </div>
 
 <style>
@@ -173,55 +159,6 @@
     color: var(--taling-purple);
     font-weight: 800;
     text-decoration: none;
-  }
-
-  .taling-footer {
-    background: #fffdf8;
-    color: var(--taling-ink);
-    padding: 4rem 0 2rem;
-  }
-
-  .taling-footer-inner {
-    display: grid;
-    grid-template-columns: minmax(260px, 1fr) minmax(280px, 1fr);
-    gap: 2rem;
-    align-items: start;
-  }
-
-  .taling-footer strong {
-    font-family: var(--taling-font-serif);
-    font-size: 2rem;
-  }
-
-  .taling-footer p {
-    max-width: 56ch;
-    margin: 1rem 0 0;
-    color: color-mix(in srgb, var(--taling-ink) 74%, transparent);
-    line-height: 1.6;
-  }
-
-  .taling-footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: end;
-    gap: 0.85rem 1.35rem;
-  }
-
-  .taling-footer-links a {
-    color: var(--taling-ink);
-    font-weight: 800;
-    text-decoration: none;
-  }
-
-  .taling-footer-base {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 4rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid color-mix(in srgb, var(--taling-ink) 14%, transparent);
-    color: color-mix(in srgb, var(--taling-ink) 62%, transparent);
-    font-weight: 800;
   }
 
   :global(.taling-page-kicker) {
@@ -278,22 +215,8 @@
   }
 
   @media (max-width: 819px) {
-    .taling-footer-inner,
-    .taling-footer-base,
     :global(.taling-section-shell) {
       width: min(100% - 1.5rem, 620px);
-    }
-
-    .taling-footer-inner {
-      grid-template-columns: 1fr;
-    }
-
-    .taling-footer-links {
-      justify-content: start;
-    }
-
-    .taling-footer-base {
-      display: grid;
     }
   }
 </style>
