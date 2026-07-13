@@ -73,7 +73,7 @@
             scrollDirection = 1;
           }
 
-          const scrollSpeed = window.innerWidth < 768 ? 1.2 : 0.5;
+          const scrollSpeed = window.innerWidth < 768 ? 0.8 : 0.5;
           sliderRef.scrollLeft += scrollDirection * scrollSpeed;
         }
       }
