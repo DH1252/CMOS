@@ -159,7 +159,7 @@
 
 <nav
   style="view-transition-name: main-navbar;"
-  class="relative z-50 flex h-[74px] w-full items-center justify-between bg-white px-6 py-[10px] shadow-sm md:px-[60px] lg:px-[139px]"
+  class="sticky top-0 z-50 flex h-[74px] w-full items-center justify-between bg-white px-6 py-[10px] shadow-sm md:px-[60px] lg:px-[139px]"
 >
   <a
     href={homeUrl}
