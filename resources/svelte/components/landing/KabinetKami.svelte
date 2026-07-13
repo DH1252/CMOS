@@ -94,10 +94,8 @@
         : 'translate-y-12 opacity-0'}"
       style="left: 10%; top: 10%; width: 80%; height: 24%;"
     >
-      <h3
-        class="kabinet-title w-max px-8 whitespace-nowrap leading-[0.95] mb-2"
-      >
-        SENTRA SINERGI
+      <h3 class="sentra-title w-max px-8 whitespace-nowrap leading-[0.95] mb-2">
+        sentra sinergi
       </h3>
       <h2 class="kabinet-title w-max px-8 whitespace-nowrap leading-[0.95]">
         {cabinetTitle}
@@ -239,6 +237,23 @@
       drop-shadow(0.92467px 5.54802px 12.0207px rgba(0, 0, 0, 0.79));
   }
 
+  .sentra-title {
+    font-family: "The Seasons", "The Seasons", Georgia, serif !important;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 120px;
+    line-height: 1.22;
+    text-align: center;
+    color: #ffffff;
+    text-shadow: 0px 0px 20px #ffffff;
+
+    filter: drop-shadow(25.8908px 135.002px 38.8361px rgba(0, 0, 0, 0.01))
+      drop-shadow(16.6441px 86.919px 35.1375px rgba(0, 0, 0, 0.12))
+      drop-shadow(9.2467px 49.0075px 29.5894px rgba(0, 0, 0, 0.4))
+      drop-shadow(3.69868px 21.2674px 22.1921px rgba(0, 0, 0, 0.68))
+      drop-shadow(0.92467px 5.54802px 12.0207px rgba(0, 0, 0, 0.79));
+  }
+
   .blob-glow {
     will-change: transform, opacity;
   }
@@ -318,7 +333,8 @@
   }
 
   @media (max-width: 1024px) {
-    .kabinet-title {
+    .kabinet-title,
+    .sentra-title {
       font-size: 8vw;
       line-height: 8vw;
     }
