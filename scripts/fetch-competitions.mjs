@@ -136,6 +136,93 @@ async function getSheetsViaScraping() {
   return sheets;
 }
 
+// Fetch and parse using Google Sheets API (handles cell rich links)
+async function fetchCompetitionsViaAPI(apiKey, sheetName, month) {
+  console.log(`Fetching sheet data via API for "${sheetName}"...`);
+  const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${apiKey}&includeGridData=true&ranges=${encodeURIComponent(sheetName)}!A1:Z100`;
+  const responseText = await fetchURL(apiUrl);
+  const data = JSON.parse(responseText);
+
+  const sheet = data.sheets?.[0];
+  const rows = sheet?.data?.[0]?.rowData || [];
+
+  if (rows.length <= 1) {
+    return [];
+  }
+
+  // Parse headers from the first row
+  const headerCells = rows[0].values || [];
+  const headers = headerCells.map((c) => (c.formattedValue || "").trim().toLowerCase());
+
+  const getIndex = (aliases) => headers.findIndex((h) => aliases.includes(h));
+
+  const noIdx = getIndex(["no"]);
+  const nameIdx = getIndex(["nama lomba", "lomba", "name"]);
+  const organizerIdx = getIndex(["penyelenggara", "organizer"]);
+  const descIdx = getIndex(["deskripsi", "jenis perlombaan", "description"]);
+  const timelineIdx = getIndex(["timeline lomba", "timeline pendaftaran", "timeline"]);
+  const statusIdx = getIndex(["status"]);
+  const qrIdx = getIndex(["qr code link", "qr code", "guidebook"]);
+  const linkIdx = getIndex(["link", "link pendaftaran"]);
+  const feeIdx = getIndex(["biaya pendaftaran"]);
+  const memberIdx = getIndex(["jumlah anggota"]);
+
+  const getCellText = (cell) => {
+    if (!cell) return "";
+    return cell.formattedValue || (cell.userEnteredValue && cell.userEnteredValue.stringValue) || "";
+  };
+
+  const getCellLink = (cell) => {
+    if (!cell) return "";
+    if (cell.hyperlink) return cell.hyperlink;
+    if (cell.textFormatRuns && cell.textFormatRuns[0] && cell.textFormatRuns[0].format && cell.textFormatRuns[0].format.link) {
+      return cell.textFormatRuns[0].format.link.uri || "";
+    }
+    return "";
+  };
+
+  const competitions = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i].values || [];
+    if (cells.length === 0) continue;
+
+    const name = nameIdx !== -1 ? getCellText(cells[nameIdx]) : "";
+    const organizer = organizerIdx !== -1 ? getCellText(cells[organizerIdx]) : "";
+
+    // Skip empty spacer rows
+    if (!name && !organizer) continue;
+
+    let description = descIdx !== -1 ? getCellText(cells[descIdx]) : "";
+    if (feeIdx !== -1) {
+      const fee = getCellText(cells[feeIdx]);
+      if (fee) description += `\n\n💰 Biaya Pendaftaran: ${fee}`;
+    }
+    if (memberIdx !== -1) {
+      const members = getCellText(cells[memberIdx]);
+      if (members) description += `\n👥 Jumlah Anggota: ${members}`;
+    }
+
+    // Link parsing (prefer extracted hyperlink URI, fallback to formatted value)
+    const link = linkIdx !== -1 ? getCellLink(cells[linkIdx]) || getCellText(cells[linkIdx]) : "";
+    const qrLink = qrIdx !== -1 ? getCellLink(cells[qrIdx]) || getCellText(cells[qrIdx]) : "";
+
+    competitions.push({
+      no: noIdx !== -1 ? Number.parseInt(getCellText(cells[noIdx]) || i, 10) : i,
+      name,
+      organizer,
+      description,
+      timeline: timelineIdx !== -1 ? getCellText(cells[timelineIdx]) : "",
+      status: statusIdx !== -1 ? getCellText(cells[statusIdx]) : "Open",
+      qr_code_link: qrLink || null,
+      link: link,
+      month: month,
+    });
+  }
+
+  return competitions;
+}
+
 async function main() {
   loadEnv();
   const apiKey = process.env.GOOGLE_API_KEY;
@@ -163,41 +250,73 @@ async function main() {
       const monthMatch = sheet.name.match(/^([^-]+)/);
       const month = monthMatch ? monthMatch[1].trim() : "";
 
-      console.log(`Processing sheet: "${sheet.name}" (Month: ${month})...`);
+      if (apiKey) {
+        // Use Sheets API with GridData to retrieve rich hyperlinks
+        const sheetCompetitions = await fetchCompetitionsViaAPI(apiKey, sheet.name, month);
+        allCompetitions.push(...sheetCompetitions);
+      } else {
+        // Fallback: download CSV (loses rich links but preserves dynamic layout mapping)
+        console.log(`Processing sheet: "${sheet.name}" (Month: ${month}) via CSV Fallback...`);
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${sheet.gid}`;
+        const csvText = await fetchURL(csvUrl);
+        const parsed = parseCSV(csvText);
 
-      const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${sheet.gid}`;
-      const csvText = await fetchURL(csvUrl);
-      const parsed = parseCSV(csvText);
-
-      if (parsed.length <= 1) {
-        continue;
-      }
-
-      for (let i = 1; i < parsed.length; i++) {
-        const row = parsed[i];
-        if (row.length < 2) {
+        if (parsed.length <= 1) {
           continue;
         }
 
-        const name = row[1]?.trim() || "";
-        const organizer = row[2]?.trim() || "";
+        // Dynamically discover header indices
+        const headers = parsed[0].map((h) => h.trim().toLowerCase());
+        
+        const getIndex = (aliases) => {
+          return headers.findIndex((h) => aliases.includes(h));
+        };
 
-        // Skip empty spacer rows
-        if (!name && !organizer) {
-          continue;
+        const noIdx = getIndex(["no"]);
+        const nameIdx = getIndex(["nama lomba", "lomba", "name"]);
+        const organizerIdx = getIndex(["penyelenggara", "organizer"]);
+        const descIdx = getIndex(["deskripsi", "jenis perlombaan", "description"]);
+        const timelineIdx = getIndex(["timeline lomba", "timeline pendaftaran", "timeline"]);
+        const statusIdx = getIndex(["status"]);
+        const qrIdx = getIndex(["qr code link", "qr code", "guidebook"]);
+        const linkIdx = getIndex(["link", "link pendaftaran"]);
+        const feeIdx = getIndex(["biaya pendaftaran"]);
+        const memberIdx = getIndex(["jumlah anggota"]);
+
+        for (let i = 1; i < parsed.length; i++) {
+          const row = parsed[i];
+          if (row.length < 2) {
+            continue;
+          }
+
+          const name = nameIdx !== -1 ? row[nameIdx]?.trim() || "" : "";
+          const organizer = organizerIdx !== -1 ? row[organizerIdx]?.trim() || "" : "";
+
+          // Skip empty spacer rows
+          if (!name && !organizer) {
+            continue;
+          }
+
+          let description = descIdx !== -1 ? row[descIdx]?.trim() || "" : "";
+          if (feeIdx !== -1 && row[feeIdx]?.trim()) {
+            description += `\n\n💰 Biaya Pendaftaran: ${row[feeIdx].trim()}`;
+          }
+          if (memberIdx !== -1 && row[memberIdx]?.trim()) {
+            description += `\n👥 Jumlah Anggota: ${row[memberIdx].trim()}`;
+          }
+
+          allCompetitions.push({
+            no: noIdx !== -1 ? Number.parseInt(row[noIdx]?.trim() || i.toString(), 10) : i,
+            name: name,
+            organizer: organizer,
+            description: description,
+            timeline: timelineIdx !== -1 ? row[timelineIdx]?.trim() || "" : "",
+            status: statusIdx !== -1 ? row[statusIdx]?.trim() || "Open" : "Open",
+            qr_code_link: qrIdx !== -1 ? row[qrIdx]?.trim() || null : null,
+            link: linkIdx !== -1 ? row[linkIdx]?.trim() || "" : "",
+            month: month, // Associated month from sheet tab name
+          });
         }
-
-        allCompetitions.push({
-          no: Number.parseInt(row[0]?.trim() || i.toString(), 10),
-          name: name,
-          organizer: organizer,
-          description: row[3]?.trim() || "",
-          timeline: row[4]?.trim() || "",
-          status: row[5]?.trim() || "Open",
-          qr_code_link: row[6]?.trim() || null,
-          link: row[7]?.trim() || "",
-          month: month, // Associated month from sheet tab name
-        });
       }
     }
 
