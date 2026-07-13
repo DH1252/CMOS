@@ -34,9 +34,9 @@
   let startX = 0;
   let scrollLeft = 0;
 
-  let isHovered = false;
   let isIntersecting = false;
   let scrollDirection = 1;
+  let isAutoScrollActive = $state(true);
 
   onMount(() => {
     if (typeof window === "undefined" || !sliderRef) return;
@@ -53,23 +53,13 @@
     );
     observer.observe(sliderRef);
 
-    const handleMouseEnter = () => {
-      isHovered = true;
-    };
-    const handleMouseLeaveState = () => {
-      isHovered = false;
-    };
-
-    sliderRef.addEventListener("mouseenter", handleMouseEnter);
-    sliderRef.addEventListener("mouseleave", handleMouseLeaveState);
-
     const scrollSpeed = 0.5; // pixels per frame
     let animationId;
 
     function step() {
       if (!sliderRef) return;
 
-      if (isIntersecting && !isDown && !isHovered) {
+      if (isIntersecting && !isDown && isAutoScrollActive) {
         const maxScroll = sliderRef.scrollWidth - sliderRef.clientWidth;
 
         if (maxScroll > 0) {
@@ -90,10 +80,6 @@
     return () => {
       observer.disconnect();
       cancelAnimationFrame(animationId);
-      if (sliderRef) {
-        sliderRef.removeEventListener("mouseenter", handleMouseEnter);
-        sliderRef.removeEventListener("mouseleave", handleMouseLeaveState);
-      }
     };
   });
 
@@ -697,6 +683,27 @@
                   d="M9 5l7 7-7 7"
                 />
               </svg>
+            </button>
+
+            <!-- Auto Scroll Toggle -->
+            <button
+              type="button"
+              class="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/60 px-3 py-1.5 text-[10px] font-medium tracking-wider text-white uppercase backdrop-blur-md transition-all hover:bg-[#ff7a1a] hover:border-[#ff7a1a]"
+              onclick={() => (isAutoScrollActive = !isAutoScrollActive)}
+            >
+              <span class="relative flex h-1.5 w-1.5">
+                <span
+                  class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 {isAutoScrollActive
+                    ? 'bg-green-400'
+                    : 'bg-red-400'}"
+                ></span>
+                <span
+                  class="relative inline-flex h-1.5 w-1.5 rounded-full {isAutoScrollActive
+                    ? 'bg-green-500'
+                    : 'bg-red-500'}"
+                ></span>
+              </span>
+              Auto Scroll: {isAutoScrollActive ? "On" : "Off"}
             </button>
           </div>
 
