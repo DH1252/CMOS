@@ -42,4 +42,8 @@ return [
         'service_account_json' => env('GOOGLE_SERVICE_ACCOUNT_JSON', storage_path('app/private/google-service-account.json')),
     ],
 
+    'google' => [
+        'api_key' => env('GOOGLE_API_KEY'),
+    ],
+
 ];

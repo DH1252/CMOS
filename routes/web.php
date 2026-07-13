@@ -189,6 +189,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', UserController::class);
         Route::resource('settings', SettingController::class)->only(['index', 'update']);
         Route::get('/statistics', [SiteStatisticsController::class, 'index'])->name('statistics.index');
+        Route::post('/statistics/fetch-competitions', [SiteStatisticsController::class, 'fetchCompetitions'])->name('statistics.fetch-competitions');
     });
 
     // Admin, BPH & Kabinet Routes

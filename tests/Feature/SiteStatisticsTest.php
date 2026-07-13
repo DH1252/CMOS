@@ -113,6 +113,25 @@ class SiteStatisticsTest extends TestCase
         );
     }
 
+    public function test_admin_can_trigger_competition_manual_sync(): void
+    {
+        $admin = $this->createUserWithRole('admin');
+
+        $response = $this->actingAs($admin)->post(route('statistics.fetch-competitions'));
+
+        $response->assertOk();
+        $response->assertJsonStructure(['success', 'output']);
+    }
+
+    public function test_non_admin_cannot_trigger_competition_manual_sync(): void
+    {
+        $staff = $this->createUserWithRole('staff');
+
+        $response = $this->actingAs($staff)->post(route('statistics.fetch-competitions'));
+
+        $response->assertForbidden();
+    }
+
     private function createUserWithRole(string $roleName): User
     {
         $role = Role::create([

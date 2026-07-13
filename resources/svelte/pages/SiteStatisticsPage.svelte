@@ -3,6 +3,7 @@
   import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
   import MetricCard from "../components/MetricCard.svelte";
   import PageHeader from "../components/PageHeader.svelte";
+  import axios from "axios";
 
   let {
     title = "Statistik Situs",
@@ -11,7 +12,70 @@
     visitorTrend = [],
     topUrls = [],
     recentVisitors = [],
+    competitionSettings = {
+      spreadsheetUrl: "",
+      scheduleInfo: "",
+      lastFetched: null,
+      hasApiKey: false,
+    },
   } = $props();
+
+  let isFetching = $state(false);
+  let diagnosticLog = $state("");
+  let lastSyncTime = $state(null);
+
+  const notify = (titleText, text, icon = "success") => {
+    if (window.Swal) {
+      window.Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon,
+        title: titleText,
+        text,
+        showConfirmButton: false,
+        timer: 3000,
+      });
+      return;
+    }
+    alert(`${titleText}: ${text}`);
+  };
+
+  async function triggerManualSync() {
+    if (isFetching) {
+      return;
+    }
+
+    isFetching = true;
+    diagnosticLog =
+      "[System]: Memulai sinkronisasi kompetisi dari Google Sheets...\n";
+
+    try {
+      const response = await axios.post("/statistics/fetch-competitions");
+      const { success, output } = response.data;
+
+      diagnosticLog += output || "";
+
+      if (success) {
+        lastSyncTime = new Date().toISOString();
+        diagnosticLog +=
+          "\n[System]: Sukses! Sinkronisasi kompetisi selesai dilakukan.";
+        notify("Sukses", "Data kompetisi berhasil diperbarui!", "success");
+      } else {
+        diagnosticLog += "\n[System]: Error! Sinkronisasi gagal.";
+        notify(
+          "Gagal",
+          "Proses sinkronisasi kompetisi menemui kegagalan.",
+          "error",
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      diagnosticLog += `\n[System]: Exception terjadi saat memanggil endpoint: ${err.message}`;
+      notify("Gagal", "Terjadi kesalahan jaringan atau server.", "error");
+    } finally {
+      isFetching = false;
+    }
+  }
 
   const fallbackPalette = {
     primary: "#7c3aed",
@@ -334,6 +398,129 @@
   </Card.Root>
 </div>
 
+<!-- Competition Script Settings & Control Panel -->
+<Card.Root
+  class="animate-fadeIn mt-4 rounded-[10px] border border-border bg-card shadow-none"
+>
+  <Card.Header class="border-b border-border/70 pb-4">
+    <PageHeader
+      title="Sinkronisasi & Pengaturan Script Kompetisi"
+      description="Pengaturan dan diagnosis script parser data kompetisi dari Google Sheets."
+      icon="fas fa-database"
+      compact={true}
+      headingTag="h3"
+    />
+  </Card.Header>
+
+  <Card.Content class="pt-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Settings Info -->
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
+          <span
+            class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+            >Spreadsheet Target</span
+          >
+          <a
+            href={competitionSettings.spreadsheetUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm font-semibold text-[#7c3aed] hover:underline flex items-center gap-1.5 break-all mt-1"
+          >
+            <span>Buka Google Sheets</span>
+            <i class="fas fa-external-link-alt text-xs"></i>
+          </a>
+        </div>
+
+        <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
+          <span
+            class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+            >Jadwal Sync Otomatis</span
+          >
+          <span class="text-sm font-semibold text-gray-700 mt-1">
+            {competitionSettings.scheduleInfo || "Setiap hari pukul 01:00 WIB"}
+          </span>
+        </div>
+
+        <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
+          <span
+            class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+            >Status Google API Key</span
+          >
+          <div class="mt-1">
+            {#if competitionSettings.hasApiKey}
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 border border-emerald-100"
+              >
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                Google API Key Aktif
+              </span>
+            {:else}
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 border border-amber-100"
+              >
+                <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                API Key Tidak Ditemukan (Menggunakan Fallback)
+              </span>
+            {/if}
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1 pb-3">
+          <span
+            class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+            >Sinkronisasi Terakhir</span
+          >
+          <span class="text-sm font-semibold text-gray-700 mt-1">
+            {lastSyncTime
+              ? formatVisitedAt(lastSyncTime)
+              : (competitionSettings.lastFetched
+                  ? formatVisitedAt(competitionSettings.lastFetched)
+                  : "Belum pernah dilakukan")}
+          </span>
+        </div>
+      </div>
+
+      <!-- Sync Controls & Logs -->
+      <div class="flex flex-col justify-between">
+        <div>
+          <h4 class="text-sm font-bold text-gray-800">Sinkronisasi Manual</h4>
+          <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+            Anda dapat memicu sinkronisasi manual untuk memperbarui data
+            kompetisi di cache lokal (`storage/app/competitions.json`) secara
+            instan.
+          </p>
+
+          <button
+            type="button"
+            onclick={triggerManualSync}
+            disabled={isFetching}
+            class="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-5 py-3 text-sm font-bold shadow-sm transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {#if isFetching}
+              <i class="fas fa-spinner fa-spin animate-spin"></i>
+              <span>Memproses Sinkronisasi...</span>
+            {:else}
+              <i class="fas fa-sync-alt"></i>
+              <span>Sinkronisasi Sekarang</span>
+            {/if}
+          </button>
+        </div>
+
+        {#if diagnosticLog}
+          <div class="mt-6">
+            <span
+              class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+              >Logs / Diagnostik</span
+            >
+            <pre class="diagnostic-console">{diagnosticLog}</pre>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </Card.Content>
+</Card.Root>
+
 <Card.Root
   class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
 >
@@ -403,6 +590,21 @@
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
     margin-top: 1rem;
+  }
+
+  .diagnostic-console {
+    background: #111;
+    color: #38bdf8;
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    overflow-y: auto;
+    max-height: 240px;
+    margin-top: 0.5rem;
+    border: 1px solid var(--line-soft);
+    white-space: pre-wrap;
+    word-break: break-all;
   }
 
   .stats-chart-grid {
