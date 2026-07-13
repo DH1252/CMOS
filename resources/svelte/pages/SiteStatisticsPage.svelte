@@ -1,8 +1,10 @@
 <script>
   import * as Card from "$lib/components/ui/card/index.js";
+  import { Button } from "$lib/components/ui/button/index.js";
   import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
   import MetricCard from "../components/MetricCard.svelte";
   import PageHeader from "../components/PageHeader.svelte";
+  import StatusBadge from "../components/StatusBadge.svelte";
   import axios from "axios";
 
   let {
@@ -418,14 +420,14 @@
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
           <span
-            class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+            class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
             >Spreadsheet Target</span
           >
           <a
             href={competitionSettings.spreadsheetUrl}
             target="_blank"
             rel="noopener noreferrer"
-            class="text-sm font-semibold text-[#7c3aed] hover:underline flex items-center gap-1.5 break-all mt-1"
+            class="text-sm font-semibold text-primary hover:underline flex items-center gap-1.5 break-all mt-1"
           >
             <span>Buka Google Sheets</span>
             <i class="fas fa-external-link-alt text-xs"></i>
@@ -434,44 +436,42 @@
 
         <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
           <span
-            class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+            class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
             >Jadwal Sync Otomatis</span
           >
-          <span class="text-sm font-semibold text-gray-700 mt-1">
+          <span class="text-sm font-semibold mt-1">
             {competitionSettings.scheduleInfo || "Setiap hari pukul 01:00 WIB"}
           </span>
         </div>
 
         <div class="flex flex-col gap-1 border-b border-border/70 pb-3">
           <span
-            class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+            class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
             >Status Google API Key</span
           >
-          <div class="mt-1">
+          <div class="mt-1 flex">
             {#if competitionSettings.hasApiKey}
-              <span
-                class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 border border-emerald-100"
-              >
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                Google API Key Aktif
-              </span>
+              <StatusBadge
+                label="Google API Key Aktif"
+                tone="success"
+                icon="fas fa-check-circle text-xs"
+              />
             {:else}
-              <span
-                class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 border border-amber-100"
-              >
-                <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                API Key Tidak Ditemukan (Menggunakan Fallback)
-              </span>
+              <StatusBadge
+                label="API Key Tidak Ditemukan (Menggunakan Fallback)"
+                tone="warning"
+                icon="fas fa-exclamation-triangle text-xs"
+              />
             {/if}
           </div>
         </div>
 
         <div class="flex flex-col gap-1 pb-3">
           <span
-            class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+            class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
             >Sinkronisasi Terakhir</span
           >
-          <span class="text-sm font-semibold text-gray-700 mt-1">
+          <span class="text-sm font-semibold mt-1">
             {lastSyncTime
               ? formatVisitedAt(lastSyncTime)
               : (competitionSettings.lastFetched
@@ -484,18 +484,17 @@
       <!-- Sync Controls & Logs -->
       <div class="flex flex-col justify-between">
         <div>
-          <h4 class="text-sm font-bold text-gray-800">Sinkronisasi Manual</h4>
-          <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+          <h4 class="text-sm font-bold text-foreground">Sinkronisasi Manual</h4>
+          <p class="text-xs text-muted-foreground mt-1 leading-relaxed">
             Anda dapat memicu sinkronisasi manual untuk memperbarui data
             kompetisi di cache lokal (`storage/app/competitions.json`) secara
             instan.
           </p>
 
-          <button
-            type="button"
+          <Button
             onclick={triggerManualSync}
             disabled={isFetching}
-            class="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-5 py-3 text-sm font-bold shadow-sm transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="mt-4 flex items-center gap-2"
           >
             {#if isFetching}
               <i class="fas fa-spinner fa-spin animate-spin"></i>
@@ -504,13 +503,13 @@
               <i class="fas fa-sync-alt"></i>
               <span>Sinkronisasi Sekarang</span>
             {/if}
-          </button>
+          </Button>
         </div>
 
         {#if diagnosticLog}
           <div class="mt-6">
             <span
-              class="text-xs font-bold text-[#64748b] uppercase tracking-widest"
+              class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
               >Logs / Diagnostik</span
             >
             <pre class="diagnostic-console">{diagnosticLog}</pre>
