@@ -129,7 +129,7 @@
     >
       <a
         href={departemenUrl}
-        class="taling-pill pointer-events-auto shadow-[0_12px_32px_rgba(255,122,26,0.35)] hover:scale-105 active:scale-95 transition-all duration-200"
+        class="taling-pill taling-pill-white pointer-events-auto shadow-[0_12px_32px_rgba(255,255,255,0.15)] hover:scale-105 active:scale-95 transition-all duration-200"
       >
         <span>Jelajahi Departemen</span>
         <i class="fas fa-arrow-right"></i>
@@ -252,6 +252,16 @@
       drop-shadow(9.2467px 49.0075px 29.5894px rgba(0, 0, 0, 0.4))
       drop-shadow(3.69868px 21.2674px 22.1921px rgba(0, 0, 0, 0.68))
       drop-shadow(0.92467px 5.54802px 12.0207px rgba(0, 0, 0, 0.79));
+  }
+
+  .taling-pill-white {
+    background: #ffffff !important;
+    color: var(--taling-purple) !important;
+  }
+
+  .taling-pill-white:hover {
+    background: #f4f4f8 !important;
+    color: var(--taling-purple) !important;
   }
 
   .blob-glow {

@@ -118,22 +118,22 @@
           <a
             href={infoUrl}
             class="lowercase transition-all duration-300 hover:translate-x-1 hover:text-[#ff7a1a] md:hover:-translate-x-1"
-            >news</a
+            >kabar terbaru</a
           >
           <a
             href={infoUrl}
             class="lowercase transition-all duration-300 hover:translate-x-1 hover:text-[#ff7a1a] md:hover:-translate-x-1"
-            >announcements</a
+            >pengumuman</a
           >
           <a
             href={departemenUrl}
             class="lowercase transition-all duration-300 hover:translate-x-1 hover:text-[#ff7a1a] md:hover:-translate-x-1"
-            >departments</a
+            >departemen</a
           >
           <a
             href={tentangUrl}
             class="lowercase transition-all duration-300 hover:translate-x-1 hover:text-[#ff7a1a] md:hover:-translate-x-1"
-            >history</a
+            >tentang kami</a
           >
         </div>
       </div>
@@ -152,17 +152,17 @@
           <a
             href={kompetisiUrl}
             class="lowercase transition-all duration-300 hover:translate-x-1 hover:text-[#ff7a1a] md:hover:-translate-x-1"
-            >golek bolo</a
+            >kompetisi</a
           >
           <a
             href={acaraUrl}
             class="lowercase transition-all duration-300 hover:translate-x-1 hover:text-[#ff7a1a] md:hover:-translate-x-1"
-            >events</a
+            >acara</a
           >
           <a
             href={departemenUrl}
             class="lowercase transition-all duration-300 hover:translate-x-1 hover:text-[#ff7a1a] md:hover:-translate-x-1"
-            >departments</a
+            >departemen</a
           >
         </div>
       </div>
