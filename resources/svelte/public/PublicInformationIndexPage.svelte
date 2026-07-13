@@ -65,26 +65,74 @@
 
 <div class="public-info-index">
   <section class="info-hero" aria-labelledby="info-index-heading">
-    <!-- Texture Overlay -->
+    <!-- Ambient Background Gradient & Texture matching Departemen -->
     <div
-      class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay overflow-hidden"
+      class="absolute inset-0 -z-10 bg-gradient-to-br from-[#5d0077] to-[#2a0078] overflow-hidden"
     >
-      <OptimizedImage
-        src={heroBgImage}
-        alt=""
-        class="w-full h-full object-cover object-center"
-        loading="eager"
-        decoding="async"
-        fetchpriority="high"
-      />
+      <picture class="contents">
+        <source srcset="/images/figma-taling/hero-bg.avif" type="image/avif" />
+        <source srcset="/images/figma-taling/hero-bg.webp" type="image/webp" />
+        <img
+          class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay pointer-events-none"
+          src="/images/figma-taling/hero-bg.png"
+          alt=""
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </picture>
+      <picture class="contents">
+        <source
+          srcset="/images/figma-taling/botanical.avif"
+          type="image/avif"
+        />
+        <source
+          srcset="/images/figma-taling/botanical.webp"
+          type="image/webp"
+        />
+        <img
+          class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] max-w-none object-cover opacity-25 mix-blend-soft-light pointer-events-none"
+          src="/images/figma-taling/botanical.png"
+          alt=""
+          width="1600"
+          height="1066"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </picture>
     </div>
-    <span class="info-star info-star-left" aria-hidden="true"></span>
-    <span class="info-star info-star-right" aria-hidden="true"></span>
+
+    <!-- Branded Floating Vector Stars matching Departemen -->
+    <img
+      src="/images/figma-taling/star-large.svg"
+      alt=""
+      class="star-large pointer-events-none opacity-80 drop-shadow-2xl"
+      width="492"
+      height="463"
+    />
+    <img
+      src="/images/figma-taling/star-small.svg"
+      alt=""
+      class="star-small pointer-events-none opacity-80 drop-shadow-2xl"
+      width="375"
+      height="404"
+    />
+
     <div class="taling-section-shell info-hero-grid">
       <div class="info-hero-copy">
         <p class="taling-page-kicker">{kicker}</p>
         <h1 id="info-index-heading" class="taling-page-title">{headline}</h1>
-        <div class="info-hero-rule" aria-hidden="true"></div>
+
+        <!-- Glowing Gradient Bar matching Departemen -->
+        <div
+          class="hero-glow-wrapper w-full max-w-[280px] md:max-w-[400px] h-[22px] -mt-2"
+        >
+          <div
+            class="h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[1px]"
+          ></div>
+        </div>
+
         <p class="taling-page-copy">{description}</p>
       </div>
 
@@ -262,36 +310,14 @@
   .info-hero {
     position: relative;
     overflow: hidden;
-    padding: 6rem 0 7rem;
-    background:
-      radial-gradient(
-        circle at 20% 20%,
-        rgba(255, 211, 68, 0.12),
-        transparent 32rem
-      ),
-      linear-gradient(180deg, #18072e 0%, #12051f 100%);
+    padding: 6.5rem 0 8rem;
     color: var(--taling-white);
   }
 
-  .info-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: 0.18;
-    background-image:
-      linear-gradient(
-        45deg,
-        transparent 46%,
-        rgba(255, 211, 68, 0.2) 47%,
-        transparent 48%
-      ),
-      linear-gradient(
-        -45deg,
-        transparent 46%,
-        rgba(255, 255, 255, 0.16) 47%,
-        transparent 48%
-      );
-    background-size: 46px 46px;
+  :global(.taling-page-title) {
+    font-family: "The Seasons", "The Seasons", Georgia, serif !important;
+    font-weight: 300 !important;
+    text-shadow: 0px 0px 20px #ffffff;
   }
 
   .info-hero-grid {
@@ -313,11 +339,8 @@
     color: var(--taling-white);
   }
 
-  .info-hero-rule {
-    width: min(534px, 68vw);
-    height: 18px;
-    background: var(--taling-yellow);
-    box-shadow: 0 0 24px rgba(255, 211, 68, 0.52);
+  .hero-glow-wrapper {
+    position: relative;
   }
 
   .info-stat-board {
@@ -346,49 +369,87 @@
     line-height: 1;
   }
 
-  .info-star {
+  .star-large {
     position: absolute;
-    z-index: 1;
-    aspect-ratio: 1;
-    background: var(--taling-yellow);
-    clip-path: polygon(
-      50% 0,
-      59% 35%,
-      98% 35%,
-      66% 56%,
-      78% 96%,
-      50% 70%,
-      22% 96%,
-      34% 56%,
-      2% 35%,
-      41% 35%
-    );
-    opacity: 0.72;
+    top: -60px;
+    left: -90px;
+    width: 200px;
+    height: 188px;
+    animation: floatLarge 8s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-large {
+      top: -100px;
+      left: -150px;
+      width: 320px;
+      height: 301px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-large {
+      top: -155px;
+      left: -239px;
+      width: 507px;
+      height: 476px;
+    }
   }
 
-  .info-star-left {
-    top: -96px;
-    left: 14%;
-    width: 300px;
+  .star-small {
+    position: absolute;
+    top: 320px;
+    right: -80px;
+    width: 150px;
+    height: 161px;
+    animation: floatSmall 6s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-small {
+      top: 300px;
+      right: -130px;
+      width: 250px;
+      height: 269px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-small {
+      top: 250px;
+      right: -188px;
+      width: 388px;
+      height: 418px;
+    }
   }
 
-  .info-star-right {
-    right: -92px;
-    bottom: 42px;
-    width: 230px;
+  @keyframes floatLarge {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-10deg);
+    }
+    50% {
+      transform: translateY(-15px) rotate(-8deg);
+    }
+  }
+
+  @keyframes floatSmall {
+    0%,
+    100% {
+      transform: translateY(0) rotate(15deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(10deg);
+    }
   }
 
   .info-search {
-    padding: 2rem 0;
-    background: #fffdf8;
+    padding: 3rem 0;
+    background: #ffffff;
   }
 
   .info-search-shell {
     display: grid;
     gap: 1.15rem;
     border-bottom: 2px solid
-      color-mix(in srgb, var(--taling-ink) 16%, transparent);
-    padding-bottom: 2rem;
+      color-mix(in srgb, var(--taling-ink) 12%, transparent);
+    padding-bottom: 3rem;
   }
 
   .info-filter-form {
@@ -402,19 +463,32 @@
     display: grid;
     gap: 0.5rem;
     color: var(--taling-purple);
-    font-weight: 900;
+    font-weight: 700;
+    font-size: 0.88rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
   }
 
   .info-filter-form input,
   .info-filter-form select {
     height: 3rem;
-    border: 2px solid var(--taling-purple);
-    border-radius: 0;
-    background: var(--taling-cream);
+    border: 1px solid rgba(42, 0, 120, 0.2);
+    border-radius: 12px;
+    background: #fbfbfd;
     color: var(--taling-ink);
-    padding: 0 0.9rem;
+    padding: 0 1.2rem;
     font: inherit;
-    font-weight: 800;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 200ms ease;
+  }
+
+  .info-filter-form input:focus,
+  .info-filter-form select:focus {
+    outline: none;
+    border-color: var(--taling-purple);
+    box-shadow: 0 0 0 3px rgba(42, 0, 120, 0.12);
+    background: #ffffff;
   }
 
   .info-filter-form button,
@@ -454,9 +528,12 @@
   }
 
   .info-feature {
-    padding: 6rem 0 7rem;
-    background: linear-gradient(160deg, #f6bb2f 0%, #ff8a1f 54%, #c85910 100%);
-    color: #1f1520;
+    padding: 6.5rem 0 7rem;
+    background: linear-gradient(135deg, #2a0078 0%, #1e0055 100%);
+    color: #ffffff;
+    position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .info-feature-grid {
@@ -469,8 +546,17 @@
   .info-feature-media {
     display: block;
     overflow: hidden;
-    border: 10px solid color-mix(in srgb, var(--taling-yellow) 45%, transparent);
+    border: 4px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
     background: var(--taling-purple);
+    transition:
+      transform 300ms ease,
+      border-color 300ms ease;
+  }
+
+  .info-feature-media:hover {
+    transform: scale(1.015);
+    border-color: rgba(255, 255, 255, 0.3);
   }
 
   .info-feature-media :global(.info-feature-img),
@@ -513,23 +599,22 @@
 
   .info-feature h2 {
     margin: 0;
-    color: #1f1520;
+    color: #ffffff;
     font-family: var(--taling-font-serif);
     font-size: clamp(2.4rem, 5vw, 4.4rem);
     line-height: 1;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
   }
 
   .info-feature-rule {
-    width: 100%;
-    height: 12px;
-    background: var(--taling-purple);
+    display: none;
   }
 
   .info-feature-copy p:not(.info-outline) {
     margin: 0;
     max-width: 62ch;
-    color: #241422;
-    font-weight: 800;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
     line-height: 1.48;
   }
 
@@ -604,6 +689,16 @@
     text-decoration: none;
     scroll-snap-align: center;
     background: var(--taling-purple);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition:
+      transform 300ms ease,
+      border-color 300ms ease;
+  }
+
+  .info-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--taling-orange);
   }
 
   .info-card-media,

@@ -64,20 +64,59 @@
 
 <article class="public-event-show">
   <section class="event-show-hero" aria-labelledby="event-heading">
-    <!-- Texture Overlay -->
+    <!-- Ambient Background Gradient & Texture matching Departemen -->
     <div
-      class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay overflow-hidden"
+      class="absolute inset-0 -z-10 bg-gradient-to-br from-[#5d0077] to-[#2a0078] overflow-hidden"
     >
-      <OptimizedImage
-        src={heroBgImage}
-        alt=""
-        class="w-full h-full object-cover object-center"
-        loading="eager"
-        decoding="async"
-        fetchpriority="high"
-      />
+      <picture class="contents">
+        <source srcset="/images/figma-taling/hero-bg.avif" type="image/avif" />
+        <source srcset="/images/figma-taling/hero-bg.webp" type="image/webp" />
+        <img
+          class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay pointer-events-none"
+          src="/images/figma-taling/hero-bg.png"
+          alt=""
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </picture>
+      <picture class="contents">
+        <source
+          srcset="/images/figma-taling/botanical.avif"
+          type="image/avif"
+        />
+        <source
+          srcset="/images/figma-taling/botanical.webp"
+          type="image/webp"
+        />
+        <img
+          class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] max-w-none object-cover opacity-25 mix-blend-soft-light pointer-events-none"
+          src="/images/figma-taling/botanical.png"
+          alt=""
+          width="1600"
+          height="1066"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </picture>
     </div>
-    <span class="event-show-star" aria-hidden="true"></span>
+
+    <!-- Branded Floating Vector Stars matching Departemen -->
+    <img
+      src="/images/figma-taling/star-large.svg"
+      alt=""
+      class="star-large pointer-events-none opacity-80 drop-shadow-2xl"
+      width="492"
+      height="463"
+    />
+    <img
+      src="/images/figma-taling/star-small.svg"
+      alt=""
+      class="star-small pointer-events-none opacity-80 drop-shadow-2xl"
+      width="375"
+      height="404"
+    />
     <div class="taling-section-shell event-show-grid">
       <div class="event-show-poster-wrap">
         <a href={acaraUrl} class="event-show-back">
@@ -107,7 +146,12 @@
       <div class="event-show-copy">
         <p class="event-date-badge">{event.dateLabel || "Segera"}</p>
         <h1 id="event-heading" class="taling-page-title">{event.title}</h1>
-        <div class="event-show-rule" aria-hidden="true"></div>
+        <!-- Glowing Gradient Bar matching Departemen -->
+        <div class="hero-glow-wrapper w-full max-w-[280px] h-[22px] -mt-1 mb-2">
+          <div
+            class="h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[1px]"
+          ></div>
+        </div>
         <p class="taling-page-copy">{event.excerpt}</p>
         <div class="event-show-meta">
           {#if event.endDateLabel}
@@ -161,36 +205,14 @@
   }
 
   .event-show-hero {
-    padding: 6rem 0 7.5rem;
-    background:
-      radial-gradient(
-        circle at 20% 20%,
-        rgba(255, 211, 68, 0.12),
-        transparent 32rem
-      ),
-      linear-gradient(180deg, #18072e 0%, #12051f 100%);
+    padding: 6.5rem 0 8rem;
     color: var(--taling-white);
   }
 
-  .event-show-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: 0.18;
-    background-image:
-      linear-gradient(
-        45deg,
-        transparent 46%,
-        rgba(255, 211, 68, 0.2) 47%,
-        transparent 48%
-      ),
-      linear-gradient(
-        -45deg,
-        transparent 46%,
-        rgba(255, 255, 255, 0.16) 47%,
-        transparent 48%
-      );
-    background-size: 46px 46px;
+  :global(.taling-page-title) {
+    font-family: "The Seasons", "The Seasons", Georgia, serif !important;
+    font-weight: 300 !important;
+    text-shadow: 0px 0px 20px #ffffff;
   }
 
   .event-show-grid {
@@ -278,11 +300,9 @@
     font-weight: 900;
   }
 
-  .event-show-rule {
-    width: 100%;
-    height: 12px;
-    background: var(--taling-yellow);
-    box-shadow: 0 0 20px rgba(255, 211, 68, 0.4);
+  /* Glow wrapper matching standard design system */
+  .hero-glow-wrapper {
+    position: relative;
   }
 
   .event-show-meta {
@@ -293,32 +313,79 @@
     font-weight: 800;
   }
 
-  .event-show-star {
+  .star-large {
     position: absolute;
-    z-index: 1;
-    right: -92px;
-    bottom: 42px;
-    width: 230px;
-    aspect-ratio: 1;
-    background: var(--taling-yellow);
-    clip-path: polygon(
-      50% 0,
-      59% 35%,
-      98% 35%,
-      66% 56%,
-      78% 96%,
-      50% 70%,
-      22% 96%,
-      34% 56%,
-      2% 35%,
-      41% 35%
-    );
-    opacity: 0.72;
+    top: -60px;
+    left: -90px;
+    width: 200px;
+    height: 188px;
+    animation: floatLarge 8s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-large {
+      top: -100px;
+      left: -150px;
+      width: 320px;
+      height: 301px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-large {
+      top: -155px;
+      left: -239px;
+      width: 507px;
+      height: 476px;
+    }
+  }
+
+  .star-small {
+    position: absolute;
+    top: 320px;
+    right: -80px;
+    width: 150px;
+    height: 161px;
+    animation: floatSmall 6s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-small {
+      top: 300px;
+      right: -130px;
+      width: 250px;
+      height: 269px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-small {
+      top: 250px;
+      right: -188px;
+      width: 388px;
+      height: 418px;
+    }
+  }
+
+  @keyframes floatLarge {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-10deg);
+    }
+    50% {
+      transform: translateY(-15px) rotate(-8deg);
+    }
+  }
+
+  @keyframes floatSmall {
+    0%,
+    100% {
+      transform: translateY(0) rotate(15deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(10deg);
+    }
   }
 
   .event-show-body {
     padding: 6rem 0 7rem;
-    background: #fffdf8;
+    background: #ffffff;
   }
 
   .event-show-body-grid {

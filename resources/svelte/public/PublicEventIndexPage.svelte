@@ -77,26 +77,73 @@
 <div class="public-event-index">
   <!-- Hero Section -->
   <section class="event-hero" aria-labelledby="event-index-heading">
-    <!-- Texture Overlay -->
+    <!-- Ambient Background Gradient & Texture matching Departemen -->
     <div
-      class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay overflow-hidden"
+      class="absolute inset-0 -z-10 bg-gradient-to-br from-[#5d0077] to-[#2a0078] overflow-hidden"
     >
-      <OptimizedImage
-        src={heroBgImage}
-        alt=""
-        class="w-full h-full object-cover object-center"
-        loading="eager"
-        decoding="async"
-        fetchpriority="high"
-      />
+      <picture class="contents">
+        <source srcset="/images/figma-taling/hero-bg.avif" type="image/avif" />
+        <source srcset="/images/figma-taling/hero-bg.webp" type="image/webp" />
+        <img
+          class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay pointer-events-none"
+          src="/images/figma-taling/hero-bg.png"
+          alt=""
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </picture>
+      <picture class="contents">
+        <source
+          srcset="/images/figma-taling/botanical.avif"
+          type="image/avif"
+        />
+        <source
+          srcset="/images/figma-taling/botanical.webp"
+          type="image/webp"
+        />
+        <img
+          class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] max-w-none object-cover opacity-25 mix-blend-soft-light pointer-events-none"
+          src="/images/figma-taling/botanical.png"
+          alt=""
+          width="1600"
+          height="1066"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </picture>
     </div>
-    <span class="event-star event-star-left" aria-hidden="true"></span>
-    <span class="event-star event-star-right" aria-hidden="true"></span>
+
+    <!-- Branded Floating Vector Stars matching Departemen -->
+    <img
+      src="/images/figma-taling/star-large.svg"
+      alt=""
+      class="star-large pointer-events-none opacity-80 drop-shadow-2xl"
+      width="492"
+      height="463"
+    />
+    <img
+      src="/images/figma-taling/star-small.svg"
+      alt=""
+      class="star-small pointer-events-none opacity-80 drop-shadow-2xl"
+      width="375"
+      height="404"
+    />
 
     <div class="taling-section-shell event-hero-copy">
       <p class="taling-page-kicker">{kicker}</p>
       <h1 id="event-index-heading" class="taling-page-title">{title}</h1>
-      <div class="event-hero-rule" aria-hidden="true"></div>
+
+      <!-- Glowing Gradient Bar matching Departemen -->
+      <div
+        class="hero-glow-wrapper w-full max-w-[300px] md:max-w-[534px] h-[22px] mx-auto -mt-2"
+      >
+        <div
+          class="h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[1px]"
+        ></div>
+      </div>
+
       <p class="taling-page-copy">{description}</p>
     </div>
   </section>
@@ -316,36 +363,14 @@
   .event-hero {
     position: relative;
     overflow: hidden;
-    padding: 6rem 0 7rem;
-    background:
-      radial-gradient(
-        circle at 20% 20%,
-        rgba(255, 211, 68, 0.12),
-        transparent 32rem
-      ),
-      linear-gradient(180deg, #18072e 0%, #12051f 100%);
+    padding: 6.5rem 0 8rem;
     color: var(--taling-white);
   }
 
-  .event-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: 0.18;
-    background-image:
-      linear-gradient(
-        45deg,
-        transparent 46%,
-        rgba(255, 211, 68, 0.2) 47%,
-        transparent 48%
-      ),
-      linear-gradient(
-        -45deg,
-        transparent 46%,
-        rgba(255, 255, 255, 0.16) 47%,
-        transparent 48%
-      );
-    background-size: 46px 46px;
+  :global(.taling-page-title) {
+    font-family: "The Seasons", "The Seasons", Georgia, serif !important;
+    font-weight: 300 !important;
+    text-shadow: 0px 0px 20px #ffffff;
   }
 
   .event-hero-copy {
@@ -357,56 +382,87 @@
     text-align: center;
   }
 
-  .event-hero-rule {
-    width: min(534px, 68vw);
-    height: 18px;
-    background: var(--taling-yellow);
-    box-shadow: 0 0 24px rgba(255, 211, 68, 0.52);
-  }
-
-  .event-star {
+  .star-large {
     position: absolute;
-    z-index: 1;
-    aspect-ratio: 1;
-    background: var(--taling-yellow);
-    clip-path: polygon(
-      50% 0,
-      59% 35%,
-      98% 35%,
-      66% 56%,
-      78% 96%,
-      50% 70%,
-      22% 96%,
-      34% 56%,
-      2% 35%,
-      41% 35%
-    );
-    opacity: 0.72;
+    top: -60px;
+    left: -90px;
+    width: 200px;
+    height: 188px;
+    animation: floatLarge 8s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-large {
+      top: -100px;
+      left: -150px;
+      width: 320px;
+      height: 301px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-large {
+      top: -155px;
+      left: -239px;
+      width: 507px;
+      height: 476px;
+    }
   }
 
-  .event-star-left {
-    top: -96px;
-    left: 14%;
-    width: 300px;
+  .star-small {
+    position: absolute;
+    top: 320px;
+    right: -80px;
+    width: 150px;
+    height: 161px;
+    animation: floatSmall 6s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-small {
+      top: 300px;
+      right: -130px;
+      width: 250px;
+      height: 269px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-small {
+      top: 250px;
+      right: -188px;
+      width: 388px;
+      height: 418px;
+    }
   }
 
-  .event-star-right {
-    right: -92px;
-    bottom: 42px;
-    width: 230px;
+  @keyframes floatLarge {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-10deg);
+    }
+    50% {
+      transform: translateY(-15px) rotate(-8deg);
+    }
+  }
+
+  @keyframes floatSmall {
+    0%,
+    100% {
+      transform: translateY(0) rotate(15deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(10deg);
+    }
   }
 
   .event-search {
-    padding: 2.2rem 0;
-    background: #fffdf8;
+    padding: 3rem 0;
+    background: #ffffff;
   }
 
   .event-search-shell {
     display: grid;
     gap: 1.25rem;
     border-bottom: 2px solid
-      color-mix(in srgb, var(--taling-ink) 16%, transparent);
-    padding-bottom: 2.2rem;
+      color-mix(in srgb, var(--taling-ink) 12%, transparent);
+    padding-bottom: 3rem;
   }
 
   .event-filter-form {
@@ -420,19 +476,32 @@
     display: grid;
     gap: 0.5rem;
     color: var(--taling-purple);
-    font-weight: 900;
+    font-weight: 700;
+    font-size: 0.88rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
   }
 
   .event-filter-form input,
   .event-filter-form select {
     height: 3.2rem;
-    border: 2px solid var(--taling-purple);
-    border-radius: 0;
-    background: var(--taling-cream);
+    border: 1px solid rgba(42, 0, 120, 0.2);
+    border-radius: 12px;
+    background: #fbfbfd;
     color: var(--taling-ink);
-    padding: 0 0.95rem;
+    padding: 0 1.2rem;
     font: inherit;
-    font-weight: 800;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 200ms ease;
+  }
+
+  .event-filter-form input:focus,
+  .event-filter-form select:focus {
+    outline: none;
+    border-color: var(--taling-purple);
+    box-shadow: 0 0 0 3px rgba(42, 0, 120, 0.12);
+    background: #ffffff;
   }
 
   .event-search-note {
@@ -466,9 +535,11 @@
 
   .event-feature {
     padding: 6.5rem 0 7rem;
-    background: linear-gradient(160deg, #f6bb2f 0%, #ff8a1f 54%, #c85910 100%);
-    color: #1f1520;
+    background: linear-gradient(135deg, #2a0078 0%, #1e0055 100%);
+    color: #ffffff;
     position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .event-feature-grid {
@@ -481,8 +552,17 @@
   .event-feature-media {
     display: block;
     overflow: hidden;
-    border: 10px solid color-mix(in srgb, var(--taling-yellow) 45%, transparent);
+    border: 4px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
     background: var(--taling-purple);
+    transition:
+      transform 300ms ease,
+      border-color 300ms ease;
+  }
+
+  .event-feature-media:hover {
+    transform: scale(1.015);
+    border-color: rgba(255, 255, 255, 0.3);
   }
 
   .event-feature-media :global(.event-feature-img),
@@ -514,22 +594,23 @@
     height: auto;
     min-height: 28px;
     padding: 0.25rem 1.1rem;
-    border: 2px solid #1f1520;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 999px;
-    background: var(--taling-yellow);
-    color: var(--taling-purple);
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--taling-yellow);
     font-size: 0.76rem;
     font-weight: 900;
-    text-transform: uppercase;
     letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .event-feature-title {
     margin: 0;
-    color: #1f1520;
+    color: #ffffff;
     font-family: var(--taling-font-serif);
     font-size: clamp(2.4rem, 5vw, 4.4rem);
     line-height: 1.05;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
   }
 
   .event-feature-title a {
@@ -547,7 +628,7 @@
     flex-wrap: wrap;
     gap: 0.65rem 1.5rem;
     font-weight: 800;
-    color: #1f1520;
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .event-meta-item {
@@ -559,14 +640,14 @@
   .event-feature-excerpt {
     margin: 0;
     font-size: 1.05rem;
-    font-weight: 800;
+    font-weight: 500;
     line-height: 1.55;
-    color: color-mix(in srgb, #1f1520 85%, transparent);
+    color: rgba(255, 255, 255, 0.8);
   }
 
   .event-posters {
     padding: 6.5rem 0 8rem;
-    background: #fffdf8;
+    background: #ffffff;
     color: var(--taling-ink);
   }
 
@@ -593,7 +674,8 @@
   .event-card-poster {
     height: 390px;
     overflow: hidden;
-    border: 8px solid var(--taling-purple);
+    border: 6px solid var(--taling-purple);
+    border-radius: 12px;
     background: var(--taling-purple);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     transition:

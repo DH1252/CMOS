@@ -66,20 +66,59 @@
 
 <article class="public-info-show">
   <section class="info-show-hero" aria-labelledby="article-heading">
-    <!-- Texture Overlay -->
+    <!-- Ambient Background Gradient & Texture matching Departemen -->
     <div
-      class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay overflow-hidden"
+      class="absolute inset-0 -z-10 bg-gradient-to-br from-[#5d0077] to-[#2a0078] overflow-hidden"
     >
-      <OptimizedImage
-        src={heroBgImage}
-        alt=""
-        class="w-full h-full object-cover object-center"
-        loading="eager"
-        decoding="async"
-        fetchpriority="high"
-      />
+      <picture class="contents">
+        <source srcset="/images/figma-taling/hero-bg.avif" type="image/avif" />
+        <source srcset="/images/figma-taling/hero-bg.webp" type="image/webp" />
+        <img
+          class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay pointer-events-none"
+          src="/images/figma-taling/hero-bg.png"
+          alt=""
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </picture>
+      <picture class="contents">
+        <source
+          srcset="/images/figma-taling/botanical.avif"
+          type="image/avif"
+        />
+        <source
+          srcset="/images/figma-taling/botanical.webp"
+          type="image/webp"
+        />
+        <img
+          class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] max-w-none object-cover opacity-25 mix-blend-soft-light pointer-events-none"
+          src="/images/figma-taling/botanical.png"
+          alt=""
+          width="1600"
+          height="1066"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </picture>
     </div>
-    <span class="info-show-star" aria-hidden="true"></span>
+
+    <!-- Branded Floating Vector Stars matching Departemen -->
+    <img
+      src="/images/figma-taling/star-large.svg"
+      alt=""
+      class="star-large pointer-events-none opacity-80 drop-shadow-2xl"
+      width="492"
+      height="463"
+    />
+    <img
+      src="/images/figma-taling/star-small.svg"
+      alt=""
+      class="star-small pointer-events-none opacity-80 drop-shadow-2xl"
+      width="375"
+      height="404"
+    />
     <div class="taling-section-shell info-show-hero-grid">
       <div class="info-show-copy">
         <nav class="info-show-breadcrumb" aria-label="Breadcrumb">
@@ -89,7 +128,12 @@
         </nav>
         <p class="taling-page-kicker">Publikasi Organisasi</p>
         <h1 id="article-heading" class="taling-page-title">{article.title}</h1>
-        <div class="info-show-rule" aria-hidden="true"></div>
+        <!-- Glowing Gradient Bar matching Departemen -->
+        <div class="hero-glow-wrapper w-full max-w-[280px] h-[22px] -mt-1 mb-2">
+          <div
+            class="h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[1px]"
+          ></div>
+        </div>
         <div class="taling-meta-line">
           <span>{article.dateLabel || "-"}</span>
           <span>{article.author}</span>
@@ -157,31 +201,14 @@
 
 <style>
   .info-show-hero {
-    position: relative;
-    overflow: hidden;
-    padding: 5.5rem 0 6.5rem;
-    background:
-      radial-gradient(
-        circle at 18% 18%,
-        rgba(255, 211, 68, 0.16),
-        transparent 26rem
-      ),
-      linear-gradient(180deg, #18072e 0%, #12051f 100%);
+    padding: 6.5rem 0 8rem;
     color: var(--taling-white);
   }
 
-  .info-show-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: 0.15;
-    background-image: linear-gradient(
-      45deg,
-      transparent 46%,
-      rgba(255, 211, 68, 0.22) 47%,
-      transparent 48%
-    );
-    background-size: 46px 46px;
+  :global(.taling-page-title) {
+    font-family: "The Seasons", "The Seasons", Georgia, serif !important;
+    font-weight: 300 !important;
+    text-shadow: 0px 0px 20px #ffffff;
   }
 
   .info-show-hero-grid {
@@ -202,11 +229,9 @@
     color: var(--taling-white);
   }
 
-  .info-show-rule {
-    width: min(534px, 68vw);
-    height: 18px;
-    background: var(--taling-yellow);
-    box-shadow: 0 0 24px rgba(255, 211, 68, 0.52);
+  /* Glow wrapper matching standard design system */
+  .hero-glow-wrapper {
+    position: relative;
   }
 
   .info-show-breadcrumb {
@@ -231,7 +256,8 @@
   .info-show-cover {
     margin: 0;
     overflow: hidden;
-    border: 10px solid color-mix(in srgb, var(--taling-yellow) 68%, transparent);
+    border: 4px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
     background: var(--taling-purple);
   }
 
@@ -243,32 +269,79 @@
     object-fit: cover;
   }
 
-  .info-show-star {
+  .star-large {
     position: absolute;
-    right: -92px;
-    bottom: 42px;
-    z-index: 1;
-    width: 250px;
-    aspect-ratio: 1;
-    background: var(--taling-yellow);
-    clip-path: polygon(
-      50% 0,
-      59% 35%,
-      98% 35%,
-      66% 56%,
-      78% 96%,
-      50% 70%,
-      22% 96%,
-      34% 56%,
-      2% 35%,
-      41% 35%
-    );
-    opacity: 0.72;
+    top: -60px;
+    left: -90px;
+    width: 200px;
+    height: 188px;
+    animation: floatLarge 8s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-large {
+      top: -100px;
+      left: -150px;
+      width: 320px;
+      height: 301px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-large {
+      top: -155px;
+      left: -239px;
+      width: 507px;
+      height: 476px;
+    }
+  }
+
+  .star-small {
+    position: absolute;
+    top: 320px;
+    right: -80px;
+    width: 150px;
+    height: 161px;
+    animation: floatSmall 6s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-small {
+      top: 300px;
+      right: -130px;
+      width: 250px;
+      height: 269px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-small {
+      top: 250px;
+      right: -188px;
+      width: 388px;
+      height: 418px;
+    }
+  }
+
+  @keyframes floatLarge {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-10deg);
+    }
+    50% {
+      transform: translateY(-15px) rotate(-8deg);
+    }
+  }
+
+  @keyframes floatSmall {
+    0%,
+    100% {
+      transform: translateY(0) rotate(15deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(10deg);
+    }
   }
 
   .info-show-body {
     padding: 6rem 0 7rem;
-    background: #fffdf8;
+    background: #ffffff;
   }
 
   .info-show-body-grid {
