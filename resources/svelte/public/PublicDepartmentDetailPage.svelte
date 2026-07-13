@@ -233,81 +233,101 @@
     personalia: {
       name: "Personalia",
       description:
-        "Departemen yang berfokus pada harmonisasi internal fungsionaris, pengawasan kinerja organisasi, dan peningkatan keaktifan serta kesejahteraan internal pengurus HIMATEKKOM.",
-      focus: ["Harmonisasi Internal", "Pengawasan Kinerja", "Engagement Staff"],
+        "Biro yang bertanggung jawab atas manajemen sumber daya fungsionaris. Personalia berfokus pada penyusunan standar pengembangan fungsionaris, pemeliharaan motivasi, serta evaluasi kinerja guna memastikan setiap fungsionaris berkontribusi secara optimal dalam iklim organisasi.",
+      focus: [
+        "Manajemen Sumber Daya",
+        "Pemeliharaan Motivasi",
+        "Evaluasi Kinerja Staf",
+      ],
     },
     risprof: {
       name: "Riset dan Keprofesian (RISPROF)",
       description:
-        "Departemen yang memfasilitasi riset teknologi, pembinaan kompetensi ilmiah, serta penyiapan karir fungsionaris Teknik Komputer untuk dunia industri maupun akademis.",
-      focus: ["Riset Teknologi", "Kompetensi Ilmiah", "Career Preparation"],
+        "Departemen yang mendorong anggota dalam mengembangkan kemampuan riset dan memperdalam keprofesian di bidang Teknik Komputer melalui program riset, inovasi, serta pengembangan karir untuk memperluas wawasan akademik dan profesional.",
+      focus: [
+        "Budaya Riset Keilmiahan",
+        "Pengembangan Karir",
+        "Literasi Isu Keprofesian",
+      ],
     },
     kwu: {
       name: "Kewirausahaan (KWU)",
       description:
-        "Departemen yang mewadahi minat kewirausahaan mahasiswa, mencari pendanaan mandiri untuk himpunan, serta membangun kemitraan bisnis strategis dengan eksternal.",
-      focus: ["Entrepreneurship", "Pendanaan Mandiri", "Business Partnership"],
+        "Departemen yang bertanggung jawab mengelola pendanaan mandiri HIMATEKKOM ITS melalui unit usaha kreatif dan meningkatkan wawasan seputar kewirausahaan bagi mahasiswa Teknik Komputer.",
+      focus: [
+        "Pendanaan Mandiri",
+        "Unit Usaha Kreatif",
+        "Edukasi Kewirausahaan",
+      ],
     },
     psdm: {
       name: "Pengembangan Sumber Daya Mahasiswa (PSDM)",
       description:
-        "Departemen yang merancang dan melaksanakan kaderisasi fungsionaris, pembinaan karakter kepemimpinan, serta pengembangan bakat minat mahasiswa Teknik Komputer.",
+        "Departemen yang merancang dan melaksanakan kaderisasi fungsionaris, pembinaan karakter kepemimpinan, serta peningkatan kompetensi anggota melalui pelatihan, workshop, dan pengembangan bakat minat.",
       focus: [
-        "Pengembangan Soft Skills",
-        "Minat dan Bakat",
-        "Pembinaan Anggota",
+        "Pelatihan & Upgrading",
+        "Minat Bakat Mahasiswa",
+        "Kaderisasi Fungsionaris",
       ],
     },
     dagri: {
       name: "Dalam Negeri (DAGRI)",
       description:
-        "Departemen yang membangun hubungan erat dengan internal angkatan, menampung aspirasi mahasiswa, serta memperkuat rasa kekeluargaan di lingkungan Teknik Komputer.",
-      focus: ["Sinergi Komunitas", "Internal Engagement", "Apresiasi Anggota"],
+        "Departemen yang bertanggung jawab meningkatkan keharmonisan dan hubungan internal antar anggota HIMATEKKOM ITS, menampung aspirasi, serta memfasilitasi kegiatan kekeluargaan dan minat bakat.",
+      focus: [
+        "Hubungan Internal Anggota",
+        "Sinergi Lintas Angkatan",
+        "Kekeluargaan Himpunan",
+      ],
     },
     bph: {
       name: "Badan Pengurus Harian (BPH / BPI)",
       description:
-        "Inti koordinasi organisasi yang bertanggung jawab atas kesekretariatan, administrasi, manajemen keuangan, serta penentuan arah strategis kebijakan himpunan.",
+        "Badan Pengurus Harian merupakan inti kepengurusan HIMATEKKOM ITS yang bertanggung jawab atas perumusan tata kelola organisasi, pengambilan keputusan strategis, arah gerak, serta fungsi kontrol dan koordinasi seluruh lini.",
       focus: [
-        "Administrasi Organisasi",
-        "Manajemen Keuangan",
-        "Kesekretariatan",
+        "Tata Kelola Organisasi",
+        "Kebijakan & Arah Gerak",
+        "Kontrol & Koordinasi",
       ],
     },
     hublu: {
       name: "Hubungan Luar (HUBLU)",
       description:
-        "Departemen yang menjalin relasi eksternal dengan alumni, birokrasi kampus, serta pihak industri guna memperluas networking dan ekspansi kemitraan strategis.",
-      focus: ["Relasi Alumni", "Kompetensi Eksternal", "Networking Strategis"],
+        "Departemen yang berfokus pada pengembangan dan pemeliharaan hubungan strategis dengan pihak eksternal, termasuk perusahaan, organisasi mahasiswa lain, dan alumni guna memperluas jejaring dan kemitraan.",
+      focus: [
+        "Relasi & Jejaring Eksternal",
+        "Sinergi Alumni",
+        "Kemitraan Industri",
+      ],
     },
     kesma: {
       name: "Kesejahteraan Mahasiswa (KESMA)",
       description:
-        "Departemen yang memberikan advokasi akademik, kesejahteraan finansial (beasiswa), serta bantuan layanan mahasiswa Teknik Komputer dalam menunjang perkuliahan.",
+        "Departemen yang bertugas memberikan dukungan kesejahteraan dalam bentuk penyediaan fasilitas, layanan advokasi akademik, kesejahteraan finansial, dan penyaluran aspirasi mahasiswa Teknik Komputer.",
       focus: [
-        "Advokasi Akademik",
-        "Kesejahteraan Finansial",
-        "Layanan Mahasiswa",
+        "Advokasi & Layanan Akademik",
+        "Kesejahteraan Mental & Sosial",
+        "Fasilitas Pembelajaran",
       ],
     },
     medfo: {
       name: "Media dan Informasi (MEDFO)",
       description:
-        "Departemen kreatif yang mempublikasikan karya visual, mengelola saluran komunikasi publik himpunan, serta menyampaikan informasi aktual secara berkala.",
+        "Garda terdepan dalam pengelolaan seluruh kanal komunikasi dan publikasi organisasi. Medfo bertanggung jawab memproduksi konten visual, mengelola media sosial, dan menyebarkan informasi strategis himpunan.",
       focus: [
-        "Kreatif & Desain Visual",
         "Kanal Komunikasi Publik",
-        "Publikasi Informasi",
+        "Produksi Konten Visual",
+        "Jurnalistik & Media Kreatif",
       ],
     },
     kaderisasi: {
-      name: "Kaderisasi",
+      name: "Kaderisasi (TUK)",
       description:
-        "Departemen khusus yang merumuskan konsep pembinaan karakter fungsionaris dan mahasiswa baru, memantau nilai kedisiplinan, serta mengawal masa transisi organisasi.",
+        "Departemen yang memiliki peran strategis dalam merumuskan konsep pembinaan, penanaman nilai karakter, dan loyalitas kader-kader HIMATEKKOM ITS melalui alur koordinasi langsung dengan Ketua Himpunan.",
       focus: [
-        "Kaderisasi Fungsionaris",
-        "Latihan Kepemimpinan",
-        "Evaluasi Karakter",
+        "Kaderisasi & Pembinaan",
+        "Penanaman Nilai Karakter",
+        "Regenerasi Kepemimpinan",
       ],
     },
   };
