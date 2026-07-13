@@ -545,6 +545,30 @@
         </div>
 
         {#if staffGraphics && staffGraphics.length > 0}
+          <!-- Control Bar for Auto Scroll -->
+          <div class="mb-6 flex items-center justify-end gap-3 px-2">
+            <span
+              class="text-xs font-semibold tracking-wider text-white/70 uppercase select-none"
+            >
+              Auto Scroll
+            </span>
+            <button
+              type="button"
+              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#ff7a1a] focus:ring-offset-2 focus:ring-offset-black/50 {isAutoScrollActive
+                ? 'bg-[#ff7a1a]'
+                : 'bg-neutral-800'}"
+              role="switch"
+              aria-checked={isAutoScrollActive}
+              onclick={() => (isAutoScrollActive = !isAutoScrollActive)}
+            >
+              <span
+                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {isAutoScrollActive
+                  ? 'translate-x-5'
+                  : 'translate-x-0'}"
+              ></span>
+            </button>
+          </div>
+
           <div
             class="group relative mb-24 w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10"
           >
@@ -683,27 +707,6 @@
                   d="M9 5l7 7-7 7"
                 />
               </svg>
-            </button>
-
-            <!-- Auto Scroll Toggle -->
-            <button
-              type="button"
-              class="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/60 px-3 py-1.5 text-[10px] font-medium tracking-wider text-white uppercase backdrop-blur-md transition-all hover:bg-[#ff7a1a] hover:border-[#ff7a1a]"
-              onclick={() => (isAutoScrollActive = !isAutoScrollActive)}
-            >
-              <span class="relative flex h-1.5 w-1.5">
-                <span
-                  class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 {isAutoScrollActive
-                    ? 'bg-green-400'
-                    : 'bg-red-400'}"
-                ></span>
-                <span
-                  class="relative inline-flex h-1.5 w-1.5 rounded-full {isAutoScrollActive
-                    ? 'bg-green-500'
-                    : 'bg-red-500'}"
-                ></span>
-              </span>
-              Auto Scroll: {isAutoScrollActive ? "On" : "Off"}
             </button>
           </div>
 
