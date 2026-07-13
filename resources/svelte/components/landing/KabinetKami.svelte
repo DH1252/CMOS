@@ -89,12 +89,17 @@
     <!-- Positioned exactly using Figma coordinates relative to 1440x1062 -->
     <!-- Added w-max and px-8 to prevent background-clip from cutting off the italic overhang and heavy drop shadows -->
     <div
-      class="pointer-events-auto absolute flex items-center justify-center transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] {isIntersecting
+      class="pointer-events-auto absolute flex flex-col items-center justify-center transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] {isIntersecting
         ? 'translate-y-0 opacity-100'
         : 'translate-y-12 opacity-0'}"
-      style="left: 21.67%; top: 27.68%; width: 54.94%; height: 11.01%;"
+      style="left: 10%; top: 10%; width: 80%; height: 24%;"
     >
-      <h2 class="kabinet-title w-max px-8 whitespace-nowrap">
+      <h3
+        class="kabinet-title w-max px-8 whitespace-nowrap leading-[0.95] mb-2"
+      >
+        SENTRA SINERGI
+      </h3>
+      <h2 class="kabinet-title w-max px-8 whitespace-nowrap leading-[0.95]">
         {cabinetTitle}
       </h2>
     </div>
