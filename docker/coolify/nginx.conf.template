@@ -64,31 +64,25 @@ server {
 
     location ^~ /build/ {
         access_log off;
-        expires 1y;
-        add_header Vary "Accept-Encoding" always;
-        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
         try_files $uri @app_proxy;
     }
 
     location ^~ /fonts/ {
         access_log off;
-        expires 1y;
-        add_header Vary "Accept-Encoding" always;
-        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
         try_files $uri @app_proxy;
     }
 
     location ^~ /images/ {
         access_log off;
-        expires 30d;
-        add_header Cache-Control "public, max-age=2592000";
+        add_header Cache-Control "public, max-age=2592000" always;
         try_files $uri @app_proxy;
     }
 
     location ^~ /storage/ {
         access_log off;
-        expires 30d;
-        add_header Cache-Control "public, max-age=2592000";
+        add_header Cache-Control "public, max-age=2592000" always;
         try_files $uri @app_proxy;
     }
 
