@@ -26,7 +26,7 @@
   // Filter and search states
   let searchQuery = $state("");
   let selectedMonth = $state("All");
-  let selectedStatus = $state("All");
+  let selectedStatus = $state("Open");
 
   // Track currently active/selected competition for the side-drawer panel
   let activeCompetition = $state(null);
@@ -37,22 +37,34 @@
   ]);
 
   const filteredCompetitions = $derived(
-    competitions.filter((comp) => {
-      const query = searchQuery.trim().toLowerCase();
-      const matchesSearch =
-        query === "" ||
-        comp.name.toLowerCase().includes(query) ||
-        comp.organizer.toLowerCase().includes(query) ||
-        comp.description.toLowerCase().includes(query);
+    competitions
+      .filter((comp) => {
+        const query = searchQuery.trim().toLowerCase();
+        const matchesSearch =
+          query === "" ||
+          comp.name.toLowerCase().includes(query) ||
+          comp.organizer.toLowerCase().includes(query) ||
+          comp.description.toLowerCase().includes(query);
 
-      const matchesMonth =
-        selectedMonth === "All" || comp.month === selectedMonth;
-      const matchesStatus =
-        selectedStatus === "All" ||
-        comp.status.toLowerCase() === selectedStatus.toLowerCase();
+        const matchesMonth =
+          selectedMonth === "All" || comp.month === selectedMonth;
+        const matchesStatus =
+          selectedStatus === "All" ||
+          comp.status.toLowerCase() === selectedStatus.toLowerCase();
 
-      return matchesSearch && matchesMonth && matchesStatus;
-    }),
+        return matchesSearch && matchesMonth && matchesStatus;
+      })
+      .sort((a, b) => {
+        const aOpen = a.status.toLowerCase() === "open";
+        const bOpen = b.status.toLowerCase() === "open";
+        if (aOpen && !bOpen) {
+          return -1;
+        }
+        if (!aOpen && bOpen) {
+          return 1;
+        }
+        return 0;
+      }),
   );
 
   // Stop background body scrolling when the drawer panel is open
