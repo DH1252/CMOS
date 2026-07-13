@@ -183,12 +183,12 @@
         <button type="submit">Terapkan filter</button>
       </form>
 
-      <div class="info-search-note">
-        <p>{searchSummary}</p>
-        {#if hasActiveFilters}
+      {#if hasActiveFilters}
+        <div class="info-search-note">
+          <p>{searchSummary}</p>
           <a href={filters.action}>Hapus filter</a>
-        {/if}
-      </div>
+        </div>
+      {/if}
     </div>
   </section>
 
