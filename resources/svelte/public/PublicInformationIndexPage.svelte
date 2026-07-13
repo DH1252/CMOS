@@ -27,7 +27,9 @@
   const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
   const jsonLdScriptOpen = '<script type="application/ld+json">';
   const jsonLdScriptClose = "</" + "script>";
-  const visibleStats = $derived(stats.filter((stat) => stat?.label));
+  const visibleStats = $derived(
+    stats.filter((stat) => stat?.label === "Artikel Terbit"),
+  );
   const cardArticles = $derived(featured ? articles : articles.slice(0));
 
   const handleImageError = (event) => {
