@@ -7,6 +7,7 @@
   import PublicInformationShowPage from "./public/PublicInformationShowPage.svelte";
   import PublicEventIndexPage from "./public/PublicEventIndexPage.svelte";
   import PublicEventShowPage from "./public/PublicEventShowPage.svelte";
+  import Navbar from "./components/landing/Navbar.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
 
   let {
@@ -65,13 +66,22 @@
     return `Portal informasi resmi ${organizationName}. Artikel, pembaruan kegiatan, dan publikasi organisasi.`;
   });
 
-  let menuDetails = $state(null);
-
-  const closeMenu = () => {
-    if (menuDetails) {
-      menuDetails.open = false;
-    }
-  };
+  const navigationItems = $derived([
+    { href: homeUrl, label: "Beranda" },
+    {
+      href: "/departemen",
+      label: "Departemen",
+      children: [
+        { href: "/departemen", label: "Departemen" },
+        { href: "/departemen/overview", label: "Detail departemen" },
+        { href: "/tentang", label: "Sejarah himpunan" },
+      ],
+    },
+    { href: "/kompetisi", label: "Kompetisi" },
+    { href: infoUrl, label: "Kabar Terbaru" },
+    { href: acaraUrl, label: "Acara Mendatang" },
+    { href: "/tentang", label: "Tentang Kami" },
+  ]);
 </script>
 
 <svelte:head>
@@ -84,68 +94,7 @@
 <div use:inertiaEnhance class="taling-public">
   <a href="#main-content" class="skip-link">Langsung ke konten</a>
 
-  <header class="taling-header">
-    <div class="taling-header-inner">
-      <a href={homeUrl} class="taling-brand" aria-label={organizationName}>
-        <OptimizedImage
-          src={brandLogo}
-          alt=""
-          class="taling-brand-mark"
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
-          sizes="76px"
-        />
-        <span>{organizationName}</span>
-      </a>
-
-      <nav class="taling-nav" aria-label="Navigasi utama">
-        <a href={homeUrl} class="taling-nav-link">Beranda</a>
-        <a
-          href={infoUrl}
-          class={`taling-nav-link ${isInfoIndex || isInfoShow ? "taling-nav-link-active" : ""}`}
-        >
-          Kabar Terbaru
-        </a>
-        <a
-          href={acaraUrl}
-          class={`taling-nav-link ${isAcaraIndex || isAcaraShow ? "taling-nav-link-active" : ""}`}
-        >
-          Acara Mendatang
-        </a>
-      </nav>
-
-      <div class="taling-header-actions">
-        <Button href={loginUrl} class="taling-login">Masuk</Button>
-
-        <details class="taling-menu" bind:this={menuDetails}>
-          <summary class="taling-menu-trigger" aria-label="Buka menu">
-            <span></span>
-            <span></span>
-            <span></span>
-          </summary>
-          <div class="taling-menu-panel">
-            <a href={homeUrl} class="taling-menu-link" onclick={closeMenu}
-              >Beranda</a
-            >
-            <a href={infoUrl} class="taling-menu-link" onclick={closeMenu}
-              >Kabar Terbaru</a
-            >
-            <a href={acaraUrl} class="taling-menu-link" onclick={closeMenu}
-              >Acara Mendatang</a
-            >
-            <Button
-              href={loginUrl}
-              class="taling-menu-login"
-              onclick={closeMenu}
-            >
-              Masuk
-            </Button>
-          </div>
-        </details>
-      </div>
-    </div>
-  </header>
+  <Navbar {homeUrl} {loginUrl} {navigationItems} />
 
   <main id="main-content" tabindex="-1" class="outline-none">
     {#if isInfoIndex}
@@ -200,15 +149,6 @@
     font-family: var(--taling-font-sans);
   }
 
-  .taling-header {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    background: #fffdf8;
-    color: var(--taling-ink);
-  }
-
-  .taling-header-inner,
   .taling-footer-inner,
   .taling-footer-base,
   :global(.taling-section-shell) {
@@ -216,61 +156,6 @@
     margin-inline: auto;
   }
 
-  .taling-header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 84px;
-    gap: 2rem;
-  }
-
-  .taling-brand {
-    display: inline-flex;
-    align-items: center;
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .taling-brand span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-  }
-
-  .taling-brand :global(.taling-brand-mark),
-  .taling-brand :global(img) {
-    width: 76px;
-    height: auto;
-  }
-
-  .taling-nav {
-    display: none;
-    align-items: center;
-    gap: clamp(1.6rem, 3vw, 3rem);
-    font-size: 0.95rem;
-    font-weight: 700;
-  }
-
-  .taling-nav-link {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .taling-nav-link:hover,
-  .taling-nav-link-active {
-    color: var(--taling-purple);
-  }
-
-  .taling-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  :global(.taling-login),
-  :global(.taling-menu-login),
   :global(.taling-section-link) {
     display: inline-flex;
     align-items: center;
@@ -288,55 +173,6 @@
     color: var(--taling-purple);
     font-weight: 800;
     text-decoration: none;
-  }
-
-  .taling-menu {
-    position: relative;
-  }
-
-  .taling-menu-trigger {
-    display: grid;
-    place-items: center;
-    gap: 5px;
-    width: 44px;
-    height: 44px;
-    list-style: none;
-    cursor: pointer;
-  }
-
-  .taling-menu-trigger::-webkit-details-marker {
-    display: none;
-  }
-
-  .taling-menu-trigger span {
-    width: 26px;
-    height: 3px;
-    border-radius: 2px;
-    background: var(--taling-ink);
-  }
-
-  .taling-menu-panel {
-    position: absolute;
-    top: calc(100% + 0.7rem);
-    right: 0;
-    display: grid;
-    gap: 0.35rem;
-    min-width: 15rem;
-    padding: 0.8rem;
-    border: 1px solid color-mix(in srgb, var(--taling-purple) 18%, transparent);
-    background: #fffdf8;
-    box-shadow: 0 10px 24px rgba(34, 34, 34, 0.14);
-  }
-
-  .taling-menu-link {
-    padding: 0.7rem 0.8rem;
-    color: var(--taling-ink);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .taling-menu-link:hover {
-    background: color-mix(in srgb, var(--taling-yellow) 22%, transparent);
   }
 
   .taling-footer {
@@ -441,36 +277,11 @@
     text-align: center;
   }
 
-  @media (min-width: 820px) {
-    .taling-nav,
-    :global(.taling-login) {
-      display: flex;
-    }
-
-    .taling-menu {
-      display: none;
-    }
-  }
-
   @media (max-width: 819px) {
-    .taling-header-inner,
     .taling-footer-inner,
     .taling-footer-base,
     :global(.taling-section-shell) {
       width: min(100% - 1.5rem, 620px);
-    }
-
-    :global(.taling-login) {
-      display: none;
-    }
-
-    .taling-header-inner {
-      min-height: 72px;
-    }
-
-    .taling-brand :global(.taling-brand-mark),
-    .taling-brand :global(img) {
-      width: 58px;
     }
 
     .taling-footer-inner {
