@@ -737,7 +737,7 @@
                           <div
                             class="pointer-events-auto absolute flex w-max max-w-[160px] -translate-x-1/2 -translate-y-1/2 transform flex-col justify-center p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_32px_rgba(255,165,0,0.15)] origin-center scale-[0.8] md:max-w-[250px] md:scale-100 md:p-3
                             {parsedName.name === activeStaffName
-                              ? 'z-50 scale-[0.9] md:scale-110 border-2 border-[#ff7a1a] bg-gradient-to-br from-[#ff7a1a]/25 via-[#2a0078]/80 to-[#111111]/95 shadow-[0_0_30px_rgba(255,122,26,0.75)] ring-4 ring-[#ff7a1a]/20 animate-gradient-flow'
+                              ? 'z-50 scale-[0.9] md:scale-110 border-2 border-[#ff7a1a] shadow-[0_0_30px_rgba(255,122,26,0.75)] ring-4 ring-[#ff7a1a]/20 animate-gradient-flow'
                               : 'z-10 border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85'}"
                             style="left: {overlay.x !== undefined
                               ? overlay.x
@@ -1036,8 +1036,41 @@
     }
   }
 
+  @keyframes seaWaves {
+    0% {
+      background-position:
+        0% 30%,
+        100% 70%;
+    }
+    50% {
+      background-position:
+        100% 70%,
+        0% 30%;
+    }
+    100% {
+      background-position:
+        0% 30%,
+        100% 70%;
+    }
+  }
+
   :global(.animate-gradient-flow) {
-    background-size: 200% 200%;
-    animation: gradientFlow 6s ease infinite;
+    background-image:
+      radial-gradient(
+        circle at 30% 30%,
+        rgba(255, 122, 26, 0.45) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        circle at 70% 70%,
+        rgba(42, 0, 120, 0.95) 0%,
+        transparent 70%
+      ),
+      linear-gradient(135deg, #111111 0%, #1a1a1a 100%);
+    background-size:
+      200% 200%,
+      200% 200%,
+      100% 100%;
+    animation: seaWaves 7s ease-in-out infinite;
   }
 </style>
