@@ -82,7 +82,7 @@
       if (!sliderRef) return;
 
       const timeSinceLastInteraction = Date.now() - lastInteractionTime;
-      const isTemporarilyPaused = timeSinceLastInteraction < 5000;
+      const isTemporarilyPaused = timeSinceLastInteraction < 1000;
 
       if (
         isIntersecting &&
