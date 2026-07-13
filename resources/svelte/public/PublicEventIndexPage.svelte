@@ -93,28 +93,11 @@
     <span class="event-star event-star-left" aria-hidden="true"></span>
     <span class="event-star event-star-right" aria-hidden="true"></span>
 
-    <div class="taling-section-shell event-hero-grid">
-      <div class="event-hero-copy">
-        <p class="taling-page-kicker">{kicker}</p>
-        <h1 id="event-index-heading" class="taling-page-title">{title}</h1>
-        <div class="event-hero-rule" aria-hidden="true"></div>
-        <p class="taling-page-copy">{description}</p>
-      </div>
-
-      <div class="event-stat-board" aria-label="Ringkasan agenda">
-        <div class="event-stat-row">
-          <span>Acara Terjadwal</span>
-          <strong>{pagination?.total || events.length}</strong>
-        </div>
-        <div class="event-stat-row">
-          <span>Penyelenggara</span>
-          <strong>Sentra Sinergi</strong>
-        </div>
-        <div class="event-stat-row">
-          <span>Lokasi Utama</span>
-          <strong>ITS Surabaya</strong>
-        </div>
-      </div>
+    <div class="taling-section-shell event-hero-copy">
+      <p class="taling-page-kicker">{kicker}</p>
+      <h1 id="event-index-heading" class="taling-page-title">{title}</h1>
+      <div class="event-hero-rule" aria-hidden="true"></div>
+      <p class="taling-page-copy">{description}</p>
     </div>
   </section>
 
@@ -365,18 +348,13 @@
     background-size: 46px 46px;
   }
 
-  .event-hero-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
-    gap: clamp(2rem, 5vw, 6.8rem);
-    align-items: center;
+  .event-hero-copy {
     position: relative;
     z-index: 2;
-  }
-
-  .event-hero-copy {
     display: grid;
+    justify-items: center;
     gap: 1.5rem;
+    text-align: center;
   }
 
   .event-hero-rule {
@@ -384,32 +362,6 @@
     height: 18px;
     background: var(--taling-yellow);
     box-shadow: 0 0 24px rgba(255, 211, 68, 0.52);
-  }
-
-  .event-stat-board {
-    display: grid;
-    border-top: 2px solid rgba(255, 253, 248, 0.78);
-    border-bottom: 2px solid rgba(255, 253, 248, 0.78);
-  }
-
-  .event-stat-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 1.5rem;
-    padding: 1.1rem 0;
-    border-top: 1px solid rgba(255, 253, 248, 0.3);
-    font-weight: 800;
-  }
-
-  .event-stat-row:first-child {
-    border-top: 0;
-  }
-
-  .event-stat-row strong {
-    color: var(--taling-yellow);
-    font-family: var(--taling-font-serif);
-    font-size: 2rem;
-    line-height: 1;
   }
 
   .event-star {
@@ -788,11 +740,6 @@
   }
 
   @media (max-width: 980px) {
-    .event-hero-grid {
-      grid-template-columns: 1fr;
-      gap: 3rem;
-    }
-
     .event-feature-grid {
       grid-template-columns: 1fr;
       gap: 3rem;
