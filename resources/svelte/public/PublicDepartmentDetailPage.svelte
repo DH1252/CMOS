@@ -996,10 +996,6 @@
     animation: floatLarge 8s ease-in-out infinite;
   }
 
-  .animate-float-small {
-    animation: floatSmall 10s ease-in-out infinite;
-  }
-
   @keyframes slowPan {
     0%,
     100% {
@@ -1017,16 +1013,6 @@
     }
     50% {
       transform: translateY(-15px) rotate(7deg);
-    }
-  }
-
-  @keyframes floatSmall {
-    0%,
-    100% {
-      transform: translateY(0px) rotate(8deg);
-    }
-    50% {
-      transform: translateY(12px) rotate(6deg);
     }
   }
 
