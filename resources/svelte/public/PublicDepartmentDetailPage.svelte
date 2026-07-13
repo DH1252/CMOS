@@ -37,6 +37,7 @@
   let isIntersecting = false;
   let scrollDirection = 1;
   let isAutoScrollActive = $state(true);
+  let speedMultiplier = $state(1);
 
   onMount(() => {
     if (typeof window === "undefined" || !sliderRef) return;
@@ -44,6 +45,11 @@
     const saved = localStorage.getItem("himatekkom_auto_scroll");
     if (saved !== null) {
       isAutoScrollActive = saved === "true";
+    }
+
+    const savedSpeed = localStorage.getItem("himatekkom_scroll_speed");
+    if (savedSpeed !== null) {
+      speedMultiplier = parseFloat(savedSpeed) || 1;
     }
 
     // Set up observer to scroll only when in center of viewport
@@ -73,7 +79,8 @@
             scrollDirection = 1;
           }
 
-          const scrollSpeed = window.innerWidth < 768 ? 0.8 : 0.5;
+          const baseSpeed = window.innerWidth < 768 ? 0.8 : 0.5;
+          const scrollSpeed = baseSpeed * speedMultiplier;
           sliderRef.scrollLeft += scrollDirection * scrollSpeed;
         }
       }
@@ -95,6 +102,21 @@
         "himatekkom_auto_scroll",
         String(isAutoScrollActive),
       );
+    }
+  }
+
+  function cycleSpeed() {
+    if (speedMultiplier === 1) {
+      speedMultiplier = 1.5;
+    } else if (speedMultiplier === 1.5) {
+      speedMultiplier = 2;
+    } else if (speedMultiplier === 2) {
+      speedMultiplier = 0.5;
+    } else {
+      speedMultiplier = 1;
+    }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("himatekkom_scroll_speed", String(speedMultiplier));
     }
   }
 
@@ -562,6 +584,25 @@
         {#if staffGraphics && staffGraphics.length > 0}
           <!-- Control Bar for Auto Scroll -->
           <div class="mb-6 flex items-center justify-end gap-3 px-2">
+            <!-- Speed Control -->
+            <div class="flex items-center gap-1.5">
+              <span
+                class="text-xs font-semibold tracking-wider text-white/50 uppercase select-none"
+              >
+                Speed:
+              </span>
+              <button
+                type="button"
+                class="rounded-md border border-white/10 bg-neutral-800 px-2 py-0.5 text-[10px] font-semibold text-white uppercase transition-colors hover:bg-[#ff7a1a] hover:border-[#ff7a1a]"
+                onclick={cycleSpeed}
+              >
+                {speedMultiplier}x
+              </button>
+            </div>
+
+            <div class="h-4 w-[1px] bg-white/10"></div>
+
+            <!-- Auto Scroll Toggle -->
             <span
               class="text-xs font-semibold tracking-wider text-white/70 uppercase select-none"
             >
