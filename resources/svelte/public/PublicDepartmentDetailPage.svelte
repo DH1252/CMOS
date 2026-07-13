@@ -237,7 +237,7 @@
     }
   }
 
-  let slideRefs = [];
+  let slideRefs = $state([]);
 
   let staffList = $derived.by(() => {
     let list = [];
