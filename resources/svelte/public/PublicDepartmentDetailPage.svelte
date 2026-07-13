@@ -737,7 +737,7 @@
                           <div
                             class="pointer-events-auto absolute flex w-max max-w-[160px] -translate-x-1/2 -translate-y-1/2 transform flex-col justify-center p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_32px_rgba(255,165,0,0.15)] origin-center scale-[0.8] md:max-w-[250px] md:scale-100 md:p-3
                             {parsedName.name === activeStaffName
-                              ? 'z-50 scale-[0.9] md:scale-110 border-2 border-[#ff7a1a] bg-gradient-to-br from-[#ff7a1a]/25 via-[#2a0078]/80 to-[#111111]/95 shadow-[0_0_30px_rgba(255,122,26,0.75)] ring-4 ring-[#ff7a1a]/20'
+                              ? 'z-50 scale-[0.9] md:scale-110 border-2 border-[#ff7a1a] bg-gradient-to-br from-[#ff7a1a]/25 via-[#2a0078]/80 to-[#111111]/95 shadow-[0_0_30px_rgba(255,122,26,0.75)] ring-4 ring-[#ff7a1a]/20 animate-gradient-flow'
                               : 'z-10 border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85'}"
                             style="left: {overlay.x !== undefined
                               ? overlay.x
@@ -1022,5 +1022,22 @@
     50% {
       transform: translateY(12px) rotate(6deg);
     }
+  }
+
+  @keyframes gradientFlow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  :global(.animate-gradient-flow) {
+    background-size: 200% 200%;
+    animation: gradientFlow 6s ease infinite;
   }
 </style>
