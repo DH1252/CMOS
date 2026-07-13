@@ -2,6 +2,8 @@
   import Navbar from "../components/landing/Navbar.svelte";
   import Footer from "../components/landing/Footer.svelte";
   import { inertiaEnhance } from "../lib/inertia-enhance.js";
+  import { fly, fade } from "svelte/transition";
+  import { cubicOut } from "svelte/easing";
 
   let {
     organizationName = "HIMATEKKOM ITS",
@@ -26,8 +28,8 @@
   let selectedMonth = $state("All");
   let selectedStatus = $state("All");
 
-  // Track expanded descriptions using a Set of competition "no" + "month" keys
-  let expandedKeys = $state(new Set());
+  // Track currently active/selected competition for the side-drawer panel
+  let activeCompetition = $state(null);
 
   const availableMonths = $derived([
     "All",
@@ -53,16 +55,17 @@
     }),
   );
 
-  function toggleExpand(no, month) {
-    const key = `${month}-${no}`;
-    const next = new Set(expandedKeys);
-    if (next.has(key)) {
-      next.delete(key);
+  // Stop background body scrolling when the drawer panel is open
+  $effect(() => {
+    if (activeCompetition) {
+      document.body.classList.add("overflow-hidden");
     } else {
-      next.add(key);
+      document.body.classList.remove("overflow-hidden");
     }
-    expandedKeys = next;
-  }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  });
 </script>
 
 <svelte:head>
@@ -209,9 +212,12 @@
       {:else}
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {#each filteredCompetitions as comp (comp.month + "-" + comp.no)}
-            <!-- Card -->
+            <!-- Card Wrapper -->
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
-              class="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md"
+              onclick={() => (activeCompetition = comp)}
+              class="group flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md"
             >
               <div class="p-6">
                 <!-- Badges -->
@@ -242,30 +248,13 @@
                   Oleh: <span class="text-[#ff7a1a]">{comp.organizer}</span>
                 </p>
 
-                <!-- Description (collapsible) -->
+                <!-- Description Preview (Truncated) -->
                 <div class="mt-4 border-t border-gray-100 pt-4">
                   <p
-                    class="text-sm leading-relaxed text-gray-600 {expandedKeys.has(
-                      `${comp.month}-${comp.no}`,
-                    )
-                      ? ''
-                      : 'line-clamp-4'} whitespace-pre-line"
+                    class="line-clamp-3 text-sm leading-relaxed text-gray-600 whitespace-pre-line"
                   >
                     {comp.description}
                   </p>
-
-                  <!-- Toggle read more -->
-                  {#if comp.description.length > 150}
-                    <button
-                      type="button"
-                      onclick={() => toggleExpand(comp.no, comp.month)}
-                      class="mt-2 text-xs font-bold text-[#2a0078] hover:text-[#ff7a1a] hover:underline"
-                    >
-                      {expandedKeys.has(`${comp.month}-${comp.no}`)
-                        ? "Sembunyikan"
-                        : "Selengkapnya"}
-                    </button>
-                  {/if}
                 </div>
 
                 <!-- Timeline / Schedule -->
@@ -275,9 +264,7 @@
                       <span class="mt-0.5 text-gray-400">
                         <i class="far fa-calendar-alt text-[14px]"></i>
                       </span>
-                      <div
-                        class="whitespace-pre-line font-medium leading-relaxed"
-                      >
+                      <div class="line-clamp-2 font-medium leading-relaxed">
                         {comp.timeline}
                       </div>
                     </div>
@@ -285,43 +272,157 @@
                 {/if}
               </div>
 
-              <!-- Links & Actions -->
-              {#if comp.link || comp.qr_code_link}
-                <div
-                  class="border-t border-gray-100 bg-gray-50/50 p-6 flex flex-col gap-2"
+              <!-- Action Trigger -->
+              <div class="border-t border-gray-100 bg-gray-50/50 p-6">
+                <button
+                  type="button"
+                  onclick={(e) => {
+                    e.stopPropagation();
+                    activeCompetition = comp;
+                  }}
+                  class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2a0078] to-[#40008c] py-2.5 text-center text-xs font-bold tracking-wider text-white uppercase shadow-sm transition-all duration-150 hover:opacity-95 active:scale-95"
                 >
-                  {#if comp.link}
-                    <!-- Regular Link Button -->
-                    <a
-                      href={comp.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2a0078] to-[#40008c] py-2.5 text-center text-xs font-bold tracking-wider text-white uppercase shadow-sm transition-all duration-150 hover:opacity-95 active:scale-95"
-                    >
-                      <span>Ikuti Lomba</span>
-                      <i class="fas fa-external-link-alt text-[11px]"></i>
-                    </a>
-                  {/if}
-
-                  {#if comp.qr_code_link}
-                    <!-- Guidebook / QR Code Link -->
-                    <a
-                      href={comp.qr_code_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-center text-xs font-bold tracking-wider text-gray-700 uppercase transition-all duration-150 hover:bg-gray-50 active:scale-95"
-                    >
-                      <span>Panduan / QR Code</span>
-                      <i class="fas fa-qrcode text-[11px]"></i>
-                    </a>
-                  {/if}
-                </div>
-              {/if}
+                  <span>Detail Kompetisi</span>
+                  <i class="fas fa-arrow-right text-[11px]"></i>
+                </button>
+              </div>
             </div>
           {/each}
         </div>
       {/if}
     </section>
+
+    <!-- Slide-over Expandable Drawer Overlay -->
+    {#if activeCompetition}
+      <!-- Backdrop overlay -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div
+        transition:fade={{ duration: 200 }}
+        class="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs"
+        onclick={() => (activeCompetition = null)}
+      ></div>
+
+      <!-- Drawer Panel container -->
+      <div
+        transition:fly={{ x: 500, duration: 300, easing: cubicOut }}
+        class="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col bg-white shadow-2xl border-l border-gray-100"
+      >
+        <!-- Header -->
+        <div
+          class="flex items-center justify-between border-b border-gray-100 p-6"
+        >
+          <div class="flex items-center gap-2.5">
+            <span
+              class="rounded-full bg-indigo-50 px-3.5 py-1 text-xs font-bold text-[#2a0078]"
+            >
+              {activeCompetition.month}
+            </span>
+            <span
+              class="rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider {activeCompetition.status.toLowerCase() ===
+              'open'
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-rose-50 text-rose-700'}"
+            >
+              {activeCompetition.status}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onclick={() => (activeCompetition = null)}
+            class="flex h-10 w-10 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            aria-label="Tutup Detail"
+          >
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Scrollable content area -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-8">
+          <h2
+            class="font-['The_Seasons'] text-2xl font-bold text-gray-900 leading-snug md:text-3xl"
+          >
+            {activeCompetition.name}
+          </h2>
+          <p class="mt-2 text-xs font-bold text-gray-500 md:text-sm">
+            Oleh: <span class="text-[#ff7a1a]"
+              >{activeCompetition.organizer}</span
+            >
+          </p>
+
+          <!-- Timeline section -->
+          {#if activeCompetition.timeline}
+            <div class="mt-8 border-t border-gray-100 pt-6">
+              <h3
+                class="text-xs font-bold tracking-widest text-gray-400 uppercase"
+              >
+                Jadwal & Timeline
+              </h3>
+              <div
+                class="mt-3 rounded-2xl bg-gray-50 p-5 border border-gray-100"
+              >
+                <div class="flex items-start gap-3 text-gray-700">
+                  <span class="mt-0.5 text-[#ff7a1a]">
+                    <i class="far fa-calendar-alt text-lg"></i>
+                  </span>
+                  <div
+                    class="whitespace-pre-line text-sm font-semibold leading-relaxed"
+                  >
+                    {activeCompetition.timeline}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {/if}
+
+          <!-- Description section -->
+          <div class="mt-8 border-t border-gray-100 pt-6">
+            <h3
+              class="text-xs font-bold tracking-widest text-gray-400 uppercase"
+            >
+              Deskripsi Lengkap
+            </h3>
+            <p
+              class="mt-4 text-sm leading-relaxed text-gray-600 whitespace-pre-line md:text-base"
+            >
+              {activeCompetition.description}
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer link controls -->
+        {#if activeCompetition.link || activeCompetition.qr_code_link}
+          <div
+            class="border-t border-gray-100 bg-gray-50/50 p-6 flex flex-col gap-3"
+          >
+            {#if activeCompetition.link}
+              <a
+                href={activeCompetition.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2a0078] to-[#40008c] py-3.5 text-center text-sm font-bold tracking-wider text-white uppercase shadow-md transition-all duration-150 hover:opacity-95 active:scale-95"
+              >
+                <span>Daftar / Ikuti Lomba</span>
+                <i class="fas fa-external-link-alt text-[12px]"></i>
+              </a>
+            {/if}
+
+            {#if activeCompetition.qr_code_link}
+              <a
+                href={activeCompetition.qr_code_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3.5 text-center text-sm font-bold tracking-wider text-gray-700 uppercase transition-all duration-150 hover:bg-gray-50 active:scale-95"
+              >
+                <span>Panduan / Link Pendukung</span>
+                <i class="fas fa-qrcode text-[12px]"></i>
+              </a>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    {/if}
 
     <!-- Closing CTA Section -->
     <section
