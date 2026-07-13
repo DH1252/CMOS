@@ -75,7 +75,7 @@
             scrollDirection = 1;
           }
 
-          const baseSpeed = 0.45;
+          const baseSpeed = window.innerWidth < 768 ? 0.25 : 0.45;
           const overlayCount = staffList.length;
 
           let totalNaturalWidth = 0;
