@@ -3,6 +3,8 @@
   import brandLogo from "../images/logokabinet.png?enhanced&w=96;192";
   import heroPhoto from "../images/himatekkom.jpg?enhanced&w=720;1200;1600";
   import OptimizedImage from "./components/OptimizedImage.svelte";
+  import Navbar from "./components/landing/Navbar.svelte";
+  import Footer from "./components/landing/Footer.svelte";
   import { Button } from "$lib/components/ui/button/index.js";
 
   let {
@@ -10,12 +12,31 @@
     organizationName = "HIMATEKKOM ITS",
     description = "Halaman ini sedang kami siapkan. Nantikan pembaruannya.",
     homeUrl = "/",
+    loginUrl = "/login",
+    infoUrl = "/informasi",
+    acaraUrl = "/acara",
     seo = null,
   } = $props();
 
   const documentTitle = $derived(
     seo?.title || `${pageTitle} - ${organizationName}`,
   );
+
+  const navigationItems = $derived([
+    { href: homeUrl, label: "Beranda" },
+    {
+      href: "/departemen",
+      label: "Departemen",
+      children: [
+        { href: "/departemen", label: "Departemen" },
+        { href: "/departemen/overview", label: "Detail departemen" },
+      ],
+    },
+    { href: "/kompetisi", label: "Kompetisi" },
+    { href: infoUrl, label: "Kabar Terbaru" },
+    { href: acaraUrl, label: "Acara Mendatang" },
+    { href: "/tentang", label: "Tentang Kami" },
+  ]);
 </script>
 
 <svelte:head>
@@ -28,24 +49,7 @@
 </svelte:head>
 
 <div use:inertiaEnhance class="coming-page">
-  <header class="coming-header">
-    <div class="coming-header-inner">
-      <a href={homeUrl} class="coming-brand" aria-label={organizationName}>
-        <OptimizedImage
-          src={brandLogo}
-          alt=""
-          class="coming-brand-mark"
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
-          sizes="76px"
-        />
-        <span>{organizationName}</span>
-      </a>
-
-      <Button href={homeUrl} class="coming-login">Beranda</Button>
-    </div>
-  </header>
+  <Navbar {homeUrl} {loginUrl} {navigationItems} />
 
   <main id="main-content" tabindex="-1" class="outline-none">
     <section class="coming-hero" aria-labelledby="coming-heading">
@@ -86,6 +90,15 @@
       </div>
     </section>
   </main>
+
+  <Footer
+    {infoUrl}
+    {acaraUrl}
+    departemenUrl="/departemen"
+    tentangUrl="/tentang"
+    kompetisiUrl="/kompetisi"
+    {organizationName}
+  />
 </div>
 
 <style>
@@ -104,49 +117,11 @@
     font-family: var(--taling-font-sans);
   }
 
-  .coming-header {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    background: #fffdf8;
-  }
-
-  .coming-header-inner,
   .coming-section-shell {
     width: min(1248px, calc(100% - 3rem));
     margin-inline: auto;
   }
 
-  .coming-header-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 84px;
-    gap: 2rem;
-  }
-
-  .coming-brand {
-    display: inline-flex;
-    align-items: center;
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .coming-brand span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-  }
-
-  .coming-brand :global(.coming-brand-mark),
-  .coming-brand :global(img) {
-    width: 76px;
-    height: auto;
-  }
-
-  :global(.coming-login),
   .coming-section-link {
     display: inline-flex;
     align-items: center;
@@ -310,18 +285,8 @@
   }
 
   @media (max-width: 819px) {
-    .coming-header-inner,
     .coming-section-shell {
       width: min(100% - 1.5rem, 620px);
-    }
-
-    .coming-header-inner {
-      min-height: 72px;
-    }
-
-    .coming-brand :global(.coming-brand-mark),
-    .coming-brand :global(img) {
-      width: 58px;
     }
 
     .coming-hero {
