@@ -29,7 +29,7 @@
   let naturalWidths = $state({});
   let naturalHeights = $state({});
 
-  let sliderRef;
+  let sliderRef = $state(null);
   let isDown = false;
   let startX = 0;
   let scrollLeft = 0;
@@ -648,6 +648,7 @@
                 : 'bg-neutral-800'}"
               role="switch"
               aria-checked={isAutoScrollActive}
+              aria-label="Toggle Auto Scroll"
               onclick={toggleAutoScroll}
             >
               <span
@@ -682,6 +683,7 @@
               </svg>
             </button>
 
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <div
               bind:this={sliderRef}
               bind:clientHeight={galleryHeight}
@@ -964,28 +966,6 @@
       width: 320px;
       height: 301px;
     }
-  }
-
-  .star-small {
-    top: 320px;
-    right: -80px;
-    width: 150px;
-    height: 161px;
-  }
-  @media (min-width: 768px) {
-    .star-small {
-      top: 380px;
-      right: -130px;
-      width: 240px;
-      height: 258px;
-    }
-  }
-
-  .hero-glow-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 300px;
-    height: 22px;
   }
 
   .animate-slow-pan {

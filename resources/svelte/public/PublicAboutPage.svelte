@@ -18,12 +18,15 @@
     footer = null,
   } = $props();
 
-  const pageTitle = `Tentang Kami - ${organizationName}`;
-  const pageDescription = `Profil, visi misi, dan sejarah Kabinet Sentra Sinergi ${organizationName}.`;
+  const pageTitle = $derived(`Tentang Kami - ${organizationName}`);
+  const pageDescription = $derived(
+    `Profil, visi misi, dan sejarah Kabinet Sentra Sinergi ${organizationName}.`,
+  );
 
-  const footerDescription =
+  const footerDescription = $derived(
     footer?.description ??
-    "Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember.";
+      "Kabinet Sentra Sinergi, Himpunan Mahasiswa Teknik Komputer, Institut Teknologi Sepuluh Nopember.",
+  );
 </script>
 
 <svelte:head>
