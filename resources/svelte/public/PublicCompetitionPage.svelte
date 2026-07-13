@@ -163,22 +163,66 @@
 
   <main id="main-content" tabindex="-1" class="outline-none">
     <!-- Hero Header -->
-    <section
-      class="relative isolate flex min-h-[380px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#2a0078] via-[#40008c] to-[#5d0077] text-white"
-    >
-      <!-- Background pattern -->
+    <section class="event-hero">
+      <!-- Ambient Background Gradient & Texture matching Departemen -->
       <div
-        class="pointer-events-none absolute inset-0 opacity-15 mix-blend-overlay overflow-hidden"
+        class="absolute inset-0 -z-10 bg-gradient-to-br from-[#5d0077] to-[#2a0078] overflow-hidden"
       >
-        <OptimizedImage
-          src={heroBgImage}
-          alt=""
-          class="w-full h-full object-cover object-center"
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
-        />
+        <picture class="contents">
+          <source
+            srcset="/images/figma-taling/hero-bg.avif"
+            type="image/avif"
+          />
+          <source
+            srcset="/images/figma-taling/hero-bg.webp"
+            type="image/webp"
+          />
+          <img
+            class="absolute inset-0 h-full w-full object-cover opacity-50 mix-blend-overlay pointer-events-none"
+            src="/images/figma-taling/hero-bg.png"
+            alt=""
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </picture>
+        <picture class="contents">
+          <source
+            srcset="/images/figma-taling/botanical.avif"
+            type="image/avif"
+          />
+          <source
+            srcset="/images/figma-taling/botanical.webp"
+            type="image/webp"
+          />
+          <img
+            class="animate-slow-pan absolute -top-[22%] -left-[20%] h-[180%] w-[170%] max-w-none object-cover opacity-25 mix-blend-soft-light pointer-events-none"
+            src="/images/figma-taling/botanical.png"
+            alt=""
+            width="1600"
+            height="1066"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </picture>
       </div>
+
+      <!-- Branded Floating Vector Stars matching Departemen -->
+      <img
+        src="/images/figma-taling/star-large.svg"
+        alt=""
+        class="star-large pointer-events-none opacity-80 drop-shadow-2xl"
+        width="492"
+        height="463"
+      />
+      <img
+        src="/images/figma-taling/star-small.svg"
+        alt=""
+        class="star-small pointer-events-none opacity-80 drop-shadow-2xl"
+        width="375"
+        height="404"
+      />
 
       <div class="relative z-10 mx-auto max-w-4xl px-6 py-20 text-center">
         <span
@@ -187,10 +231,20 @@
           Info Prestasi & Ajang
         </span>
         <h1
-          class="mt-4 font-['The_Seasons'] text-4xl font-bold text-white md:text-6xl"
+          class="taling-page-title mt-4 font-['The_Seasons'] text-4xl font-bold text-white md:text-6xl"
         >
           Kompetisi & Lomba
         </h1>
+
+        <!-- Glowing Gradient Bar matching Departemen -->
+        <div
+          class="hero-glow-wrapper w-full max-w-[280px] md:max-w-[400px] h-[22px] mx-auto mt-4 mb-2"
+        >
+          <div
+            class="h-full w-full bg-gradient-to-r from-transparent via-[#ff7a1a] to-transparent blur-[1px]"
+          ></div>
+        </div>
+
         <p
           class="mx-auto mt-4 max-w-2xl text-white/80 text-sm md:text-base leading-relaxed"
         >
@@ -530,16 +584,27 @@
 
     <!-- Closing CTA Section -->
     <section
-      class="w-full bg-[#2a0078] py-20 text-center text-white relative overflow-hidden"
+      class="relative w-full overflow-hidden bg-gradient-to-br from-[#2a0078] to-[#1e0055] py-20 text-center text-white border-t border-b border-white/5"
     >
       <!-- Background pattern -->
       <div
-        class="pointer-events-none absolute inset-0 opacity-10 mix-blend-overlay overflow-hidden"
+        class="pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay overflow-hidden"
       >
-        <OptimizedImage
-          src={heroBgImage}
+        <img
+          class="absolute inset-0 h-full w-full object-cover opacity-40 mix-blend-overlay"
+          src="/images/figma-taling/hero-bg.png"
           alt=""
-          class="w-full h-full object-cover object-center"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div
+        class="pointer-events-none absolute -top-[10%] -left-[10%] h-[140%] w-[130%] opacity-15 mix-blend-soft-light overflow-hidden"
+      >
+        <img
+          class="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-soft-light"
+          src="/images/figma-taling/botanical.png"
+          alt=""
           loading="lazy"
           decoding="async"
         />
@@ -579,3 +644,93 @@
     {organizationName}
   />
 </div>
+
+<style>
+  .event-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 2.5rem 0 3.5rem;
+    color: var(--taling-white);
+  }
+
+  :global(.taling-page-title) {
+    font-family: "The Seasons", "The Seasons", Georgia, serif !important;
+    font-weight: 300 !important;
+    text-shadow: 0px 0px 20px #ffffff;
+  }
+
+  .star-large {
+    position: absolute;
+    top: -60px;
+    left: -90px;
+    width: 200px;
+    height: 188px;
+    animation: floatLarge 8s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-large {
+      top: -100px;
+      left: -150px;
+      width: 320px;
+      height: 301px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-large {
+      top: -155px;
+      left: -239px;
+      width: 507px;
+      height: 476px;
+    }
+  }
+
+  .star-small {
+    position: absolute;
+    top: 320px;
+    right: -80px;
+    width: 150px;
+    height: 161px;
+    animation: floatSmall 6s ease-in-out infinite;
+  }
+  @media (min-width: 768px) {
+    .star-small {
+      top: 300px;
+      right: -130px;
+      width: 250px;
+      height: 269px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .star-small {
+      top: 250px;
+      right: -188px;
+      width: 388px;
+      height: 418px;
+    }
+  }
+
+  @keyframes floatLarge {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-10deg);
+    }
+    50% {
+      transform: translateY(-15px) rotate(-8deg);
+    }
+  }
+
+  @keyframes floatSmall {
+    0%,
+    100% {
+      transform: translateY(0) rotate(15deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(10deg);
+    }
+  }
+
+  .hero-glow-wrapper {
+    position: relative;
+  }
+</style>
