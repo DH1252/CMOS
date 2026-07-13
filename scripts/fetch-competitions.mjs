@@ -212,6 +212,7 @@ async function main() {
     );
     console.log(`Successfully compiled ${allCompetitions.length} total competition items.`);
     console.log(`Saved output payload to: ${OUTPUT_FILE}`);
+    process.exit(0); // Exit process to clear active keep-alive socket handles
   } catch (error) {
     console.error("Execution failed:", error);
     process.exit(1);
