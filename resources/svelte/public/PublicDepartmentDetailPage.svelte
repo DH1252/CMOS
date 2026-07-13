@@ -288,10 +288,14 @@
         behavior: "smooth",
       });
 
-      // Scroll the entire page to center the gallery
-      sliderRef.scrollIntoView({
+      // Smoothly scroll the page vertically to align the gallery below the fixed header
+      const rect = sliderRef.getBoundingClientRect();
+      const absoluteTop = rect.top + window.scrollY;
+      const targetY = Math.max(0, absoluteTop - 100); // 74px header + 26px padding
+
+      window.scrollTo({
+        top: targetY,
         behavior: "smooth",
-        block: "center",
       });
     }
   }
