@@ -28,14 +28,27 @@ def main():
         compress_json=False
     )
     
-    # Optional login to bypass strict rate limiting and anonymous content walls
-    if IG_USERNAME and IG_PASSWORD:
+    # Support pre-authenticated session files (perfect for 2FA accounts)
+    if IG_USERNAME:
         try:
-            print(f"Logging in as {IG_USERNAME}...")
-            L.login(IG_USERNAME, IG_PASSWORD)
-            print("Login successful!")
+            print(f"Attempting to load saved session for user: {IG_USERNAME}...")
+            # Automatically checks standard system paths for saved sessions
+            L.load_session_from_file(IG_USERNAME)
+            print("Session loaded successfully!")
+        except FileNotFoundError:
+            # If no session file is found, fallback to password authentication
+            if IG_PASSWORD:
+                try:
+                    print(f"No session file found. Logging in with password as {IG_USERNAME}...")
+                    L.login(IG_USERNAME, IG_PASSWORD)
+                    L.save_session_to_file()
+                    print("Login successful! Session saved for future runs.")
+                except Exception as e:
+                    print(f"Password login failed: {e}. Proceeding anonymously.", file=sys.stderr)
+            else:
+                print("No session file found and no password provided. Proceeding anonymously.", file=sys.stderr)
         except Exception as e:
-            print(f"Login failed: {e}. Proceeding anonymously.", file=sys.stderr)
+            print(f"Failed to load session: {e}. Proceeding anonymously.", file=sys.stderr)
             
     posts_data = []
     
