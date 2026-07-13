@@ -111,10 +111,7 @@ export default defineConfig({
   server: {
     watch: {
       ignored: [
-        "**/storage/framework/views/**",
-        "**/storage/framework/sessions/**",
-        "**/storage/framework/cache/**",
-        "**/storage/logs/**",
+        "**/storage/**",
         "**/.playwright-mcp/**",
       ],
     },
