@@ -47,12 +47,14 @@
     }
 
     // Set up observer to scroll only when in center of viewport
+    const margin =
+      window.innerWidth < 768 ? "-20% 0px -20% 0px" : "-40% 0px -40% 0px";
     const observer = new IntersectionObserver(
       ([entry]) => {
         isIntersecting = entry.isIntersecting;
       },
       {
-        rootMargin: "-40% 0px -40% 0px",
+        rootMargin: margin,
         threshold: 0,
       },
     );
@@ -73,10 +75,18 @@
             scrollDirection = 1;
           }
 
-          const baseSpeed = 0.45;
+          const baseSpeed = window.innerWidth < 768 ? 0.7 : 0.45;
           const overlayCount = staffList.length;
+
+          let totalNaturalWidth = 0;
+          if (staffGraphics) {
+            staffGraphics.forEach((g, i) => {
+              totalNaturalWidth += naturalWidths[i] || 400;
+            });
+          }
+
           const averageSpacing =
-            overlayCount > 0 ? sliderRef.scrollWidth / overlayCount : 400;
+            overlayCount > 0 ? totalNaturalWidth / overlayCount : 400;
           const spacingMultiplier = Math.min(
             1.6,
             Math.max(0.5, averageSpacing / 250),
