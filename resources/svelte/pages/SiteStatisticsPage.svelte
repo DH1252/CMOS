@@ -27,8 +27,8 @@
   let lastSyncTime = $state(null);
 
   let isEditing = $state(false);
-  let editSpreadsheetUrl = $state(competitionSettings.spreadsheetUrl);
-  let editScheduleTime = $state(competitionSettings.scheduleTime || "01:00");
+  let editSpreadsheetUrl = $state("");
+  let editScheduleTime = $state("");
   let isSaving = $state(false);
 
   async function saveSettings() {
