@@ -73,7 +73,7 @@
             scrollDirection = 1;
           }
 
-          const baseSpeed = window.innerWidth < 768 ? 0.7 : 0.45;
+          const baseSpeed = 0.45;
           const overlayCount = staffList.length;
           const averageSpacing =
             overlayCount > 0 ? sliderRef.scrollWidth / overlayCount : 400;
@@ -621,7 +621,7 @@
             <div
               bind:this={sliderRef}
               bind:clientHeight={galleryHeight}
-              class="flex h-[350px] cursor-grab flex-row overflow-x-auto bg-black/20 active:cursor-grabbing md:h-[600px] [&::-webkit-scrollbar]:hidden"
+              class="flex h-[600px] cursor-grab flex-row overflow-x-auto bg-black/20 active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
               style="scrollbar-width: none;"
               role="application"
               aria-label="Galeri staff grafis"
@@ -677,9 +677,9 @@
                             return { name: fullName, batch: null };
                           })()}
                           <div
-                            class="pointer-events-auto absolute flex w-max max-w-[160px] -translate-x-1/2 -translate-y-1/2 transform flex-col justify-center bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all hover:shadow-[0_8px_32px_rgba(255,165,0,0.15)] origin-center scale-[0.8] md:max-w-[250px] md:scale-100 md:p-3
+                            class="pointer-events-auto absolute flex w-max max-w-[250px] -translate-x-1/2 -translate-y-1/2 transform flex-col justify-center bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 p-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all hover:shadow-[0_8px_32px_rgba(255,165,0,0.15)] origin-center scale-100
                             {parsedName.name === activeStaffName
-                              ? 'z-50 scale-[0.9] md:scale-110 border border-[#ff7a1a] shadow-[0_0_20px_rgba(255,122,26,0.6)] ring-2 ring-[#ff7a1a]/30'
+                              ? 'z-50 scale-110 border border-[#ff7a1a] shadow-[0_0_20px_rgba(255,122,26,0.6)] ring-2 ring-[#ff7a1a]/30'
                               : 'z-10 border border-white/10'}"
                             style="left: {overlay.x !== undefined
                               ? overlay.x
@@ -688,17 +688,17 @@
                               : 50}%;"
                           >
                             <p
-                              class="text-left font-['The_Seasons',serif] text-[10px] leading-tight font-normal tracking-wide text-balance text-white/95 drop-shadow-sm md:text-sm"
+                              class="text-left font-['The_Seasons',serif] text-sm leading-tight font-normal tracking-wide text-balance text-white/95 drop-shadow-sm"
                             >
                               {overlay.role}
                             </p>
                             <h4
-                              class="mt-1 flex items-baseline gap-1 text-left font-['The_Seasons',serif] text-xs font-normal tracking-wide text-white drop-shadow-md md:text-base"
+                              class="mt-1 flex items-baseline gap-1 text-left font-['The_Seasons',serif] text-base font-normal tracking-wide text-white drop-shadow-md"
                             >
                               {parsedName.name}
                               {#if parsedName.batch}
                                 <span
-                                  class="font-sans text-[10px] font-bold tracking-wider text-[#FFB52E] [text-shadow:0_0_10px_rgba(255,165,0,1),0_0_20px_rgba(255,165,0,0.8),0_0_30px_rgba(255,165,0,0.6)] md:text-sm"
+                                  class="font-sans text-sm font-bold tracking-wider text-[#FFB52E] [text-shadow:0_0_10px_rgba(255,165,0,1),0_0_20px_rgba(255,165,0,0.8),0_0_30px_rgba(255,165,0,0.6)]"
                                   >{parsedName.batch}</span
                                 >
                               {/if}
