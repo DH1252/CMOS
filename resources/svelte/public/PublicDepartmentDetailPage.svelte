@@ -34,9 +34,10 @@
   let startX = 0;
   let scrollLeft = 0;
 
-  let isIntersecting = false;
+  let isIntersecting = $state(false);
   let scrollDirection = 1;
   let isAutoScrollActive = $state(true);
+  let currentScrollLeft = 0;
 
   onMount(() => {
     if (typeof window === "undefined" || !sliderRef) return;
@@ -45,6 +46,8 @@
     if (saved !== null) {
       isAutoScrollActive = saved === "true";
     }
+
+    currentScrollLeft = sliderRef.scrollLeft;
 
     // Set up observer to scroll only when in center of viewport
     const margin =
@@ -69,9 +72,14 @@
         const maxScroll = sliderRef.scrollWidth - sliderRef.clientWidth;
 
         if (maxScroll > 0) {
-          if (sliderRef.scrollLeft >= maxScroll - 1) {
+          // Synchronize accumulator if user scrolls manually (e.g. touch drag)
+          if (Math.abs(currentScrollLeft - sliderRef.scrollLeft) > 5) {
+            currentScrollLeft = sliderRef.scrollLeft;
+          }
+
+          if (currentScrollLeft >= maxScroll - 1) {
             scrollDirection = -1;
-          } else if (sliderRef.scrollLeft <= 1) {
+          } else if (currentScrollLeft <= 1) {
             scrollDirection = 1;
           }
 
@@ -93,7 +101,15 @@
           );
           const scrollSpeed = baseSpeed * spacingMultiplier;
 
-          sliderRef.scrollLeft += scrollDirection * scrollSpeed;
+          // Accumulate fractional scroll speed
+          currentScrollLeft += scrollDirection * scrollSpeed;
+          currentScrollLeft = Math.max(
+            0,
+            Math.min(maxScroll, currentScrollLeft),
+          );
+
+          // Set rounded integer to DOM
+          sliderRef.scrollLeft = Math.round(currentScrollLeft);
         }
       }
       animationId = requestAnimationFrame(step);
