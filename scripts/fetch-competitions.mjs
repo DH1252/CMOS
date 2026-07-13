@@ -136,6 +136,62 @@ async function getSheetsViaScraping() {
   return sheets;
 }
 
+// Robustly match column headers using case-insensitive exact matching and partial substring fallback.
+// Strategic order prevents collisions (e.g. qr_code_link matches before link).
+function resolveHeaderIndices(headers) {
+  const matchedIndices = new Set();
+  
+  const getIndex = (exactMatches, partialMatches = []) => {
+    // 1. Exact match (case insensitive)
+    for (let idx = 0; idx < headers.length; idx++) {
+      if (matchedIndices.has(idx)) {
+        continue;
+      }
+      if (exactMatches.includes(headers[idx])) {
+        matchedIndices.add(idx);
+        return idx;
+      }
+    }
+
+    // 2. Partial match (case insensitive)
+    for (let idx = 0; idx < headers.length; idx++) {
+      if (matchedIndices.has(idx)) {
+        continue;
+      }
+      if (partialMatches.some((pm) => headers[idx].includes(pm))) {
+        matchedIndices.add(idx);
+        return idx;
+      }
+    }
+
+    return -1;
+  };
+
+  const noIdx = getIndex(["no", "nomor", "num", "number"], ["no"]);
+  const nameIdx = getIndex(["nama lomba", "nama", "lomba", "name", "title"], ["nama", "title"]);
+  const organizerIdx = getIndex(["penyelenggara", "organizer", "penulis", "oleh"], ["penyelenggara", "organize", "host"]);
+  const qrIdx = getIndex(["qr code link", "qr code", "qr", "guidebook", "panduan"], ["qr", "guidebook", "panduan"]);
+  const linkIdx = getIndex(["link", "link pendaftaran", "tautan", "url", "daftar", "pendaftaran"], ["link", "tautan", "url", "daftar"]);
+  const descIdx = getIndex(["deskripsi", "jenis perlombaan", "description", "detail"], ["deskrip", "desc", "detail", "jenis"]);
+  const timelineIdx = getIndex(["timeline lomba", "timeline pendaftaran", "timeline", "jadwal", "tanggal"], ["timeline", "jadwal", "tgl", "date", "time"]);
+  const statusIdx = getIndex(["status"], ["status"]);
+  const feeIdx = getIndex(["biaya pendaftaran", "biaya", "harga", "htm", "fee"], ["biaya", "harga", "htm", "fee"]);
+  const memberIdx = getIndex(["jumlah anggota", "anggota", "kuota", "peserta", "tim"], ["anggota", "kuota", "peserta", "member", "tim"]);
+
+  return {
+    noIdx,
+    nameIdx,
+    organizerIdx,
+    qrIdx,
+    linkIdx,
+    descIdx,
+    timelineIdx,
+    statusIdx,
+    feeIdx,
+    memberIdx,
+  };
+}
+
 // Fetch and parse using Google Sheets API (handles cell rich links)
 async function fetchCompetitionsViaAPI(apiKey, sheetName, month) {
   console.log(`Fetching sheet data via API for "${sheetName}"...`);
@@ -154,18 +210,18 @@ async function fetchCompetitionsViaAPI(apiKey, sheetName, month) {
   const headerCells = rows[0].values || [];
   const headers = headerCells.map((c) => (c.formattedValue || "").trim().toLowerCase());
 
-  const getIndex = (aliases) => headers.findIndex((h) => aliases.includes(h));
-
-  const noIdx = getIndex(["no"]);
-  const nameIdx = getIndex(["nama lomba", "lomba", "name"]);
-  const organizerIdx = getIndex(["penyelenggara", "organizer"]);
-  const descIdx = getIndex(["deskripsi", "jenis perlombaan", "description"]);
-  const timelineIdx = getIndex(["timeline lomba", "timeline pendaftaran", "timeline"]);
-  const statusIdx = getIndex(["status"]);
-  const qrIdx = getIndex(["qr code link", "qr code", "guidebook"]);
-  const linkIdx = getIndex(["link", "link pendaftaran"]);
-  const feeIdx = getIndex(["biaya pendaftaran"]);
-  const memberIdx = getIndex(["jumlah anggota"]);
+  const {
+    noIdx,
+    nameIdx,
+    organizerIdx,
+    qrIdx,
+    linkIdx,
+    descIdx,
+    timelineIdx,
+    statusIdx,
+    feeIdx,
+    memberIdx,
+  } = resolveHeaderIndices(headers);
 
   const getCellText = (cell) => {
     if (!cell) return "";
@@ -196,11 +252,15 @@ async function fetchCompetitionsViaAPI(apiKey, sheetName, month) {
     let description = descIdx !== -1 ? getCellText(cells[descIdx]) : "";
     if (feeIdx !== -1) {
       const fee = getCellText(cells[feeIdx]);
-      if (fee) description += `\n\n💰 Biaya Pendaftaran: ${fee}`;
+      if (fee) {
+        description += `\n\n💰 Biaya Pendaftaran: ${fee}`;
+      }
     }
     if (memberIdx !== -1) {
       const members = getCellText(cells[memberIdx]);
-      if (members) description += `\n👥 Jumlah Anggota: ${members}`;
+      if (members) {
+        description += `\n👥 Jumlah Anggota: ${members}`;
+      }
     }
 
     // Link parsing (prefer extracted hyperlink URI, fallback to formatted value)
@@ -268,20 +328,18 @@ async function main() {
         // Dynamically discover header indices
         const headers = parsed[0].map((h) => h.trim().toLowerCase());
         
-        const getIndex = (aliases) => {
-          return headers.findIndex((h) => aliases.includes(h));
-        };
-
-        const noIdx = getIndex(["no"]);
-        const nameIdx = getIndex(["nama lomba", "lomba", "name"]);
-        const organizerIdx = getIndex(["penyelenggara", "organizer"]);
-        const descIdx = getIndex(["deskripsi", "jenis perlombaan", "description"]);
-        const timelineIdx = getIndex(["timeline lomba", "timeline pendaftaran", "timeline"]);
-        const statusIdx = getIndex(["status"]);
-        const qrIdx = getIndex(["qr code link", "qr code", "guidebook"]);
-        const linkIdx = getIndex(["link", "link pendaftaran"]);
-        const feeIdx = getIndex(["biaya pendaftaran"]);
-        const memberIdx = getIndex(["jumlah anggota"]);
+        const {
+          noIdx,
+          nameIdx,
+          organizerIdx,
+          qrIdx,
+          linkIdx,
+          descIdx,
+          timelineIdx,
+          statusIdx,
+          feeIdx,
+          memberIdx,
+        } = resolveHeaderIndices(headers);
 
         for (let i = 1; i < parsed.length; i++) {
           const row = parsed[i];
