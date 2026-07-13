@@ -453,15 +453,6 @@
           ],
         };
       }
-      if (item.label === "Kompetisi") {
-        return {
-          ...item,
-          children: [
-            { href: item.href, label: "Kompetisi" },
-            { href: "/kristal", label: "Kristal" },
-          ],
-        };
-      }
       return item;
     }),
   );

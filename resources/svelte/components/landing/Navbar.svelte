@@ -21,14 +21,7 @@
         { href: "/tentang", label: "Sejarah himpunan" },
       ],
     },
-    {
-      href: "/kompetisi",
-      label: "Kompetisi",
-      children: [
-        { href: "/kompetisi", label: "Kompetisi" },
-        { href: "/kristal", label: "Kristal" },
-      ],
-    },
+    { href: "/kompetisi", label: "Kompetisi" },
     { href: "/tentang", label: "Tentang Kami" },
   ]);
 
