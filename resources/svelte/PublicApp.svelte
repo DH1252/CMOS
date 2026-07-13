@@ -65,22 +65,6 @@
 
     return `Portal informasi resmi ${organizationName}. Artikel, pembaruan kegiatan, dan publikasi organisasi.`;
   });
-
-  const navigationItems = $derived([
-    { href: homeUrl, label: "Beranda" },
-    {
-      href: "/departemen",
-      label: "Departemen",
-      children: [
-        { href: "/departemen", label: "Departemen" },
-        { href: "/departemen/overview", label: "Detail departemen" },
-      ],
-    },
-    { href: "/kompetisi", label: "Kompetisi" },
-    { href: infoUrl, label: "Kabar Terbaru" },
-    { href: acaraUrl, label: "Acara Mendatang" },
-    { href: "/tentang", label: "Tentang Kami" },
-  ]);
 </script>
 
 <svelte:head>
@@ -93,7 +77,7 @@
 <div use:inertiaEnhance class="taling-public">
   <a href="#main-content" class="skip-link">Langsung ke konten</a>
 
-  <Navbar {homeUrl} {loginUrl} {navigationItems} />
+  <Navbar {homeUrl} {loginUrl} />
 
   <main id="main-content" tabindex="-1" class="outline-none">
     {#if isInfoIndex}
