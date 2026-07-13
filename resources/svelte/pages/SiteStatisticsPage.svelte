@@ -31,9 +31,15 @@
   let editScheduleTime = $state("");
   let isSaving = $state(false);
 
-  let currentSpreadsheetUrl = $state(competitionSettings.spreadsheetUrl);
-  let currentScheduleTime = $state(competitionSettings.scheduleTime || "01:00");
-  let currentScheduleInfo = $state(competitionSettings.scheduleInfo);
+  let currentSpreadsheetUrl = $state("");
+  let currentScheduleTime = $state("01:00");
+  let currentScheduleInfo = $state("");
+
+  $effect(() => {
+    currentSpreadsheetUrl = competitionSettings.spreadsheetUrl;
+    currentScheduleTime = competitionSettings.scheduleTime || "01:00";
+    currentScheduleInfo = competitionSettings.scheduleInfo;
+  });
 
   async function saveSettings() {
     if (isSaving) {
