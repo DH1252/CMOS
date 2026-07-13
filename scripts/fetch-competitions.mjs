@@ -2,9 +2,33 @@ import fs from "node:fs";
 import path from "node:path";
 import https from "node:https";
 
-const SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4/export?format=csv&gid=373337509";
+const SPREADSHEET_ID = "1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4";
 const OUTPUT_FILE = path.resolve("storage/app/competitions.json");
+
+// Custom lightweight env loader to read from Laravel's .env file
+function loadEnv() {
+  try {
+    const envPath = path.resolve(".env");
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, "utf8");
+      for (const line of envContent.split("\n")) {
+        const match = line.match(/^\s*([^#\s=]+)\s*=\s*(.*)$/);
+        if (match) {
+          let val = match[2].trim();
+          if (val.startsWith('"') && val.endsWith('"')) {
+            val = val.slice(1, -1);
+          }
+          if (val.startsWith("'") && val.endsWith("'")) {
+            val = val.slice(1, -1);
+          }
+          process.env[match[1]] = val;
+        }
+      }
+    }
+  } catch (e) {
+    // Ignore error loading env
+  }
+}
 
 // RFC-4180 compliant CSV Parser to handle nested quotes and newlines
 function parseCSV(text) {
@@ -43,19 +67,19 @@ function parseCSV(text) {
   return result;
 }
 
-function fetchCSV(url) {
+function fetchURL(url) {
   return new Promise((resolve, reject) => {
     https
       .get(url, (res) => {
         // Automatically follow HTTP redirects
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           const redirectUrl = new URL(res.headers.location, url).toString();
-          resolve(fetchCSV(redirectUrl));
+          resolve(fetchURL(redirectUrl));
           return;
         }
 
         if (res.statusCode !== 200) {
-          reject(new Error(`Failed to fetch sheet: HTTP ${res.statusCode}`));
+          reject(new Error(`HTTP request failed: Status ${res.statusCode}`));
           return;
         }
 
@@ -69,62 +93,127 @@ function fetchCSV(url) {
   });
 }
 
-async function main() {
-  console.log(`[${new Date().toISOString()}] Fetching competitions from Google Sheets...`);
-  try {
-    const csvText = await fetchCSV(SHEET_URL);
-    const parsed = parseCSV(csvText);
+// Extract sheet names and GIDs using official API
+async function getSheetsViaAPI(apiKey) {
+  console.log("Using Google Sheets API to fetch spreadsheet tabs...");
+  const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}?key=${apiKey}`;
+  const responseText = await fetchURL(apiUrl);
+  const data = JSON.parse(responseText);
 
-    if (parsed.length <= 1) {
-      console.error("No data rows found in spreadsheet.");
-      process.exit(1);
+  if (!data.sheets) {
+    throw new Error("Invalid response format from Google Sheets API");
+  }
+
+  return data.sheets.map((s) => ({
+    gid: s.properties.sheetId.toString(),
+    name: s.properties.title,
+  }));
+}
+
+// Fallback: Extract sheet names and GIDs from public HTML view page
+async function getSheetsViaScraping() {
+  console.log("No API key found. Falling back to public HTML view page parsing...");
+  const editPageUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`;
+  const html = await fetchURL(editPageUrl);
+
+  // Unescape string payload characters in HTML source
+  const cleanHtml = html
+    .replace(/\\"/g, '"')
+    .replace(/\\{/g, "{")
+    .replace(/\\}/g, "}");
+
+  const regexGidName = /"(\d+)"\s*,\s*\[\s*\{\s*"1"\s*:\s*\[\s*\[\s*0\s*,\s*0\s*,\s*"([^"]+)"/g;
+  const sheets = [];
+  let match;
+
+  while ((match = regexGidName.exec(cleanHtml)) !== null) {
+    sheets.push({
+      gid: match[1],
+      name: match[2],
+    });
+  }
+
+  return sheets;
+}
+
+async function main() {
+  loadEnv();
+  const apiKey = process.env.GOOGLE_API_KEY;
+
+  try {
+    let sheets = [];
+    if (apiKey) {
+      sheets = await getSheetsViaAPI(apiKey);
+    } else {
+      sheets = await getSheetsViaScraping();
     }
 
-    // Header structure: No, Nama Lomba, Penyelenggara, Deskripsi, Timeline Lomba, Status, QR Code Link, Link
-    const headers = parsed[0].map((h) => h.trim());
-    console.log("Sheet Headers:", headers.join(" | "));
+    // Filter sheets containing 'lomba' in their name
+    const lombaSheets = sheets.filter((s) => /lomba/i.test(s.name));
+    console.log(`Found ${lombaSheets.length} matching competition sheets:`);
+    for (const s of lombaSheets) {
+      console.log(`- Tab Name: "${s.name}" (GID: ${s.gid})`);
+    }
 
-    const competitions = [];
+    const allCompetitions = [];
 
-    for (let i = 1; i < parsed.length; i++) {
-      const row = parsed[i];
-      if (row.length < 2) continue;
+    // Process each matching sheet
+    for (const sheet of lombaSheets) {
+      // Parse the month (e.g. "Mei - Lomba" -> "Mei")
+      const monthMatch = sheet.name.match(/^([^-]+)/);
+      const month = monthMatch ? monthMatch[1].trim() : "";
 
-      const name = row[1]?.trim() || "";
-      const organizer = row[2]?.trim() || "";
+      console.log(`Processing sheet: "${sheet.name}" (Month: ${month})...`);
 
-      // Skip blank rows or empty placeholder rows
-      if (!name && !organizer) {
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${sheet.gid}`;
+      const csvText = await fetchURL(csvUrl);
+      const parsed = parseCSV(csvText);
+
+      if (parsed.length <= 1) {
         continue;
       }
 
-      competitions.push({
-        no: Number.parseInt(row[0]?.trim() || i.toString(), 10),
-        name: name,
-        organizer: organizer,
-        description: row[3]?.trim() || "",
-        timeline: row[4]?.trim() || "",
-        status: row[5]?.trim() || "Open",
-        qr_code_link: row[6]?.trim() || null,
-        link: row[7]?.trim() || "",
-      });
+      for (let i = 1; i < parsed.length; i++) {
+        const row = parsed[i];
+        if (row.length < 2) {
+          continue;
+        }
+
+        const name = row[1]?.trim() || "";
+        const organizer = row[2]?.trim() || "";
+
+        // Skip empty spacer rows
+        if (!name && !organizer) {
+          continue;
+        }
+
+        allCompetitions.push({
+          no: Number.parseInt(row[0]?.trim() || i.toString(), 10),
+          name: name,
+          organizer: organizer,
+          description: row[3]?.trim() || "",
+          timeline: row[4]?.trim() || "",
+          status: row[5]?.trim() || "Open",
+          qr_code_link: row[6]?.trim() || null,
+          link: row[7]?.trim() || "",
+          month: month, // Associated month from sheet tab name
+        });
+      }
     }
 
-    // Ensure output target folder directory exists
+    // Ensure output target directory exists
     fs.mkdirSync(path.dirname(OUTPUT_FILE), { recursive: true });
 
-    // Output formatted JSON
+    // Output formatted JSON list
     fs.writeFileSync(
       OUTPUT_FILE,
-      JSON.stringify(competitions, null, 4),
+      JSON.stringify(allCompetitions, null, 4),
       "utf8",
     );
-    console.log(
-      `Successfully loaded and parsed ${competitions.length} competitions.`,
-    );
-    console.log(`Saved output to: ${OUTPUT_FILE}`);
+    console.log(`Successfully compiled ${allCompetitions.length} total competition items.`);
+    console.log(`Saved output payload to: ${OUTPUT_FILE}`);
   } catch (error) {
-    console.error("Error loading or parsing Google Sheet:", error);
+    console.error("Execution failed:", error);
     process.exit(1);
   }
 }
