@@ -63,11 +63,12 @@
 
 <article class="public-event-show">
   <section class="event-show-hero" aria-labelledby="event-heading">
-    <span class="event-show-flower" aria-hidden="true"></span>
-    <span class="event-show-puzzle" aria-hidden="true"></span>
+    <span class="event-show-star" aria-hidden="true"></span>
     <div class="taling-section-shell event-show-grid">
       <div class="event-show-poster-wrap">
-        <a href={acaraUrl} class="event-show-back">Kembali ke acara</a>
+        <a href={acaraUrl} class="event-show-back">
+          <i class="fas fa-arrow-left"></i> Kembali ke acara
+        </a>
         {#if event.poster}
           <figure class="event-show-poster">
             <OptimizedImage
@@ -91,9 +92,9 @@
 
       <div class="event-show-copy">
         <p class="event-date-badge">{event.dateLabel || "Segera"}</p>
-        <h1 id="event-heading">{event.title}</h1>
+        <h1 id="event-heading" class="taling-page-title">{event.title}</h1>
         <div class="event-show-rule" aria-hidden="true"></div>
-        <p>{event.excerpt}</p>
+        <p class="taling-page-copy">{event.excerpt}</p>
         <div class="event-show-meta">
           {#if event.endDateLabel}
             <span>s.d. {event.endDateLabel}</span>
@@ -149,12 +150,33 @@
     padding: 6rem 0 7.5rem;
     background:
       radial-gradient(
-        circle at 17% 18%,
-        rgba(255, 211, 68, 0.86),
-        transparent 10rem
+        circle at 20% 20%,
+        rgba(255, 211, 68, 0.12),
+        transparent 32rem
       ),
-      linear-gradient(135deg, #ffd344 0%, #ffb13a 32%, #ff7a1a 100%);
-    color: var(--taling-purple);
+      linear-gradient(180deg, #18072e 0%, #12051f 100%);
+    color: var(--taling-white);
+  }
+
+  .event-show-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.18;
+    background-image:
+      linear-gradient(
+        45deg,
+        transparent 46%,
+        rgba(255, 211, 68, 0.2) 47%,
+        transparent 48%
+      ),
+      linear-gradient(
+        -45deg,
+        transparent 46%,
+        rgba(255, 255, 255, 0.16) 47%,
+        transparent 48%
+      );
+    background-size: 46px 46px;
   }
 
   .event-show-grid {
@@ -173,9 +195,18 @@
 
   .event-show-back {
     width: fit-content;
-    color: var(--taling-purple);
+    color: var(--taling-yellow);
     font-weight: 900;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 200ms ease;
+  }
+
+  .event-show-back:hover {
+    text-decoration: underline;
+    transform: translateX(-4px);
   }
 
   .event-show-poster {
@@ -185,8 +216,7 @@
     overflow: hidden;
     border: 8px solid var(--taling-purple);
     background: var(--taling-purple);
-    box-shadow: 24px 24px 0
-      color-mix(in srgb, var(--taling-purple) 18%, transparent);
+    box-shadow: 24px 24px 0 rgba(255, 211, 68, 0.15);
   }
 
   .event-show-poster :global(.event-show-poster-img),
@@ -206,6 +236,7 @@
       rgba(255, 211, 68, 0.96),
       rgba(255, 122, 26, 0.92)
     );
+    color: var(--taling-purple);
   }
 
   .event-show-poster-fallback span {
@@ -228,99 +259,47 @@
     width: fit-content;
     margin: 0;
     padding: 0.35rem 0.8rem;
-    background: var(--taling-purple);
-    color: var(--taling-white);
+    background: var(--taling-yellow);
+    color: var(--taling-purple);
     font-weight: 900;
-  }
-
-  .event-show-copy h1 {
-    margin: 0;
-    color: transparent;
-    font-family: var(--taling-font-sans);
-    font-size: clamp(3rem, 7vw, 6.8rem);
-    font-weight: 900;
-    letter-spacing: 0.04em;
-    line-height: 0.92;
-    text-transform: uppercase;
-    -webkit-text-stroke: 2px var(--taling-purple);
   }
 
   .event-show-rule {
     width: 100%;
     height: 12px;
-    background: var(--taling-purple);
-  }
-
-  .event-show-copy p:not(.event-date-badge) {
-    margin: 0;
-    max-width: 64ch;
-    color: #231328;
-    font-weight: 800;
-    line-height: 1.44;
+    background: var(--taling-yellow);
+    box-shadow: 0 0 20px rgba(255, 211, 68, 0.4);
   }
 
   .event-show-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    color: var(--taling-purple);
-    font-weight: 900;
+    gap: 0.75rem 1.5rem;
+    color: color-mix(in srgb, var(--taling-white) 78%, transparent);
+    font-weight: 800;
   }
 
-  .event-show-flower,
-  .event-show-puzzle {
+  .event-show-star {
     position: absolute;
-    pointer-events: none;
-  }
-
-  .event-show-flower {
-    top: 16%;
-    left: -34px;
-    width: 190px;
+    z-index: 1;
+    right: -92px;
+    bottom: 42px;
+    width: 230px;
     aspect-ratio: 1;
-    background:
-      radial-gradient(
-          ellipse at center,
-          rgba(255, 122, 26, 0.72) 0 38%,
-          transparent 40%
-        )
-        50% 0 / 50% 50%,
-      radial-gradient(
-          ellipse at center,
-          rgba(255, 122, 26, 0.72) 0 38%,
-          transparent 40%
-        )
-        100% 50% / 50% 50%,
-      radial-gradient(
-          ellipse at center,
-          rgba(255, 122, 26, 0.72) 0 38%,
-          transparent 40%
-        )
-        50% 100% / 50% 50%,
-      radial-gradient(
-          ellipse at center,
-          rgba(255, 122, 26, 0.72) 0 38%,
-          transparent 40%
-        )
-        0 50% / 50% 50%;
-    background-repeat: no-repeat;
-    rotate: -22deg;
-  }
-
-  .event-show-puzzle {
-    right: -28px;
-    bottom: 30px;
-    width: 250px;
-    aspect-ratio: 1;
-    background:
-      linear-gradient(var(--taling-purple), var(--taling-purple)) 30% 10% / 46%
-        38%,
-      linear-gradient(var(--taling-purple), var(--taling-purple)) 58% 42% / 46%
-        38%,
-      linear-gradient(var(--taling-purple), var(--taling-purple)) 10% 54% / 38%
-        34%;
-    background-repeat: no-repeat;
-    rotate: 36deg;
+    background: var(--taling-yellow);
+    clip-path: polygon(
+      50% 0,
+      59% 35%,
+      98% 35%,
+      66% 56%,
+      78% 96%,
+      50% 70%,
+      22% 96%,
+      34% 56%,
+      2% 35%,
+      41% 35%
+    );
+    opacity: 0.72;
   }
 
   .event-show-body {
@@ -446,6 +425,11 @@
     border-top: 1px solid color-mix(in srgb, var(--taling-ink) 18%, transparent);
     padding-top: 1rem;
     color: var(--taling-ink);
+    transition: transform 200ms ease;
+  }
+
+  .event-mini-list a:hover {
+    transform: translateX(4px);
   }
 
   .event-mini-list strong {
@@ -457,6 +441,11 @@
     line-height: 0.94;
     text-transform: uppercase;
     -webkit-text-stroke: 1px var(--taling-purple);
+    transition: color 200ms ease;
+  }
+
+  .event-mini-list a:hover strong {
+    color: var(--taling-purple);
   }
 
   .event-mini-list span {
@@ -468,7 +457,7 @@
   @media (max-width: 819px) {
     .event-show-hero,
     .event-show-body {
-      padding: 4.5rem 0 5.5rem;
+      padding: 4.25rem 0 5rem;
     }
 
     .event-show-grid,
@@ -487,14 +476,10 @@
       height: 390px;
     }
 
-    .event-show-flower {
-      left: -50px;
-      width: 140px;
-    }
-
-    .event-show-puzzle {
-      right: -70px;
-      width: 180px;
+    .event-show-star {
+      right: -104px;
+      bottom: 86px;
+      width: 210px;
     }
 
     .event-show-aside {
