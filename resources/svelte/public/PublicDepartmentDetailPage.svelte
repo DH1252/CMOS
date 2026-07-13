@@ -501,10 +501,12 @@
   class="min-h-screen w-full bg-white font-['Josefin_Sans',sans-serif] text-[#222]"
   use:inertiaEnhance
 >
-  <Navbar {homeUrl} {loginUrl} {navigationItems} />
+  <div class="fixed top-0 left-0 right-0 z-50">
+    <Navbar {homeUrl} {loginUrl} {navigationItems} />
+  </div>
 
   <main
-    class="relative isolate min-h-[calc(100vh-74px)] overflow-hidden bg-[#222222] pb-32 text-white"
+    class="relative isolate min-h-[calc(100vh-74px)] overflow-hidden bg-[#222222] pb-32 pt-[74px] text-white"
   >
     <!-- Atmosphere Background - Combination B uses Dark Charcoal -->
     <div
