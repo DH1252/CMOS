@@ -135,8 +135,6 @@
     font-family: var(--taling-font-sans);
   }
 
-  .taling-footer-inner,
-  .taling-footer-base,
   :global(.taling-section-shell) {
     width: min(1248px, calc(100% - 3rem));
     margin-inline: auto;

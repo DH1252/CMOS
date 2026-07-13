@@ -26,6 +26,28 @@
 
     event.currentTarget.src = fallbackImage;
   };
+
+  // Client-side search and filtering states
+  let searchQuery = $state("");
+  let selectedLocation = $state("All");
+
+  const filteredEvents = $derived(
+    events.filter((event) => {
+      const matchesSearch =
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (event.location &&
+          event.location.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesLocation =
+        selectedLocation === "All" ||
+        (event.location && event.location.includes(selectedLocation));
+      return matchesSearch && matchesLocation;
+    }),
+  );
+
+  const uniqueLocations = $derived([
+    "All",
+    ...new Set(events.map((e) => e.location).filter(Boolean)),
+  ]);
 </script>
 
 <svelte:head>
@@ -53,6 +75,7 @@
 </svelte:head>
 
 <div class="public-event-index">
+  <!-- Hero Section -->
   <section class="event-hero" aria-labelledby="event-index-heading">
     <!-- Texture Overlay -->
     <div
@@ -69,18 +92,41 @@
     </div>
     <span class="event-star event-star-left" aria-hidden="true"></span>
     <span class="event-star event-star-right" aria-hidden="true"></span>
-    <div class="taling-section-shell event-hero-copy">
-      <p class="taling-page-kicker">{kicker}</p>
-      <h1 id="event-index-heading" class="taling-page-title">{title}</h1>
-      <div class="event-hero-rule" aria-hidden="true"></div>
-      <p class="taling-page-copy">{description}</p>
+
+    <div class="taling-section-shell event-hero-grid">
+      <div class="event-hero-copy">
+        <p class="taling-page-kicker">{kicker}</p>
+        <h1 id="event-index-heading" class="taling-page-title">{title}</h1>
+        <div class="event-hero-rule" aria-hidden="true"></div>
+        <p class="taling-page-copy">{description}</p>
+      </div>
+
+      <div class="event-stat-board" aria-label="Ringkasan agenda">
+        <div class="event-stat-row">
+          <span>Acara Terjadwal</span>
+          <strong>{pagination?.total || events.length}</strong>
+        </div>
+        <div class="event-stat-row">
+          <span>Penyelenggara</span>
+          <strong>Sentra Sinergi</strong>
+        </div>
+        <div class="event-stat-row">
+          <span>Lokasi Utama</span>
+          <strong>ITS Surabaya</strong>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- Empty State (No Events Registered at all) -->
   {#if !events.length}
     <section class="event-empty">
       <div class="taling-section-shell">
         <div class="taling-empty-bright">
+          <i
+            class="far fa-calendar-alt text-6xl text-[#ff7a1a]/80 mb-6"
+            aria-hidden="true"
+          ></i>
           <h2>Belum ada acara mendatang.</h2>
           <p>{emptyText}</p>
           <a href={homeUrl} class="taling-section-link">Kembali ke beranda</a>
@@ -88,42 +134,183 @@
       </div>
     </section>
   {:else}
-    <section class="event-posters" aria-label="Daftar acara">
-      <div class="taling-section-shell event-poster-grid">
-        {#each events as event, index (event.href)}
-          <a href={event.href} class="event-card">
-            <div class="event-card-poster">
-              {#if event.poster}
-                <OptimizedImage
-                  src={event.poster}
-                  alt={event.title}
-                  class="event-card-img"
-                  loading={index < 3 ? "eager" : "lazy"}
-                  decoding="async"
-                  sizes="(min-width: 1000px) 310px, 78vw"
-                  onerror={handleImageError}
-                />
-              {:else}
-                <div class="event-card-fallback">
-                  <span>{event.dateLabel || "Segera"}</span>
-                  <strong>{event.title}</strong>
+    <!-- Interactive Client-side Filter Section -->
+    <section class="event-search" aria-label="Filter agenda">
+      <div class="taling-section-shell event-search-shell">
+        <div class="event-filter-form">
+          <label>
+            <span>Cari acara</span>
+            <input
+              type="text"
+              placeholder="Ketik judul acara atau tempat..."
+              bind:value={searchQuery}
+            />
+          </label>
+
+          <label>
+            <span>Tempat Pelaksanaan</span>
+            <select bind:value={selectedLocation}>
+              <option value="All">Semua Tempat</option>
+              {#each uniqueLocations as location}
+                {#if location !== "All"}
+                  <option value={location}>{location}</option>
+                {/if}
+              {/each}
+            </select>
+          </label>
+        </div>
+
+        {#if searchQuery || selectedLocation !== "All"}
+          <div class="event-search-note">
+            <p>Ditemukan {filteredEvents.length} acara yang sesuai filter.</p>
+            <button
+              type="button"
+              onclick={() => {
+                searchQuery = "";
+                selectedLocation = "All";
+              }}
+            >
+              Hapus filter pencarian
+            </button>
+          </div>
+        {/if}
+      </div>
+    </section>
+
+    <!-- Featured Event Section (Only if no active filter query, to act as static highlight) -->
+    {#if filteredEvents.length > 0 && !searchQuery && selectedLocation === "All"}
+      {@const featured = filteredEvents[0]}
+      <section class="event-feature" aria-labelledby="featured-heading">
+        <div class="taling-section-shell event-feature-grid">
+          <a href={featured.href} class="event-feature-media">
+            {#if featured.poster}
+              <OptimizedImage
+                src={featured.poster}
+                alt={featured.title}
+                class="event-feature-img"
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
+                sizes="(min-width: 900px) 620px, 100vw"
+                onerror={handleImageError}
+              />
+            {:else}
+              <div class="event-feature-fallback" aria-hidden="true">
+                <i class="far fa-calendar-alt" style="font-size: 5rem;"></i>
+              </div>
+            {/if}
+          </a>
+
+          <div class="event-feature-copy">
+            <span class="event-feature-badge">Acara Utama</span>
+            <h2 id="featured-heading" class="event-feature-title">
+              <a href={featured.href}>{featured.title}</a>
+            </h2>
+            <div class="event-feature-meta">
+              <div class="event-meta-item">
+                <i class="far fa-calendar-alt" aria-hidden="true"></i>
+                <span>{featured.dateLabel || "Segera"}</span>
+              </div>
+              {#if featured.location}
+                <div class="event-meta-item">
+                  <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                  <span>{featured.location}</span>
                 </div>
               {/if}
             </div>
-            <div class="event-card-copy">
-              <span>{event.dateLabel || "Segera"}</span>
-              <h2>{event.title}</h2>
-              {#if event.location}
-                <p>{event.location}</p>
-              {/if}
-            </div>
-          </a>
-        {/each}
-      </div>
-    </section>
+            <p class="event-feature-excerpt">
+              Bergabunglah dalam agenda unggulan kami! Dapatkan pengalaman baru,
+              wawasan berharga, serta kesempatan berjejaring dengan rekan-rekan
+              mahasiswa Teknik Komputer.
+            </p>
+            <a href={featured.href} class="taling-section-link"
+              >Lihat Detail Acara</a
+            >
+          </div>
+        </div>
+      </section>
+    {/if}
+
+    <!-- Event Cards Grid -->
+    {@const displayEvents =
+      searchQuery || selectedLocation !== "All"
+        ? filteredEvents
+        : filteredEvents.slice(1)}
+
+    {#if displayEvents.length > 0}
+      <section class="event-posters" aria-label="Daftar acara">
+        <div class="taling-section-shell event-poster-grid">
+          {#each displayEvents as event, index (event.href)}
+            <a href={event.href} class="event-card">
+              <div class="event-card-poster">
+                {#if event.poster}
+                  <OptimizedImage
+                    src={event.poster}
+                    alt={event.title}
+                    class="event-card-img"
+                    loading="lazy"
+                    decoding="async"
+                    sizes="(min-width: 1000px) 310px, 78vw"
+                    onerror={handleImageError}
+                  />
+                {:else}
+                  <div class="event-card-fallback" aria-hidden="true">
+                    <span>{event.dateLabel || "Segera"}</span>
+                    <strong>{event.title}</strong>
+                  </div>
+                {/if}
+              </div>
+              <div class="event-card-copy">
+                <div class="event-card-date">
+                  <i
+                    class="far fa-calendar-alt text-xs mr-1"
+                    aria-hidden="true"
+                  ></i>
+                  <span>{event.dateLabel || "Segera"}</span>
+                </div>
+                <h2 class="event-card-title">{event.title}</h2>
+                {#if event.location}
+                  <p class="event-card-location">
+                    <i
+                      class="fas fa-map-marker-alt text-xs mr-1"
+                      aria-hidden="true"
+                    ></i>
+                    <span>{event.location}</span>
+                  </p>
+                {/if}
+              </div>
+            </a>
+          {/each}
+        </div>
+      </section>
+    {:else if filteredEvents.length === 0}
+      <section class="event-empty">
+        <div class="taling-section-shell">
+          <div class="taling-empty-bright">
+            <i
+              class="far fa-calendar-times text-6xl text-gray-300 mb-4"
+              aria-hidden="true"
+            ></i>
+            <h2>Acara tidak ditemukan.</h2>
+            <p>Tidak ada agenda acara yang sesuai dengan pencarian Anda.</p>
+            <button
+              type="button"
+              onclick={() => {
+                searchQuery = "";
+                selectedLocation = "All";
+              }}
+              class="taling-section-link"
+            >
+              Reset Filter
+            </button>
+          </div>
+        </div>
+      </section>
+    {/if}
   {/if}
 
-  {#if pagination && pagination.total > 0}
+  <!-- Pagination section (Only show if no active local filters, to maintain consistency with backend pages) -->
+  {#if pagination && pagination.total > 0 && !searchQuery && selectedLocation === "All"}
     <section class="event-pagination">
       <div class="taling-section-shell event-pagination-inner">
         <p>
@@ -180,13 +367,18 @@
     background-size: 46px 46px;
   }
 
-  .event-hero-copy {
+  .event-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+    gap: clamp(2rem, 5vw, 6.8rem);
+    align-items: center;
     position: relative;
     z-index: 2;
+  }
+
+  .event-hero-copy {
     display: grid;
-    justify-items: center;
     gap: 1.5rem;
-    text-align: center;
   }
 
   .event-hero-rule {
@@ -194,6 +386,32 @@
     height: 18px;
     background: var(--taling-yellow);
     box-shadow: 0 0 24px rgba(255, 211, 68, 0.52);
+  }
+
+  .event-stat-board {
+    display: grid;
+    border-top: 2px solid rgba(255, 253, 248, 0.78);
+    border-bottom: 2px solid rgba(255, 253, 248, 0.78);
+  }
+
+  .event-stat-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.5rem;
+    padding: 1.1rem 0;
+    border-top: 1px solid rgba(255, 253, 248, 0.3);
+    font-weight: 800;
+  }
+
+  .event-stat-row:first-child {
+    border-top: 0;
+  }
+
+  .event-stat-row strong {
+    color: var(--taling-yellow);
+    font-family: var(--taling-font-serif);
+    font-size: 2rem;
+    line-height: 1;
   }
 
   .event-star {
@@ -228,8 +446,176 @@
     width: 230px;
   }
 
+  .event-search {
+    padding: 2.2rem 0;
+    background: #fffdf8;
+  }
+
+  .event-search-shell {
+    display: grid;
+    gap: 1.25rem;
+    border-bottom: 2px solid
+      color-mix(in srgb, var(--taling-ink) 16%, transparent);
+    padding-bottom: 2.2rem;
+  }
+
+  .event-filter-form {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+    align-items: end;
+  }
+
+  .event-filter-form label {
+    display: grid;
+    gap: 0.5rem;
+    color: var(--taling-purple);
+    font-weight: 900;
+  }
+
+  .event-filter-form input,
+  .event-filter-form select {
+    height: 3.2rem;
+    border: 2px solid var(--taling-purple);
+    border-radius: 0;
+    background: var(--taling-cream);
+    color: var(--taling-ink);
+    padding: 0 0.95rem;
+    font: inherit;
+    font-weight: 800;
+  }
+
+  .event-search-note {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: color-mix(in srgb, var(--taling-ink) 72%, transparent);
+    font-weight: 800;
+    line-height: 1.5;
+    align-items: center;
+  }
+
+  .event-search-note p {
+    margin: 0;
+  }
+
+  .event-search-note button {
+    color: var(--taling-purple);
+    font-weight: 900;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    transition: color 150ms ease;
+  }
+
+  .event-search-note button:hover {
+    color: var(--taling-orange);
+  }
+
+  .event-feature {
+    padding: 6.5rem 0 7rem;
+    background: linear-gradient(160deg, #f6bb2f 0%, #ff8a1f 54%, #c85910 100%);
+    color: #1f1520;
+    position: relative;
+  }
+
+  .event-feature-grid {
+    display: grid;
+    grid-template-columns: minmax(300px, 1.05fr) minmax(300px, 0.95fr);
+    gap: clamp(2.5rem, 7vw, 6rem);
+    align-items: center;
+  }
+
+  .event-feature-media {
+    display: block;
+    overflow: hidden;
+    border: 10px solid color-mix(in srgb, var(--taling-yellow) 45%, transparent);
+    background: var(--taling-purple);
+  }
+
+  .event-feature-media :global(.event-feature-img),
+  .event-feature-media :global(img),
+  .event-feature-fallback {
+    width: 100%;
+    height: min(58vw, 490px);
+    min-height: 340px;
+    object-fit: cover;
+  }
+
+  .event-feature-fallback {
+    display: grid;
+    place-items: center;
+    color: var(--taling-yellow);
+    background: var(--taling-purple);
+  }
+
+  .event-feature-copy {
+    display: grid;
+    gap: 1.3rem;
+  }
+
+  .event-feature-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    height: auto;
+    min-height: 28px;
+    padding: 0.25rem 1.1rem;
+    border: 2px solid #1f1520;
+    border-radius: 999px;
+    background: var(--taling-yellow);
+    color: var(--taling-purple);
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .event-feature-title {
+    margin: 0;
+    color: #1f1520;
+    font-family: var(--taling-font-serif);
+    font-size: clamp(2.4rem, 5vw, 4.4rem);
+    line-height: 1.05;
+  }
+
+  .event-feature-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: opacity 150ms ease;
+  }
+
+  .event-feature-title a:hover {
+    opacity: 0.85;
+  }
+
+  .event-feature-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1.5rem;
+    font-weight: 800;
+    color: #1f1520;
+  }
+
+  .event-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .event-feature-excerpt {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.55;
+    color: color-mix(in srgb, #1f1520 85%, transparent);
+  }
+
   .event-posters {
-    padding: 6rem 0 7.5rem;
+    padding: 6.5rem 0 8rem;
     background: #fffdf8;
     color: var(--taling-ink);
   }
@@ -239,43 +625,27 @@
     z-index: 1;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(1.5rem, 3vw, 2.5rem);
+    gap: clamp(1.5rem, 3.5vw, 2.75rem);
   }
 
   .event-card {
     display: grid;
-    gap: 1.2rem;
+    gap: 1.25rem;
     color: inherit;
     text-decoration: none;
     transition: transform 300ms ease;
   }
 
   .event-card:hover {
-    transform: translateY(-4px);
-  }
-
-  .event-card:nth-child(3n + 2) {
-    transform: translateY(2.25rem);
-  }
-
-  .event-card:nth-child(3n + 2):hover {
-    transform: translateY(calc(2.25rem - 6px));
-  }
-
-  .event-card:nth-child(3n) {
-    transform: translateY(4.5rem);
-  }
-
-  .event-card:nth-child(3n):hover {
-    transform: translateY(calc(4.5rem - 6px));
+    transform: translateY(-6px);
   }
 
   .event-card-poster {
-    height: 430px;
+    height: 390px;
     overflow: hidden;
     border: 8px solid var(--taling-purple);
     background: var(--taling-purple);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     transition:
       border-color 300ms ease,
       box-shadow 300ms ease;
@@ -298,28 +668,27 @@
     display: grid;
     align-content: center;
     gap: 1rem;
-    padding: 1.25rem;
+    padding: 1.5rem;
     background: linear-gradient(
       160deg,
       rgba(255, 211, 68, 0.96),
       rgba(255, 122, 26, 0.92)
     );
     color: var(--taling-purple);
+    text-align: center;
   }
 
-  .event-card-fallback span,
-  .event-card-copy span {
+  .event-card-fallback span {
     font-weight: 900;
-  }
-
-  .event-card-copy span {
-    color: var(--taling-orange);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .event-card-fallback strong {
     font-family: var(--taling-font-serif);
-    font-size: 2rem;
-    line-height: 1;
+    font-size: 1.85rem;
+    line-height: 1.1;
   }
 
   .event-card-copy {
@@ -327,11 +696,20 @@
     gap: 0.6rem;
   }
 
-  .event-card-copy h2 {
+  .event-card-date {
+    font-weight: 900;
+    color: var(--taling-orange);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+  }
+
+  .event-card-title {
     margin: 0;
     color: transparent;
     font-family: var(--taling-font-sans);
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(1.6rem, 3.2vw, 2.4rem);
     font-weight: 900;
     letter-spacing: 0.04em;
     line-height: 0.95;
@@ -340,18 +718,22 @@
     transition: color 250ms ease;
   }
 
-  .event-card:hover .event-card-copy h2 {
+  .event-card:hover .event-card-title {
     color: var(--taling-purple);
   }
 
-  .event-card-copy p {
+  .event-card-location {
     margin: 0;
     color: color-mix(in srgb, var(--taling-ink) 72%, transparent);
     font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.95rem;
   }
 
   .event-empty {
-    padding: 6rem 0;
+    padding: 8rem 0;
     background: #fffdf8;
     color: var(--taling-ink);
   }
@@ -369,6 +751,7 @@
     font-weight: 800;
     border-top: 2px solid color-mix(in srgb, var(--taling-ink) 16%, transparent);
     padding-top: 2rem;
+    align-items: center;
   }
 
   .event-pagination-inner p {
@@ -392,7 +775,7 @@
       var(--taling-yellow)
     );
     color: var(--taling-purple);
-    padding: 0.65rem 1.2rem;
+    padding: 0.65rem 1.35rem;
     font: inherit;
     font-weight: 900;
     text-decoration: none;
@@ -407,22 +790,38 @@
   }
 
   @media (max-width: 980px) {
-    .event-poster-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .event-hero-grid {
+      grid-template-columns: 1fr;
+      gap: 3rem;
     }
 
-    .event-card:nth-child(n) {
-      transform: none;
+    .event-feature-grid {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+
+    .event-feature-media :global(.event-feature-img),
+    .event-feature-media :global(img) {
+      height: 380px;
+    }
+
+    .event-poster-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 819px) {
     .event-hero {
-      padding: 4.25rem 0 5rem;
+      padding: 4.5rem 0 5rem;
+    }
+
+    .event-filter-form {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
     }
 
     .event-posters {
-      padding: 4rem 0 5.5rem;
+      padding: 4.5rem 0 5.5rem;
     }
 
     .event-poster-grid {
@@ -430,7 +829,7 @@
     }
 
     .event-card-poster {
-      height: min(122vw, 430px);
+      height: min(120vw, 420px);
       border-width: 6px;
     }
 
@@ -447,6 +846,8 @@
 
     .event-pagination-inner {
       display: grid;
+      gap: 1.5rem;
+      justify-items: start;
     }
   }
 </style>
