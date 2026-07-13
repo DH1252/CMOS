@@ -34,6 +34,66 @@
   let startX = 0;
   let scrollLeft = 0;
 
+  let isHovered = false;
+  let isIntersecting = false;
+  let scrollDirection = 1;
+
+  onMount(() => {
+    if (typeof window === "undefined" || !sliderRef) return;
+
+    // Set up observer to scroll only when in viewport
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isIntersecting = entry.isIntersecting;
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(sliderRef);
+
+    const handleMouseEnter = () => {
+      isHovered = true;
+    };
+    const handleMouseLeaveState = () => {
+      isHovered = false;
+    };
+
+    sliderRef.addEventListener("mouseenter", handleMouseEnter);
+    sliderRef.addEventListener("mouseleave", handleMouseLeaveState);
+
+    const scrollSpeed = 0.5; // pixels per frame
+    let animationId;
+
+    function step() {
+      if (!sliderRef) return;
+
+      if (isIntersecting && !isDown && !isHovered) {
+        const maxScroll = sliderRef.scrollWidth - sliderRef.clientWidth;
+
+        if (maxScroll > 0) {
+          if (sliderRef.scrollLeft >= maxScroll - 1) {
+            scrollDirection = -1;
+          } else if (sliderRef.scrollLeft <= 1) {
+            scrollDirection = 1;
+          }
+
+          sliderRef.scrollLeft += scrollDirection * scrollSpeed;
+        }
+      }
+      animationId = requestAnimationFrame(step);
+    }
+
+    animationId = requestAnimationFrame(step);
+
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(animationId);
+      if (sliderRef) {
+        sliderRef.removeEventListener("mouseenter", handleMouseEnter);
+        sliderRef.removeEventListener("mouseleave", handleMouseLeaveState);
+      }
+    };
+  });
+
   let minNaturalHeight = $derived.by(() => {
     let min = Infinity;
     if (staffGraphics) {
