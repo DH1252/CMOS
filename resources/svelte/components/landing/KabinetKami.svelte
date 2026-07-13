@@ -1,8 +1,11 @@
 <script>
   import { onMount } from "svelte";
 
-  let { assetBase = "/images/figma-taling", cabinetTitle = "KABINET KAMI" } =
-    $props();
+  let {
+    assetBase = "/images/figma-taling",
+    cabinetTitle = "KABINET KAMI",
+    departemenUrl = "/departemen",
+  } = $props();
 
   let sectionElement = $state(null);
   let isIntersecting = $state(false);
@@ -112,6 +115,22 @@
           alt=""
         />
       </picture>
+    </div>
+
+    <!-- View Department Button Overlay -->
+    <div
+      class="pointer-events-none absolute left-0 right-0 z-30 flex items-center justify-center transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] delay-300 {isIntersecting
+        ? 'translate-y-0 opacity-100'
+        : 'translate-y-12 opacity-0'}"
+      style="top: 76%;"
+    >
+      <a
+        href={departemenUrl}
+        class="taling-pill pointer-events-auto shadow-[0_12px_32px_rgba(255,122,26,0.35)] hover:scale-105 active:scale-95 transition-all duration-200"
+      >
+        <span>Jelajahi Departemen</span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
     </div>
 
     <!-- Rectangle 137 (550:3496) Glowing Bar -->

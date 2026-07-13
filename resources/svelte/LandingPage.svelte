@@ -131,7 +131,7 @@
       </picture>
       <div class="relative z-10 w-full">
         <AcaraMendatang {assetBase} {eventItems} {acaraUrl} {eventsSection} />
-        <KabinetKami {assetBase} {cabinetTitle} />
+        <KabinetKami {assetBase} {cabinetTitle} {departemenUrl} />
       </div>
     </div>
   </main>
