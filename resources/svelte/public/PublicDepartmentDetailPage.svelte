@@ -41,6 +41,11 @@
   onMount(() => {
     if (typeof window === "undefined" || !sliderRef) return;
 
+    const saved = localStorage.getItem("himatekkom_auto_scroll");
+    if (saved !== null) {
+      isAutoScrollActive = saved === "true";
+    }
+
     // Set up observer to scroll only when in center of viewport
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -82,6 +87,16 @@
       cancelAnimationFrame(animationId);
     };
   });
+
+  function toggleAutoScroll() {
+    isAutoScrollActive = !isAutoScrollActive;
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        "himatekkom_auto_scroll",
+        String(isAutoScrollActive),
+      );
+    }
+  }
 
   let minNaturalHeight = $derived.by(() => {
     let min = Infinity;
@@ -559,7 +574,7 @@
                 : 'bg-neutral-800'}"
               role="switch"
               aria-checked={isAutoScrollActive}
-              onclick={() => (isAutoScrollActive = !isAutoScrollActive)}
+              onclick={toggleAutoScroll}
             >
               <span
                 class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {isAutoScrollActive
