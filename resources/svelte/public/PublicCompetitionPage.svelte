@@ -359,26 +359,41 @@
         <div
           class="flex items-center justify-between border-b border-gray-100 p-6"
         >
-          <div class="flex items-center gap-2.5">
-            <span
-              class="rounded-full bg-indigo-50 px-3.5 py-1 text-xs font-bold text-[#2a0078]"
+          <div class="flex items-center gap-3">
+            <!-- Mobile Back Button -->
+            <button
+              type="button"
+              onclick={() => (activeCompetition = null)}
+              class="md:hidden flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors"
+              aria-label="Kembali"
             >
-              {activeCompetition.month}
-            </span>
-            <span
-              class="rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider {activeCompetition.status.toLowerCase() ===
-              'open'
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'bg-rose-50 text-rose-700'}"
-            >
-              {activeCompetition.status}
-            </span>
+              <i class="fas fa-chevron-left text-lg"></i>
+              <span class="text-sm font-semibold">Kembali</span>
+            </button>
+
+            <!-- Status Badges -->
+            <div class="flex items-center gap-2.5">
+              <span
+                class="rounded-full bg-indigo-50 px-3.5 py-1 text-xs font-bold text-[#2a0078]"
+              >
+                {activeCompetition.month}
+              </span>
+              <span
+                class="rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider {activeCompetition.status.toLowerCase() ===
+                'open'
+                  ? 'bg-emerald-50 text-emerald-700'
+                  : 'bg-rose-50 text-rose-700'}"
+              >
+                {activeCompetition.status}
+              </span>
+            </div>
           </div>
 
+          <!-- Desktop Close Button -->
           <button
             type="button"
             onclick={() => (activeCompetition = null)}
-            class="flex h-10 w-10 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            class="hidden md:flex h-10 w-10 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors"
             aria-label="Tutup Detail"
           >
             <i class="fas fa-times text-lg"></i>
