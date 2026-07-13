@@ -39,6 +39,7 @@
   let isAutoScrollActive = $state(true);
   let currentScrollLeft = 0;
   let lastInteractionTime = 0;
+  let highlightPausedUntil = 0;
 
   function registerInteraction() {
     lastInteractionTime = Date.now();
@@ -83,12 +84,14 @@
 
       const timeSinceLastInteraction = Date.now() - lastInteractionTime;
       const isTemporarilyPaused = timeSinceLastInteraction < 1000;
+      const isHighlightPaused = Date.now() < highlightPausedUntil;
 
       if (
         isIntersecting &&
         !isDown &&
         isAutoScrollActive &&
-        !isTemporarilyPaused
+        !isTemporarilyPaused &&
+        !isHighlightPaused
       ) {
         const maxScroll = sliderRef.scrollWidth - sliderRef.clientWidth;
 
@@ -268,6 +271,7 @@
 
   function scrollToStaff(staff) {
     activeStaffName = staff.name;
+    highlightPausedUntil = Date.now() + 5000;
     const graphicIndex = staff.graphicIndex;
 
     if (slideRefs[graphicIndex] && sliderRef) {
