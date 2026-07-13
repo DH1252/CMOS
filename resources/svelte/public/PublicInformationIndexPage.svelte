@@ -1,4 +1,5 @@
 <script>
+  import { router } from "@inertiajs/svelte";
   import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import OptimizedImage from "../components/OptimizedImage.svelte";
   import heroBgImage from "../../images/hero-bg.png?enhanced&w=640;960;1280;1920";
@@ -22,6 +23,45 @@
     pagination = null,
     seo = null,
   } = $props();
+
+  // Local state initialized from prop values
+  let searchQuery = $state(filters.query || "");
+  let selectedCategory = $state(filters.category || "");
+
+  // Sync state variables back to filters when props change (e.g. on clear filter)
+  $effect(() => {
+    searchQuery = filters.query || "";
+    selectedCategory = filters.category || "";
+  });
+
+  let searchTimeout;
+
+  function performSearch() {
+    clearTimeout(searchTimeout);
+
+    const params = {};
+    if (searchQuery.trim()) {
+      params.q = searchQuery.trim();
+    }
+    if (selectedCategory) {
+      params.kategori = selectedCategory;
+    }
+
+    router.get(filters.action, params, {
+      preserveState: true,
+      preserveScroll: true,
+      replace: true,
+    });
+  }
+
+  function handleInput() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(performSearch, 300);
+  }
+
+  function handleCategoryChange() {
+    performSearch();
+  }
 
   const hasActiveFilters = $derived(Boolean(filters.query || filters.category));
   const fallbackImage = fallbackImageAsset.original ?? fallbackImageAsset;
@@ -153,27 +193,36 @@
 
   <section class="info-search" aria-label="Filter arsip">
     <div class="taling-section-shell info-search-shell">
-      <form method="GET" action={filters.action} class="info-filter-form">
+      <form
+        method="GET"
+        action={filters.action}
+        class="info-filter-form"
+        onsubmit={(e) => {
+          e.preventDefault();
+          performSearch();
+        }}
+      >
         <label>
           <span>Cari arsip</span>
           <input
             type="text"
             name="q"
             placeholder="Judul, ringkasan, atau kata kunci"
-            value={filters.query || ""}
+            bind:value={searchQuery}
+            oninput={handleInput}
           />
         </label>
 
         <label>
           <span>Kategori</span>
-          <select name="kategori">
+          <select
+            name="kategori"
+            bind:value={selectedCategory}
+            onchange={handleCategoryChange}
+          >
             <option value="">Semua kategori</option>
             {#each filters.categories || [] as category (category.value)}
-              <option
-                value={category.value}
-                selected={String(filters.category || "") ===
-                  String(category.value)}
-              >
+              <option value={category.value}>
                 {category.label}
               </option>
             {/each}
