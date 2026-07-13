@@ -188,7 +188,11 @@
 </script>
 
 <div class="staff-graphics-editor space-y-6">
-  <input type="hidden" name={field.name} value={JSON.stringify(graphics)} />
+  <input
+    type="hidden"
+    name={field.name}
+    value={JSON.stringify(graphics.map(({ _height, ...rest }) => rest))}
+  />
 
   {#if uploadError}
     <div class="mb-2 text-sm text-red-500">{uploadError}</div>
@@ -258,6 +262,7 @@
         {#if graphic.image}
           <!-- Full-Width Image Preview Container -->
           <div
+            bind:clientHeight={graphic._height}
             class="group image-container relative w-full overflow-hidden rounded-md border border-border/50 bg-black/5"
           >
             <div
@@ -298,7 +303,10 @@
                 >
                   <div
                     class="pointer-events-none flex w-max max-w-[340px] origin-center flex-col justify-center border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover/overlay:shadow-[0_8px_32px_rgba(255,165,0,0.15)]"
-                    style="transform: scale(0.3);"
+                    style="transform: scale({Math.max(
+                      0.2,
+                      (graphic._height || 200) / 816,
+                    )});"
                   >
                     <p
                       class="text-left font-['The_Seasons',serif] text-[20px] leading-tight font-normal tracking-wide text-balance text-white/95 drop-shadow-sm"
