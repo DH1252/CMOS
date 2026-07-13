@@ -201,6 +201,7 @@
 
 <style>
   .info-show-hero {
+    isolation: isolate;
     padding: 6.5rem 0 8rem;
     color: var(--taling-white);
   }

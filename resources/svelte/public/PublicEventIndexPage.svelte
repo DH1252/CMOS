@@ -362,6 +362,7 @@
 <style>
   .event-hero {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
     padding: 6.5rem 0 8rem;
     color: var(--taling-white);
