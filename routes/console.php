@@ -12,7 +12,13 @@ Artisan::command('competitions:fetch', function () {
 
     // Resolve Bun/Node executable path
     $runCmd = 'node';
-    if (file_exists('/home/dharon/.bun/bin/bun')) {
+    if (file_exists('/usr/local/bin/node')) {
+        $runCmd = '/usr/local/bin/node';
+    } elseif (file_exists('/usr/bin/node')) {
+        $runCmd = '/usr/bin/node';
+    } elseif (file_exists('/usr/local/bin/bun')) {
+        $runCmd = '/usr/local/bin/bun';
+    } elseif (file_exists('/home/dharon/.bun/bin/bun')) {
         $runCmd = '/home/dharon/.bun/bin/bun';
     } elseif (file_exists('/home/dharon/.nvm/versions/node/v24.14.0/bin/node')) {
         $runCmd = '/home/dharon/.nvm/versions/node/v24.14.0/bin/node';

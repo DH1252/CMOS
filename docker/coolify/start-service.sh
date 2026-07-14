@@ -12,6 +12,9 @@ app)
 worker)
 	exec /usr/local/bin/start-worker
 	;;
+scheduler)
+	exec /usr/local/bin/start-scheduler
+	;;
 reverb)
 	exec /usr/local/bin/start-reverb
 	;;
@@ -19,7 +22,7 @@ ssr)
 	exec /usr/local/bin/start-ssr
 	;;
 *)
-	echo "Unsupported SERVICE_ROLE: ${SERVICE_ROLE}. Use 'all', 'app', 'worker', 'reverb', or 'ssr'." >&2
+	echo "Unsupported SERVICE_ROLE: ${SERVICE_ROLE}. Use 'all', 'app', 'worker', 'scheduler', 'reverb', or 'ssr'." >&2
 	exit 1
 	;;
 esac
