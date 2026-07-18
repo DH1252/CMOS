@@ -19,68 +19,68 @@
       departments: [
         {
           slug: "bph",
-          name: "Badan Pengurus Harian (BPH/BPI)",
-          desc: "Inti koordinasi organisasi dan manajemen.",
+          name: "Badan Pengurus Harian (BPH)",
+          desc: "Inti kepengurusan, keputusan strategis, dan pengawasan organisasi.",
         },
         {
           slug: "personalia",
           name: "Personalia",
-          desc: "Harmonisasi internal dan pengawasan kinerja.",
+          desc: "Pengembangan, motivasi, dan evaluasi sumber daya fungsionaris.",
         },
       ],
     },
     {
-      title: "Pengembangan Mahasiswa",
+      title: "Internal & Pengembangan",
       departments: [
         {
           slug: "kaderisasi",
           name: "Kaderisasi",
-          desc: "Pembinaan karakter dan kepemimpinan.",
+          desc: "Regenerasi kader, penanaman nilai, dan pembentukan karakter.",
         },
         {
           slug: "psdm",
           name: "PSDM",
-          desc: "Pengembangan bakat minat dan kaderisasi mahasiswa.",
+          desc: "Pelatihan, pengembangan kompetensi, dan kesiapan karier anggota.",
         },
         {
           slug: "risprof",
           name: "Riset & Keprofesian",
-          desc: "Pengembangan kompetensi ilmiah dan karir.",
+          desc: "Riset, keilmiahan, inovasi, dan pengembangan keprofesian.",
         },
       ],
     },
     {
-      title: "Kesejahteraan & Relasi",
+      title: "Relasi & Kesejahteraan",
       departments: [
         {
           slug: "kesma",
           name: "Kesejahteraan Mahasiswa",
-          desc: "Advokasi akademik dan layanan mahasiswa.",
+          desc: "Fasilitas, layanan akademik, advokasi, dan aspirasi mahasiswa.",
         },
         {
           slug: "dagri",
           name: "Dalam Negeri",
-          desc: "Sinergi komunitas dan internal engagement.",
+          desc: "Hubungan internal, minat bakat, dan kolaborasi lintas angkatan.",
         },
         {
           slug: "hublu",
           name: "Hubungan Luar",
-          desc: "Relasi eksternal dan ekspansi kemitraan.",
+          desc: "Jejaring eksternal, alumni, industri, dan pengabdian masyarakat.",
         },
       ],
     },
     {
-      title: "Kreatif & Kewirausahaan",
+      title: "Komunikasi & Kewirausahaan",
       departments: [
         {
           slug: "medfo",
           name: "Media & Informasi",
-          desc: "Kreatif visual dan komunikasi publik.",
+          desc: "Media production, branding, dokumentasi, dan informasi strategis.",
         },
         {
           slug: "kwu",
           name: "Kewirausahaan",
-          desc: "Kemitraan bisnis dan pendanaan mandiri.",
+          desc: "Pendanaan mandiri, unit usaha kreatif, dan literasi bisnis.",
         },
       ],
     },

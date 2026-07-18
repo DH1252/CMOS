@@ -307,9 +307,9 @@
       description:
         "Biro yang bertanggung jawab atas manajemen sumber daya fungsionaris. Personalia berfokus pada penyusunan standar pengembangan fungsionaris, pemeliharaan motivasi, serta evaluasi kinerja guna memastikan setiap fungsionaris berkontribusi secara optimal dalam iklim organisasi.",
       focus: [
-        "Manajemen Sumber Daya",
-        "Pemeliharaan Motivasi",
-        "Evaluasi Kinerja Staf",
+        "Pengembangan Fungsionaris",
+        "Motivasi dan Loyalitas",
+        "Evaluasi Kinerja",
       ],
     },
     risprof: {
@@ -317,9 +317,9 @@
       description:
         "Departemen yang mendorong anggota dalam mengembangkan kemampuan riset dan memperdalam keprofesian di bidang Teknik Komputer melalui program riset, inovasi, serta pengembangan karir untuk memperluas wawasan akademik dan profesional.",
       focus: [
-        "Budaya Riset Keilmiahan",
-        "Pengembangan Karir",
-        "Literasi Isu Keprofesian",
+        "Budaya Riset dan Keilmiahan",
+        "Informasi Riset dan Kompetisi",
+        "Literasi Keprofesian",
       ],
     },
     kwu: {
@@ -327,9 +327,9 @@
       description:
         "Departemen yang bertanggung jawab mengelola pendanaan mandiri HIMATEKKOM ITS melalui unit usaha kreatif dan meningkatkan wawasan seputar kewirausahaan bagi mahasiswa Teknik Komputer.",
       focus: [
-        "Pendanaan Mandiri",
         "Unit Usaha Kreatif",
-        "Edukasi Kewirausahaan",
+        "Literasi Bisnis",
+        "Jejaring Mitra Strategis",
       ],
     },
     psdm: {
@@ -337,9 +337,9 @@
       description:
         "Departemen yang merancang dan melaksanakan kaderisasi fungsionaris, pembinaan karakter kepemimpinan, serta peningkatan kompetensi anggota melalui pelatihan, workshop, dan pengembangan bakat minat.",
       focus: [
-        "Pelatihan & Upgrading",
-        "Minat Bakat Mahasiswa",
-        "Kaderisasi Fungsionaris",
+        "Pelatihan dan Workshop",
+        "Kesiapan Karier",
+        "Pendataan Prestasi",
       ],
     },
     dagri: {
@@ -347,8 +347,8 @@
       description:
         "Departemen yang bertanggung jawab meningkatkan keharmonisan dan hubungan internal antar anggota HIMATEKKOM ITS, menampung aspirasi, serta memfasilitasi kegiatan kekeluargaan dan minat bakat.",
       focus: [
-        "Hubungan Internal Anggota",
-        "Sinergi Lintas Angkatan",
+        "Minat dan Bakat",
+        "Kolaborasi Lintas Angkatan",
         "Kekeluargaan Himpunan",
       ],
     },
@@ -358,28 +358,24 @@
         "Badan Pengurus Harian merupakan inti kepengurusan HIMATEKKOM ITS yang bertanggung jawab atas perumusan tata kelola organisasi, pengambilan keputusan strategis, arah gerak, serta fungsi kontrol dan koordinasi seluruh lini.",
       focus: [
         "Tata Kelola Organisasi",
-        "Kebijakan & Arah Gerak",
-        "Kontrol & Koordinasi",
+        "Arah Gerak dan Komunikasi",
+        "Kontrol Lintas Departemen",
       ],
     },
     hublu: {
       name: "Hubungan Luar (HUBLU)",
       description:
         "Departemen yang berfokus pada pengembangan dan pemeliharaan hubungan strategis dengan pihak eksternal, termasuk perusahaan, organisasi mahasiswa lain, dan alumni guna memperluas jejaring dan kemitraan.",
-      focus: [
-        "Relasi & Jejaring Eksternal",
-        "Sinergi Alumni",
-        "Kemitraan Industri",
-      ],
+      focus: ["Relasi Eksternal", "Sinergi Alumni", "Pengabdian Masyarakat"],
     },
     kesma: {
       name: "Kesejahteraan Mahasiswa (KESMA)",
       description:
         "Departemen yang bertugas memberikan dukungan kesejahteraan dalam bentuk penyediaan fasilitas, layanan advokasi akademik, kesejahteraan finansial, dan penyaluran aspirasi mahasiswa Teknik Komputer.",
       focus: [
-        "Advokasi & Layanan Akademik",
-        "Kesejahteraan Mental & Sosial",
-        "Fasilitas Pembelajaran",
+        "Layanan Advokasi",
+        "Kesejahteraan Mental dan Sosial",
+        "Dukungan Akademik",
       ],
     },
     medfo: {
@@ -387,9 +383,9 @@
       description:
         "Garda terdepan dalam pengelolaan seluruh kanal komunikasi dan publikasi organisasi. Medfo bertanggung jawab memproduksi konten visual, mengelola media sosial, dan menyebarkan informasi strategis himpunan.",
       focus: [
-        "Kanal Komunikasi Publik",
-        "Produksi Konten Visual",
-        "Jurnalistik & Media Kreatif",
+        "Media Production",
+        "Branding Organisasi",
+        "Jurnalistik dan Informasi",
       ],
     },
     kaderisasi: {
@@ -397,9 +393,9 @@
       description:
         "Departemen yang memiliki peran strategis dalam merumuskan konsep pembinaan, penanaman nilai karakter, dan loyalitas kader-kader HIMATEKKOM ITS melalui alur koordinasi langsung dengan Ketua Himpunan.",
       focus: [
-        "Kaderisasi & Pembinaan",
-        "Penanaman Nilai Karakter",
-        "Regenerasi Kepemimpinan",
+        "Regenerasi Organisasi",
+        "Penanaman Nilai dan Karakter",
+        "Fundamental Kepengaderan",
       ],
     },
   };

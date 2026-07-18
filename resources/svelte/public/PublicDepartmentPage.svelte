@@ -44,7 +44,7 @@
   const smallStarDelay = getElapsedDelay(10000, "starSmall");
   const botanicalDelay = getElapsedDelay(25000, "botanical");
 
-  // Hardcoded Figma Departments with placeholder texts
+  // Public department summaries from the 2026 TKO Sentra Sinergi.
   const departments = [
     // Outer Orbit
     {
@@ -54,18 +54,26 @@
       baseAngle: 0,
       dotColor: "from-[#ffd344] to-[#ffa500]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      focus: ["Harmonisasi Internal", "Pengawasan Kinerja", "Engagement Staff"],
+        "Biro yang mengelola sumber daya fungsionaris melalui standar pengembangan, pemeliharaan motivasi, dan evaluasi kinerja yang profesional serta sistematis.",
+      focus: [
+        "Pengembangan Fungsionaris",
+        "Motivasi dan Loyalitas",
+        "Evaluasi Kinerja",
+      ],
     },
     {
       id: "risprof",
-      name: "Risprof",
+      name: "RISPROF",
       orbit: "outer",
       baseAngle: (72 * Math.PI) / 180,
       dotColor: "from-[#ff7a1a] to-[#ffd344]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia.",
-      focus: ["Riset Teknologi", "Kompetensi Ilmiah", "Career Preparation"],
+        "Departemen yang mendorong pengembangan kemampuan riset dan pendalaman keprofesian Teknik Komputer melalui penelitian, inovasi, dan pengembangan karier.",
+      focus: [
+        "Budaya Riset dan Keilmiahan",
+        "Informasi Riset dan Kompetisi",
+        "Literasi Keprofesian",
+      ],
     },
     {
       id: "kwu",
@@ -74,8 +82,12 @@
       baseAngle: (144 * Math.PI) / 180,
       dotColor: "from-[#ffd344] to-[#ffa500]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mollis pretium lorem primis senectus habitasse. Pretium aenean dictumst feugiat vulputate id, imperdiet sit cras proin mus.",
-      focus: ["Entrepreneurship", "Pendanaan Mandiri", "Business Partnership"],
+        "Departemen yang mengelola pendanaan mandiri HIMATEKKOM ITS sekaligus meningkatkan wawasan kewirausahaan mahasiswa Teknik Komputer.",
+      focus: [
+        "Unit Usaha Kreatif",
+        "Literasi Bisnis",
+        "Jejaring Mitra Strategis",
+      ],
     },
     {
       id: "psdm",
@@ -84,11 +96,11 @@
       baseAngle: (216 * Math.PI) / 180,
       dotColor: "from-[#ffd344] to-[#ffa500]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Netus proin elementum hac ad iaculis interdum. Curae etiam sit class phasellus dis a non cubilia curabitur.",
+        "Departemen yang meningkatkan kualitas dan kompetensi anggota melalui pelatihan, workshop, dan pengembangan karakter, keterampilan teknis, serta kepemimpinan.",
       focus: [
-        "Pengembangan Soft Skills",
-        "Minat dan Bakat",
-        "Pembinaan Anggota",
+        "Pelatihan dan Workshop",
+        "Kesiapan Karier",
+        "Pendataan Prestasi",
       ],
     },
     {
@@ -98,8 +110,12 @@
       baseAngle: (288 * Math.PI) / 180,
       dotColor: "from-[#ff7a1a] to-[#ffd344]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Magnis non sed ad vivamus in. Inceptos pretium quisque dictumst platea; nisl class sit eros torquent.",
-      focus: ["Sinergi Komunitas", "Internal Engagement", "Apresiasi Anggota"],
+        "Departemen yang meningkatkan hubungan internal antaranggota HIMATEKKOM ITS serta memfasilitasi kegiatan internal dan pengembangan minat bakat.",
+      focus: [
+        "Minat dan Bakat",
+        "Kolaborasi Lintas Angkatan",
+        "Kekeluargaan Himpunan",
+      ],
     },
     // Inner Orbit
     {
@@ -109,11 +125,11 @@
       baseAngle: (36 * Math.PI) / 180,
       dotColor: "from-[#ff7a1a] to-[#ffd344]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Habitasse aenean id litora morbi scelerisque eros imperdiet. Sem integer nisl aenean cubilia eleifend nam non convallis.",
+        "BPH merupakan inti kepengurusan HIMATEKKOM ITS yang bertanggung jawab atas keputusan strategis dan pengawasan jalannya organisasi secara keseluruhan.",
       focus: [
-        "Administrasi Organisasi",
-        "Manajemen Keuangan",
-        "Kesekretariatan",
+        "Tata Kelola Organisasi",
+        "Arah Gerak dan Komunikasi",
+        "Kontrol Lintas Departemen",
       ],
     },
     {
@@ -123,8 +139,8 @@
       baseAngle: (108 * Math.PI) / 180,
       dotColor: "from-[#ff7a1a] to-[#ffd344]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Adipiscing scelerisque integer taciti ad facilisi erat cras varius phasellus. Aptent sed maecenas habitant torquent primis hendrerit torquent facilisis.",
-      focus: ["Relasi Alumni", "Kompetensi Eksternal", "Networking Strategis"],
+        "Departemen yang mengembangkan dan memelihara hubungan strategis dengan perusahaan, organisasi mahasiswa, dan alumni untuk memperluas jejaring serta wawasan profesional.",
+      focus: ["Relasi Eksternal", "Sinergi Alumni", "Pengabdian Masyarakat"],
     },
     {
       id: "kesma",
@@ -133,11 +149,11 @@
       baseAngle: (180 * Math.PI) / 180,
       dotColor: "from-[#ffd344] to-[#ffa500]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Parturient maecenas quisque suspendisse class donec non. Convallis non inceptos congue a rhoncus scelerisque.",
+        "Departemen yang menyediakan fasilitas, layanan akademik, advokasi, dan penyaluran aspirasi demi terciptanya lingkungan kemahasiswaan yang sejahtera.",
       focus: [
-        "Advokasi Akademik",
-        "Kesejahteraan Finansial",
-        "Layanan Mahasiswa",
+        "Layanan Advokasi",
+        "Kesejahteraan Mental dan Sosial",
+        "Dukungan Akademik",
       ],
     },
     {
@@ -147,11 +163,11 @@
       baseAngle: (252 * Math.PI) / 180,
       dotColor: "from-[#ff7a1a] to-[#ffd344]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Hac etiam habitasse curae potenti at scelerisque per proin. Placerat primis interdum senectus rhoncus dictum, scelerisque nisl tempor tristique.",
+        "Departemen yang mengelola kanal komunikasi dan publikasi internal maupun eksternal, termasuk produksi konten visual, media sosial, dokumentasi, dan informasi strategis.",
       focus: [
-        "Kreatif & Desain Visual",
-        "Kanal Komunikasi Publik",
-        "Publikasi Informasi",
+        "Media Production",
+        "Branding Organisasi",
+        "Jurnalistik dan Informasi",
       ],
     },
     {
@@ -161,11 +177,11 @@
       baseAngle: (324 * Math.PI) / 180,
       dotColor: "from-[#ffd344] to-[#ffa500]",
       description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dignissim sed scelerisque ad curae taciti per facilisi pulvinar nullam. Dictumst tristique hendrerit sit congue senectus netus mus taciti class.",
+        "Departemen instruktif yang membentuk kader HIMATEKKOM ITS melalui penanaman nilai, pengembangan karakter, dan regenerasi kepemimpinan secara terarah.",
       focus: [
-        "Kaderisasi Fungsionaris",
-        "Latihan Kepemimpinan",
-        "Evaluasi Karakter",
+        "Regenerasi Organisasi",
+        "Penanaman Nilai dan Karakter",
+        "Fundamental Kepengaderan",
       ],
     },
   ];
