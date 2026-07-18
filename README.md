@@ -115,7 +115,7 @@ CMOS adalah aplikasi manajemen workflow modern yang dirancang untuk organisasi/k
 ### Access
 
 - 🌐 **App**: http://localhost
-- 🗄️ **phpMyAdmin**: http://localhost:8080
+- 🗄️ **phpMyAdmin**: http://localhost:8081
 
 ### Default Login
 
@@ -125,6 +125,102 @@ CMOS adalah aplikasi manajemen workflow modern yang dirancang untuk organisasi/k
 | BPH     | bph@savana.test          | password |
 | Kabinet | kabinet.psdm@savana.test | password |
 | Staff   | staff1@savana.test       | password |
+
+---
+
+## 🚢 Sail Deployment
+
+The repository includes a production-aware Laravel Sail Compose stack. The
+application container builds the frontend and SSR assets, runs migrations, and
+starts Octane, the queue worker, scheduler, Reverb, and SSR services.
+
+### First Deployment
+
+Install Docker Engine with the Compose plugin and Git on the server, then run:
+
+```bash
+git clone https://github.com/DH1252/CMOS.git
+cd CMOS
+cp .env.example .env
+```
+
+Edit `.env` before starting the containers. Set at least:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.com
+APP_PORT=80
+APP_KEY=
+
+DB_DATABASE=cmos
+DB_PASSWORD=strong-root-password
+SAIL_DB_USERNAME=sail
+SAIL_DB_PASSWORD=strong-app-password
+```
+
+Build the image, install PHP dependencies, and generate the encryption key:
+
+```bash
+docker compose build
+docker compose run --rm laravel.test composer install --no-interaction --prefer-dist --optimize-autoloader
+docker compose run --rm laravel.test php artisan key:generate --force
+docker compose up -d
+```
+
+On startup, `SAIL_AUTO_MIGRATE=true` runs pending migrations automatically. The
+container also prepares frontend assets and creates the `public/storage`
+symlink.
+
+### Seed the Database
+
+Run the production-safe baseline seeders with:
+
+```bash
+docker compose exec laravel.test php artisan db:seed --force
+```
+
+This seeds roles, departments, information categories, settings, and evaluation
+configuration. It does not create demo users when `APP_ENV=production`.
+
+For a local or demo environment, set the following in `.env` before seeding:
+
+```env
+APP_SEED_DEVELOPMENT_DATA=true
+```
+
+Then run:
+
+```bash
+docker compose exec laravel.test php artisan config:clear
+docker compose exec laravel.test php artisan db:seed --force
+docker compose exec laravel.test php artisan config:cache
+```
+
+The development seeder creates demo accounts with the password `password`. Do
+not use this seeder on a public production server unless all generated account
+passwords are changed immediately.
+
+### Subsequent Deployments
+
+```bash
+git pull origin main
+docker compose up -d --build
+docker compose exec laravel.test php artisan migrate --force
+```
+
+After the initial dependency installation, the Sail wrapper can be used:
+
+```bash
+./vendor/bin/sail up -d --build
+./vendor/bin/sail artisan migrate --force
+./vendor/bin/sail artisan db:seed --force
+./vendor/bin/sail logs -f
+```
+
+Do not run `migrate:fresh` on a server containing real data because it drops all
+tables. Use `docker compose down` only when stopping the stack; do not use
+`docker compose down -v` unless the database volume may be deleted.
 
 ---
 
