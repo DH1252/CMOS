@@ -1,4 +1,5 @@
 <script>
+  import { page } from "@inertiajs/svelte";
   import { onDestroy, onMount } from "svelte";
   import { inertiaEnhance } from "$lib/inertia-enhance.js";
   import * as Sheet from "$lib/components/ui/sheet/index.js";
@@ -451,7 +452,7 @@
     }
 
     return date.toLocaleString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       day: "2-digit",
       month: "short",
       hour: "2-digit",

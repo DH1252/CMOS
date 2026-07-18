@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\ApplicationTimezone;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Throwable;
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        app(ApplicationTimezone::class)->apply();
+
         if (config('posthog.disabled')) {
             return;
         }

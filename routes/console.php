@@ -58,4 +58,6 @@ try {
 if (! preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time)) {
     $time = '01:00';
 }
-\Illuminate\Support\Facades\Schedule::command('competitions:fetch')->dailyAt($time);
+\Illuminate\Support\Facades\Schedule::command('competitions:fetch')
+    ->dailyAt($time)
+    ->timezone(config('app.client_timezone', 'Asia/Jakarta'));

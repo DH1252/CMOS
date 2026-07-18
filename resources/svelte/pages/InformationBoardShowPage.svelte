@@ -1,4 +1,5 @@
 <script>
+  import { page } from "@inertiajs/svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import * as Card from "$lib/components/ui/card/index.js";
@@ -46,7 +47,7 @@
     }
 
     return date.toLocaleString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       day: "2-digit",
       month: "short",
       year: "numeric",

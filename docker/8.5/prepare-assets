@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR=/var/www/html
+
+if [ "${SAIL_BUILD_ASSETS:-true}" != "true" ]; then
+    if [ "${SAIL_SSR_ENABLED:-true}" = "true" ] && [ ! -f "$ROOT_DIR/bootstrap/ssr/ssr.js" ]; then
+        echo "Sail SSR is enabled, but bootstrap/ssr/ssr.js is missing. Set SAIL_BUILD_ASSETS=true or build the assets first." >&2
+        exit 1
+    fi
+
+    exit 0
+fi
+
+if [ ! -f "$ROOT_DIR/package.json" ]; then
+    echo "Sail asset preparation skipped: package.json is missing."
+    exit 0
+fi
+
+if [ ! -d "$ROOT_DIR/node_modules" ] || [ ! -x "$ROOT_DIR/node_modules/.bin/vite" ]; then
+    npm ci --no-audit --no-fund
+fi
+
+npm run build

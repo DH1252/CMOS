@@ -17,6 +17,7 @@
     competitionSettings = {
       spreadsheetUrl: "",
       scheduleInfo: "",
+      timezone: "Asia/Jakarta",
       lastFetched: null,
       hasApiKey: false,
     },
@@ -78,7 +79,7 @@
         );
         currentSpreadsheetUrl = editSpreadsheetUrl;
         currentScheduleTime = editScheduleTime;
-        currentScheduleInfo = `Setiap hari pukul ${editScheduleTime} WIB`;
+        currentScheduleInfo = `Setiap hari pukul ${editScheduleTime} (${competitionSettings.timezone || "Asia/Jakarta"})`;
         isEditing = false;
       } else {
         notify("Gagal", "Gagal menyimpan pengaturan.", "error");
@@ -251,6 +252,7 @@
     if (!iso) return "-";
     try {
       return new Date(iso).toLocaleString("id-ID", {
+        timeZone: competitionSettings.timezone || "Asia/Jakarta",
         day: "2-digit",
         month: "short",
         hour: "2-digit",
@@ -510,7 +512,7 @@
               >Jadwal Sync Otomatis</span
             >
             <span class="text-sm font-semibold mt-1">
-              {currentScheduleInfo || "Setiap hari pukul 01:00 WIB"}
+              {currentScheduleInfo || "Setiap hari pukul 01:00 (Asia/Jakarta)"}
             </span>
           </div>
 
@@ -581,7 +583,8 @@
           <div class="flex flex-col gap-1.5">
             <label
               class="text-xs font-bold text-muted-foreground uppercase tracking-widest"
-              for="scheduleTime">Jadwal Sync Otomatis (HH:MM WIB)</label
+              for="scheduleTime"
+              >Jadwal Sync Otomatis (HH:MM zona aplikasi)</label
             >
             <input
               id="scheduleTime"

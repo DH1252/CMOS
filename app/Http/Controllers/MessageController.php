@@ -140,8 +140,8 @@ class MessageController extends Controller
                 'content' => $m->content,
                 'is_mine' => $m->sender_id === $currentUser->id,
                 'is_read' => $m->is_read,
-                'created_at' => $m->created_at->setTimezone('Asia/Jakarta')->format('H:i'),
-                'date' => $m->created_at->setTimezone('Asia/Jakarta')->format('d M'),
+                'created_at' => $m->created_at->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->format('H:i'),
+                'date' => $m->created_at->setTimezone(config('app.client_timezone', 'Asia/Jakarta'))->format('d M'),
                 'created_at_raw' => $m->created_at->toIso8601String(),
             ]),
             'user' => [

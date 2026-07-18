@@ -1,4 +1,5 @@
 <script>
+  import { page } from "@inertiajs/svelte";
   import { onDestroy } from "svelte";
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
@@ -105,7 +106,7 @@
     }
 
     return date.toLocaleDateString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       day: "2-digit",
       month: "short",
       year: "numeric",

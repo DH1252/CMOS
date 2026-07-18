@@ -1,4 +1,5 @@
 <script>
+  import { page } from "@inertiajs/svelte";
   import { onDestroy, onMount, tick } from "svelte";
   import { subscribeToLiveUpdates } from "$lib/live-updates.js";
   import { Button } from "$lib/components/ui/button/index.js";
@@ -140,7 +141,7 @@
 
     const dayKey = (input) =>
       new Intl.DateTimeFormat("id-ID", {
-        timeZone: "Asia/Jakarta",
+        timeZone: page.props.appTimezone || "Asia/Jakarta",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -148,13 +149,13 @@
 
     const yearKey = (input) =>
       new Intl.DateTimeFormat("id-ID", {
-        timeZone: "Asia/Jakarta",
+        timeZone: page.props.appTimezone || "Asia/Jakarta",
         year: "numeric",
       }).format(input);
 
     if (dayKey(date) === dayKey(now)) {
       return date.toLocaleTimeString("id-ID", {
-        timeZone: "Asia/Jakarta",
+        timeZone: page.props.appTimezone || "Asia/Jakarta",
         hour: "2-digit",
         minute: "2-digit",
       });
@@ -162,7 +163,7 @@
 
     if (yearKey(date) === yearKey(now)) {
       return date.toLocaleString("id-ID", {
-        timeZone: "Asia/Jakarta",
+        timeZone: page.props.appTimezone || "Asia/Jakarta",
         day: "2-digit",
         month: "short",
         hour: "2-digit",
@@ -171,7 +172,7 @@
     }
 
     return date.toLocaleString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -196,7 +197,7 @@
     }
 
     return date.toLocaleDateString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       day: "2-digit",
       month: "short",
     });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\SiteStatistics;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Artisan;
 use Inertia\Response;
@@ -14,10 +15,11 @@ class SiteStatisticsController extends Controller
     public function index(): Response
     {
         $summary = $this->statistics->summary();
+        $timezone = (string) config('app.client_timezone', 'Asia/Jakarta');
 
         $competitionsPath = storage_path('app/competitions.json');
         $lastFetched = file_exists($competitionsPath)
-            ? date('c', filemtime($competitionsPath))
+            ? Carbon::createFromTimestamp(filemtime($competitionsPath), $timezone)->toIso8601String()
             : null;
 
         return \Inertia\Inertia::render('pages/SiteStatisticsPage', [
@@ -30,7 +32,8 @@ class SiteStatisticsController extends Controller
             'competitionSettings' => [
                 'spreadsheetUrl' => \App\Models\Setting::get('competition_spreadsheet_url', 'https://docs.google.com/spreadsheets/d/1rHMZoGB3RgzDVwRqW0QalCahShWGMdLTOQVO62x5EK4/edit'),
                 'scheduleTime' => \App\Models\Setting::get('competition_schedule_time', '01:00'),
-                'scheduleInfo' => 'Setiap hari pukul '.\App\Models\Setting::get('competition_schedule_time', '01:00').' WIB',
+                'scheduleInfo' => 'Setiap hari pukul '.\App\Models\Setting::get('competition_schedule_time', '01:00').' ('.$timezone.')',
+                'timezone' => $timezone,
                 'lastFetched' => $lastFetched,
                 'hasApiKey' => ! empty(config('services.google.api_key')),
             ],

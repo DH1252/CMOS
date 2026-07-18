@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Role;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\ApplicationTimezone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -22,6 +23,7 @@ class SettingControllerTest extends TestCase
             'app_name' => 'CMOS Prime',
             'organization_name' => 'HIMATEKKOM ITS',
             'evaluation_period' => 'semester',
+            'app_timezone' => 'Asia/Jakarta',
         ]);
 
         $response->assertRedirect(route('settings.index'));
@@ -30,6 +32,7 @@ class SettingControllerTest extends TestCase
         $this->assertSame('CMOS Prime', Setting::get('app_name'));
         $this->assertSame('HIMATEKKOM ITS', Setting::get('organization_name'));
         $this->assertSame('semester', Setting::get('evaluation_period'));
+        $this->assertSame('Asia/Jakarta', Setting::get('app_timezone'));
     }
 
     public function test_non_admin_cannot_update_settings(): void
@@ -40,6 +43,7 @@ class SettingControllerTest extends TestCase
             'app_name' => 'CMOS Prime',
             'organization_name' => 'HIMATEKKOM ITS',
             'evaluation_period' => 'yearly',
+            'app_timezone' => 'Asia/Jakarta',
         ]);
 
         $response->assertForbidden();
@@ -56,6 +60,8 @@ class SettingControllerTest extends TestCase
             ->has('values.appName')
             ->has('values.organizationName')
             ->has('values.evaluationPeriod')
+            ->has('values.appTimezone')
+            ->has('values.timezoneOptions')
             ->has('values.periodOptions')
             ->missing('colors')
             ->missing('values.themeColor')
@@ -71,10 +77,24 @@ class SettingControllerTest extends TestCase
             'app_name' => '',
             'organization_name' => '',
             'evaluation_period' => 'weekly',
+            'app_timezone' => 'Not/A-Timezone',
         ]);
 
         $response->assertRedirect(route('settings.index'));
-        $response->assertSessionHasErrors(['app_name', 'organization_name', 'evaluation_period']);
+        $response->assertSessionHasErrors(['app_name', 'organization_name', 'evaluation_period', 'app_timezone']);
+    }
+
+    public function test_configured_timezone_is_applied_without_changing_utc_storage_timezone(): void
+    {
+        Setting::set('app_timezone', 'Pacific/Auckland');
+
+        $timezone = app(ApplicationTimezone::class)->apply();
+
+        $this->assertSame('Pacific/Auckland', $timezone);
+        $this->assertSame('Pacific/Auckland', config('app.client_timezone'));
+        $this->assertSame('Pacific/Auckland', config('app.schedule_timezone'));
+        $this->assertSame('UTC', config('app.timezone'));
+        $this->assertSame('UTC', date_default_timezone_get());
     }
 
     private function createUserWithRole(string $roleName): User

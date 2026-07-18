@@ -4,26 +4,56 @@ services:
             context: ./docker/8.5
             dockerfile: Dockerfile
             args:
-                WWWGROUP: '${WWWGROUP}'
+                WWWGROUP: '${WWWGROUP:-1000}'
         image: sail-8.5/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
             - '${APP_PORT:-80}:80'
             - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+            - '${FORWARD_REVERB_PORT:-8080}:8080'
         environment:
-            WWWUSER: '${WWWUSER}'
+            WWWUSER: '${WWWUSER:-1000}'
             LARAVEL_SAIL: 1
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
-            SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80 --workers=6 --max-requests=1000 --caddyfile=/var/www/html/Caddyfile"
+            SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan octane:start --server=frankenphp --host=0.0.0.0 --admin-port=2019 --port=80 --workers=6 --max-requests=1000 --caddyfile=/var/www/html/Caddyfile"
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_USERNAME: '${SAIL_DB_USERNAME:-sail}'
+            DB_PASSWORD: '${SAIL_DB_PASSWORD:-password}'
+            QUEUE_CONNECTION: '${SAIL_QUEUE_CONNECTION:-database}'
+            SAIL_AUTO_MIGRATE: '${SAIL_AUTO_MIGRATE:-true}'
+            SAIL_QUEUE_ENABLED: '${SAIL_QUEUE_ENABLED:-true}'
+            SAIL_SCHEDULER_ENABLED: '${SAIL_SCHEDULER_ENABLED:-true}'
+            SAIL_REVERB_ENABLED: '${SAIL_REVERB_ENABLED:-true}'
+            SAIL_SSR_ENABLED: '${SAIL_SSR_ENABLED:-true}'
+            SAIL_BUILD_ASSETS: '${SAIL_BUILD_ASSETS:-true}'
+            SAIL_IMAGE_CACHE_WARM: '${SAIL_IMAGE_CACHE_WARM:-true}'
+            INERTIA_SSR_ENABLED: '${INERTIA_SSR_ENABLED:-true}'
+            INERTIA_SSR_RUNTIME: '${INERTIA_SSR_RUNTIME:-node}'
+            INERTIA_SSR_ENSURE_RUNTIME_EXISTS: '${INERTIA_SSR_ENSURE_RUNTIME_EXISTS:-true}'
+            QUEUE_WORKER_QUEUE: '${QUEUE_WORKER_QUEUE:-default}'
+            QUEUE_WORKER_TRIES: '${QUEUE_WORKER_TRIES:-3}'
+            QUEUE_WORKER_TIMEOUT: '${QUEUE_WORKER_TIMEOUT:-90}'
+            QUEUE_WORKER_SLEEP: '${QUEUE_WORKER_SLEEP:-3}'
+            QUEUE_WORKER_MEMORY: '${QUEUE_WORKER_MEMORY:-256}'
+            REVERB_SERVER_HOST: 0.0.0.0
+            REVERB_SERVER_PORT: 8080
+            REVERB_HOST: 127.0.0.1
+            REVERB_PORT: 8080
+            REVERB_SCHEME: http
+            VITE_REVERB_HOST: '${VITE_REVERB_HOST:-127.0.0.1}'
+            VITE_REVERB_PORT: '${VITE_REVERB_PORT:-8080}'
+            VITE_REVERB_SCHEME: '${VITE_REVERB_SCHEME:-http}'
         volumes:
             - '.:/var/www/html:z'
         networks:
             - sail
         depends_on:
-            - mysql
+            mysql:
+                condition: service_healthy
     mysql:
         image: 'mysql:8.4'
         ports:
@@ -32,8 +62,8 @@ services:
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
             MYSQL_ROOT_HOST: '%'
             MYSQL_DATABASE: '${DB_DATABASE}'
-            MYSQL_USER: '${DB_USERNAME}'
-            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_USER: '${SAIL_DB_USERNAME:-sail}'
+            MYSQL_PASSWORD: '${SAIL_DB_PASSWORD:-password}'
             MYSQL_ALLOW_EMPTY_PASSWORD: 1
             MYSQL_EXTRA_OPTIONS: '${MYSQL_EXTRA_OPTIONS:-}'
         volumes:
@@ -52,15 +82,16 @@ services:
     phpmyadmin:
         image: 'phpmyadmin:latest'
         ports:
-            - '8080:80'
+            - '${FORWARD_PHPMYADMIN_PORT:-8081}:80'
         networks:
             - sail
         environment:
             PMA_HOST: mysql
-            PMA_USER: sail
-            PMA_PASSWORD: password
+            PMA_USER: '${SAIL_DB_USERNAME:-sail}'
+            PMA_PASSWORD: '${SAIL_DB_PASSWORD:-password}'
         depends_on:
-            - mysql
+            mysql:
+                condition: service_healthy
 networks:
     sail:
         driver: bridge

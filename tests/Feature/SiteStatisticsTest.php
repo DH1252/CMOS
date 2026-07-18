@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Visitor;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -160,6 +161,15 @@ class SiteStatisticsTest extends TestCase
         ]);
 
         $response->assertForbidden();
+    }
+
+    public function test_competition_schedule_uses_application_timezone(): void
+    {
+        $event = collect(app(Schedule::class)->events())
+            ->first(fn ($event): bool => str_contains($event->command, 'competitions:fetch'));
+
+        $this->assertNotNull($event);
+        $this->assertSame(config('app.client_timezone'), (string) $event->timezone);
     }
 
     private function createUserWithRole(string $roleName): User

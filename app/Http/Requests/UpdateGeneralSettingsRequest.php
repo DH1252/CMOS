@@ -21,6 +21,7 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'app_name' => ['required', 'string', 'max:60'],
             'organization_name' => ['required', 'string', 'max:80'],
             'evaluation_period' => ['required', Rule::in(['monthly', 'quarterly', 'semester', 'yearly'])],
+            'app_timezone' => ['required', Rule::in(timezone_identifiers_list())],
         ];
     }
 
@@ -33,6 +34,8 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'app_name.required' => 'Nama aplikasi wajib diisi.',
             'organization_name.required' => 'Nama organisasi wajib diisi.',
             'evaluation_period.in' => 'Periode evaluasi tidak valid.',
+            'app_timezone.required' => 'Zona waktu aplikasi wajib dipilih.',
+            'app_timezone.in' => 'Zona waktu aplikasi tidak valid.',
         ];
     }
 }

@@ -14,6 +14,20 @@ ENV TZ=UTC
 ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
 ENV SUPERVISOR_PHP_USER="sail"
 ENV PLAYWRIGHT_BROWSERS_PATH=0
+ENV QUEUE_WORKER_QUEUE="default"
+ENV QUEUE_WORKER_TRIES="3"
+ENV QUEUE_WORKER_TIMEOUT="90"
+ENV QUEUE_WORKER_SLEEP="3"
+ENV QUEUE_WORKER_MEMORY="256"
+ENV SAIL_QUEUE_ENABLED="true"
+ENV SAIL_REVERB_ENABLED="true"
+ENV SAIL_SCHEDULER_ENABLED="true"
+ENV SAIL_SSR_ENABLED="true"
+ENV SAIL_BUILD_ASSETS="true"
+ENV SAIL_IMAGE_CACHE_WARM="true"
+ENV INERTIA_SSR_RUNTIME="node"
+ENV INERTIA_SSR_ENABLED="true"
+ENV INERTIA_SSR_ENSURE_RUNTIME_EXISTS="true"
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -83,9 +97,10 @@ RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
 RUN git config --global --add safe.directory /var/www/html
 
 COPY start-container /usr/local/bin/start-container
+COPY prepare-assets /usr/local/bin/prepare-assets
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY php.ini /etc/php/8.5/cli/conf.d/99-sail.ini
-RUN chmod +x /usr/local/bin/start-container
+RUN chmod +x /usr/local/bin/start-container /usr/local/bin/prepare-assets
 
 EXPOSE 80/tcp
 

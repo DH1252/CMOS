@@ -1,4 +1,5 @@
 <script>
+  import { page } from "@inertiajs/svelte";
   import { onDestroy, onMount } from "svelte";
   import * as Card from "$lib/components/ui/card/index.js";
   import EmptyStatePanel from "./components/EmptyStatePanel.svelte";
@@ -137,7 +138,7 @@
     }
 
     return date.toLocaleDateString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       day: "2-digit",
       month: "short",
     });
@@ -155,7 +156,7 @@
     }
 
     return date.toLocaleDateString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -164,24 +165,24 @@
 
   const formatWeekday = (value) =>
     value.toLocaleDateString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       weekday: "long",
     });
   const formatMonthYear = (value) =>
     value.toLocaleDateString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       month: "long",
       year: "numeric",
     });
   const formatClock = (value) =>
     value.toLocaleTimeString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       hour: "2-digit",
       minute: "2-digit",
     });
   const formatDayNumber = (value) =>
     value.toLocaleDateString("id-ID", {
-      timeZone: "Asia/Jakarta",
+      timeZone: page.props.appTimezone || "Asia/Jakarta",
       day: "2-digit",
     });
   const progressValue = (value) =>

@@ -84,6 +84,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'appTimezone' => (string) config('app.client_timezone', 'Asia/Jakarta'),
             'shell' => fn () => $this->authShellData->forRequest($request),
             'visitorStats' => fn () => app(SiteStatistics::class)->visitorCounts(),
             'theme' => [
