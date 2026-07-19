@@ -2,13 +2,21 @@
 
 namespace App\Services;
 
+use App\Contracts\GoogleCalendarApi;
+use App\Models\GoogleCalendarDeletion;
 use App\Models\Timeline;
+use Google\Service\Calendar\Event;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Throwable;
 
 class GoogleCalendarService
 {
     private ?string $lastError = null;
+
+    private bool $deletionQueued = false;
+
+    public function __construct(private GoogleCalendarApi $calendarApi) {}
 
     public function enabled(): bool
     {
@@ -20,7 +28,15 @@ class GoogleCalendarService
         return $this->lastError;
     }
 
-    public function upsertTimelineEvent(Timeline $timeline): ?string
+    public function deletionQueued(): bool
+    {
+        return $this->deletionQueued;
+    }
+
+    /**
+     * @return array{event_id: string, calendar_id: string}|null
+     */
+    public function upsertTimelineEvent(Timeline $timeline): ?array
     {
         $this->clearLastError();
 
@@ -29,28 +45,39 @@ class GoogleCalendarService
         }
 
         try {
-            $calendarService = $this->calendarService();
-            $calendarId = (string) config('services.google_calendar.calendar_id');
-            $eventData = $this->buildTimelineEventData($timeline);
+            $configuredCalendarId = $this->configuredCalendarId();
 
-            if ($timeline->google_event_id) {
+            $existingEventId = trim((string) $timeline->google_event_id);
+            if ($existingEventId !== '') {
                 try {
-                    $calendarService->events->get($calendarId, $timeline->google_event_id);
-                    $updated = $calendarService->events->update($calendarId, $timeline->google_event_id, $eventData);
+                    $calendarId = $this->timelineCalendarId($timeline, $configuredCalendarId);
+                    $updated = $this->calendarApi->patchEvent(
+                        $calendarId,
+                        $existingEventId,
+                        $this->buildTimelineEventData($timeline),
+                    );
 
-                    return $updated->getId();
+                    return [
+                        'event_id' => $updated->getId() ?: $existingEventId,
+                        'calendar_id' => $calendarId,
+                    ];
                 } catch (Throwable $exception) {
-                    Log::warning('Google Calendar update failed, will retry as new event.', [
+                    if (! in_array($this->statusCode($exception), [404, 410], true)) {
+                        throw $exception;
+                    }
+
+                    $this->calendarApi->assertCalendarAccessible($calendarId);
+                    $this->advanceGeneration($timeline);
+
+                    Log::notice('Google Calendar event is missing; recreating it idempotently.', [
                         'timeline_id' => $timeline->id,
                         'google_event_id' => $timeline->google_event_id,
-                        'error' => $exception->getMessage(),
+                        'google_calendar_id' => $calendarId,
                     ]);
                 }
             }
 
-            $created = $calendarService->events->insert($calendarId, $eventData);
-
-            return $created->getId();
+            return $this->createTimelineEvent($timeline, $configuredCalendarId);
         } catch (Throwable $exception) {
             $this->setLastError($exception->getMessage());
             Log::error('Failed syncing timeline to Google Calendar.', [
@@ -62,23 +89,171 @@ class GoogleCalendarService
         }
     }
 
-    public function deleteTimelineEvent(?string $googleEventId, ?int $timelineId = null): bool
+    public function deleteTimelineEvent(
+        ?string $googleEventId,
+        ?string $googleCalendarId = null,
+        ?int $timelineId = null,
+    ): bool {
+        $this->clearLastError();
+
+        return $this->deleteTimelineEventNow($googleEventId, $googleCalendarId, $timelineId);
+    }
+
+    /**
+     * @param  iterable<int, Timeline>  $timelines
+     */
+    public function deleteTimelineEvents(iterable $timelines): bool
     {
         $this->clearLastError();
 
-        if (! $this->enabled() || ! $googleEventId) {
+        foreach ($timelines as $timeline) {
+            if (! $this->deleteTimelineEventNow(
+                $timeline->google_event_id,
+                $timeline->google_calendar_id,
+                $timeline->id,
+            )) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @return array{processed: int, failed: int}
+     */
+    public function retryQueuedDeletions(): array
+    {
+        $processed = 0;
+        $failed = 0;
+
+        if (! $this->enabled()) {
+            return compact('processed', 'failed');
+        }
+
+        GoogleCalendarDeletion::query()->eachById(function (GoogleCalendarDeletion $deletion) use (&$processed, &$failed): void {
+            try {
+                $this->calendarApi->deleteEvent($deletion->google_calendar_id, $deletion->google_event_id);
+            } catch (Throwable $exception) {
+                if (in_array($this->statusCode($exception), [404, 410], true)) {
+                    try {
+                        $this->calendarApi->assertCalendarAccessible($deletion->google_calendar_id);
+                        $deletion->delete();
+                        $processed++;
+
+                        return;
+                    } catch (Throwable $calendarException) {
+                        $exception = $calendarException;
+                    }
+                }
+
+                $deletion->updateQuietly([
+                    'attempts' => $deletion->attempts + 1,
+                    'last_error' => $this->cleanError($exception->getMessage()),
+                    'last_attempt_at' => now(),
+                ]);
+                $failed++;
+
+                return;
+            }
+
+            $deletion->delete();
+            $processed++;
+        });
+
+        return compact('processed', 'failed');
+    }
+
+    private function clearLastError(): void
+    {
+        $this->lastError = null;
+        $this->deletionQueued = false;
+    }
+
+    private function setLastError(string $message): void
+    {
+        $this->lastError = $this->cleanError($message);
+    }
+
+    private function cleanError(string $message): string
+    {
+        return mb_strimwidth(trim(str_replace(["\r", "\n"], ' ', $message)), 0, 250, '...');
+    }
+
+    private function deleteTimelineEventNow(
+        ?string $googleEventId,
+        ?string $googleCalendarId,
+        ?int $timelineId,
+    ): bool {
+        $eventId = trim((string) $googleEventId);
+        if ($eventId === '') {
+            return true;
+        }
+
+        $calendarId = trim((string) $googleCalendarId);
+        if ($calendarId === '') {
+            try {
+                $calendarId = $this->configuredCalendarId();
+            } catch (Throwable $exception) {
+                $this->setLastError($exception->getMessage());
+
+                return false;
+            }
+        }
+
+        if (! $this->enabled()) {
+            $this->setLastError('Google Calendar synchronization is disabled.');
+
+            return $this->queueDeletion($timelineId, $eventId, $calendarId);
+        }
+
+        try {
+            $this->calendarApi->deleteEvent($calendarId, $eventId);
+
+            return true;
+        } catch (Throwable $exception) {
+            if (in_array($this->statusCode($exception), [404, 410], true)) {
+                try {
+                    $this->calendarApi->assertCalendarAccessible($calendarId);
+
+                    return true;
+                } catch (Throwable $calendarException) {
+                    $exception = $calendarException;
+                }
+            }
+
+            $this->setLastError($exception->getMessage());
+            Log::error('Failed deleting Google Calendar event.', [
+                'timeline_id' => $timelineId,
+                'google_event_id' => $eventId,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return $this->queueDeletion($timelineId, $eventId, $calendarId);
+        }
+    }
+
+    private function queueDeletion(?int $timelineId, string $googleEventId, string $calendarId): bool
+    {
+        if (! $timelineId) {
             return false;
         }
 
         try {
-            $calendarService = $this->calendarService();
-            $calendarId = (string) config('services.google_calendar.calendar_id');
-            $calendarService->events->delete($calendarId, $googleEventId);
+            GoogleCalendarDeletion::query()->updateOrCreate(
+                [
+                    'google_event_id' => $googleEventId,
+                    'google_calendar_id' => $calendarId,
+                ],
+                [
+                    'timeline_id' => $timelineId,
+                ],
+            );
+            $this->deletionQueued = true;
 
             return true;
         } catch (Throwable $exception) {
-            $this->setLastError($exception->getMessage());
-            Log::error('Failed deleting Google Calendar event.', [
+            Log::error('Failed queueing Google Calendar event deletion.', [
                 'timeline_id' => $timelineId,
                 'google_event_id' => $googleEventId,
                 'error' => $exception->getMessage(),
@@ -88,37 +263,93 @@ class GoogleCalendarService
         }
     }
 
-    private function clearLastError(): void
+    private function advanceGeneration(Timeline $timeline): void
     {
-        $this->lastError = null;
+        $timeline->forceFill([
+            'google_event_id' => null,
+            'google_calendar_id' => null,
+            'google_sync_generation' => ((int) $timeline->google_sync_generation) + 1,
+        ]);
+
+        if ($timeline->exists) {
+            $timeline->saveQuietly();
+        }
     }
 
-    private function setLastError(string $message): void
+    private function configuredCalendarId(): string
     {
-        $clean = trim(str_replace(["\r", "\n"], ' ', $message));
-        $this->lastError = mb_strimwidth($clean, 0, 250, '...');
-    }
+        $calendarId = trim((string) config('services.google_calendar.calendar_id'));
 
-    private function calendarService()
-    {
-        if (! class_exists(\Google\Client::class) || ! class_exists(\Google\Service\Calendar::class) || ! class_exists(\Google\Service\Calendar\Event::class)) {
-            throw new \RuntimeException('Google API client not installed. Run: composer require google/apiclient:^2.16');
+        if ($calendarId === '') {
+            throw new RuntimeException('Google Calendar ID is not configured.');
         }
 
-        $credentialsPath = (string) config('services.google_calendar.service_account_json');
-        if (! is_file($credentialsPath)) {
-            throw new \RuntimeException("Google service account JSON file not found at: {$credentialsPath}");
-        }
-
-        $client = new \Google\Client;
-        $client->setApplicationName((string) config('services.google_calendar.application_name', 'SAVANA'));
-        $client->setAuthConfig($credentialsPath);
-        $client->setScopes([\Google\Service\Calendar::CALENDAR]);
-
-        return new \Google\Service\Calendar($client);
+        return $calendarId;
     }
 
-    private function buildTimelineEventData(Timeline $timeline)
+    private function timelineCalendarId(Timeline $timeline, string $fallback): string
+    {
+        $calendarId = trim((string) $timeline->google_calendar_id);
+
+        return $calendarId !== '' ? $calendarId : $fallback;
+    }
+
+    /**
+     * @return array{event_id: string, calendar_id: string}
+     */
+    private function createTimelineEvent(Timeline $timeline, string $calendarId): array
+    {
+        $eventId = $this->deterministicEventId($timeline);
+        $this->persistProvisionalMapping($timeline, $eventId, $calendarId);
+
+        try {
+            $created = $this->calendarApi->insertEvent(
+                $calendarId,
+                $this->buildTimelineEventData($timeline, $eventId),
+            );
+        } catch (Throwable $exception) {
+            if ($this->statusCode($exception) !== 409) {
+                throw $exception;
+            }
+
+            $created = $this->calendarApi->patchEvent(
+                $calendarId,
+                $eventId,
+                $this->buildTimelineEventData($timeline),
+            );
+        }
+
+        return [
+            'event_id' => $created->getId() ?: $eventId,
+            'calendar_id' => $calendarId,
+        ];
+    }
+
+    private function persistProvisionalMapping(Timeline $timeline, string $eventId, string $calendarId): void
+    {
+        $timeline->forceFill([
+            'google_event_id' => $eventId,
+            'google_calendar_id' => $calendarId,
+        ]);
+
+        if ($timeline->exists && $timeline->isDirty()) {
+            $timeline->saveQuietly();
+        }
+    }
+
+    private function deterministicEventId(Timeline $timeline): string
+    {
+        $generation = (int) ($timeline->google_sync_generation ?? 0);
+
+        return hash('sha256', "timeline|{$timeline->getKey()}|{$generation}");
+    }
+
+    private function statusCode(Throwable $exception): int
+    {
+        return (int) $exception->getCode();
+    }
+
+    private function buildTimelineEventData(Timeline $timeline, ?string $eventId = null): Event
     {
         $descriptionLines = [];
 
@@ -127,7 +358,7 @@ class GoogleCalendarService
             $descriptionLines[] = '';
         }
 
-        $descriptionLines[] = 'Sumber: SAVANA Timeline';
+        $descriptionLines[] = 'Sumber: CMOS Timeline';
         $descriptionLines[] = 'Tipe: '.ucfirst($timeline->type);
 
         if ($timeline->department?->name) {
@@ -149,6 +380,10 @@ class GoogleCalendarService
             ],
         ];
 
-        return new \Google\Service\Calendar\Event($payload);
+        if ($eventId) {
+            $payload['id'] = $eventId;
+        }
+
+        return new Event($payload);
     }
 }

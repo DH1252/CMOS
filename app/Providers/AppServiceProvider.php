@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\GoogleCalendarApi;
+use App\Services\GoogleCalendarApiClient;
 use App\Support\ApplicationTimezone;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
@@ -14,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(GoogleCalendarApi::class, GoogleCalendarApiClient::class);
     }
 
     /**

@@ -150,6 +150,7 @@ Edit `.env` before starting the containers. Set at least:
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://your-domain.com
+APP_CLIENT_TIMEZONE=Asia/Jakarta
 APP_PORT=80
 APP_KEY=
 
@@ -157,7 +158,84 @@ DB_DATABASE=cmos
 DB_PASSWORD=strong-root-password
 SAIL_DB_USERNAME=sail
 SAIL_DB_PASSWORD=strong-app-password
+
+CACHE_STORE=database
+FILESYSTEM_DISK=public
+QUEUE_CONNECTION=database
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
+BROADCAST_CONNECTION=reverb
+SAIL_QUEUE_CONNECTION=database
+SAIL_QUEUE_ENABLED=true
+SAIL_SCHEDULER_ENABLED=true
+SAIL_REVERB_ENABLED=true
+SAIL_SSR_ENABLED=true
+SAIL_BUILD_ASSETS=true
+INERTIA_SSR_ENABLED=true
 ```
+
+For realtime messaging, keep Laravel's internal Reverb connection separate from
+the browser-facing WebSocket settings:
+
+```env
+REVERB_APP_ID=cmos-reverb-app
+REVERB_APP_KEY=replace-with-a-random-key
+REVERB_APP_SECRET=replace-with-a-random-secret
+
+# Internal connection used by Laravel inside laravel.test.
+REVERB_HOST=127.0.0.1
+REVERB_PORT=8080
+REVERB_SCHEME=http
+REVERB_SERVER_HOST=0.0.0.0
+REVERB_SERVER_PORT=8080
+FORWARD_REVERB_PORT=8080
+
+# Public endpoint compiled into the browser bundle.
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST=your-domain.com
+VITE_REVERB_PORT=443
+VITE_REVERB_SCHEME=https
+```
+
+When HTTPS is terminated by a reverse proxy, proxy WebSocket traffic for the
+public domain to the Reverb listener on port `8080`. For direct local access,
+use `VITE_REVERB_HOST=127.0.0.1`, `VITE_REVERB_PORT=8080`, and
+`VITE_REVERB_SCHEME=http` instead.
+
+Configure SMTP variables before using email features. Optional Google Calendar,
+Slack, object storage, Postmark, and Resend integrations are enabled
+only when their corresponding credentials are supplied. Keep credentials in
+`.env`; never commit them.
+
+To enable Google Calendar timeline synchronization, place the service-account
+JSON outside version control and configure:
+
+```env
+GOOGLE_CALENDAR_ENABLED=true
+GOOGLE_CALENDAR_APPLICATION_NAME="${APP_NAME}"
+GOOGLE_CALENDAR_ID=calendar-id@example.com
+GOOGLE_SERVICE_ACCOUNT_JSON=storage/app/private/google-service-account.json
+GOOGLE_CALENDAR_IMPERSONATE_USER=
+```
+
+Share the target calendar with the service-account email using the `writer`
+role. For Google Workspace domain-wide delegation, set
+`GOOGLE_CALENDAR_IMPERSONATE_USER` to the calendar owner instead. The delegated
+Calendar Events scope must be authorized by a Workspace administrator.
+
+Synchronize timelines and retry queued Google deletions after enabling the
+integration or changing its configuration:
+
+```bash
+docker compose exec laravel.test php artisan google-calendar:sync
+
+# Only rows without a complete event/calendar mapping
+docker compose exec laravel.test php artisan google-calendar:sync --missing
+```
+
+The command synchronizes application timelines into Google Calendar and retries
+deletions that were queued after a temporary Google API failure. It does not
+delete unknown Google events that are not mapped to a CMOS timeline.
 
 Build the image, install PHP dependencies, and generate the encryption key:
 

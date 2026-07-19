@@ -61,3 +61,9 @@ if (! preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time)) {
 \Illuminate\Support\Facades\Schedule::command('competitions:fetch')
     ->dailyAt($time)
     ->timezone(config('app.client_timezone', 'Asia/Jakarta'));
+
+if (config('services.google_calendar.enabled', false)) {
+    \Illuminate\Support\Facades\Schedule::command('google-calendar:sync')
+        ->dailyAt('02:30')
+        ->timezone(config('app.client_timezone', 'Asia/Jakarta'));
+}

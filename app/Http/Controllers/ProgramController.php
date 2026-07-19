@@ -6,12 +6,15 @@ use App\Models\ActivityLog;
 use App\Models\Department;
 use App\Models\Program;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use App\Services\PostHogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class ProgramController extends Controller
 {
+    public function __construct(private GoogleCalendarService $googleCalendarService) {}
+
     public function index()
     {
         $user = auth()->user();
@@ -375,12 +378,23 @@ class ProgramController extends Controller
     {
         $name = $program->name;
 
+        if (! $this->googleCalendarService->deleteTimelineEvents($program->timelines()->get())) {
+            return back()->with(
+                'error',
+                'Program tidak dihapus karena satu atau lebih event Google Calendar belum berhasil dihapus. Coba lagi atau periksa log aplikasi.',
+            );
+        }
+
+        $googleDeleteMessage = $this->googleCalendarService->deletionQueued()
+            ? ' Penghapusan event Google Calendar dijadwalkan untuk dicoba kembali.'
+            : '';
+
         ActivityLog::log('deleted', "Deleted program: {$name}", $program);
 
         $program->delete();
 
         return redirect()->route('programs.index')
-            ->with('success', "Program {$name} berhasil dihapus!");
+            ->with('success', "Program {$name} berhasil dihapus!{$googleDeleteMessage}");
     }
 
     public function addMember(Request $request, Program $program)

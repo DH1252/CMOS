@@ -9,7 +9,7 @@ window.axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 const postHogApiKey = import.meta.env.VITE_POSTHOG_KEY || "";
 const postHogHost =
   import.meta.env.VITE_POSTHOG_HOST || "https://app.posthog.com";
-const postHogDisabled = import.meta.env.VITE_POSTHOG_DISABLED || "false";
+const postHogDisabled = import.meta.env.VITE_POSTHOG_DISABLED || "true";
 
 const isTruthyDisabledFlag = (value) => {
   return ["1", "true", "yes", "on"].includes(String(value).toLowerCase());

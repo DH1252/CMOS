@@ -17,6 +17,8 @@ class Timeline extends Model
         'end_date',
         'color',
         'google_event_id',
+        'google_calendar_id',
+        'google_sync_generation',
     ];
 
     protected $casts = [

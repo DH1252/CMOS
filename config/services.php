@@ -40,6 +40,7 @@ return [
         'application_name' => env('GOOGLE_CALENDAR_APPLICATION_NAME', env('APP_NAME', 'SAVANA')),
         'calendar_id' => env('GOOGLE_CALENDAR_ID', 'primary'),
         'service_account_json' => env('GOOGLE_SERVICE_ACCOUNT_JSON', storage_path('app/private/google-service-account.json')),
+        'impersonate_user' => env('GOOGLE_CALENDAR_IMPERSONATE_USER'),
     ],
 
     'google' => [

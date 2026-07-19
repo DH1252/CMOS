@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Cabinet;
 use App\Models\Department;
+use App\Models\Timeline;
+use App\Services\GoogleCalendarService;
 use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
+    public function __construct(private GoogleCalendarService $googleCalendarService) {}
+
     public function uploadGraphic(Request $request)
     {
         $request->validate([
@@ -335,11 +339,27 @@ class DepartmentController extends Controller
             return back()->with('error', 'Tidak dapat menghapus departemen yang masih memiliki anggota!');
         }
 
+        $timelines = Timeline::query()
+            ->where('department_id', $department->id)
+            ->orWhereHas('program', fn ($query) => $query->where('department_id', $department->id))
+            ->get();
+
+        if (! $this->googleCalendarService->deleteTimelineEvents($timelines)) {
+            return back()->with(
+                'error',
+                'Departemen tidak dihapus karena satu atau lebih event Google Calendar belum berhasil dihapus. Coba lagi atau periksa log aplikasi.',
+            );
+        }
+
+        $googleDeleteMessage = $this->googleCalendarService->deletionQueued()
+            ? ' Penghapusan event Google Calendar dijadwalkan untuk dicoba kembali.'
+            : '';
+
         ActivityLog::log('deleted', "Deleted department: {$name}", $department);
 
         $department->delete();
 
         return redirect()->route('departments.index')
-            ->with('success', "Departemen {$name} berhasil dihapus!");
+            ->with('success', "Departemen {$name} berhasil dihapus!{$googleDeleteMessage}");
     }
 }
