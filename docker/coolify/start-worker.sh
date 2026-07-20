@@ -2,8 +2,6 @@
 
 set -euo pipefail
 
-/usr/local/bin/prepare-runtime
-
 exec php artisan queue:work \
 	--queue="${QUEUE_WORKER_QUEUE:-default}" \
 	--tries="${QUEUE_WORKER_TRIES:-3}" \

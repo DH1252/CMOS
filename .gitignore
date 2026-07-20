@@ -24,11 +24,12 @@
 # Laravel runtime files
 /bootstrap/cache/*.php
 /storage/app/laravel-brain/
+/storage/app/public/optimized-images/
 /storage/framework/cache/
 /storage/framework/sessions/
 /storage/framework/testing/
 /storage/framework/views/
-/storage/logs/*.log
+/storage/logs/
 
 # Package manager and debug logs
 npm-debug.log*
@@ -85,6 +86,7 @@ pnpm-debug.log*
 /lighthouse-desktop/
 /undefined:
 /composer.phar
+/cmos
 
 **/caddy
 frankenphp

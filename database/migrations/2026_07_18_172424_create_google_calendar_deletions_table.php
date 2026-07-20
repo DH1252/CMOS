@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('last_attempt_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['google_event_id', 'google_calendar_id']);
+            $table->unique(['google_event_id', 'google_calendar_id'], 'gcal_deletions_event_calendar_unique');
         });
     }
 

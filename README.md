@@ -134,6 +134,11 @@ The repository includes a production-aware Laravel Sail Compose stack. The
 application container builds the frontend and SSR assets, runs migrations, and
 starts Octane, the queue worker, scheduler, Reverb, and SSR services.
 
+JIT is enabled when `SAIL_XDEBUG_MODE=off`, which is the production default;
+Xdebug and PCOV are unloaded in this mode. When Xdebug is explicitly enabled
+for development or coverage, the startup script disables JIT because coverage
+extensions are incompatible with Zend JIT.
+
 ### First Deployment
 
 Install Docker Engine with the Compose plugin and Git on the server, then run:
@@ -153,7 +158,11 @@ APP_URL=https://your-domain.com
 APP_CLIENT_TIMEZONE=Asia/Jakarta
 APP_PORT=80
 APP_KEY=
+APP_SERVICE=app
+OCTANE_SERVER=frankenphp
+OCTANE_HTTPS=true
 
+DB_CONNECTION=mysql
 DB_DATABASE=cmos
 DB_PASSWORD=strong-root-password
 SAIL_DB_USERNAME=sail
@@ -182,7 +191,7 @@ REVERB_APP_ID=cmos-reverb-app
 REVERB_APP_KEY=replace-with-a-random-key
 REVERB_APP_SECRET=replace-with-a-random-secret
 
-# Internal connection used by Laravel inside laravel.test.
+# Internal connection used by Laravel inside the app container.
 REVERB_HOST=127.0.0.1
 REVERB_PORT=8080
 REVERB_SCHEME=http
@@ -190,7 +199,7 @@ REVERB_SERVER_HOST=0.0.0.0
 REVERB_SERVER_PORT=8080
 FORWARD_REVERB_PORT=8080
 
-# Public endpoint compiled into the browser bundle.
+# Public endpoint injected into each page at runtime.
 VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
 VITE_REVERB_HOST=your-domain.com
 VITE_REVERB_PORT=443
@@ -227,10 +236,10 @@ Synchronize timelines and retry queued Google deletions after enabling the
 integration or changing its configuration:
 
 ```bash
-docker compose exec laravel.test php artisan google-calendar:sync
+docker compose exec app php artisan google-calendar:sync
 
 # Only rows without a complete event/calendar mapping
-docker compose exec laravel.test php artisan google-calendar:sync --missing
+docker compose exec app php artisan google-calendar:sync --missing
 ```
 
 The command synchronizes application timelines into Google Calendar and retries
@@ -241,8 +250,8 @@ Build the image, install PHP dependencies, and generate the encryption key:
 
 ```bash
 docker compose build
-docker compose run --rm laravel.test composer install --no-interaction --prefer-dist --optimize-autoloader
-docker compose run --rm laravel.test php artisan key:generate --force
+docker compose run --rm app composer install --no-interaction --prefer-dist --optimize-autoloader
+docker compose run --rm app php artisan key:generate --force
 docker compose up -d
 ```
 
@@ -255,7 +264,7 @@ symlink.
 Run the production-safe baseline seeders with:
 
 ```bash
-docker compose exec laravel.test php artisan db:seed --force
+docker compose exec app php artisan db:seed --force
 ```
 
 This seeds roles, departments, information categories, settings, and evaluation
@@ -270,9 +279,9 @@ APP_SEED_DEVELOPMENT_DATA=true
 Then run:
 
 ```bash
-docker compose exec laravel.test php artisan config:clear
-docker compose exec laravel.test php artisan db:seed --force
-docker compose exec laravel.test php artisan config:cache
+docker compose exec app php artisan config:clear
+docker compose exec app php artisan db:seed --force
+docker compose exec app php artisan config:cache
 ```
 
 The development seeder creates demo accounts with the password `password`. Do
@@ -284,7 +293,7 @@ passwords are changed immediately.
 ```bash
 git pull origin main
 docker compose up -d --build
-docker compose exec laravel.test php artisan migrate --force
+docker compose exec app php artisan migrate --force
 ```
 
 After the initial dependency installation, the Sail wrapper can be used:
@@ -299,6 +308,63 @@ After the initial dependency installation, the Sail wrapper can be used:
 Do not run `migrate:fresh` on a server containing real data because it drops all
 tables. Use `docker compose down` only when stopping the stack; do not use
 `docker compose down -v` unless the database volume may be deleted.
+
+MySQL credentials are stored in the persistent `sail-mysql` volume when it is
+first initialized. If an existing volume reports access denied after `.env`
+changes, restore the original `DB_PASSWORD`, `SAIL_DB_USERNAME`, and
+`SAIL_DB_PASSWORD` values, or update the MySQL grants with the existing root
+credentials. Reset the volume with `docker compose down -v` only when its data
+is disposable.
+
+---
+
+## ☁️ Coolify Deployment
+
+Build Coolify with `Dockerfile.coolify` and expose container port `8080`. The
+image uses PHP 8.4, FrankenPHP Octane, Nginx, Reverb, Inertia SSR, the scheduler,
+and a database queue worker. Coolify should use `/up` as its HTTP health check.
+
+JIT is enabled in Coolify matching Sail. The image downloads the `frankenphp-linux-*-gnu`
+dynamic build, which retains Zend JIT (stripped from the smaller static binary), and
+loads OPcache/JIT directives through an isolated scan directory so the embedded PHP
+runtime does not pick up host extension configs.
+
+Set the same application, database, queue, session, Reverb, mail, and integration
+variables documented for Sail. Realtime browser settings are injected at runtime,
+so `VITE_REVERB_*` values do not require rebuilding the image.
+
+For a single-container deployment:
+
+```env
+SERVICE_ROLE=all
+PORT=8080
+APP_SERVER_HOST=127.0.0.1
+APP_SERVER_PORT=8000
+REVERB_SERVER_HOST=127.0.0.1
+REVERB_SERVER_PORT=8081
+SAIL_AUTO_MIGRATE=true
+SAIL_QUEUE_ENABLED=true
+SAIL_SCHEDULER_ENABLED=true
+SAIL_REVERB_ENABLED=true
+SAIL_SSR_ENABLED=true
+SAIL_IMAGE_CACHE_WARM=true
+```
+
+For independently scaled services, deploy the same image with one role per
+Coolify service: `app`, `worker`, `scheduler`, `reverb`, or `ssr`. Set
+`SAIL_AUTO_MIGRATE=false` on replicated app services and run one deployment job
+with `SERVICE_ROLE=migrate` before releasing the new app replicas.
+
+Configure persistent Coolify storage for both paths:
+
+```text
+/app/storage/app/public
+/app/storage/app/private
+```
+
+The public volume stores uploads; the private volume stores credentials such as
+the Google service-account JSON. Database storage must be managed by the chosen
+external database or its own persistent Coolify volume.
 
 ---
 

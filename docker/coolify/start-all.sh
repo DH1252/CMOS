@@ -2,10 +2,6 @@
 
 set -euo pipefail
 
-/usr/local/bin/prepare-runtime
-
-php artisan migrate --force --no-interaction
-
 export PORT="${PORT:-8080}"
 export APP_SERVER_HOST="${APP_SERVER_HOST:-127.0.0.1}"
 export APP_SERVER_PORT="${APP_SERVER_PORT:-8000}"

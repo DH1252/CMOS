@@ -1,11 +1,11 @@
 services:
-    laravel.test:
+    app:
         build:
-            context: ./docker/8.5
+            context: ./docker/8.4
             dockerfile: Dockerfile
             args:
                 WWWGROUP: '${WWWGROUP:-1000}'
-        image: sail-8.5/app
+        image: sail-8.4/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
@@ -15,9 +15,13 @@ services:
         environment:
             WWWUSER: '${WWWUSER:-1000}'
             LARAVEL_SAIL: 1
+            HOME: /home/sail
+            XDG_CONFIG_HOME: /home/sail/.config
+            XDG_DATA_HOME: /home/sail/.local/share
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
+            DB_CONNECTION: mysql
             SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan octane:start --server=frankenphp --host=0.0.0.0 --admin-port=2019 --port=80 --workers=6 --max-requests=1000 --caddyfile=/var/www/html/Caddyfile"
             DB_HOST: mysql
             DB_PORT: 3306
@@ -54,6 +58,12 @@ services:
         depends_on:
             mysql:
                 condition: service_healthy
+        healthcheck:
+            test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1/up >/dev/null || exit 1']
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 45s
     mysql:
         image: 'mysql:8.4'
         ports:

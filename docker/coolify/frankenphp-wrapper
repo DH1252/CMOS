@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# The static FrankenPHP binary embeds its own PHP runtime and does not load
+# host-compiled extensions. It must not scan the host conf.d directory
+# (docker-php-ext-*.ini) because those point at .so files the embedded
+# runtime cannot open. Override the scan directory only for this process.
+export PHP_INI_SCAN_DIR="${FRANKENPHP_INI_SCAN_DIR:-/etc/frankenphp/conf.d}"
+
+exec /usr/local/bin/frankenphp-real "$@"

@@ -95,6 +95,7 @@
         </style>
         <style>{!! str_replace('url("', 'url("'.asset('fonts').'/', file_get_contents(public_path('fonts/taling-fonts.css')) ?: '') !!}</style>
     @endif
+    @include('partials.realtime-config')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
 </head>

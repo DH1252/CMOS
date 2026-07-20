@@ -25,13 +25,20 @@ export const initEcho = () => {
     return window.Echo;
   }
 
-  const reverbKey = import.meta.env.VITE_REVERB_APP_KEY || null;
-  const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || currentScheme;
+  const runtimeConfig = window.__CMOS_REALTIME__ || {};
+  const reverbKey =
+    runtimeConfig.key || import.meta.env.VITE_REVERB_APP_KEY || null;
+  const reverbScheme =
+    runtimeConfig.scheme || import.meta.env.VITE_REVERB_SCHEME || currentScheme;
   const reverbHost =
-    normalizeHost(import.meta.env.VITE_REVERB_HOST) || window.location.hostname;
+    normalizeHost(runtimeConfig.host || import.meta.env.VITE_REVERB_HOST) ||
+    window.location.hostname;
   const defaultPort = reverbScheme === "https" ? 443 : 80;
   const reverbPort = Number(
-    import.meta.env.VITE_REVERB_PORT || window.location.port || defaultPort,
+    runtimeConfig.port ||
+      import.meta.env.VITE_REVERB_PORT ||
+      window.location.port ||
+      defaultPort,
   );
 
   if (!reverbKey) {

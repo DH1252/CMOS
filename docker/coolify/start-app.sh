@@ -2,14 +2,10 @@
 
 set -euo pipefail
 
-/usr/local/bin/prepare-runtime
-
-php artisan migrate --force --no-interaction
-
 APP_SERVER_HOST="${APP_SERVER_HOST:-0.0.0.0}"
 APP_SERVER_PORT="${APP_SERVER_PORT:-${PORT:-8080}}"
 
-if [ "${IMAGE_CACHE_WARM:-true}" = "true" ]; then
+if [ "${SAIL_IMAGE_CACHE_WARM:-${IMAGE_CACHE_WARM:-true}}" = "true" ]; then
 	php artisan images:warm-optimized --no-interaction --quiet >/dev/null 2>&1 &
 fi
 

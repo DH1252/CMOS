@@ -1,10 +1,32 @@
-FROM php:8.5-cli-bookworm
+FROM php:8.4-cli-bookworm
 
 ARG NODE_VERSION=24.14.0
 ARG NPM_VERSION=11.9.0
+ARG FRANKENPHP_VERSION=1.9.1
+# sha256 of github.com/php/frankenphp/releases/download/v1.9.1/frankenphp-linux-{x86_64,aarch64}-gnu
+# The -gnu dynamic build links against glibc and retains Zend JIT (stripped from the static build).
+ARG FRANKENPHP_X86_64_SHA256=840a24b57606bc18b7a4d51bb1f4c0b4c135d9938de4c6708502d7bd062db96c
+ARG FRANKENPHP_AARCH64_SHA256=1626a2e46f507573676c18dd9fdbf44cb3354193b01a7f5232273c60b01addfe
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PHP_INI_SCAN_DIR="/usr/local/etc/php/conf.d"
+ENV HOME="/home/www-data"
+ENV XDG_CONFIG_HOME="/home/www-data/.config"
+ENV XDG_DATA_HOME="/home/www-data/.local/share"
+ENV SERVICE_ROLE="all"
+ENV SAIL_AUTO_MIGRATE="true"
+ENV SAIL_QUEUE_ENABLED="true"
+ENV SAIL_REVERB_ENABLED="true"
+ENV SAIL_SCHEDULER_ENABLED="true"
+ENV SAIL_SSR_ENABLED="true"
+ENV SAIL_IMAGE_CACHE_WARM="true"
+ENV IMAGE_CACHE_WARM="true"
+ENV QUEUE_WORKER_QUEUE="default"
+ENV QUEUE_WORKER_TRIES="3"
+ENV QUEUE_WORKER_TIMEOUT="90"
+ENV QUEUE_WORKER_SLEEP="3"
+ENV QUEUE_WORKER_MEMORY="256"
+ENV FRANKENPHP_INI_SCAN_DIR="/etc/frankenphp/conf.d"
 
 WORKDIR /app
 
@@ -14,6 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gettext-base \
     git \
+    gosu \
     gnupg \
     nginx \
     libnginx-mod-http-brotli-static \
@@ -41,16 +64,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         mbstring \
         pcntl \
         pdo_mysql \
+        opcache \
         xml \
         zip \
-    && curl -sSL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o - | sh -s imagick \
+    && curl -sSL https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions -o /usr/local/bin/install-php-extensions \
+    && chmod +x /usr/local/bin/install-php-extensions \
+    && install-php-extensions imagick mongodb redis memcached igbinary msgpack imap ldap pdo_pgsql pdo_sqlite soap \
     && php -r 'if (! extension_loaded("gd") || ! (imagetypes() & IMG_JPEG) || ! (imagetypes() & IMG_PNG) || ! (imagetypes() & IMG_WEBP) || ! (imagetypes() & IMG_AVIF)) { fwrite(STDERR, "GD image optimization support is incomplete.\n"); exit(1); }' \
     && architecture="$(dpkg --print-architecture)" \
     && case "${architecture}" in \
-        amd64) node_arch='x64' ;; \
-        arm64) node_arch='arm64' ;; \
+        amd64) frankenphp_arch='x86_64'; frankenphp_sha256="${FRANKENPHP_X86_64_SHA256}"; node_arch='x64' ;; \
+        arm64) frankenphp_arch='aarch64'; frankenphp_sha256="${FRANKENPHP_AARCH64_SHA256}"; node_arch='arm64' ;; \
         *) echo "Unsupported architecture: ${architecture}" >&2; exit 1 ;; \
     esac \
+    && curl -fsSL -o /usr/local/bin/frankenphp-real "https://github.com/php/frankenphp/releases/download/v${FRANKENPHP_VERSION}/frankenphp-linux-${frankenphp_arch}-gnu" \
+    && echo "${frankenphp_sha256}  /usr/local/bin/frankenphp-real" | sha256sum -c - \
+    && chmod +x /usr/local/bin/frankenphp-real \
     && curl -fsSLO "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" \
     && mkdir -p /usr/local/lib/nodejs \
     && tar -xJf "node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" -C /usr/local/lib/nodejs \
@@ -63,7 +92,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -f "node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" \
     && rm -rf /var/lib/apt/lists/*
 
-COPY docker/8.5/php.ini /usr/local/etc/php/conf.d/99-coolify.ini
+COPY docker/8.4/php.ini /usr/local/etc/php/conf.d/99-coolify.ini
+COPY docker/coolify/frankenphp.ini /etc/frankenphp/conf.d/99-frankenphp.ini
+COPY docker/coolify/frankenphp-wrapper /usr/local/bin/frankenphp
 COPY docker/coolify/nginx.conf.template /etc/nginx/templates/coolify.conf.template
 COPY docker/coolify/prepare-runtime.sh /usr/local/bin/prepare-runtime
 COPY docker/coolify/start-all.sh /usr/local/bin/start-all
@@ -75,7 +106,7 @@ COPY docker/coolify/start-worker.sh /usr/local/bin/start-worker
 COPY docker/coolify/start-scheduler.sh /usr/local/bin/start-scheduler
 COPY docker/coolify/supervisord.conf /etc/supervisor/conf.d/coolify.conf
 
-RUN chmod +x /usr/local/bin/prepare-runtime /usr/local/bin/start-all /usr/local/bin/start-app /usr/local/bin/start-reverb /usr/local/bin/start-service /usr/local/bin/start-ssr /usr/local/bin/start-worker /usr/local/bin/start-scheduler
+RUN chmod +x /usr/local/bin/prepare-runtime /usr/local/bin/start-all /usr/local/bin/start-app /usr/local/bin/start-reverb /usr/local/bin/start-service /usr/local/bin/start-ssr /usr/local/bin/start-worker /usr/local/bin/start-scheduler /usr/local/bin/frankenphp
 
 COPY . .
 
@@ -85,15 +116,21 @@ RUN set -eux; \
         rm -f bootstrap/cache/*.php; \
         rm -rf storage/framework/views/*; \
     }; \
-    mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache; \
+    mkdir -p storage/app/private storage/app/public storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache /home/www-data/.config /home/www-data/.local/share; \
     cleanup_build_artifacts; \
     chmod -R 775 storage bootstrap/cache; \
-    composer install --no-dev --optimize-autoloader --classmap-authoritative --no-interaction --ignore-platform-req=php; \
-    php artisan octane:install --server=frankenphp --no-interaction || true; \
+    composer install --no-dev --optimize-autoloader --classmap-authoritative --no-interaction; \
+    php artisan octane:install --server=frankenphp --no-interaction; \
     npm ci; \
     npm run build; \
-    chmod -R 775 storage bootstrap/cache
+    chmod -R 775 storage bootstrap/cache; \
+    chown -R www-data:www-data storage bootstrap/cache /home/www-data
+
+VOLUME ["/app/storage/app/public", "/app/storage/app/private"]
 
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
+    CMD if [ "${SERVICE_ROLE:-all}" = "all" ] || [ "${SERVICE_ROLE:-all}" = "app" ]; then curl -fsS "http://127.0.0.1:${PORT:-8080}/up" >/dev/null; else exit 0; fi
 
 CMD ["start-service"]

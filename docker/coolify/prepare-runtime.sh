@@ -4,27 +4,31 @@ set -euo pipefail
 
 mkdir -p \
 	bootstrap/cache \
+	storage/app/private \
 	storage/app/public \
 	storage/framework/cache \
 	storage/framework/sessions \
 	storage/framework/views \
-	storage/logs
+	storage/logs \
+	/home/www-data/.config \
+	/home/www-data/.local/share
 
 chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache /home/www-data
 
 rm -rf storage/framework/views/*
 rm -f bootstrap/cache/*.php
 
 if [ "${APP_ENV:-production}" = "production" ]; then
-	php artisan view:cache >/dev/null 2>&1 || true
-	php artisan config:cache >/dev/null 2>&1 || true
-	php artisan route:cache >/dev/null 2>&1 || true
-	php artisan event:cache >/dev/null 2>&1 || true
+	gosu www-data php artisan view:cache >/dev/null 2>&1 || true
+	gosu www-data php artisan config:cache >/dev/null 2>&1 || true
+	gosu www-data php artisan route:cache >/dev/null 2>&1 || true
+	gosu www-data php artisan event:cache >/dev/null 2>&1 || true
 else
-	php artisan view:clear >/dev/null 2>&1 || true
-	php artisan config:clear >/dev/null 2>&1 || true
-	php artisan route:clear >/dev/null 2>&1 || true
-	php artisan event:clear >/dev/null 2>&1 || true
+	gosu www-data php artisan view:clear >/dev/null 2>&1 || true
+	gosu www-data php artisan config:clear >/dev/null 2>&1 || true
+	gosu www-data php artisan route:clear >/dev/null 2>&1 || true
+	gosu www-data php artisan event:clear >/dev/null 2>&1 || true
 fi
 
 if [ -e public/storage ] && [ ! -L public/storage ]; then
@@ -32,5 +36,5 @@ if [ -e public/storage ] && [ ! -L public/storage ]; then
 fi
 
 if [ ! -e public/storage ]; then
-	php artisan storage:link >/dev/null 2>&1 || true
+	gosu www-data php artisan storage:link >/dev/null 2>&1 || true
 fi

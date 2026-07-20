@@ -513,6 +513,7 @@
     <noscript>
         <link rel="stylesheet" href="{{ asset('fonts/font-awesome/css/all.min.css') }}">
     </noscript>
+    @include('partials.realtime-config')
     @vite(['resources/css/public.css', 'resources/js/public.js'])
     @inertiaHead
     @if ($ssr['rendered'] && $ssr['head'] !== '')
