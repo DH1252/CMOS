@@ -558,12 +558,6 @@
       height: 390px;
     }
 
-    .event-show-star {
-      right: -104px;
-      bottom: 86px;
-      width: 210px;
-    }
-
     .event-show-aside {
       position: static;
     }

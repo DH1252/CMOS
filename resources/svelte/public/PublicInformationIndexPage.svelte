@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from "svelte";
   import { router } from "@inertiajs/svelte";
   import fallbackImageAsset from "../../images/logokabinet.png?enhanced&w=320;640";
   import OptimizedImage from "../components/OptimizedImage.svelte";
@@ -24,9 +25,9 @@
     seo = null,
   } = $props();
 
-  // Local state initialized from prop values
-  let searchQuery = $state(filters.query || "");
-  let selectedCategory = $state(filters.category || "");
+  // Local state initialized once from prop values (kept in sync by the effect below)
+  let searchQuery = $state(untrack(() => filters.query || ""));
+  let selectedCategory = $state(untrack(() => filters.category || ""));
 
   // Sync state variables back to filters when props change (e.g. on clear filter)
   $effect(() => {
@@ -849,17 +850,6 @@
     .info-feature-grid,
     .info-filter-form {
       grid-template-columns: 1fr;
-    }
-
-    .info-star-left {
-      left: -88px;
-      width: 255px;
-    }
-
-    .info-star-right {
-      right: -104px;
-      bottom: 86px;
-      width: 210px;
     }
 
     .info-strip-heading,

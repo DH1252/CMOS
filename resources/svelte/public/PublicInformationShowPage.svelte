@@ -489,12 +489,6 @@
       grid-template-columns: 1fr;
     }
 
-    .info-show-star {
-      right: -104px;
-      bottom: 86px;
-      width: 210px;
-    }
-
     .info-show-aside {
       position: static;
     }

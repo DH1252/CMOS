@@ -861,17 +861,6 @@
       border-width: 6px;
     }
 
-    .event-star-left {
-      left: -88px;
-      width: 255px;
-    }
-
-    .event-star-right {
-      right: -104px;
-      bottom: 86px;
-      width: 210px;
-    }
-
     .event-pagination-inner {
       display: grid;
       gap: 1.5rem;
