@@ -7,6 +7,7 @@
   let graphics = $state([]);
   let isUploading = $state(false);
   let uploadError = $state("");
+  let disableOverlays = $state(false);
 
   onMount(() => {
     try {
@@ -19,7 +20,21 @@
       console.error("Failed to parse graphics", e);
       graphics = [];
     }
+
+    disableOverlays =
+      typeof localStorage !== "undefined" &&
+      localStorage.getItem("staff-graphics.disable-overlays") === "1";
   });
+
+  function setDisableOverlays(value) {
+    disableOverlays = value;
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(
+        "staff-graphics.disable-overlays",
+        value ? "1" : "0",
+      );
+    }
+  }
 
   async function handleFileChange(event, index = null) {
     let file = event.target.files[0];
@@ -114,6 +129,26 @@
     graphics = [...graphics];
   }
 
+  function moveOverlayUp(graphicIndex, overlayIndex) {
+    if (overlayIndex <= 0) return;
+    const overlays = graphics[graphicIndex].overlays;
+    [overlays[overlayIndex - 1], overlays[overlayIndex]] = [
+      overlays[overlayIndex],
+      overlays[overlayIndex - 1],
+    ];
+    graphics = [...graphics];
+  }
+
+  function moveOverlayDown(graphicIndex, overlayIndex) {
+    const overlays = graphics[graphicIndex].overlays;
+    if (overlayIndex >= overlays.length - 1) return;
+    [overlays[overlayIndex + 1], overlays[overlayIndex]] = [
+      overlays[overlayIndex],
+      overlays[overlayIndex + 1],
+    ];
+    graphics = [...graphics];
+  }
+
   let activeOverlay = null;
 
   function startDrag(e, gIndex, oIndex) {
@@ -199,6 +234,35 @@
     <div class="mb-2 text-sm text-red-500">{uploadError}</div>
   {/if}
 
+  <div
+    class="flex items-center justify-between gap-4 rounded-lg border border-border/50 bg-muted/20 px-4 py-2.5"
+  >
+    <div class="flex flex-col">
+      <span class="text-sm font-semibold text-foreground/80"
+        >Mode Daftar Staff</span
+      >
+      <span class="text-xs text-muted-foreground"
+        >Sembunyikan overlay pada gambar. Tetap mengedit daftar staff, gambar,
+        dan panorama.</span
+      >
+    </div>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={disableOverlays}
+      onclick={() => setDisableOverlays(!disableOverlays)}
+      class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors {disableOverlays
+        ? 'bg-primary'
+        : 'bg-border'}"
+    >
+      <span
+        class="inline-block h-4 w-4 transform rounded-full bg-background shadow transition-transform {disableOverlays
+          ? 'translate-x-4'
+          : 'translate-x-0.5'}"
+      ></span>
+    </button>
+  </div>
+
   {#each graphics as graphic, gIndex}
     <div
       class="graphic-block mt-4 rounded-lg border border-border/50 bg-muted/20 p-4"
@@ -280,68 +344,70 @@
                 draggable="false"
               />
 
-              {#each graphic.overlays as overlay, oIndex}
-                {@const parsedName = (() => {
-                  const fullName = overlay.name || "Nama";
-                  const match = fullName.match(/(.*?)\s+(CE\s*\d+)$/i);
-                  if (match)
-                    return {
-                      name: match[1],
-                      batch: match[2].toUpperCase().replace(/\s+/, ""),
-                    };
-                  return { name: fullName, batch: null };
-                })()}
-                {@const ox = overlay.x !== undefined ? overlay.x : 50}
-                {@const oy = overlay.y !== undefined ? overlay.y : 50}
-                {@const imgW = graphic._width || 300}
-                {@const imgH = graphic._height || 200}
-                {@const centerX = (ox / 100) * imgW}
-                {@const centerY = (oy / 100) * imgH}
-                {@const availW =
-                  2 * Math.max(0, Math.min(centerX, imgW - centerX)) * 0.96}
-                {@const availH =
-                  2 * Math.max(0, Math.min(centerY, imgH - centerY)) * 0.96}
-                {@const cardScale = Math.max(
-                  0.2,
-                  (graphic._height || 200) / 816,
-                )}
-                <div
-                  class="group/overlay absolute z-20 cursor-move select-none hover:z-30"
-                  style="left: {ox}%; top: {oy}%; transform: translate(-50%, -50%);"
-                  role="button"
-                  tabindex="0"
-                  aria-label="Seret overlay {overlay.name ||
-                    overlay.role ||
-                    ''}"
-                  onpointerdown={(e) => startDrag(e, gIndex, oIndex)}
-                >
+              {#if !disableOverlays}
+                {#each graphic.overlays as overlay, oIndex}
+                  {@const parsedName = (() => {
+                    const fullName = overlay.name || "Nama";
+                    const match = fullName.match(/(.*?)\s+(CE\s*\d+)$/i);
+                    if (match)
+                      return {
+                        name: match[1],
+                        batch: match[2].toUpperCase().replace(/\s+/, ""),
+                      };
+                    return { name: fullName, batch: null };
+                  })()}
+                  {@const ox = overlay.x !== undefined ? overlay.x : 50}
+                  {@const oy = overlay.y !== undefined ? overlay.y : 50}
+                  {@const imgW = graphic._width || 300}
+                  {@const imgH = graphic._height || 200}
+                  {@const centerX = (ox / 100) * imgW}
+                  {@const centerY = (oy / 100) * imgH}
+                  {@const availW =
+                    2 * Math.max(0, Math.min(centerX, imgW - centerX)) * 0.96}
+                  {@const availH =
+                    2 * Math.max(0, Math.min(centerY, imgH - centerY)) * 0.96}
+                  {@const cardScale = Math.max(
+                    0.2,
+                    (graphic._height || 200) / 816,
+                  )}
                   <div
-                    use:preventClip={{ availW, availH, baseScale: cardScale }}
-                    class="pointer-events-none flex w-max max-w-[340px] origin-center flex-col justify-center border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover/overlay:shadow-[0_8px_32px_rgba(255,165,0,0.15)]"
-                    style="transform: scale({cardScale}) scale(var(--clip-scale, 1)); max-width: {Math.min(
-                      340,
-                      Math.max(120, availW),
-                    )}px;"
+                    class="group/overlay absolute z-20 cursor-move select-none hover:z-30"
+                    style="left: {ox}%; top: {oy}%; transform: translate(-50%, -50%);"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Seret overlay {overlay.name ||
+                      overlay.role ||
+                      ''}"
+                    onpointerdown={(e) => startDrag(e, gIndex, oIndex)}
                   >
-                    <p
-                      class="text-left font-['The_Seasons',serif] text-[20px] leading-tight font-normal tracking-wide text-balance text-white/95 drop-shadow-sm"
+                    <div
+                      use:preventClip={{ availW, availH, baseScale: cardScale }}
+                      class="pointer-events-none flex w-max max-w-[340px] origin-center flex-col justify-center border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover/overlay:shadow-[0_8px_32px_rgba(255,165,0,0.15)]"
+                      style="transform: scale({cardScale}) scale(var(--clip-scale, 1)); max-width: {Math.min(
+                        340,
+                        Math.max(120, availW),
+                      )}px;"
                     >
-                      {overlay.role || "Jabatan"}
-                    </p>
-                    <h4
-                      class="mt-1 flex items-baseline gap-3 text-left font-['The_Seasons',serif] text-[28px] font-normal tracking-wide text-white drop-shadow-md"
-                    >
-                      {parsedName.name}
-                      {#if parsedName.batch}
-                        <span
-                          class="font-sans text-[20px] font-bold tracking-wider text-[#FFB52E] [text-shadow:0_0_10px_rgba(255,165,0,1),0_0_20px_rgba(255,165,0,0.8),0_0_30px_rgba(255,165,0,0.6)]"
-                          >{parsedName.batch}</span
-                        >
-                      {/if}
-                    </h4>
+                      <p
+                        class="text-left font-['The_Seasons',serif] text-[20px] leading-tight font-normal tracking-wide text-balance text-white/95 drop-shadow-sm"
+                      >
+                        {overlay.role || "Jabatan"}
+                      </p>
+                      <h4
+                        class="mt-1 flex items-baseline gap-3 text-left font-['The_Seasons',serif] text-[28px] font-normal tracking-wide text-white drop-shadow-md"
+                      >
+                        {parsedName.name}
+                        {#if parsedName.batch}
+                          <span
+                            class="font-sans text-[20px] font-bold tracking-wider text-[#FFB52E] [text-shadow:0_0_10px_rgba(255,165,0,1),0_0_20px_rgba(255,165,0,0.8),0_0_30px_rgba(255,165,0,0.6)]"
+                            >{parsedName.batch}</span
+                          >
+                        {/if}
+                      </h4>
+                    </div>
                   </div>
-                </div>
-              {/each}
+                {/each}
+              {/if}
             </div>
           </div>
 
@@ -423,7 +489,7 @@
             <div class="md:col-span-2 space-y-4">
               <div class="flex items-center justify-between">
                 <h4 class="text-sm font-semibold text-foreground">
-                  Data Overlays
+                  {disableOverlays ? "Daftar Staff" : "Data Overlays"}
                 </h4>
                 <button
                   type="button"
@@ -492,14 +558,35 @@
                           </label>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        class="mt-2 shrink-0 text-muted-foreground hover:text-destructive"
-                        aria-label="Hapus overlay"
-                        onclick={() => removeOverlay(gIndex, oIndex)}
-                      >
-                        <i class="fas fa-trash"></i>
-                      </button>
+                      <div class="flex flex-col items-center gap-1 pt-1">
+                        <button
+                          type="button"
+                          class="text-muted-foreground transition-colors hover:text-primary disabled:opacity-30 disabled:hover:text-muted-foreground"
+                          onclick={() => moveOverlayUp(gIndex, oIndex)}
+                          disabled={oIndex === 0}
+                          title="Naikkan urutan"
+                        >
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="text-muted-foreground transition-colors hover:text-primary disabled:opacity-30 disabled:hover:text-muted-foreground"
+                          onclick={() => moveOverlayDown(gIndex, oIndex)}
+                          disabled={oIndex === graphic.overlays.length - 1}
+                          title="Turunkan urutan"
+                        >
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="text-muted-foreground transition-colors hover:text-destructive"
+                          aria-label="Hapus overlay"
+                          onclick={() => removeOverlay(gIndex, oIndex)}
+                          title="Hapus"
+                        >
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
                     </div>
                   {/each}
                 </div>
