@@ -186,16 +186,6 @@
       graphics = [...graphics];
     }
   }
-
-  let groupOptions = $derived([
-    ...new Set(
-      graphics.flatMap((g) =>
-        (g.overlays || [])
-          .map((o) => (o.group || "").trim())
-          .filter((group) => group !== ""),
-      ),
-    ),
-  ]);
 </script>
 
 <div class="staff-graphics-editor space-y-6">
@@ -204,12 +194,6 @@
     name={field.name}
     value={JSON.stringify(graphics.map(({ _height, ...rest }) => rest))}
   />
-
-  <datalist id="staff-group-options">
-    {#each groupOptions as groupOption}
-      <option value={groupOption}></option>
-    {/each}
-  </datalist>
 
   {#if uploadError}
     <div class="mb-2 text-sm text-red-500">{uploadError}</div>
@@ -472,13 +456,6 @@
                           class="entity-control w-full text-sm"
                           placeholder="Jabatan (ex: Ketua Himpunan)"
                           bind:value={overlay.role}
-                        />
-                        <input
-                          type="text"
-                          class="entity-control w-full text-sm"
-                          placeholder="Kelompok Label (opsional, ex: Badan Pengurus Harian)"
-                          list="staff-group-options"
-                          bind:value={overlay.group}
                         />
 
                         <div class="mt-2 flex items-center gap-3">

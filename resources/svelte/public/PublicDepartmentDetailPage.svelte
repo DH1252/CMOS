@@ -272,7 +272,6 @@
               batch,
               role: overlay.role || "",
               picture: overlay.picture || null,
-              group: (overlay.group || "").trim(),
               graphicIndex,
             });
           });
@@ -280,22 +279,6 @@
       });
     }
     return list;
-  });
-
-  // Group staff by their custom label, preserving first-appearance order.
-  // Staff without a label fall back to the default "Daftar Pengurus" group.
-  let staffGroups = $derived.by(() => {
-    const groups = [];
-    const groupIndexByLabel = new Map();
-    for (const person of staffList) {
-      const label = person.group;
-      if (!groupIndexByLabel.has(label)) {
-        groupIndexByLabel.set(label, groups.length);
-        groups.push({ label, members: [] });
-      }
-      groups[groupIndexByLabel.get(label)].members.push(person);
-    }
-    return groups;
   });
 
   let activeStaffName = $state(null);
@@ -967,57 +950,46 @@
           </div>
 
           <!-- Staff List Section -->
-          {#if staffGroups.length > 0}
+          {#if staffList.length > 0}
             <div class="mb-24">
-              {#each staffGroups as staffGroup}
-                <div class="mb-16 last:mb-0">
-                  {#if staffGroup.label}
-                    <h3
-                      class="mb-10 text-center text-sm font-semibold tracking-wider text-[#e2bb44] uppercase"
-                    >
-                      {staffGroup.label}
-                    </h3>
-                  {/if}
-                  <div
-                    class="grid grid-cols-1 gap-4 px-4 sm:grid-cols-2 md:grid-cols-3 md:px-0 lg:grid-cols-4"
+              <div
+                class="grid grid-cols-1 gap-4 px-4 sm:grid-cols-2 md:grid-cols-3 md:px-0 lg:grid-cols-4"
+              >
+                {#each staffList as staff}
+                  <button
+                    onclick={() => scrollToStaff(staff)}
+                    class="group flex w-full flex-col items-start rounded-2xl border border-white/5 bg-[#111111]/80 p-5 text-left transition-all hover:border-[#ff7a1a]/50 hover:bg-[#1a1a1a]"
                   >
-                    {#each staffGroup.members as staff}
-                      <button
-                        onclick={() => scrollToStaff(staff)}
-                        class="group flex w-full flex-col items-start rounded-2xl border border-white/5 bg-[#111111]/80 p-5 text-left transition-all hover:border-[#ff7a1a]/50 hover:bg-[#1a1a1a]"
-                      >
-                        <div class="flex w-full items-center gap-4">
-                          {#if staff.picture}
-                            <img
-                              src={staff.picture}
-                              alt={staff.name}
-                              class="h-12 w-12 shrink-0 rounded-full border border-white/10 object-cover transition-colors group-hover:border-[#ff7a1a]/50"
-                            />
-                          {/if}
-                          <div class="flex flex-col items-start">
+                    <div class="flex w-full items-center gap-4">
+                      {#if staff.picture}
+                        <img
+                          src={staff.picture}
+                          alt={staff.name}
+                          class="h-12 w-12 shrink-0 rounded-full border border-white/10 object-cover transition-colors group-hover:border-[#ff7a1a]/50"
+                        />
+                      {/if}
+                      <div class="flex flex-col items-start">
+                        <span
+                          class="mb-1.5 text-[10px] leading-tight font-bold tracking-widest text-[#ff7a1a] uppercase"
+                          >{staff.role}</span
+                        >
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span
+                            class="font-['The_Seasons',serif] text-base text-white/90 transition-colors group-hover:text-white"
+                            >{staff.name}</span
+                          >
+                          {#if staff.batch}
                             <span
-                              class="mb-1.5 text-[10px] leading-tight font-bold tracking-widest text-[#ff7a1a] uppercase"
-                              >{staff.role}</span
+                              class="rounded-md bg-white/5 px-2 py-0.5 text-[10px] font-bold text-[#FFB52E]"
+                              >{staff.batch}</span
                             >
-                            <div class="flex flex-wrap items-center gap-2">
-                              <span
-                                class="font-['The_Seasons',serif] text-base text-white/90 transition-colors group-hover:text-white"
-                                >{staff.name}</span
-                              >
-                              {#if staff.batch}
-                                <span
-                                  class="rounded-md bg-white/5 px-2 py-0.5 text-[10px] font-bold text-[#FFB52E]"
-                                  >{staff.batch}</span
-                                >
-                              {/if}
-                            </div>
-                          </div>
+                          {/if}
                         </div>
-                      </button>
-                    {/each}
-                  </div>
-                </div>
-              {/each}
+                      </div>
+                    </div>
+                  </button>
+                {/each}
+              </div>
             </div>
           {/if}
         {:else if teamData.members.length === 0}
