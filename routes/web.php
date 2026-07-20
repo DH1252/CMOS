@@ -86,16 +86,37 @@ Route::get('/departemen/{slug?}', function (?string $slug = null) {
     $organizationName = (string) \App\Models\Setting::get('organization_name', 'HIMATEKKOM ITS');
 
     if ($slug) {
-        $validSlugs = ['personalia', 'risprof', 'kwu', 'psdm', 'dagri', 'bph', 'hublu', 'kesma', 'medfo', 'kaderisasi'];
+        $validSlugs = array_keys(\App\Models\Department::PUBLIC_PAGE_OPTIONS);
         if (in_array(strtolower($slug), $validSlugs)) {
-            $search = match (strtolower($slug)) {
-                'risprof' => 'ristek',
-                'kwu' => 'kewirausahaan',
-                'hublu' => 'humas',
-                'medfo' => 'medinfo',
-                default => $slug,
-            };
-            $department = \App\Models\Department::where('name', 'LIKE', '%'.$search.'%')->first();
+            $department = \App\Models\Department::where('slug', strtolower($slug))->first();
+
+            if (! $department) {
+                $search = match (strtolower($slug)) {
+                    'risprof' => 'ristek',
+                    'kwu' => 'kewirausahaan',
+                    'hublu' => 'humas',
+                    'medfo' => 'medinfo',
+                    default => $slug,
+                };
+                $department = \App\Models\Department::where('name', 'LIKE', '%'.$search.'%')->first();
+            }
+
+            $programs = $department
+                ? $department->programs()
+                    ->with('tasks')
+                    ->where('status', '!=', 'cancelled')
+                    ->orderBy('start_date')
+                    ->get()
+                    ->map(fn ($program) => [
+                        'name' => $program->name,
+                        'description' => $program->description,
+                        'startDate' => $program->start_date?->toDateString(),
+                        'endDate' => $program->end_date?->toDateString(),
+                        'status' => $program->status,
+                        'progress' => $program->progress,
+                    ])
+                    ->values()
+                : [];
 
             return Inertia::render('public/PublicDepartmentDetailPage', [
                 'organizationName' => $organizationName,
@@ -105,7 +126,7 @@ Route::get('/departemen/{slug?}', function (?string $slug = null) {
                 'acaraUrl' => route('acara.index'),
                 'selectedSlug' => strtolower($slug),
                 'staffGraphics' => $department ? $department->staff_graphics : null,
-                'structureLabel' => $department?->structure_label,
+                'programs' => $programs,
             ]);
         }
     }

@@ -16,7 +16,7 @@
     acaraUrl = "/acara",
     selectedSlug = null,
     staffGraphics = [],
-    structureLabel = null,
+    programs = [],
   } = $props();
 
   const assetBase = "/images/figma-taling";
@@ -522,6 +522,28 @@
       router.visit("/departemen");
     }
   }
+
+  const programStatusMap = {
+    planning: { label: "Perencanaan", classes: "bg-white/5 text-white/70" },
+    active: { label: "Berjalan", classes: "bg-[#ff7a1a]/15 text-[#ff7a1a]" },
+    completed: { label: "Selesai", classes: "bg-[#ffd344]/10 text-[#ffd344]" },
+  };
+
+  function formatProgramDate(dateString) {
+    if (!dateString) return null;
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(dateString));
+  }
+
+  function formatProgramDateRange(program) {
+    const start = formatProgramDate(program.startDate);
+    const end = formatProgramDate(program.endDate);
+    if (start && end) return `${start} - ${end}`;
+    return start || end || "Jadwal menyusul";
+  }
 </script>
 
 <svelte:head>
@@ -648,6 +670,91 @@
         </div>
       </div>
 
+      <!-- Program Kerja Section -->
+      {#if programs && programs.length > 0}
+        <div class="mb-32 border-t border-[#2a0078] pt-24">
+          <div
+            class="mb-20 flex flex-col items-center justify-center text-center"
+          >
+            <h2
+              class="mt-3 font-['The_Seasons',serif] text-4xl font-bold text-[#ffd344] md:text-5xl"
+            >
+              Program Kerja
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {#each programs as program}
+              {@const statusInfo =
+                programStatusMap[program.status] || programStatusMap.planning}
+              <article
+                class="flex flex-col rounded-2xl border border-white/5 bg-[#111111]/80 p-6 transition-colors hover:border-[#ff7a1a]/50 hover:bg-[#1a1a1a]"
+              >
+                <div class="mb-4 flex items-start justify-between gap-3">
+                  <h3
+                    class="font-['The_Seasons',serif] text-xl leading-snug text-white"
+                  >
+                    {program.name}
+                  </h3>
+                  <span
+                    class="shrink-0 rounded-md px-2 py-1 text-[10px] font-bold tracking-wider uppercase {statusInfo.classes}"
+                  >
+                    {statusInfo.label}
+                  </span>
+                </div>
+
+                {#if program.description}
+                  <p
+                    class="mb-6 line-clamp-4 text-sm leading-relaxed font-light text-white/70"
+                  >
+                    {program.description}
+                  </p>
+                {/if}
+
+                <div class="mt-auto flex flex-col gap-3">
+                  <div class="flex items-center gap-2 text-xs text-[#e2bb44]">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      class="h-4 w-4"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                      />
+                    </svg>
+                    <span>{formatProgramDateRange(program)}</span>
+                  </div>
+
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10"
+                      role="progressbar"
+                      aria-valuenow={program.progress}
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      aria-label="Progres {program.name}"
+                    >
+                      <div
+                        class="h-full rounded-full bg-gradient-to-r from-[#ff7a1a] to-[#ffd344] transition-all"
+                        style="width: {program.progress}%;"
+                      ></div>
+                    </div>
+                    <span class="text-xs font-semibold text-white/70"
+                      >{program.progress}%</span
+                    >
+                  </div>
+                </div>
+              </article>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <!-- Meet The Team Section -->
       <div class="border-t border-[#2a0078] pt-24">
         <div
@@ -656,7 +763,7 @@
           <h2
             class="mt-3 font-['The_Seasons',serif] text-4xl font-bold text-[#ffd344] md:text-5xl"
           >
-            {structureLabel || "Struktur Pengurus"}
+            Daftar Pengurus
           </h2>
         </div>
 
@@ -864,11 +971,13 @@
             <div class="mb-24">
               {#each staffGroups as staffGroup}
                 <div class="mb-16 last:mb-0">
-                  <h3
-                    class="mb-10 text-center text-sm font-semibold tracking-wider text-[#e2bb44] uppercase"
-                  >
-                    {staffGroup.label || "Daftar Pengurus"}
-                  </h3>
+                  {#if staffGroup.label}
+                    <h3
+                      class="mb-10 text-center text-sm font-semibold tracking-wider text-[#e2bb44] uppercase"
+                    >
+                      {staffGroup.label}
+                    </h3>
+                  {/if}
                   <div
                     class="grid grid-cols-1 gap-4 px-4 sm:grid-cols-2 md:grid-cols-3 md:px-0 lg:grid-cols-4"
                   >

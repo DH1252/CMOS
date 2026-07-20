@@ -8,7 +8,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Department extends Model
 {
-    protected $fillable = ['name', 'description', 'cabinet_id', 'status', 'staff_graphics', 'structure_label'];
+    /**
+     * Public department pages (solar system + detail) that an internal
+     * department can be mapped to via its slug.
+     *
+     * @var array<string, string>
+     */
+    public const PUBLIC_PAGE_OPTIONS = [
+        'bph' => 'Badan Pengurus Harian (BPH)',
+        'personalia' => 'Biro Personalia',
+        'dagri' => 'Dalam Negeri (DAGRI)',
+        'hublu' => 'Hubungan Luar (HUBLU)',
+        'psdm' => 'Pengembangan Sumber Daya Mahasiswa (PSDM)',
+        'kesma' => 'Kesejahteraan Mahasiswa (KESMA)',
+        'risprof' => 'Riset dan Keprofesian (RISPROF)',
+        'medfo' => 'Media dan Informasi (MEDFO)',
+        'kwu' => 'Kewirausahaan (KWU)',
+        'kaderisasi' => 'Kaderisasi (TUK)',
+    ];
+
+    protected $fillable = ['name', 'slug', 'description', 'cabinet_id', 'status', 'staff_graphics'];
 
     protected $casts = [
         'status' => 'string',

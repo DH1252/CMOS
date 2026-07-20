@@ -30,7 +30,7 @@ class DevelopmentSeeder extends Seeder
     public function run(): void
     {
         $roles = Role::query()->get()->keyBy('name');
-        $departments = Department::query()->get()->keyBy('name');
+        $departments = Department::query()->get()->keyBy('slug');
 
         $users = $this->seedUsers($roles->all(), $departments->all());
         $programs = $this->seedPrograms($users, $departments->all());
@@ -74,112 +74,112 @@ class DevelopmentSeeder extends Seeder
                 'name' => 'Kepala PSDM',
                 'password' => 'password',
                 'role_id' => $roles['kabinet']->id,
-                'department_id' => $departments['PSDM']->id,
+                'department_id' => $departments['psdm']->id,
                 'status' => 'active',
             ]),
             'medinfo_head' => $this->upsertUser('kabinet.medinfo@savana.test', [
-                'name' => 'Kepala Medinfo',
+                'name' => 'Kepala MEDFO',
                 'password' => 'password',
                 'role_id' => $roles['kabinet']->id,
-                'department_id' => $departments['Medinfo']->id,
+                'department_id' => $departments['medfo']->id,
                 'status' => 'active',
             ]),
             'humas_head' => $this->upsertUser('kabinet.humas@savana.test', [
-                'name' => 'Kepala Humas',
+                'name' => 'Kepala HUBLU',
                 'password' => 'password',
                 'role_id' => $roles['kabinet']->id,
-                'department_id' => $departments['Humas']->id,
+                'department_id' => $departments['hublu']->id,
                 'status' => 'active',
             ]),
             'ristek_head' => $this->upsertUser('kabinet.ristek@savana.test', [
-                'name' => 'Kepala Ristek',
+                'name' => 'Kepala RISPROF',
                 'password' => 'password',
                 'role_id' => $roles['kabinet']->id,
-                'department_id' => $departments['Ristek']->id,
+                'department_id' => $departments['risprof']->id,
                 'status' => 'active',
             ]),
             'akademik_head' => $this->upsertUser('kabinet.akademik@savana.test', [
-                'name' => 'Kepala Akademik',
+                'name' => 'Kepala KESMA',
                 'password' => 'password',
                 'role_id' => $roles['kabinet']->id,
-                'department_id' => $departments['Akademik']->id,
+                'department_id' => $departments['kesma']->id,
                 'status' => 'active',
             ]),
             'psdm_staff_1' => $this->upsertUser('staff1@savana.test', [
                 'name' => 'Staff PSDM 1',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['PSDM']->id,
+                'department_id' => $departments['psdm']->id,
                 'status' => 'active',
             ]),
             'psdm_staff_2' => $this->upsertUser('staff.psdm2@savana.test', [
                 'name' => 'Staff PSDM 2',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['PSDM']->id,
+                'department_id' => $departments['psdm']->id,
                 'status' => 'active',
             ]),
             'medinfo_staff_1' => $this->upsertUser('staff2@savana.test', [
-                'name' => 'Staff Medinfo 1',
+                'name' => 'Staff MEDFO 1',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['Medinfo']->id,
+                'department_id' => $departments['medfo']->id,
                 'status' => 'active',
             ]),
             'medinfo_staff_2' => $this->upsertUser('staff.medinfo2@savana.test', [
-                'name' => 'Staff Medinfo 2',
+                'name' => 'Staff MEDFO 2',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['Medinfo']->id,
+                'department_id' => $departments['medfo']->id,
                 'status' => 'active',
             ]),
             'humas_staff_1' => $this->upsertUser('staff.humas1@savana.test', [
-                'name' => 'Staff Humas 1',
+                'name' => 'Staff HUBLU 1',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['Humas']->id,
+                'department_id' => $departments['hublu']->id,
                 'status' => 'active',
             ]),
             'humas_staff_2' => $this->upsertUser('staff.humas2@savana.test', [
-                'name' => 'Staff Humas 2',
+                'name' => 'Staff HUBLU 2',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['Humas']->id,
+                'department_id' => $departments['hublu']->id,
                 'status' => 'active',
             ]),
             'ristek_staff_1' => $this->upsertUser('staff.ristek1@savana.test', [
-                'name' => 'Staff Ristek 1',
+                'name' => 'Staff RISPROF 1',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['Ristek']->id,
+                'department_id' => $departments['risprof']->id,
                 'status' => 'active',
             ]),
             'ristek_staff_2' => $this->upsertUser('staff.ristek2@savana.test', [
-                'name' => 'Staff Ristek 2',
+                'name' => 'Staff RISPROF 2',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['Ristek']->id,
+                'department_id' => $departments['risprof']->id,
                 'status' => 'active',
             ]),
             'akademik_staff_1' => $this->upsertUser('staff.akademik1@savana.test', [
-                'name' => 'Staff Akademik 1',
+                'name' => 'Staff KESMA 1',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['Akademik']->id,
+                'department_id' => $departments['kesma']->id,
                 'status' => 'active',
             ]),
             'akademik_staff_2' => $this->upsertUser('staff.akademik2@savana.test', [
-                'name' => 'Staff Akademik 2',
+                'name' => 'Staff KESMA 2',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['Akademik']->id,
+                'department_id' => $departments['kesma']->id,
                 'status' => 'active',
             ]),
             'inactive_staff' => $this->upsertUser('staff.inactive@savana.test', [
                 'name' => 'Staff Alumni',
                 'password' => 'password',
                 'role_id' => $roles['staff']->id,
-                'department_id' => $departments['Medinfo']->id,
+                'department_id' => $departments['medfo']->id,
                 'status' => 'inactive',
             ]),
         ];
@@ -196,7 +196,7 @@ class DevelopmentSeeder extends Seeder
 
         $programs['psdm_bootcamp'] = $this->upsertProgram(
             'Bootcamp Staff Baru',
-            $departments['PSDM'],
+            $departments['psdm'],
             [
                 'description' => 'Program onboarding staff baru dengan mentoring, evaluasi mingguan, dan simulasi kerja departemen.',
                 'created_by' => $users['psdm_head']->id,
@@ -214,7 +214,7 @@ class DevelopmentSeeder extends Seeder
 
         $programs['medinfo_campaign'] = $this->upsertProgram(
             'Campaign Media Ramadhan',
-            $departments['Medinfo'],
+            $departments['medfo'],
             [
                 'description' => 'Konten campaign lintas kanal untuk publikasi agenda organisasi dan rekap pencapaian semester.',
                 'created_by' => $users['medinfo_head']->id,
@@ -233,7 +233,7 @@ class DevelopmentSeeder extends Seeder
 
         $programs['humas_visit'] = $this->upsertProgram(
             'Campus Relation Visit',
-            $departments['Humas'],
+            $departments['hublu'],
             [
                 'description' => 'Roadshow ke himpunan mitra untuk penjajakan kolaborasi acara dan sponsorship.',
                 'created_by' => $users['humas_head']->id,
@@ -251,7 +251,7 @@ class DevelopmentSeeder extends Seeder
 
         $programs['ristek_dashboard'] = $this->upsertProgram(
             'Internal Dashboard CMOS',
-            $departments['Ristek'],
+            $departments['risprof'],
             [
                 'description' => 'Pengembangan dashboard operasional untuk memantau task, evaluasi, dan agenda lintas departemen.',
                 'created_by' => $users['ristek_head']->id,
@@ -270,7 +270,7 @@ class DevelopmentSeeder extends Seeder
 
         $programs['akademik_clinic'] = $this->upsertProgram(
             'Klinik Akademik UTS',
-            $departments['Akademik'],
+            $departments['kesma'],
             [
                 'description' => 'Pendampingan akademik menjelang UTS melalui sesi konsultasi, bank soal, dan review materi.',
                 'created_by' => $users['akademik_head']->id,
@@ -302,7 +302,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Susun modul orientasi staff',
                 'description' => 'Finalisasi modul onboarding dan materi mentoring untuk bootcamp staff baru.',
                 'program_id' => $programs['psdm_bootcamp']->id,
-                'department_id' => $departments['PSDM']->id,
+                'department_id' => $departments['psdm']->id,
                 'assigned_to' => $users['psdm_staff_1']->id,
                 'created_by' => $users['psdm_head']->id,
                 'status' => 'done',
@@ -316,7 +316,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Buat jadwal mentoring mingguan',
                 'description' => 'Koordinasikan mentor, room, dan PIC tiap sesi selama satu bulan.',
                 'program_id' => $programs['psdm_bootcamp']->id,
-                'department_id' => $departments['PSDM']->id,
+                'department_id' => $departments['psdm']->id,
                 'assigned_to' => $users['psdm_staff_2']->id,
                 'created_by' => $users['psdm_head']->id,
                 'status' => 'in_progress',
@@ -330,7 +330,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Review kalender konten mingguan',
                 'description' => 'Pastikan distribusi topik feed, reels, dan story seimbang untuk campaign utama.',
                 'program_id' => $programs['medinfo_campaign']->id,
-                'department_id' => $departments['Medinfo']->id,
+                'department_id' => $departments['medfo']->id,
                 'assigned_to' => $users['medinfo_staff_1']->id,
                 'created_by' => $users['medinfo_head']->id,
                 'status' => 'pending',
@@ -344,7 +344,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Optimasi landing page publikasi',
                 'description' => 'Refactor hero section dan performa asset untuk landing page campaign.',
                 'program_id' => $programs['ristek_dashboard']->id,
-                'department_id' => $departments['Ristek']->id,
+                'department_id' => $departments['risprof']->id,
                 'assigned_to' => $users['ristek_staff_1']->id,
                 'created_by' => $users['ristek_head']->id,
                 'status' => 'in_progress',
@@ -358,7 +358,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Siapkan proposal mitra kampus',
                 'description' => 'Lengkapi deck kolaborasi dan kebutuhan sponsorship untuk roadshow.',
                 'program_id' => $programs['humas_visit']->id,
-                'department_id' => $departments['Humas']->id,
+                'department_id' => $departments['hublu']->id,
                 'assigned_to' => $users['humas_staff_1']->id,
                 'created_by' => $users['humas_head']->id,
                 'status' => 'todo',
@@ -372,7 +372,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Rekap bank soal UTS',
                 'description' => 'Dokumentasikan hasil klinik akademik dan finalisasi arsip materi.',
                 'program_id' => $programs['akademik_clinic']->id,
-                'department_id' => $departments['Akademik']->id,
+                'department_id' => $departments['kesma']->id,
                 'assigned_to' => $users['akademik_staff_2']->id,
                 'created_by' => $users['akademik_head']->id,
                 'status' => 'done',
@@ -400,7 +400,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Audit inventaris desain publikasi',
                 'description' => 'Rapikan aset desain, template poster, dan folder arsip semester.',
                 'program_id' => null,
-                'department_id' => $departments['Medinfo']->id,
+                'department_id' => $departments['medfo']->id,
                 'assigned_to' => $users['medinfo_staff_2']->id,
                 'created_by' => $users['medinfo_head']->id,
                 'status' => 'todo',
@@ -438,7 +438,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Mentoring Staff PSDM Batch 2',
                 'description' => 'Sesi pendampingan progres onboarding dan pembagian evaluasi pekanan.',
                 'type' => 'department',
-                'department_id' => $departments['PSDM']->id,
+                'department_id' => $departments['psdm']->id,
                 'program_id' => null,
                 'start_date' => now()->addDays(6)->toDateString(),
                 'end_date' => now()->addDays(6)->toDateString(),
@@ -448,7 +448,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Review Sprint Dashboard',
                 'description' => 'Demo progres pengembangan dashboard internal dan penentuan next sprint.',
                 'type' => 'program',
-                'department_id' => $departments['Ristek']->id,
+                'department_id' => $departments['risprof']->id,
                 'program_id' => $programs['ristek_dashboard']->id,
                 'start_date' => now()->addDays(2)->toDateString(),
                 'end_date' => now()->addDays(2)->toDateString(),
@@ -458,7 +458,7 @@ class DevelopmentSeeder extends Seeder
                 'title' => 'Roadshow Mitra Gelombang 1',
                 'description' => 'Kunjungan ke mitra eksternal untuk membuka peluang kolaborasi acara besar.',
                 'type' => 'program',
-                'department_id' => $departments['Humas']->id,
+                'department_id' => $departments['hublu']->id,
                 'program_id' => $programs['humas_visit']->id,
                 'start_date' => now()->addWeeks(2)->toDateString(),
                 'end_date' => now()->addWeeks(2)->addDay()->toDateString(),
@@ -479,36 +479,36 @@ class DevelopmentSeeder extends Seeder
     {
         foreach ([
             [
-                'department' => 'PSDM',
+                'department' => 'psdm',
                 'name' => 'Drive PSDM',
                 'email' => 'drive.psdm@savana.test',
                 'password' => 'psdm-drive-2026',
                 'drive_url' => 'https://drive.google.com/drive/folders/psdm-shared-drive',
             ],
             [
-                'department' => 'Medinfo',
-                'name' => 'Drive Medinfo',
+                'department' => 'medfo',
+                'name' => 'Drive MEDFO',
                 'email' => 'drive.medinfo@savana.test',
                 'password' => 'medinfo-drive-2026',
                 'drive_url' => 'https://drive.google.com/drive/folders/medinfo-shared-drive',
             ],
             [
-                'department' => 'Humas',
-                'name' => 'Drive Humas',
+                'department' => 'hublu',
+                'name' => 'Drive HUBLU',
                 'email' => 'drive.humas@savana.test',
                 'password' => 'humas-drive-2026',
                 'drive_url' => 'https://drive.google.com/drive/folders/humas-shared-drive',
             ],
             [
-                'department' => 'Ristek',
-                'name' => 'Drive Ristek',
+                'department' => 'risprof',
+                'name' => 'Drive RISPROF',
                 'email' => 'drive.ristek@savana.test',
                 'password' => 'ristek-drive-2026',
                 'drive_url' => 'https://drive.google.com/drive/folders/ristek-shared-drive',
             ],
             [
-                'department' => 'Akademik',
-                'name' => 'Drive Akademik',
+                'department' => 'kesma',
+                'name' => 'Drive KESMA',
                 'email' => 'drive.akademik@savana.test',
                 'password' => 'akademik-drive-2026',
                 'drive_url' => 'https://drive.google.com/drive/folders/akademik-shared-drive',
@@ -610,7 +610,7 @@ class DevelopmentSeeder extends Seeder
         AnnouncementComment::firstOrCreate([
             'announcement_id' => $announcement->id,
             'user_id' => $users['medinfo_head']->id,
-            'content' => 'Siap, Medinfo akan bawa rekap campaign dan kebutuhan approval konten.',
+            'content' => 'Siap, MEDFO akan bawa rekap campaign dan kebutuhan approval konten.',
         ]);
 
         AnnouncementReaction::updateOrCreate(
@@ -668,7 +668,7 @@ class DevelopmentSeeder extends Seeder
         AnnouncementComment::firstOrCreate([
             'announcement_id' => $pollAnnouncement->id,
             'user_id' => $users['akademik_head']->id,
-            'content' => 'Kalau hybrid dipilih, Akademik bisa bantu susun sesi ice breaking dan rundown belajar santai.',
+            'content' => 'Kalau hybrid dipilih, KESMA bisa bantu susun sesi ice breaking dan rundown belajar santai.',
         ]);
 
         foreach ([
@@ -844,7 +844,7 @@ class DevelopmentSeeder extends Seeder
             [
                 'slug' => 'kolaborasi-dengan-mitra-media',
                 'title' => 'Kolaborasi Baru dengan Mitra Media Kampus',
-                'excerpt' => 'Medinfo dan Humas membuka kanal distribusi publikasi yang lebih luas.',
+                'excerpt' => 'MEDFO dan HUBLU membuka kanal distribusi publikasi yang lebih luas.',
                 'content' => '<p>Kolaborasi ini membuka peluang distribusi konten lintas kanal dan mempercepat publikasi kegiatan yang bersifat eksternal.</p><p>Tim juga sedang menyiapkan guideline approval agar kualitas visual dan copywriting tetap konsisten.</p>',
                 'status' => 'published',
                 'published_at' => now()->subDays(3),
@@ -856,7 +856,7 @@ class DevelopmentSeeder extends Seeder
             [
                 'slug' => 'arsitektur-dashboard-internal',
                 'title' => 'Catatan Pengembangan Dashboard Internal',
-                'excerpt' => 'Ristek membagikan progres sprint dan rencana iterasi berikutnya.',
+                'excerpt' => 'RISPROF membagikan progres sprint dan rencana iterasi berikutnya.',
                 'content' => '<p>Sprint terbaru berfokus pada penyederhanaan alur input task, optimasi render halaman publik, dan penyusunan dataset evaluasi yang lebih representatif.</p>',
                 'status' => 'draft',
                 'published_at' => null,

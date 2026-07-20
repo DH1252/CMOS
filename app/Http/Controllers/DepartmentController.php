@@ -135,7 +135,15 @@ class DepartmentController extends Controller
                         ['name' => 'name', 'label' => 'Nama Departemen', 'type' => 'text', 'required' => true, 'value' => old('name'), 'error' => session('errors')?->first('name')],
                         ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description'), 'error' => session('errors')?->first('description'), 'rows' => 3],
                         ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics')],
-                        ['name' => 'structure_label', 'label' => 'Label Struktur Pengurus', 'type' => 'text', 'value' => old('structure_label'), 'error' => session('errors')?->first('structure_label'), 'placeholder' => 'Struktur Pengurus'],
+                        [
+                            'name' => 'slug',
+                            'label' => 'Halaman Departemen Publik',
+                            'type' => 'select',
+                            'value' => old('slug'),
+                            'error' => session('errors')?->first('slug'),
+                            'placeholder' => '-- Tidak dipetakan --',
+                            'options' => collect(Department::PUBLIC_PAGE_OPTIONS)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values(),
+                        ],
                         [
                             'name' => 'cabinet_id',
                             'label' => 'Kabinet',
@@ -175,7 +183,11 @@ class DepartmentController extends Controller
             'cabinet_id' => 'nullable|exists:cabinets,id',
             'status' => 'required|in:active,inactive',
             'staff_graphics' => 'nullable|string',
-            'structure_label' => 'nullable|string|max:255',
+            'slug' => [
+                'nullable',
+                \Illuminate\Validation\Rule::in(array_keys(Department::PUBLIC_PAGE_OPTIONS)),
+                \Illuminate\Validation\Rule::unique('departments', 'slug'),
+            ],
         ]);
 
         if (isset($validated['staff_graphics'])) {
@@ -280,7 +292,15 @@ class DepartmentController extends Controller
                         ['name' => 'name', 'label' => 'Nama Departemen', 'type' => 'text', 'required' => true, 'value' => old('name', $department->name), 'error' => session('errors')?->first('name')],
                         ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description', $department->description), 'error' => session('errors')?->first('description'), 'rows' => 3],
                         ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics', $department->staff_graphics)],
-                        ['name' => 'structure_label', 'label' => 'Label Struktur Pengurus', 'type' => 'text', 'value' => old('structure_label', $department->structure_label), 'error' => session('errors')?->first('structure_label'), 'placeholder' => 'Struktur Pengurus'],
+                        [
+                            'name' => 'slug',
+                            'label' => 'Halaman Departemen Publik',
+                            'type' => 'select',
+                            'value' => old('slug', $department->slug),
+                            'error' => session('errors')?->first('slug'),
+                            'placeholder' => '-- Tidak dipetakan --',
+                            'options' => collect(Department::PUBLIC_PAGE_OPTIONS)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values(),
+                        ],
                         [
                             'name' => 'cabinet_id',
                             'label' => 'Kabinet',
@@ -320,7 +340,11 @@ class DepartmentController extends Controller
             'cabinet_id' => 'nullable|exists:cabinets,id',
             'status' => 'required|in:active,inactive',
             'staff_graphics' => 'nullable|string',
-            'structure_label' => 'nullable|string|max:255',
+            'slug' => [
+                'nullable',
+                \Illuminate\Validation\Rule::in(array_keys(Department::PUBLIC_PAGE_OPTIONS)),
+                \Illuminate\Validation\Rule::unique('departments', 'slug')->ignore($department->id),
+            ],
         ]);
 
         if (array_key_exists('staff_graphics', $validated) && $validated['staff_graphics'] !== null) {

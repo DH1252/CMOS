@@ -27,7 +27,7 @@ class DatabaseSeederTest extends TestCase
         $this->seed();
 
         $this->assertDatabaseCount('roles', 4);
-        $this->assertDatabaseCount('departments', 5);
+        $this->assertDatabaseCount('departments', 10);
         $this->assertDatabaseCount('settings', 4);
         $this->assertDatabaseCount('grade_parameters', 5);
         $this->assertDatabaseCount('evaluation_criteria', 6);
