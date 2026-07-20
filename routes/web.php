@@ -105,6 +105,7 @@ Route::get('/departemen/{slug?}', function (?string $slug = null) {
                 'acaraUrl' => route('acara.index'),
                 'selectedSlug' => strtolower($slug),
                 'staffGraphics' => $department ? $department->staff_graphics : null,
+                'structureLabel' => $department?->structure_label,
             ]);
         }
     }

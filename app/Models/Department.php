@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Department extends Model
 {
-    protected $fillable = ['name', 'description', 'cabinet_id', 'status', 'staff_graphics'];
+    protected $fillable = ['name', 'description', 'cabinet_id', 'status', 'staff_graphics', 'structure_label'];
 
     protected $casts = [
         'status' => 'string',

@@ -16,6 +16,7 @@
     acaraUrl = "/acara",
     selectedSlug = null,
     staffGraphics = [],
+    structureLabel = null,
   } = $props();
 
   const assetBase = "/images/figma-taling";
@@ -80,6 +81,7 @@
     // Touch event listeners to pause auto scroll on mobile swiping
     const handleTouch = () => {
       registerInteraction();
+      extendHighlight();
       currentScrollLeft = sliderRef.scrollLeft;
     };
     sliderRef.addEventListener("touchstart", handleTouch, { passive: true });
@@ -210,6 +212,7 @@
     if (!sliderRef) return;
     isDown = true;
     registerInteraction();
+    extendHighlight();
     sliderRef.classList.add("cursor-grabbing");
     sliderRef.classList.remove("cursor-grab");
     startX = e.pageX - sliderRef.offsetLeft;
@@ -231,6 +234,7 @@
     if (!isDown || !sliderRef) return;
     e.preventDefault();
     registerInteraction();
+    extendHighlight();
     const x = e.pageX - sliderRef.offsetLeft;
     const walk = (x - startX) * 2;
     sliderRef.scrollLeft = scrollLeft - walk;
@@ -238,6 +242,7 @@
 
   function scrollGallery(direction) {
     registerInteraction();
+    extendHighlight();
     if (sliderRef && typeof window !== "undefined") {
       sliderRef.scrollBy({
         left: direction * (window.innerWidth * 0.5),
@@ -267,6 +272,7 @@
               batch,
               role: overlay.role || "",
               picture: overlay.picture || null,
+              group: (overlay.group || "").trim(),
               graphicIndex,
             });
           });
@@ -276,7 +282,34 @@
     return list;
   });
 
+  // Group staff by their custom label, preserving first-appearance order.
+  // Staff without a label fall back to the default "Daftar Pengurus" group.
+  let staffGroups = $derived.by(() => {
+    const groups = [];
+    const groupIndexByLabel = new Map();
+    for (const person of staffList) {
+      const label = person.group;
+      if (!groupIndexByLabel.has(label)) {
+        groupIndexByLabel.set(label, groups.length);
+        groups.push({ label, members: [] });
+      }
+      groups[groupIndexByLabel.get(label)].members.push(person);
+    }
+    return groups;
+  });
+
   let activeStaffName = $state(null);
+
+  function extendHighlight() {
+    if (activeStaffName) {
+      highlightPausedUntil = Date.now() + 5000;
+    }
+  }
+
+  function toggleOverlayHighlight(name) {
+    activeStaffName = activeStaffName === name ? null : name;
+    highlightPausedUntil = Date.now() + 5000;
+  }
 
   function scrollToStaff(staff) {
     activeStaffName = staff.name;
@@ -623,7 +656,7 @@
           <h2
             class="mt-3 font-['The_Seasons',serif] text-4xl font-bold text-[#ffd344] md:text-5xl"
           >
-            Struktur Pengurus
+            {structureLabel || "Struktur Pengurus"}
           </h2>
         </div>
 
@@ -767,9 +800,13 @@
                             : isMobileViewport
                               ? 0.8
                               : 1}
-                          <div
+                          <button
+                            type="button"
                             use:preventClip={{ availW, availH }}
-                            class="pointer-events-auto absolute flex w-max flex-col justify-center p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_32px_rgba(255,165,0,0.15)] origin-center md:p-3
+                            onclick={() =>
+                              toggleOverlayHighlight(parsedName.name)}
+                            aria-pressed={isActive}
+                            class="pointer-events-auto absolute flex w-max cursor-pointer flex-col justify-center p-1.5 text-left shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_32px_rgba(255,165,0,0.15)] origin-center md:p-3
                             {isActive
                               ? 'z-50 border-2 border-[#ff7a1a] shadow-[0_0_30px_rgba(255,122,26,0.75)] ring-4 ring-[#ff7a1a]/20 animate-gradient-flow'
                               : 'z-10 border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85'}"
@@ -791,7 +828,7 @@
                                 >
                               {/if}
                             </h4>
-                          </div>
+                          </button>
                         {/each}
                       </div>
                     {/if}
@@ -823,51 +860,55 @@
           </div>
 
           <!-- Staff List Section -->
-          {#if staffList.length > 0}
+          {#if staffGroups.length > 0}
             <div class="mb-24">
-              <h3
-                class="mb-10 text-center text-sm font-semibold tracking-wider text-[#e2bb44] uppercase"
-              >
-                Daftar Pengurus
-              </h3>
-              <div
-                class="grid grid-cols-1 gap-4 px-4 sm:grid-cols-2 md:grid-cols-3 md:px-0 lg:grid-cols-4"
-              >
-                {#each staffList as staff}
-                  <button
-                    onclick={() => scrollToStaff(staff)}
-                    class="group flex w-full flex-col items-start rounded-2xl border border-white/5 bg-[#111111]/80 p-5 text-left transition-all hover:border-[#ff7a1a]/50 hover:bg-[#1a1a1a]"
+              {#each staffGroups as staffGroup}
+                <div class="mb-16 last:mb-0">
+                  <h3
+                    class="mb-10 text-center text-sm font-semibold tracking-wider text-[#e2bb44] uppercase"
                   >
-                    <div class="flex w-full items-center gap-4">
-                      {#if staff.picture}
-                        <img
-                          src={staff.picture}
-                          alt={staff.name}
-                          class="h-12 w-12 shrink-0 rounded-full border border-white/10 object-cover transition-colors group-hover:border-[#ff7a1a]/50"
-                        />
-                      {/if}
-                      <div class="flex flex-col items-start">
-                        <span
-                          class="mb-1.5 text-[10px] leading-tight font-bold tracking-widest text-[#ff7a1a] uppercase"
-                          >{staff.role}</span
-                        >
-                        <div class="flex flex-wrap items-center gap-2">
-                          <span
-                            class="font-['The_Seasons',serif] text-base text-white/90 transition-colors group-hover:text-white"
-                            >{staff.name}</span
-                          >
-                          {#if staff.batch}
-                            <span
-                              class="rounded-md bg-white/5 px-2 py-0.5 text-[10px] font-bold text-[#FFB52E]"
-                              >{staff.batch}</span
-                            >
+                    {staffGroup.label || "Daftar Pengurus"}
+                  </h3>
+                  <div
+                    class="grid grid-cols-1 gap-4 px-4 sm:grid-cols-2 md:grid-cols-3 md:px-0 lg:grid-cols-4"
+                  >
+                    {#each staffGroup.members as staff}
+                      <button
+                        onclick={() => scrollToStaff(staff)}
+                        class="group flex w-full flex-col items-start rounded-2xl border border-white/5 bg-[#111111]/80 p-5 text-left transition-all hover:border-[#ff7a1a]/50 hover:bg-[#1a1a1a]"
+                      >
+                        <div class="flex w-full items-center gap-4">
+                          {#if staff.picture}
+                            <img
+                              src={staff.picture}
+                              alt={staff.name}
+                              class="h-12 w-12 shrink-0 rounded-full border border-white/10 object-cover transition-colors group-hover:border-[#ff7a1a]/50"
+                            />
                           {/if}
+                          <div class="flex flex-col items-start">
+                            <span
+                              class="mb-1.5 text-[10px] leading-tight font-bold tracking-widest text-[#ff7a1a] uppercase"
+                              >{staff.role}</span
+                            >
+                            <div class="flex flex-wrap items-center gap-2">
+                              <span
+                                class="font-['The_Seasons',serif] text-base text-white/90 transition-colors group-hover:text-white"
+                                >{staff.name}</span
+                              >
+                              {#if staff.batch}
+                                <span
+                                  class="rounded-md bg-white/5 px-2 py-0.5 text-[10px] font-bold text-[#FFB52E]"
+                                  >{staff.batch}</span
+                                >
+                              {/if}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </button>
-                {/each}
-              </div>
+                      </button>
+                    {/each}
+                  </div>
+                </div>
+              {/each}
             </div>
           {/if}
         {:else if teamData.members.length === 0}
