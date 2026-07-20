@@ -285,7 +285,7 @@
             </button>
             <input
               type="file"
-              id="upload-graphic-${gIndex}"
+              id={`upload-graphic-${gIndex}`}
               accept="image/*"
               class="hidden"
               onchange={(e) => handleFileChange(e, gIndex)}
