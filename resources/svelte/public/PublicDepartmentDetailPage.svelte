@@ -5,6 +5,7 @@
   import { router } from "@inertiajs/svelte";
   import { fade, scale } from "svelte/transition";
   import { inertiaEnhance } from "../lib/inertia-enhance.js";
+  import { preventClip } from "../lib/prevent-clip.js";
   import { departmentTeams } from "../../js/mtt-data.js";
 
   let {
@@ -40,6 +41,7 @@
   let currentScrollLeft = 0;
   let lastInteractionTime = 0;
   let highlightPausedUntil = 0;
+  let isMobileViewport = $state(false);
 
   function registerInteraction() {
     lastInteractionTime = Date.now();
@@ -47,6 +49,12 @@
 
   onMount(() => {
     if (typeof window === "undefined" || !sliderRef) return;
+
+    const updateViewport = () => {
+      isMobileViewport = window.innerWidth < 768;
+    };
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
 
     const saved = localStorage.getItem("himatekkom_auto_scroll");
     if (saved !== null) {
@@ -144,6 +152,7 @@
     return () => {
       observer.disconnect();
       cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", updateViewport);
       if (sliderRef) {
         sliderRef.removeEventListener("touchstart", handleTouch);
         sliderRef.removeEventListener("touchmove", handleTouch);
@@ -728,16 +737,43 @@
                               };
                             return { name: fullName, batch: null };
                           })()}
+                          {@const x = overlay.x !== undefined ? overlay.x : 50}
+                          {@const y = overlay.y !== undefined ? overlay.y : 50}
+                          {@const imgW =
+                            (naturalWidths[graphicIndex] || 400) * gScale}
+                          {@const imgH =
+                            (naturalHeights[graphicIndex] || 400) * gScale}
+                          {@const centerX = (x / 100) * imgW}
+                          {@const centerY = (y / 100) * imgH}
+                          {@const availW =
+                            2 *
+                            Math.max(0, Math.min(centerX, imgW - centerX)) *
+                            0.96}
+                          {@const availH =
+                            2 *
+                            Math.max(0, Math.min(centerY, imgH - centerY)) *
+                            0.96}
+                          {@const isActive =
+                            parsedName.name === activeStaffName}
+                          {@const maxW = Math.min(
+                            isMobileViewport ? 160 : 250,
+                            Math.max(80, availW),
+                            imgW * 0.92,
+                          )}
+                          {@const renderScale = isActive
+                            ? isMobileViewport
+                              ? 0.9
+                              : 1.1
+                            : isMobileViewport
+                              ? 0.8
+                              : 1}
                           <div
-                            class="pointer-events-auto absolute flex w-max max-w-[160px] -translate-x-1/2 -translate-y-1/2 transform flex-col justify-center p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_32px_rgba(255,165,0,0.15)] origin-center scale-[0.8] md:max-w-[250px] md:scale-100 md:p-3
-                            {parsedName.name === activeStaffName
-                              ? 'z-50 scale-[0.9] md:scale-110 border-2 border-[#ff7a1a] shadow-[0_0_30px_rgba(255,122,26,0.75)] ring-4 ring-[#ff7a1a]/20 animate-gradient-flow'
+                            use:preventClip={{ availW, availH }}
+                            class="pointer-events-auto absolute flex w-max flex-col justify-center p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all duration-300 hover:shadow-[0_8px_32px_rgba(255,165,0,0.15)] origin-center md:p-3
+                            {isActive
+                              ? 'z-50 border-2 border-[#ff7a1a] shadow-[0_0_30px_rgba(255,122,26,0.75)] ring-4 ring-[#ff7a1a]/20 animate-gradient-flow'
                               : 'z-10 border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85'}"
-                            style="left: {overlay.x !== undefined
-                              ? overlay.x
-                              : 50}%; top: {overlay.y !== undefined
-                              ? overlay.y
-                              : 50}%;"
+                            style="left: {x}%; top: {y}%; max-width: {maxW}px; transform: translate(-50%, -50%) scale({renderScale}) scale(var(--clip-scale, 1));"
                           >
                             <p
                               class="text-left font-['The_Seasons',serif] text-[10px] leading-tight font-normal tracking-wide text-balance text-white/95 drop-shadow-sm md:text-sm"

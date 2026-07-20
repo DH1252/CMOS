@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { preventClip } from "../lib/prevent-clip.js";
 
   let { field } = $props();
 
@@ -263,6 +264,7 @@
           <!-- Full-Width Image Preview Container -->
           <div
             bind:clientHeight={graphic._height}
+            bind:clientWidth={graphic._width}
             class="group image-container relative w-full overflow-hidden rounded-md border border-border/50 bg-black/5"
           >
             <div
@@ -289,11 +291,23 @@
                     };
                   return { name: fullName, batch: null };
                 })()}
+                {@const ox = overlay.x !== undefined ? overlay.x : 50}
+                {@const oy = overlay.y !== undefined ? overlay.y : 50}
+                {@const imgW = graphic._width || 300}
+                {@const imgH = graphic._height || 200}
+                {@const centerX = (ox / 100) * imgW}
+                {@const centerY = (oy / 100) * imgH}
+                {@const availW =
+                  2 * Math.max(0, Math.min(centerX, imgW - centerX)) * 0.96}
+                {@const availH =
+                  2 * Math.max(0, Math.min(centerY, imgH - centerY)) * 0.96}
+                {@const cardScale = Math.max(
+                  0.2,
+                  (graphic._height || 200) / 816,
+                )}
                 <div
-                  class="group/overlay absolute z-20 -translate-x-1/2 -translate-y-1/2 transform cursor-move select-none hover:z-30"
-                  style="left: {overlay.x !== undefined
-                    ? overlay.x
-                    : 50}%; top: {overlay.y !== undefined ? overlay.y : 50}%;"
+                  class="group/overlay absolute z-20 cursor-move select-none hover:z-30"
+                  style="left: {ox}%; top: {oy}%; transform: translate(-50%, -50%);"
                   role="button"
                   tabindex="0"
                   aria-label="Seret overlay {overlay.name ||
@@ -302,11 +316,12 @@
                   onpointerdown={(e) => startDrag(e, gIndex, oIndex)}
                 >
                   <div
+                    use:preventClip={{ availW, availH, baseScale: cardScale }}
                     class="pointer-events-none flex w-max max-w-[340px] origin-center flex-col justify-center border border-white/10 bg-gradient-to-br from-[#111111]/95 to-[#1a1a1a]/85 px-5 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all group-hover/overlay:shadow-[0_8px_32px_rgba(255,165,0,0.15)]"
-                    style="transform: scale({Math.max(
-                      0.2,
-                      (graphic._height || 200) / 816,
-                    )});"
+                    style="transform: scale({cardScale}) scale(var(--clip-scale, 1)); max-width: {Math.min(
+                      340,
+                      Math.max(120, availW),
+                    )}px;"
                   >
                     <p
                       class="text-left font-['The_Seasons',serif] text-[20px] leading-tight font-normal tracking-wide text-balance text-white/95 drop-shadow-sm"
