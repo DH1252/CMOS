@@ -16,6 +16,7 @@
     acaraUrl = "/acara",
     selectedSlug = null,
     staffGraphics = [],
+    staffOrder = [],
     programs = [],
   } = $props();
 
@@ -268,6 +269,7 @@
               batch = match[2].toUpperCase().replace(/\s+/, "");
             }
             list.push({
+              id: overlay.id || null,
               name,
               batch,
               role: overlay.role || "",
@@ -278,6 +280,31 @@
         }
       });
     }
+
+    // Enforce department-level ordering (array of overlay ids) when present.
+    // Overlays without a tracked id keep their natural relative order at the
+    // end of the list.
+    if (Array.isArray(staffOrder) && staffOrder.length > 0) {
+      const seen = new Set();
+      const ordered = [];
+      // Tracked overlays in the saved order.
+      for (const id of staffOrder) {
+        const person = list.find((p) => p.id === id);
+        if (person && !seen.has(person)) {
+          ordered.push(person);
+          seen.add(person);
+        }
+      }
+      // Untracked / new overlays appended in natural order.
+      for (const person of list) {
+        if (!seen.has(person)) {
+          ordered.push(person);
+          seen.add(person);
+        }
+      }
+      list = ordered;
+    }
+
     return list;
   });
 

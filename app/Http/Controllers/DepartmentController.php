@@ -134,7 +134,7 @@ class DepartmentController extends Controller
                     'fields' => [
                         ['name' => 'name', 'label' => 'Nama Departemen', 'type' => 'text', 'required' => true, 'value' => old('name'), 'error' => session('errors')?->first('name')],
                         ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description'), 'error' => session('errors')?->first('description'), 'rows' => 3],
-                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics')],
+                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics'), 'staffOrder' => old('staff_order')],
                         [
                             'name' => 'slug',
                             'label' => 'Halaman Departemen Publik',
@@ -183,6 +183,7 @@ class DepartmentController extends Controller
             'cabinet_id' => 'nullable|exists:cabinets,id',
             'status' => 'required|in:active,inactive',
             'staff_graphics' => 'nullable|string',
+            'staff_order' => 'nullable|string',
             'slug' => [
                 'nullable',
                 \Illuminate\Validation\Rule::in(array_keys(Department::PUBLIC_PAGE_OPTIONS)),
@@ -192,6 +193,10 @@ class DepartmentController extends Controller
 
         if (isset($validated['staff_graphics'])) {
             $validated['staff_graphics'] = json_decode($validated['staff_graphics'], true);
+        }
+
+        if (isset($validated['staff_order'])) {
+            $validated['staff_order'] = json_decode($validated['staff_order'], true);
         }
 
         $department = Department::create($validated);
@@ -291,7 +296,7 @@ class DepartmentController extends Controller
                     'fields' => [
                         ['name' => 'name', 'label' => 'Nama Departemen', 'type' => 'text', 'required' => true, 'value' => old('name', $department->name), 'error' => session('errors')?->first('name')],
                         ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description', $department->description), 'error' => session('errors')?->first('description'), 'rows' => 3],
-                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics', $department->staff_graphics)],
+                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics', $department->staff_graphics), 'staffOrder' => old('staff_order', $department->staff_order)],
                         [
                             'name' => 'slug',
                             'label' => 'Halaman Departemen Publik',
@@ -340,6 +345,7 @@ class DepartmentController extends Controller
             'cabinet_id' => 'nullable|exists:cabinets,id',
             'status' => 'required|in:active,inactive',
             'staff_graphics' => 'nullable|string',
+            'staff_order' => 'nullable|string',
             'slug' => [
                 'nullable',
                 \Illuminate\Validation\Rule::in(array_keys(Department::PUBLIC_PAGE_OPTIONS)),
@@ -349,6 +355,10 @@ class DepartmentController extends Controller
 
         if (array_key_exists('staff_graphics', $validated) && $validated['staff_graphics'] !== null) {
             $validated['staff_graphics'] = json_decode($validated['staff_graphics'], true);
+        }
+
+        if (array_key_exists('staff_order', $validated) && $validated['staff_order'] !== null) {
+            $validated['staff_order'] = json_decode($validated['staff_order'], true);
         }
 
         $department->update($validated);

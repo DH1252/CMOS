@@ -8,6 +8,13 @@
   let isUploading = $state(false);
   let uploadError = $state("");
   let disableOverlays = $state(false);
+  let staffOrder = $state([]);
+  let idCounter = 0;
+
+  function genId() {
+    idCounter += 1;
+    return `ov-${Date.now().toString(36)}-${idCounter}`;
+  }
 
   onMount(() => {
     try {
@@ -19,6 +26,31 @@
     } catch (e) {
       console.error("Failed to parse graphics", e);
       graphics = [];
+    }
+
+    // Ensure every overlay has a stable id for ordering tracking.
+    graphics.forEach((graphic) => {
+      if (Array.isArray(graphic.overlays)) {
+        graphic.overlays.forEach((overlay) => {
+          if (!overlay.id) {
+            overlay.id = genId();
+          }
+        });
+      }
+    });
+    graphics = [...graphics];
+
+    // Load the department-level staff order (array of overlay ids).
+    try {
+      const raw = field.staffOrder;
+      if (typeof raw === "string" && raw) {
+        staffOrder = JSON.parse(raw);
+      } else if (Array.isArray(raw)) {
+        staffOrder = raw;
+      }
+    } catch (e) {
+      console.error("Failed to parse staff order", e);
+      staffOrder = [];
     }
 
     disableOverlays =
@@ -118,7 +150,13 @@
   }
 
   function addOverlay(graphicIndex) {
-    graphics[graphicIndex].overlays.push({ name: "", role: "", x: 50, y: 50 });
+    graphics[graphicIndex].overlays.push({
+      id: genId(),
+      name: "",
+      role: "",
+      x: 50,
+      y: 50,
+    });
     graphics = [...graphics];
   }
 
@@ -129,24 +167,71 @@
     graphics = [...graphics];
   }
 
-  function moveOverlayUp(graphicIndex, overlayIndex) {
-    if (overlayIndex <= 0) return;
-    const overlays = graphics[graphicIndex].overlays;
-    [overlays[overlayIndex - 1], overlays[overlayIndex]] = [
-      overlays[overlayIndex],
-      overlays[overlayIndex - 1],
-    ];
-    graphics = [...graphics];
+  // All staff across every graphic, flattened in natural order. This is the
+  // source of truth for the department-level ordering card.
+  let allStaff = $derived.by(() => {
+    const list = [];
+    graphics.forEach((graphic, gIndex) => {
+      if (!Array.isArray(graphic.overlays)) return;
+      graphic.overlays.forEach((overlay, oIndex) => {
+        if (!overlay.id) return;
+        const fullName = overlay.name || "";
+        const match = fullName.match(/(.*?)\s+(CE\s*\d+)$/i);
+        let displayName = fullName;
+        let batch = null;
+        if (match) {
+          displayName = match[1];
+          batch = match[2].toUpperCase().replace(/\s+/, "");
+        }
+        list.push({
+          id: overlay.id,
+          name: fullName,
+          displayName,
+          batch,
+          role: overlay.role || "",
+          picture: overlay.picture || null,
+          graphicIndex: gIndex,
+          overlayIndex: oIndex,
+        });
+      });
+    });
+    return list;
+  });
+
+  // Effective display order: saved staffOrder first (filtered to existing
+  // overlays), then any new/unmapped overlays appended in natural order.
+  let effectiveOrder = $derived.by(() => {
+    const byId = new Map(allStaff.map((s) => [s.id, s]));
+    const ordered = [];
+    const seen = new Set();
+    for (const id of staffOrder) {
+      const entry = byId.get(id);
+      if (entry && !seen.has(id)) {
+        ordered.push(entry);
+        seen.add(id);
+      }
+    }
+    for (const entry of allStaff) {
+      if (!seen.has(entry.id)) {
+        ordered.push(entry);
+        seen.add(entry.id);
+      }
+    }
+    return ordered;
+  });
+
+  function moveStaffUp(index) {
+    if (index <= 0) return;
+    const ids = effectiveOrder.map((s) => s.id);
+    [ids[index - 1], ids[index]] = [ids[index], ids[index - 1]];
+    staffOrder = ids;
   }
 
-  function moveOverlayDown(graphicIndex, overlayIndex) {
-    const overlays = graphics[graphicIndex].overlays;
-    if (overlayIndex >= overlays.length - 1) return;
-    [overlays[overlayIndex + 1], overlays[overlayIndex]] = [
-      overlays[overlayIndex],
-      overlays[overlayIndex + 1],
-    ];
-    graphics = [...graphics];
+  function moveStaffDown(index) {
+    if (index >= effectiveOrder.length - 1) return;
+    const ids = effectiveOrder.map((s) => s.id);
+    [ids[index + 1], ids[index]] = [ids[index], ids[index + 1]];
+    staffOrder = ids;
   }
 
   let activeOverlay = null;
@@ -229,6 +314,11 @@
     name={field.name}
     value={JSON.stringify(graphics.map(({ _height, ...rest }) => rest))}
   />
+  <input
+    type="hidden"
+    name="staff_order"
+    value={JSON.stringify(effectiveOrder.map((s) => s.id))}
+  />
 
   {#if uploadError}
     <div class="mb-2 text-sm text-red-500">{uploadError}</div>
@@ -262,6 +352,76 @@
       ></span>
     </button>
   </div>
+
+  {#if allStaff.length > 0}
+    <div class="rounded-lg border border-border/50 bg-muted/20 p-4">
+      <div class="mb-1 flex items-center gap-2">
+        <h3 class="text-sm font-semibold text-foreground/80">
+          Urutan Daftar Staff
+        </h3>
+        <span
+          class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary"
+          >Departemen</span
+        >
+      </div>
+      <p class="mb-3 text-xs text-muted-foreground">
+        Atur urutan tampilan daftar pengurus. Urutan ini berlaku lintas gambar
+        dan akan mengikuti urutan ini di halaman publik.
+      </p>
+      <div class="space-y-2">
+        {#each effectiveOrder as staff, index (staff.id)}
+          <div
+            class="flex items-center gap-3 rounded-md border border-border/50 bg-background p-2"
+          >
+            {#if staff.picture}
+              <img
+                src={staff.picture}
+                class="h-8 w-8 shrink-0 rounded-full border border-border object-cover"
+                alt={staff.displayName}
+              />
+            {:else}
+              <div
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-[10px] font-semibold text-muted-foreground"
+              >
+                {(staff.displayName || "?").charAt(0)}
+              </div>
+            {/if}
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm text-foreground">
+                {staff.displayName || "Tanpa Nama"}
+              </p>
+              <p class="truncate text-[10px] text-muted-foreground">
+                {staff.role || "—"}
+              </p>
+            </div>
+            <span class="shrink-0 text-[10px] text-muted-foreground/70"
+              >#{index + 1}</span
+            >
+            <div class="flex shrink-0 flex-col gap-0.5">
+              <button
+                type="button"
+                class="text-muted-foreground transition-colors hover:text-primary disabled:opacity-30 disabled:hover:text-muted-foreground"
+                onclick={() => moveStaffUp(index)}
+                disabled={index === 0}
+                title="Naikkan urutan"
+              >
+                <i class="fas fa-chevron-up"></i>
+              </button>
+              <button
+                type="button"
+                class="text-muted-foreground transition-colors hover:text-primary disabled:opacity-30 disabled:hover:text-muted-foreground"
+                onclick={() => moveStaffDown(index)}
+                disabled={index === effectiveOrder.length - 1}
+                title="Turunkan urutan"
+              >
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
 
   {#each graphics as graphic, gIndex}
     <div
@@ -558,35 +718,15 @@
                           </label>
                         </div>
                       </div>
-                      <div class="flex flex-col items-center gap-1 pt-1">
-                        <button
-                          type="button"
-                          class="text-muted-foreground transition-colors hover:text-primary disabled:opacity-30 disabled:hover:text-muted-foreground"
-                          onclick={() => moveOverlayUp(gIndex, oIndex)}
-                          disabled={oIndex === 0}
-                          title="Naikkan urutan"
-                        >
-                          <i class="fas fa-arrow-up"></i>
-                        </button>
-                        <button
-                          type="button"
-                          class="text-muted-foreground transition-colors hover:text-primary disabled:opacity-30 disabled:hover:text-muted-foreground"
-                          onclick={() => moveOverlayDown(gIndex, oIndex)}
-                          disabled={oIndex === graphic.overlays.length - 1}
-                          title="Turunkan urutan"
-                        >
-                          <i class="fas fa-arrow-down"></i>
-                        </button>
-                        <button
-                          type="button"
-                          class="text-muted-foreground transition-colors hover:text-destructive"
-                          aria-label="Hapus overlay"
-                          onclick={() => removeOverlay(gIndex, oIndex)}
-                          title="Hapus"
-                        >
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        class="mt-2 shrink-0 text-muted-foreground transition-colors hover:text-destructive"
+                        aria-label="Hapus overlay"
+                        onclick={() => removeOverlay(gIndex, oIndex)}
+                        title="Hapus"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
                     </div>
                   {/each}
                 </div>
