@@ -53,19 +53,13 @@
       staffOrder = [];
     }
 
-    disableOverlays =
-      typeof localStorage !== "undefined" &&
-      localStorage.getItem("staff-graphics.disable-overlays") === "1";
+    // Persist per-department setting: hide draggable overlays on the public
+    // detail page and in this editor preview.
+    disableOverlays = Boolean(field.disableOverlays);
   });
 
   function setDisableOverlays(value) {
     disableOverlays = value;
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem(
-        "staff-graphics.disable-overlays",
-        value ? "1" : "0",
-      );
-    }
   }
 
   async function handleFileChange(event, index = null) {
@@ -234,6 +228,47 @@
     staffOrder = ids;
   }
 
+  // Native HTML5 drag-and-drop for the ordering list.
+  let dragIndex = $state(null);
+  let dragOverIndex = $state(null);
+
+  function onStaffDragStart(event, index) {
+    dragIndex = index;
+    event.dataTransfer.effectAllowed = "move";
+    // Required for Firefox to initiate the drag.
+    try {
+      event.dataTransfer.setData("text/plain", String(index));
+    } catch (e) {
+      // no-op
+    }
+  }
+
+  function onStaffDragOver(event, index) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    if (dragIndex !== null && index !== dragIndex) {
+      dragOverIndex = index;
+    }
+  }
+
+  function onStaffDrop(event, index) {
+    event.preventDefault();
+    const from = dragIndex;
+    dragOverIndex = null;
+    dragIndex = null;
+    if (from === null || from === index) return;
+
+    const ids = effectiveOrder.map((s) => s.id);
+    const [moved] = ids.splice(from, 1);
+    ids.splice(index, 0, moved);
+    staffOrder = ids;
+  }
+
+  function onStaffDragEnd() {
+    dragIndex = null;
+    dragOverIndex = null;
+  }
+
   let activeOverlay = null;
 
   function startDrag(e, gIndex, oIndex) {
@@ -319,6 +354,11 @@
     name="staff_order"
     value={JSON.stringify(effectiveOrder.map((s) => s.id))}
   />
+  <input
+    type="hidden"
+    name="overlays_disabled"
+    value={disableOverlays ? "1" : "0"}
+  />
 
   {#if uploadError}
     <div class="mb-2 text-sm text-red-500">{uploadError}</div>
@@ -371,8 +411,25 @@
       <div class="space-y-2">
         {#each effectiveOrder as staff, index (staff.id)}
           <div
-            class="flex items-center gap-3 rounded-md border border-border/50 bg-background p-2"
+            draggable="true"
+            ondragstart={(e) => onStaffDragStart(e, index)}
+            ondragover={(e) => onStaffDragOver(e, index)}
+            ondrop={(e) => onStaffDrop(e, index)}
+            ondragend={onStaffDragEnd}
+            class="flex items-center gap-3 rounded-md border bg-background p-2 transition-colors {dragIndex ===
+            index
+              ? 'border-primary/60 opacity-50'
+              : dragOverIndex === index
+                ? 'border-primary bg-primary/5'
+                : 'border-border/50'}"
           >
+            <span
+              class="flex h-8 w-4 shrink-0 cursor-grab items-center justify-center text-muted-foreground/60 active:cursor-grabbing"
+              title="Seret untuk mengurutkan"
+              aria-hidden="true"
+            >
+              <i class="fas fa-grip-vertical"></i>
+            </span>
             {#if staff.picture}
               <img
                 src={staff.picture}

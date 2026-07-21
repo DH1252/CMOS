@@ -17,6 +17,7 @@
     selectedSlug = null,
     staffGraphics = [],
     staffOrder = [],
+    overlaysDisabled = false,
     programs = [],
   } = $props();
 
@@ -871,7 +872,7 @@
                       }}
                     />
 
-                    {#if graphic.overlays && graphic.overlays.length > 0}
+                    {#if !overlaysDisabled && graphic.overlays && graphic.overlays.length > 0}
                       <div class="pointer-events-none absolute inset-0">
                         {#each graphic.overlays as overlay}
                           {@const parsedName = (() => {

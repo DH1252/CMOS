@@ -27,12 +27,13 @@ class Department extends Model
         'kaderisasi' => 'Kaderisasi (TUK)',
     ];
 
-    protected $fillable = ['name', 'slug', 'description', 'cabinet_id', 'status', 'staff_graphics', 'staff_order'];
+    protected $fillable = ['name', 'slug', 'description', 'cabinet_id', 'status', 'staff_graphics', 'staff_order', 'overlays_disabled'];
 
     protected $casts = [
         'status' => 'string',
         'staff_graphics' => 'array',
         'staff_order' => 'array',
+        'overlays_disabled' => 'boolean',
     ];
 
     public function cabinet(): BelongsTo

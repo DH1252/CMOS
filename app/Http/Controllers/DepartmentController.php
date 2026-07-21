@@ -134,7 +134,7 @@ class DepartmentController extends Controller
                     'fields' => [
                         ['name' => 'name', 'label' => 'Nama Departemen', 'type' => 'text', 'required' => true, 'value' => old('name'), 'error' => session('errors')?->first('name')],
                         ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description'), 'error' => session('errors')?->first('description'), 'rows' => 3],
-                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics'), 'staffOrder' => old('staff_order')],
+                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics'), 'staffOrder' => old('staff_order'), 'disableOverlays' => old('overlays_disabled', false)],
                         [
                             'name' => 'slug',
                             'label' => 'Halaman Departemen Publik',
@@ -184,6 +184,7 @@ class DepartmentController extends Controller
             'status' => 'required|in:active,inactive',
             'staff_graphics' => 'nullable|string',
             'staff_order' => 'nullable|string',
+            'overlays_disabled' => 'nullable|boolean',
             'slug' => [
                 'nullable',
                 \Illuminate\Validation\Rule::in(array_keys(Department::PUBLIC_PAGE_OPTIONS)),
@@ -296,7 +297,7 @@ class DepartmentController extends Controller
                     'fields' => [
                         ['name' => 'name', 'label' => 'Nama Departemen', 'type' => 'text', 'required' => true, 'value' => old('name', $department->name), 'error' => session('errors')?->first('name')],
                         ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'value' => old('description', $department->description), 'error' => session('errors')?->first('description'), 'rows' => 3],
-                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics', $department->staff_graphics), 'staffOrder' => old('staff_order', $department->staff_order)],
+                        ['name' => 'staff_graphics', 'label' => 'Gambar Struktur Staff', 'type' => 'staff-graphics', 'value' => old('staff_graphics', $department->staff_graphics), 'staffOrder' => old('staff_order', $department->staff_order), 'disableOverlays' => old('overlays_disabled', $department->overlays_disabled)],
                         [
                             'name' => 'slug',
                             'label' => 'Halaman Departemen Publik',
@@ -346,6 +347,7 @@ class DepartmentController extends Controller
             'status' => 'required|in:active,inactive',
             'staff_graphics' => 'nullable|string',
             'staff_order' => 'nullable|string',
+            'overlays_disabled' => 'nullable|boolean',
             'slug' => [
                 'nullable',
                 \Illuminate\Validation\Rule::in(array_keys(Department::PUBLIC_PAGE_OPTIONS)),

@@ -127,6 +127,7 @@ Route::get('/departemen/{slug?}', function (?string $slug = null) {
                 'selectedSlug' => strtolower($slug),
                 'staffGraphics' => $department ? $department->staff_graphics : null,
                 'staffOrder' => $department?->staff_order,
+                'overlaysDisabled' => (bool) $department?->overlays_disabled,
                 'programs' => $programs,
             ]);
         }
