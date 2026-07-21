@@ -984,16 +984,25 @@
                 class="grid grid-cols-1 gap-4 px-4 sm:grid-cols-2 md:grid-cols-3 md:px-0 lg:grid-cols-4"
               >
                 {#each staffList as staff}
-                  <button
-                    onclick={() => scrollToStaff(staff)}
-                    class="group flex w-full flex-col items-start rounded-2xl border border-white/5 bg-[#111111]/80 p-5 text-left transition-all hover:border-[#ff7a1a]/50 hover:bg-[#1a1a1a]"
+                  {@const cardTag = overlaysDisabled ? "div" : "button"}
+                  <svelte:element
+                    this={cardTag}
+                    type={overlaysDisabled ? undefined : "button"}
+                    onclick={overlaysDisabled
+                      ? undefined
+                      : () => scrollToStaff(staff)}
+                    class="group flex w-full flex-col items-start rounded-2xl border border-white/5 bg-[#111111]/80 p-5 text-left transition-all {overlaysDisabled
+                      ? ''
+                      : 'cursor-pointer hover:border-[#ff7a1a]/50 hover:bg-[#1a1a1a]'}"
                   >
                     <div class="flex w-full items-center gap-4">
                       {#if staff.picture}
                         <img
                           src={staff.picture}
                           alt={staff.name}
-                          class="h-12 w-12 shrink-0 rounded-full border border-white/10 object-cover transition-colors group-hover:border-[#ff7a1a]/50"
+                          class="h-12 w-12 shrink-0 rounded-full border border-white/10 object-cover transition-colors {overlaysDisabled
+                            ? ''
+                            : 'group-hover:border-[#ff7a1a]/50'}"
                         />
                       {/if}
                       <div class="flex flex-col items-start">
@@ -1003,8 +1012,9 @@
                         >
                         <div class="flex flex-wrap items-center gap-2">
                           <span
-                            class="font-['The_Seasons',serif] text-base text-white/90 transition-colors group-hover:text-white"
-                            >{staff.name}</span
+                            class="font-['The_Seasons',serif] text-base text-white/90 transition-colors {overlaysDisabled
+                              ? ''
+                              : 'group-hover:text-white'}">{staff.name}</span
                           >
                           {#if staff.batch}
                             <span
@@ -1015,7 +1025,7 @@
                         </div>
                       </div>
                     </div>
-                  </button>
+                  </svelte:element>
                 {/each}
               </div>
             </div>
