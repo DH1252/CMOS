@@ -99,18 +99,37 @@ Route::get('/departemen/{slug?}', function (?string $slug = null) {
 
             $programs = $department
                 ? $department->programs()
-                    ->with('tasks')
+                    ->with(['tasks', 'pics', 'members'])
                     ->where('status', '!=', 'cancelled')
                     ->orderBy('start_date')
                     ->get()
-                    ->map(fn ($program) => [
-                        'name' => $program->name,
-                        'description' => $program->description,
-                        'startDate' => $program->start_date?->toDateString(),
-                        'endDate' => $program->end_date?->toDateString(),
-                        'status' => $program->status,
-                        'progress' => $program->progress,
-                    ])
+                    ->map(function ($program) {
+                        $taskCounts = $program->tasks->countBy('status');
+
+                        return [
+                            'id' => $program->id,
+                            'name' => $program->name,
+                            'description' => $program->description,
+                            'startDate' => $program->start_date?->toDateString(),
+                            'endDate' => $program->end_date?->toDateString(),
+                            'status' => $program->status,
+                            'progress' => $program->progress,
+                            'responsiblePeople' => $program->pics
+                                ->concat($program->members)
+                                ->unique('id')
+                                ->map(fn ($person) => [
+                                    'name' => $person->name,
+                                    'avatar' => $person->avatar_url,
+                                ])->values(),
+                            'taskSummary' => [
+                                'total' => $program->tasks->count(),
+                                'todo' => $taskCounts->get('todo', 0),
+                                'inProgress' => $taskCounts->get('in_progress', 0),
+                                'pending' => $taskCounts->get('pending', 0),
+                                'done' => $taskCounts->get('done', 0),
+                            ],
+                        ];
+                    })
                     ->values()
                 : [];
 

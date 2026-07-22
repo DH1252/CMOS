@@ -104,10 +104,14 @@
               <div class="text-sm font-medium text-brand-primary">
                 {evaluatorType}
               </div>
-              <h2 class="mt-2 text-2xl font-semibold text-foreground">
+              <h2
+                class="mt-2 text-2xl font-semibold text-foreground [overflow-wrap:anywhere]"
+              >
                 {staff.name}
               </h2>
-              <p class="mt-2 text-sm leading-7 text-muted-foreground">
+              <p
+                class="mt-2 text-sm leading-7 text-muted-foreground [overflow-wrap:anywhere]"
+              >
                 {staff.department} • {staff.email}
               </p>
             </div>

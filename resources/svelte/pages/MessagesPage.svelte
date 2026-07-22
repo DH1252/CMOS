@@ -784,6 +784,7 @@
     margin: 0;
     white-space: pre-wrap;
     line-height: 1.6;
+    overflow-wrap: anywhere;
   }
 
   .messages-bubble span {

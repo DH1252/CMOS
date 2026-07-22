@@ -424,12 +424,20 @@
     background: var(--card);
     border: 1px solid var(--line-soft);
     box-shadow: none;
+    min-width: 0;
   }
 
   .profile-hero-main {
     display: flex;
     align-items: center;
     gap: 1rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .profile-copy {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .profile-avatar {
@@ -445,11 +453,13 @@
     margin: 0.55rem 0 0;
     font-size: 1.5rem;
     font-weight: 600;
+    overflow-wrap: anywhere;
   }
 
   .profile-copy p {
     margin: 0.25rem 0 0;
     color: var(--text-soft);
+    overflow-wrap: anywhere;
   }
 
   .profile-fact-row {
@@ -579,6 +589,7 @@
     display: block;
     margin-top: 0.3rem;
     font-size: 1rem;
+    overflow-wrap: anywhere;
   }
 
   .profile-password-help {

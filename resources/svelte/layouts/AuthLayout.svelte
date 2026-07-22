@@ -608,7 +608,7 @@
             </h1>
             {#if effectiveMeta}
               <p
-                class="mt-1 max-w-[62ch] text-sm leading-6 text-muted-foreground"
+                class="mt-1 max-w-[62ch] text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]"
               >
                 {effectiveMeta}
               </p>

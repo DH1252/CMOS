@@ -294,11 +294,14 @@
   .evaluation-profile-name {
     margin: 0.2rem 0 0;
     font-weight: 600;
+    overflow-wrap: anywhere;
   }
 
   .evaluation-profile-email {
     margin: 0;
     color: var(--text-muted);
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   .evaluation-profile-cta {
@@ -432,6 +435,7 @@
     margin: 0.35rem 0 0;
     color: var(--text-muted);
     font-size: 0.84rem;
+    overflow-wrap: anywhere;
   }
 
   .evaluation-entry-actions {
@@ -490,6 +494,7 @@
 
   .evaluation-entry-note p {
     margin: 0;
+    overflow-wrap: anywhere;
   }
 
   @media (max-width: 767px) {

@@ -22,17 +22,12 @@
     },
   } = $props();
 
-  let monthForm = $state(null);
-  let selectedMonth = $state("");
+  let selectedMonth = $derived(month?.value || "");
   const fallbackAvatar = (name = "User") =>
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "User")}&background=251d39&color=f5c518&bold=true`;
 
-  $effect(() => {
-    selectedMonth = month?.value || "";
-  });
-
-  const submitMonth = () => {
-    monthForm?.requestSubmit();
+  const submitMonth = (event) => {
+    event.currentTarget.form?.requestSubmit();
   };
 
   const actionVariant = (action) => {
@@ -76,12 +71,7 @@
       <PageHeader {title} {description} icon="fas fa-users" />
     </div>
 
-    <form
-      method="GET"
-      action={monthAction}
-      bind:this={monthForm}
-      class="evaluation-month-form"
-    >
+    <form method="GET" action={monthAction} class="evaluation-month-form">
       <Label class="evaluation-month-label" for="evaluation-month-select"
         >Periode</Label
       >
@@ -266,7 +256,7 @@
 
   .evaluation-staff-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
     gap: 1rem;
     margin-top: 1rem;
   }
@@ -299,12 +289,14 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 600;
+    overflow-wrap: anywhere;
   }
 
   .evaluation-staff-copy p {
     margin: 0.2rem 0 0;
     color: var(--text-muted);
     font-size: 0.82rem;
+    overflow-wrap: anywhere;
   }
 
   .evaluation-score-grid {

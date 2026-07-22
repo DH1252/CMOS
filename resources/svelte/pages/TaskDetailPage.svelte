@@ -188,8 +188,16 @@
               class="h-20 w-20 rounded-full border border-border object-cover shadow-none"
               onerror={handleImageError}
             />
-            <h5 class="m-0 mt-1 text-lg font-semibold">{assignee.name}</h5>
-            <p class="m-0 text-sm text-muted-foreground">{assignee.email}</p>
+            <h5
+              class="m-0 mt-1 max-w-full text-lg font-semibold [overflow-wrap:anywhere]"
+            >
+              {assignee.name}
+            </h5>
+            <p
+              class="m-0 max-w-full text-sm text-muted-foreground [overflow-wrap:anywhere]"
+            >
+              {assignee.email}
+            </p>
             <StatusBadge
               label={assignee.roleLabel}
               tone={assignee.roleTone || "secondary"}

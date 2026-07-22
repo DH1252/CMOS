@@ -1039,6 +1039,7 @@
     margin-top: 1rem;
     white-space: pre-wrap;
     line-height: 1.72;
+    overflow-wrap: anywhere;
   }
 
   .announcement-poll {

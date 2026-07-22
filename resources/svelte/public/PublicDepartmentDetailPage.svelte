@@ -5,6 +5,7 @@
   import { router } from "@inertiajs/svelte";
   import { fade, scale } from "svelte/transition";
   import { inertiaEnhance } from "../lib/inertia-enhance.js";
+  import { modalFocus } from "../lib/modal-focus.js";
   import { preventClip } from "../lib/prevent-clip.js";
   import { departmentTeams } from "../../js/mtt-data.js";
 
@@ -29,6 +30,8 @@
   const botanicalDelay = "-5s";
 
   let isDescriptionExpanded = $state(false);
+  let selectedProgram = $state(null);
+  let programReturnFocus = null;
   let galleryHeight = $state(400);
   let galleryWidth = $state(0);
   let naturalWidths = $state({});
@@ -612,6 +615,41 @@
     if (start && end) return `${start} - ${end}`;
     return start || end || "Jadwal menyusul";
   }
+
+  const taskSummaryLabels = [
+    { key: "todo", label: "Belum mulai" },
+    { key: "inProgress", label: "Dikerjakan" },
+    { key: "pending", label: "Menunggu" },
+    { key: "done", label: "Selesai" },
+  ];
+
+  function openProgram(program, event) {
+    programReturnFocus = event.currentTarget;
+    selectedProgram = program;
+  }
+
+  function closeProgram() {
+    selectedProgram = null;
+  }
+
+  function getProgramModalFocusOptions() {
+    return {
+      initialFocus: "[data-program-modal-close]",
+      onClose: closeProgram,
+      returnFocus: programReturnFocus,
+    };
+  }
+
+  $effect(() => {
+    if (!selectedProgram || typeof document === "undefined") return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  });
 </script>
 
 <svelte:head>
@@ -622,6 +660,8 @@
 <div
   class="min-h-screen w-full bg-white font-['Josefin_Sans',sans-serif] text-[#222]"
   use:inertiaEnhance
+  inert={Boolean(selectedProgram)}
+  aria-hidden={selectedProgram ? "true" : undefined}
 >
   <div class="fixed top-0 left-0 right-0 z-50">
     <Navbar {homeUrl} {loginUrl} {navigationItems} />
@@ -724,7 +764,7 @@
             Fokus Utama
           </h2>
           <div class="flex flex-col gap-6 border-l-2 border-[#e2bb44] pl-6">
-            {#each deptInfo.focus as focusItem}
+            {#each deptInfo.focus as focusItem (focusItem)}
               <div class="group relative">
                 <span
                   class="absolute top-[0.45rem] -left-[29px] h-2 w-2 rounded-full bg-[#2a0078] transition-colors group-hover:bg-[#ff7a1a]"
@@ -752,12 +792,18 @@
           </div>
 
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {#each programs as program}
+            {#each programs as program (program.id)}
               {@const statusInfo =
                 programStatusMap[program.status] || programStatusMap.planning}
               <article
-                class="flex flex-col rounded-2xl border border-white/5 bg-[#111111]/80 p-6 transition-colors hover:border-[#ff7a1a]/50 hover:bg-[#1a1a1a]"
+                class="group relative flex flex-col rounded-2xl border border-white/5 bg-[#111111]/80 p-6 transition-colors hover:border-[#ff7a1a]/50 hover:bg-[#1a1a1a] focus-within:border-[#ff7a1a]/70 focus-within:ring-2 focus-within:ring-[#ff7a1a]/35"
               >
+                <button
+                  type="button"
+                  class="absolute inset-0 z-10 rounded-2xl focus:outline-none"
+                  aria-label={`Lihat detail program kerja ${program.name}`}
+                  onclick={(event) => openProgram(program, event)}
+                ></button>
                 <div class="mb-4 flex items-start justify-between gap-3">
                   <h3
                     class="font-['The_Seasons',serif] text-xl leading-snug text-white"
@@ -816,6 +862,12 @@
                       >{program.progress}%</span
                     >
                   </div>
+                  <span
+                    class="flex items-center gap-2 pt-2 text-xs font-semibold text-white/55 transition-colors group-hover:text-[#ffd344]"
+                  >
+                    Lihat informasi lengkap
+                    <i class="fas fa-arrow-right text-[10px]"></i>
+                  </span>
                 </div>
               </article>
             {/each}
@@ -937,7 +989,7 @@
 
                     {#if !overlaysDisabled && graphic.overlays && graphic.overlays.length > 0}
                       <div class="pointer-events-none absolute inset-0">
-                        {#each graphic.overlays as overlay}
+                        {#each graphic.overlays as overlay (overlay.id)}
                           {@const parsedName = (() => {
                             const fullName = overlay.name || "";
                             const match =
@@ -1047,7 +1099,7 @@
               <div
                 class="grid grid-cols-1 gap-4 px-4 sm:grid-cols-2 md:grid-cols-3 md:px-0 lg:grid-cols-4"
               >
-                {#each staffList as staff}
+                {#each staffList as staff (staff.id || staff.name)}
                   {@const cardTag = overlaysDisabled ? "div" : "button"}
                   <svelte:element
                     this={cardTag}
@@ -1114,7 +1166,7 @@
               <div
                 class="grid grid-cols-1 gap-x-12 gap-y-16 sm:grid-cols-2 md:grid-cols-3"
               >
-                {#each leaders as leader, idx}
+                {#each leaders as leader, idx (leader.name)}
                   <div class="group flex flex-col items-start">
                     <!-- Nightingale (#2a0078) accent circle -->
                     <div
@@ -1156,7 +1208,7 @@
               <div
                 class="grid grid-cols-2 gap-x-8 gap-y-12 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
               >
-                {#each staff as member, idx}
+                {#each staff as member, idx (member.name)}
                   <div class="group flex flex-col items-start">
                     <div
                       class="mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-[#2a0078] transition-colors duration-300 group-hover:bg-[#5d0077]"
@@ -1197,6 +1249,153 @@
     {organizationName}
   />
 </div>
+
+{#if selectedProgram}
+  {@const selectedStatus =
+    programStatusMap[selectedProgram.status] || programStatusMap.planning}
+  <div
+    class="fixed inset-0 z-[70] grid place-items-center bg-black/75 p-4 backdrop-blur-sm md:p-8"
+    transition:fade={{ duration: 150 }}
+  >
+    <button
+      type="button"
+      class="absolute inset-0 cursor-default"
+      aria-label="Tutup detail program kerja"
+      onclick={closeProgram}
+    ></button>
+
+    <div
+      class="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#171717] text-white shadow-2xl md:max-h-[calc(100dvh-4rem)]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="program-detail-title"
+      tabindex="-1"
+      use:modalFocus={getProgramModalFocusOptions()}
+      transition:scale={{ duration: 180, start: 0.98, opacity: 0.5 }}
+    >
+      <header
+        class="flex shrink-0 items-start justify-between gap-5 border-b border-white/10 px-5 py-5 md:px-8 md:py-7"
+      >
+        <div class="min-w-0">
+          <div class="mb-3 flex flex-wrap items-center gap-3">
+            <span
+              class="rounded-md px-2 py-1 text-[10px] font-bold tracking-wider uppercase {selectedStatus.classes}"
+            >
+              {selectedStatus.label}
+            </span>
+            <span class="text-xs font-medium text-[#e2bb44]">
+              {formatProgramDateRange(selectedProgram)}
+            </span>
+          </div>
+          <h2
+            id="program-detail-title"
+            class="font-['The_Seasons',serif] text-2xl leading-tight font-bold text-[#ffd344] md:text-3xl"
+          >
+            {selectedProgram.name}
+          </h2>
+        </div>
+        <button
+          type="button"
+          data-program-modal-close
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/75 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7a1a]"
+          aria-label="Tutup"
+          onclick={closeProgram}
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </header>
+
+      <div class="min-h-0 overflow-y-auto px-5 py-6 md:px-8 md:py-8">
+        <div class="flex flex-col gap-9">
+          <section aria-labelledby="program-description-title">
+            <h3
+              id="program-description-title"
+              class="mb-3 text-sm font-bold text-[#ff7a1a]"
+            >
+              Tentang program
+            </h3>
+            <p
+              class="max-w-[72ch] text-sm leading-7 text-white/75 md:text-base"
+            >
+              {selectedProgram.description ||
+                "Deskripsi program kerja belum tersedia."}
+            </p>
+          </section>
+
+          <section aria-labelledby="program-progress-title">
+            <div class="mb-3 flex items-end justify-between gap-4">
+              <h3
+                id="program-progress-title"
+                class="text-sm font-bold text-[#ff7a1a]"
+              >
+                Progres pelaksanaan
+              </h3>
+              <strong class="text-xl text-[#ffd344]"
+                >{selectedProgram.progress}%</strong
+              >
+            </div>
+            <div
+              class="h-2 overflow-hidden rounded-full bg-white/10"
+              role="progressbar"
+              aria-valuenow={selectedProgram.progress}
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-label={`Progres ${selectedProgram.name}`}
+            >
+              <div
+                class="h-full rounded-full bg-gradient-to-r from-[#ff7a1a] to-[#ffd344]"
+                style={`width: ${selectedProgram.progress}%;`}
+              ></div>
+            </div>
+
+            <dl
+              class="mt-5 grid grid-cols-2 border-y border-white/10 sm:grid-cols-4"
+            >
+              {#each taskSummaryLabels as item (item.key)}
+                <div
+                  class="border-white/10 px-3 py-4 odd:border-r sm:border-r sm:last:border-r-0"
+                >
+                  <dt class="text-xs text-white/50">{item.label}</dt>
+                  <dd class="mt-1 text-xl font-bold text-white">
+                    {selectedProgram.taskSummary?.[item.key] || 0}
+                  </dd>
+                </div>
+              {/each}
+            </dl>
+          </section>
+
+          {#if selectedProgram.responsiblePeople?.length}
+            <section aria-labelledby="program-pic-title">
+              <h3
+                id="program-pic-title"
+                class="mb-4 text-sm font-bold text-[#ff7a1a]"
+              >
+                Penanggung jawab
+              </h3>
+
+              <div class="flex flex-wrap gap-3">
+                {#each selectedProgram.responsiblePeople as person (person.id)}
+                  <div class="flex items-center gap-3 pr-3">
+                    <img
+                      src={person.avatar}
+                      alt=""
+                      class="h-9 w-9 rounded-full bg-[#2a0078] object-cover"
+                      width="36"
+                      height="36"
+                    />
+                    <span class="text-sm font-semibold text-white/85"
+                      >{person.name}</span
+                    >
+                  </div>
+                {/each}
+              </div>
+            </section>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   /* Star Animations delay & placement identical to layout specs */

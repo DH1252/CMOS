@@ -199,12 +199,15 @@
 <style>
   .detail-summary-card {
     position: static;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .detail-summary-head {
     display: flex;
     align-items: center;
     gap: 1rem;
+    min-width: 0;
   }
 
   .detail-summary-icon {
@@ -221,17 +224,21 @@
 
   .detail-summary-copy {
     min-width: 0;
+    flex: 1;
   }
 
   .detail-summary-title {
     margin: 0;
     font-size: 1.35rem;
     line-height: 1.2;
+    overflow-wrap: anywhere;
   }
 
   .detail-summary-subtitle {
     margin: 0.35rem 0 0;
     color: var(--text-muted);
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   .detail-badges {
@@ -245,6 +252,7 @@
     margin: 0;
     color: var(--text-soft);
     line-height: 1.7;
+    overflow-wrap: anywhere;
   }
 
   .detail-facts {
@@ -268,6 +276,8 @@
   .detail-fact-row strong {
     color: var(--text-strong);
     text-align: right;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .detail-summary-actions {
@@ -305,12 +315,14 @@
 
   .detail-list-item-title {
     font-weight: 700;
+    overflow-wrap: anywhere;
   }
 
   .detail-list-item-subtitle {
     margin-top: 0.2rem;
     font-size: 0.9rem;
     color: var(--text-muted);
+    overflow-wrap: anywhere;
   }
 
   @media (max-width: 1023px) {

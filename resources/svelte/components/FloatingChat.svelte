@@ -864,6 +864,7 @@
     margin: 0;
     white-space: pre-wrap;
     line-height: 1.55;
+    overflow-wrap: anywhere;
   }
 
   .floating-chat-bubble span {
