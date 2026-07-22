@@ -38,6 +38,7 @@ class ReportController extends Controller
                     'taskDistribution' => [
                         ['label' => 'Todo', 'value' => $tasksByStatus['todo'], 'tone' => 'secondary'],
                         ['label' => 'In Progress', 'value' => $tasksByStatus['in_progress'], 'tone' => 'warning'],
+                        ['label' => 'Pending', 'value' => $tasksByStatus['pending'], 'tone' => 'primary'],
                         ['label' => 'Selesai', 'value' => $tasksByStatus['done'], 'tone' => 'success'],
                     ],
                     'programDistribution' => [
@@ -64,8 +65,9 @@ class ReportController extends Controller
                         'name' => $staff->name,
                         'avatar' => $staff->avatar_url,
                         'department' => $staff->department?->name ?? '-',
-                        'score' => number_format(($staff->evaluations_avg_total_score ?? 0) / 4, 1),
+                        'score' => number_format($staff->evaluations_avg_total_score ?? 0, 1),
                     ]),
+                    'averageEvaluationScore' => $averageEvaluationScore,
                     'exports' => [
                         ['label' => 'Export PDF', 'href' => route('reports.export', 'pdf'), 'icon' => 'fas fa-file-pdf', 'tone' => 'danger'],
                         ['label' => 'Export Excel', 'href' => route('reports.export', 'excel'), 'icon' => 'fas fa-file-excel', 'tone' => 'success'],
@@ -79,6 +81,7 @@ class ReportController extends Controller
                 'tasksByStatus' => $payload['tasksByStatus'],
                 'programsByStatus' => $payload['programsByStatus'],
                 'topStaff' => $payload['topStaff'],
+                'averageEvaluationScore' => $payload['averageEvaluationScore'],
             ]),
         );
     }
@@ -160,6 +163,7 @@ class ReportController extends Controller
         $tasksByStatus = [
             'todo' => Task::where('status', 'todo')->count(),
             'in_progress' => Task::where('status', 'in_progress')->count(),
+            'pending' => Task::where('status', 'pending')->count(),
             'done' => Task::where('status', 'done')->count(),
         ];
 
@@ -179,7 +183,7 @@ class ReportController extends Controller
             ->take(10)
             ->values();
 
-        $averageEvaluationScore = number_format((float) Evaluation::query()->avg('total_score') / 4, 1);
+        $averageEvaluationScore = number_format((float) Evaluation::query()->avg('total_score'), 1);
 
         return compact('stats', 'departments', 'tasksByStatus', 'programsByStatus', 'topStaff', 'averageEvaluationScore');
     }
@@ -225,7 +229,7 @@ class ReportController extends Controller
             $rows[] = [
                 'Top staff',
                 $staff->name,
-                number_format(((float) ($staff->evaluations_avg_total_score ?? 0)) / 4, 1),
+                number_format((float) ($staff->evaluations_avg_total_score ?? 0), 1),
                 $staff->department?->name ?? '-',
             ];
         }

@@ -141,8 +141,11 @@ class DepartmentController extends Controller
                             'type' => 'select',
                             'value' => old('slug'),
                             'error' => session('errors')?->first('slug'),
-                            'placeholder' => '-- Tidak dipetakan --',
-                            'options' => collect(Department::PUBLIC_PAGE_OPTIONS)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values(),
+                            'placeholder' => '-- Otomatis dari nama --',
+                            'options' => collect(Department::PUBLIC_PAGE_OPTIONS)
+                                ->map(fn ($label, $value) => ['value' => $value, 'label' => $label, 'keywords' => Department::SLUG_KEYWORDS[$value] ?? []])
+                                ->values(),
+                            'suggestFrom' => 'name',
                         ],
                         [
                             'name' => 'cabinet_id',
@@ -177,13 +180,18 @@ class DepartmentController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->input('slug') === null || $request->input('slug') === '') {
+            $name = $request->input('name');
+            $request->merge(['slug' => Department::suggestSlug(is_string($name) ? $name : null)]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'cabinet_id' => 'nullable|exists:cabinets,id',
             'status' => 'required|in:active,inactive',
-            'staff_graphics' => 'nullable|string',
-            'staff_order' => 'nullable|string',
+            'staff_graphics' => 'nullable|string|json',
+            'staff_order' => 'nullable|string|json',
             'overlays_disabled' => 'nullable|boolean',
             'slug' => [
                 'nullable',
@@ -302,10 +310,13 @@ class DepartmentController extends Controller
                             'name' => 'slug',
                             'label' => 'Halaman Departemen Publik',
                             'type' => 'select',
-                            'value' => old('slug', $department->slug),
+                            'value' => old('slug', $department->slug ?? Department::suggestSlug($department->name)),
                             'error' => session('errors')?->first('slug'),
-                            'placeholder' => '-- Tidak dipetakan --',
-                            'options' => collect(Department::PUBLIC_PAGE_OPTIONS)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values(),
+                            'placeholder' => '-- Otomatis dari nama --',
+                            'options' => collect(Department::PUBLIC_PAGE_OPTIONS)
+                                ->map(fn ($label, $value) => ['value' => $value, 'label' => $label, 'keywords' => Department::SLUG_KEYWORDS[$value] ?? []])
+                                ->values(),
+                            'suggestFrom' => 'name',
                         ],
                         [
                             'name' => 'cabinet_id',
@@ -340,13 +351,18 @@ class DepartmentController extends Controller
 
     public function update(Request $request, Department $department)
     {
+        if ($request->input('slug') === null || $request->input('slug') === '') {
+            $name = $request->input('name', $department->name);
+            $request->merge(['slug' => Department::suggestSlug(is_string($name) ? $name : null)]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'cabinet_id' => 'nullable|exists:cabinets,id',
             'status' => 'required|in:active,inactive',
-            'staff_graphics' => 'nullable|string',
-            'staff_order' => 'nullable|string',
+            'staff_graphics' => 'nullable|string|json',
+            'staff_order' => 'nullable|string|json',
             'overlays_disabled' => 'nullable|boolean',
             'slug' => [
                 'nullable',

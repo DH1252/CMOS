@@ -541,6 +541,7 @@
             <Input
               type="text"
               class="floating-chat-composer-input"
+              aria-label={`Tulis pesan untuk ${activeUser.name}`}
               placeholder={`Tulis pesan untuk ${activeUser.name}...`}
               bind:value={draft}
             />
@@ -562,6 +563,7 @@
               <Input
                 type="search"
                 class="floating-chat-search-input"
+                aria-label="Cari kontak"
                 placeholder="Cari user..."
                 bind:value={search}
               />

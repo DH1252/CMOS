@@ -170,7 +170,7 @@
                     <tr>
                         <td>{{ $staff->name }}</td>
                         <td>{{ $staff->department?->name ?? '-' }}</td>
-                        <td>{{ number_format(((float) ($staff->evaluations_avg_total_score ?? 0)) / 4, 1) }}</td>
+                        <td>{{ number_format((float) ($staff->evaluations_avg_total_score ?? 0), 1) }}</td>
                     </tr>
                 @empty
                     <tr>

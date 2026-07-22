@@ -91,14 +91,10 @@ Route::get('/departemen/{slug?}', function (?string $slug = null) {
             $department = \App\Models\Department::where('slug', strtolower($slug))->first();
 
             if (! $department) {
-                $search = match (strtolower($slug)) {
-                    'risprof' => 'ristek',
-                    'kwu' => 'kewirausahaan',
-                    'hublu' => 'humas',
-                    'medfo' => 'medinfo',
-                    default => $slug,
-                };
-                $department = \App\Models\Department::where('name', 'LIKE', '%'.$search.'%')->first();
+                $target = strtolower($slug);
+                $department = \App\Models\Department::query()
+                    ->get()
+                    ->first(fn ($lookup) => \App\Models\Department::suggestSlug($lookup->name) === $target);
             }
 
             $programs = $department
@@ -179,11 +175,11 @@ Route::get('/images/optimize/{path}', [ImageController::class, 'show'])
 // Guest Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login')->name('login.submit');
 });
 
 // Authenticated Routes
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/realtime/snapshot', [RealtimeController::class, 'snapshot'])->name('realtime.snapshot');

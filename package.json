@@ -52,5 +52,9 @@
         "pusher-js": "^8.4.0-rc2",
         "textmode.js": "^0.17.0",
         "tinymce": "^8.5.0"
+    },
+    "overrides": {
+        "sharp": "^0.35.3",
+        "shell-quote": "^1.10.0"
     }
 }

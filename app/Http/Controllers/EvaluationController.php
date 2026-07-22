@@ -9,6 +9,7 @@ use App\Models\GradeParameter;
 use App\Models\User;
 use App\Services\PostHogService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class EvaluationController extends Controller
 {
@@ -229,11 +230,7 @@ class EvaluationController extends Controller
         }
 
         $staff = User::with('department')->findOrFail($staffId);
-
-        // Check if Kabinet can evaluate this staff
-        if ($user->isKabinet() && $user->department_id !== $staff->department_id) {
-            abort(403, 'Anda tidak dapat menilai staff dari departemen lain');
-        }
+        Gate::authorize('evaluate', [Evaluation::class, $staff]);
 
         // Check if already evaluated
         $evaluatorType = $user->isBph() ? 'bph' : 'kabinet';
@@ -333,6 +330,9 @@ class EvaluationController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        $staff = User::findOrFail($validated['user_id']);
+        Gate::authorize('evaluate', [Evaluation::class, $staff]);
+
         // Check if already evaluated
         $exists = Evaluation::where('user_id', $validated['user_id'])
             ->where('period', $validated['period'])
@@ -348,7 +348,6 @@ class EvaluationController extends Controller
 
         $evaluation = Evaluation::create($validated);
 
-        $staff = User::find($validated['user_id']);
         ActivityLog::log('created', "Created {$evaluatorType} evaluation for: {$staff->name} ({$validated['period']})", $evaluation);
 
         app(PostHogService::class)->capture((string) $user->id, 'evaluation_submitted', [
@@ -370,6 +369,7 @@ class EvaluationController extends Controller
      */
     public function show(User $user, Request $request)
     {
+        Gate::authorize('viewUser', [Evaluation::class, $user]);
         $user->loadMissing('department');
 
         $evaluations = Evaluation::where('user_id', $user->id)
@@ -412,11 +412,11 @@ class EvaluationController extends Controller
                             'tone' => 'info',
                         ],
                     ],
-                    'createAction' => [
+                    'createAction' => auth()->user()->can('evaluate', [\App\Models\Evaluation::class, $user]) ? [
                         'href' => route('evaluations.create', ['user_id' => $user->id]),
                         'label' => 'Beri Evaluasi Baru',
                         'icon' => 'fas fa-star',
-                    ],
+                    ] : null,
                     'backAction' => [
                         'href' => route('evaluations.index'),
                         'label' => 'Kembali',
@@ -468,11 +468,11 @@ class EvaluationController extends Controller
                                     'byline' => 'oleh '.($eval->evaluator?->name ?? 'Unknown').' · '.$eval->created_at->format('d M Y'),
                                     'score' => number_format($eval->total_score, 1),
                                     'scoreColor' => $eval->grade_color,
-                                    'editAction' => [
+                                    'editAction' => auth()->user()->can('update', $eval) ? [
                                         'href' => route('evaluations.edit', $eval),
                                         'label' => 'Edit evaluasi',
                                         'icon' => 'fas fa-pen',
-                                    ],
+                                    ] : null,
                                     'criteria' => collect($criteria)->map(fn ($label, $key) => [
                                         'label' => $label,
                                         'value' => (int) $eval->$key,
@@ -498,6 +498,7 @@ class EvaluationController extends Controller
      */
     public function edit(Evaluation $evaluation)
     {
+        Gate::authorize('update', $evaluation);
         $evaluation->loadMissing(['user.department']);
 
         $gradeParams = GradeParameter::getAllGrades();
@@ -568,6 +569,8 @@ class EvaluationController extends Controller
      */
     public function update(Request $request, Evaluation $evaluation)
     {
+        Gate::authorize('update', $evaluation);
+
         $validated = $request->validate([
             'kehadiran' => 'required|integer|min:1|max:5',
             'kedisiplinan' => 'required|integer|min:1|max:5',
@@ -601,6 +604,8 @@ class EvaluationController extends Controller
      */
     public function destroy(Evaluation $evaluation)
     {
+        Gate::authorize('delete', $evaluation);
+
         $userName = $evaluation->user?->name ?? 'Unknown';
         $deptId = $evaluation->user?->department_id;
         $month = $evaluation->period;

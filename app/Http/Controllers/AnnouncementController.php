@@ -12,6 +12,8 @@ use App\Services\PostHogService;
 use App\Support\RealtimeBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class AnnouncementController extends Controller
 {
@@ -277,26 +279,61 @@ class AnnouncementController extends Controller
         }
 
         $validated = $request->validate([
-            'option_id' => 'required|exists:poll_options,id',
+            'option_id' => [
+                'required',
+                Rule::exists('poll_options', 'id')->where('announcement_id', $announcement->id),
+            ],
         ]);
 
-        // Check if already voted
-        $existingVote = PollVote::whereIn('poll_option_id', $announcement->pollOptions->pluck('id'))
-            ->where('user_id', auth()->id())
-            ->first();
+        $result = DB::transaction(function () use ($announcement, $validated): array {
+            $lockedAnnouncement = Announcement::query()
+                ->lockForUpdate()
+                ->findOrFail($announcement->id);
 
-        if ($existingVote) {
-            return response()->json(['error' => 'Anda sudah memilih'], 400);
+            if (! $lockedAnnouncement->isPollActive()) {
+                return ['error' => 'Poll tidak aktif'];
+            }
+
+            $optionIds = PollOption::query()
+                ->where('announcement_id', $lockedAnnouncement->id)
+                ->lockForUpdate()
+                ->pluck('id');
+
+            $existingVote = PollVote::query()
+                ->whereIn('poll_option_id', $optionIds)
+                ->where('user_id', auth()->id())
+                ->exists();
+
+            if ($existingVote) {
+                return ['error' => 'Anda sudah memilih'];
+            }
+
+            $option = PollOption::query()
+                ->where('announcement_id', $lockedAnnouncement->id)
+                ->findOrFail($validated['option_id']);
+
+            PollVote::create([
+                'poll_option_id' => $option->id,
+                'user_id' => auth()->id(),
+            ]);
+
+            $option->increment('votes_count');
+
+            return [
+                'announcement' => $lockedAnnouncement,
+                'option' => $option,
+            ];
+        });
+
+        if (isset($result['error'])) {
+            return response()->json(['error' => $result['error']], 400);
         }
 
-        $option = PollOption::findOrFail($validated['option_id']);
+        /** @var Announcement $updatedAnnouncement */
+        $updatedAnnouncement = $result['announcement'];
+        /** @var PollOption $option */
+        $option = $result['option'];
 
-        PollVote::create([
-            'poll_option_id' => $option->id,
-            'user_id' => auth()->id(),
-        ]);
-
-        $option->increment('votes_count');
         app(RealtimeBroadcaster::class)->organization(['announcements']);
 
         app(PostHogService::class)->capture((string) auth()->id(), 'poll_voted', [
@@ -306,8 +343,8 @@ class AnnouncementController extends Controller
         ]);
 
         // Return updated poll data
-        $announcement->refresh();
-        $pollData = $announcement->pollOptions->map(fn ($o) => [
+        $updatedAnnouncement->load('pollOptions');
+        $pollData = $updatedAnnouncement->pollOptions->map(fn ($o) => [
             'id' => $o->id,
             'text' => $o->option_text,
             'votes' => $o->votes_count,
@@ -316,7 +353,7 @@ class AnnouncementController extends Controller
 
         return response()->json([
             'success' => true,
-            'total_votes' => $announcement->total_votes,
+            'total_votes' => $updatedAnnouncement->total_votes,
             'options' => $pollData,
         ]);
     }

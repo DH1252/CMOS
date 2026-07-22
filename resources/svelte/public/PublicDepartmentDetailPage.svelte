@@ -30,8 +30,12 @@
 
   let isDescriptionExpanded = $state(false);
   let galleryHeight = $state(400);
+  let galleryWidth = $state(0);
   let naturalWidths = $state({});
   let naturalHeights = $state({});
+  let viewportHeight = $state(
+    typeof window !== "undefined" ? window.innerHeight : 800,
+  );
 
   let sliderRef = $state(null);
   let isDown = false;
@@ -55,6 +59,7 @@
 
     const updateViewport = () => {
       isMobileViewport = window.innerWidth < 768;
+      viewportHeight = window.innerHeight;
     };
     updateViewport();
     window.addEventListener("resize", updateViewport);
@@ -188,9 +193,61 @@
 
   let globalScale = $derived(galleryHeight / minNaturalHeight);
 
+  let isContainedGallery = $derived(
+    staffGraphics && staffGraphics.length > 0 && staffGraphics.length <= 2,
+  );
+
+  let galleryViewportCap = $derived(viewportHeight * 0.75);
+
+  function getGraphicScale(graphicIndex) {
+    if (!isContainedGallery) {
+      return globalScale || 1;
+    }
+
+    const naturalWidth = naturalWidths[graphicIndex] || 400;
+    const naturalHeight = naturalHeights[graphicIndex] || 400;
+
+    if (galleryWidth <= 0) {
+      return 1;
+    }
+
+    return Math.min(
+      galleryWidth / naturalWidth,
+      galleryViewportCap / naturalHeight,
+    );
+  }
+
+  let fitGalleryHeight = $derived.by(() => {
+    if (!isContainedGallery || galleryWidth <= 0) return null;
+
+    let maxHeight = 0;
+    for (let i = 0; i < staffGraphics.length; i++) {
+      const naturalHeight = naturalHeights[i] || 400;
+      maxHeight = Math.max(maxHeight, naturalHeight * getGraphicScale(i));
+    }
+
+    return Math.min(maxHeight, galleryViewportCap);
+  });
+
+  let shouldCenterGallery = $derived.by(() => {
+    if (!isContainedGallery || galleryWidth <= 0) return false;
+
+    const contentWidth = staffGraphics.reduce((total, _graphic, index) => {
+      const naturalWidth = naturalWidths[index] || 400;
+      return total + naturalWidth * getGraphicScale(index);
+    }, 0);
+
+    return contentWidth <= galleryWidth + 1;
+  });
+
   function getVerticalOffset(gIndex, graphic, gScale) {
     if (!naturalHeights[gIndex]) return 0;
     const scaledHeight = naturalHeights[gIndex] * gScale;
+
+    if (isContainedGallery) {
+      return Math.max(0, (galleryHeight - scaledHeight) / 2);
+    }
+
     const extraHeight = scaledHeight - galleryHeight;
     if (extraHeight <= 0) return 0;
 
@@ -809,9 +866,10 @@
             class="group relative mb-24 w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10"
           >
             <button
-              class="absolute top-1/2 left-4 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/50 p-3 text-white opacity-0 backdrop-blur-md transition-colors group-hover:opacity-100 hover:bg-[#ff7a1a]"
+              type="button"
+              class="absolute top-1/2 left-4 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/50 p-3 text-white opacity-0 backdrop-blur-md transition-colors group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-[#ff7a1a] focus-visible:opacity-100"
               onclick={() => scrollGallery(-1)}
-              aria-label="Previous"
+              aria-label="Geser galeri ke kiri"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -833,17 +891,22 @@
             <div
               bind:this={sliderRef}
               bind:clientHeight={galleryHeight}
-              class="flex h-[350px] cursor-grab flex-row overflow-x-auto bg-black/20 active:cursor-grabbing md:h-[600px] [&::-webkit-scrollbar]:hidden"
-              style="scrollbar-width: none;"
-              role="application"
+              bind:clientWidth={galleryWidth}
+              class="flex h-[350px] cursor-grab flex-row overflow-x-auto bg-black/20 active:cursor-grabbing md:h-[600px] [&::-webkit-scrollbar]:hidden {shouldCenterGallery
+                ? 'justify-center'
+                : ''}"
+              style="scrollbar-width: none;{fitGalleryHeight
+                ? `height: ${fitGalleryHeight}px;`
+                : ''}"
+              role="region"
               aria-label="Galeri staff grafis"
               onmousedown={handleMouseDown}
               onmouseleave={handleMouseLeave}
               onmouseup={handleMouseUp}
               onmousemove={handleMouseMove}
             >
-              {#each staffGraphics as graphic, graphicIndex}
-                {@const gScale = globalScale || 1}
+              {#each staffGraphics as graphic, graphicIndex (graphic.id || graphic.image || graphicIndex)}
+                {@const gScale = getGraphicScale(graphicIndex)}
                 {@const sWidth = (naturalWidths[graphicIndex] || 400) * gScale}
                 {@const topPx = getVerticalOffset(
                   graphicIndex,
@@ -956,9 +1019,10 @@
             </div>
 
             <button
-              class="absolute top-1/2 right-4 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/50 p-3 text-white opacity-0 backdrop-blur-md transition-colors group-hover:opacity-100 hover:bg-[#ff7a1a]"
+              type="button"
+              class="absolute top-1/2 right-4 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/50 p-3 text-white opacity-0 backdrop-blur-md transition-colors group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-[#ff7a1a] focus-visible:opacity-100"
               onclick={() => scrollGallery(1)}
-              aria-label="Next"
+              aria-label="Geser galeri ke kanan"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -988,6 +1052,7 @@
                   <svelte:element
                     this={cardTag}
                     type={overlaysDisabled ? undefined : "button"}
+                    role={overlaysDisabled ? undefined : "button"}
                     onclick={overlaysDisabled
                       ? undefined
                       : () => scrollToStaff(staff)}

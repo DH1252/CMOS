@@ -134,6 +134,7 @@
         type="text"
         name="q"
         class="board-filter-input"
+        aria-label="Cari acara"
         placeholder="Cari judul, deskripsi, atau lokasi acara..."
         value={filters.query || ""}
       />

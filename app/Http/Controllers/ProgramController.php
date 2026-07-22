@@ -10,6 +10,7 @@ use App\Services\GoogleCalendarService;
 use App\Services\PostHogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 
 class ProgramController extends Controller
 {
@@ -39,7 +40,7 @@ class ProgramController extends Controller
             (static function (array $__viewData): array {
                 extract($__viewData, EXTR_SKIP);
 
-                $canManagePrograms = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+                $canCreatePrograms = auth()->user()->can('create', \App\Models\Program::class);
 
                 $props = [
                     'title' => 'Daftar Program Kerja',
@@ -47,7 +48,7 @@ class ProgramController extends Controller
                     'icon' => 'fas fa-diagram-project',
                     'csrfToken' => csrf_token(),
                     'enableDataTable' => true,
-                    'primaryAction' => $canManagePrograms ? [
+                    'primaryAction' => $canCreatePrograms ? [
                         'label' => 'Tambah Program',
                         'href' => route('programs.create'),
                         'icon' => 'fas fa-plus',
@@ -61,9 +62,10 @@ class ProgramController extends Controller
                         ['label' => 'Status'],
                         ['label' => 'Aksi', 'width' => '100px'],
                     ],
-                    'rows' => $programs->map(function ($program) use ($canManagePrograms) {
+                    'rows' => $programs->map(function ($program) {
+                        $canManageProgram = auth()->user()->can('update', $program);
                         $progress = $program->progress;
-                        $programHref = route('programs.show', $program).($canManagePrograms ? '#program-editor' : '');
+                        $programHref = route('programs.show', $program).($canManageProgram ? '#program-editor' : '');
 
                         return [
                             'cells' => [
@@ -82,9 +84,9 @@ class ProgramController extends Controller
                                     'type' => 'actions',
                                     'items' => [[
                                         'href' => $programHref,
-                                        'label' => $canManagePrograms ? 'Kelola' : 'Detail',
-                                        'icon' => $canManagePrograms ? 'fas fa-pen' : 'fas fa-eye',
-                                        'tone' => $canManagePrograms ? 'primary' : 'secondary',
+                                        'label' => $canManageProgram ? 'Kelola' : 'Detail',
+                                        'icon' => $canManageProgram ? 'fas fa-pen' : 'fas fa-eye',
+                                        'tone' => $canManageProgram ? 'primary' : 'secondary',
                                     ]],
                                 ],
                             ],
@@ -104,6 +106,7 @@ class ProgramController extends Controller
     public function create()
     {
         $user = auth()->user();
+        Gate::authorize('create', Program::class);
 
         $departments = $this->programDepartmentsFor($user);
 
@@ -132,6 +135,8 @@ class ProgramController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('create', Program::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -142,6 +147,12 @@ class ProgramController extends Controller
             'members' => 'nullable|array',
             'members.*' => 'exists:users,id',
         ]);
+
+        $this->authorizeDepartmentSelection((int) $validated['department_id']);
+
+        foreach ($validated['members'] ?? [] as $memberId) {
+            $this->authorizeProgramUser(User::findOrFail($memberId));
+        }
 
         $validated['created_by'] = auth()->id();
 
@@ -168,19 +179,16 @@ class ProgramController extends Controller
     public function show(Program $program)
     {
         $user = auth()->user();
-
-        if ($user->isStaff() && ! $program->hasMemberOrPic($user->id)) {
-            abort(403, 'Anda tidak memiliki akses ke program ini.');
-        }
+        Gate::authorize('view', $program);
 
         $program->load(['department', 'creator', 'members', 'pics', 'tasks.assignee', 'timelines']);
         $program->loadMissing(['department', 'creator', 'members', 'pics', 'tasks.assignee', 'timelines']);
 
-        $canManage = $user->hasRole(['admin', 'bph', 'kabinet']);
+        $canManage = $user->can('update', $program);
         $backRoute = $user->isStaff() ? route('programs.my') : route('programs.index');
         $departments = $canManage ? $this->programDepartmentsFor($user) : collect();
         $availableUsers = $canManage
-            ? User::active()->orderBy('name')->get()->map(fn ($availableUser) => [
+            ? $this->programUsersFor($user)->map(fn ($availableUser) => [
                 'value' => $availableUser->id,
                 'label' => $availableUser->name,
             ])->values()
@@ -348,6 +356,8 @@ class ProgramController extends Controller
 
     public function update(Request $request, Program $program)
     {
+        Gate::authorize('update', $program);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -357,8 +367,14 @@ class ProgramController extends Controller
             'status' => 'required|in:planning,active,completed,cancelled',
         ]);
 
+        $this->authorizeDepartmentSelection((int) $validated['department_id']);
+
         $previousStatus = $program->status;
         $program->update($validated);
+
+        if ($program->wasChanged('department_id')) {
+            $program->timelines()->update(['department_id' => $program->department_id]);
+        }
 
         ActivityLog::log('updated', "Updated program: {$program->name}", $program);
 
@@ -376,6 +392,8 @@ class ProgramController extends Controller
 
     public function destroy(Program $program)
     {
+        Gate::authorize('delete', $program);
+
         $name = $program->name;
 
         if (! $this->googleCalendarService->deleteTimelineEvents($program->timelines()->get())) {
@@ -399,10 +417,15 @@ class ProgramController extends Controller
 
     public function addMember(Request $request, Program $program)
     {
-        $request->validate([
+        Gate::authorize('update', $program);
+
+        $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'role' => 'required|in:leader,member',
         ]);
+
+        $user = User::findOrFail($validated['user_id']);
+        $this->authorizeProgramUser($user);
 
         // Check if already member
         if ($program->members()->where('user_id', $request->user_id)->exists()) {
@@ -411,7 +434,6 @@ class ProgramController extends Controller
 
         $program->members()->attach($request->user_id, ['role' => $request->role]);
 
-        $user = User::find($request->user_id);
         ActivityLog::log('updated', "Added {$user->name} to program: {$program->name}", $program);
 
         return back()->with('success', 'Anggota berhasil ditambahkan!');
@@ -419,6 +441,8 @@ class ProgramController extends Controller
 
     public function removeMember(Program $program, User $user)
     {
+        Gate::authorize('update', $program);
+
         $program->members()->detach($user->id);
 
         ActivityLog::log('updated', "Removed {$user->name} from program: {$program->name}", $program);
@@ -428,9 +452,14 @@ class ProgramController extends Controller
 
     public function addPic(Request $request, Program $program)
     {
-        $request->validate([
+        Gate::authorize('update', $program);
+
+        $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
+
+        $user = User::findOrFail($validated['user_id']);
+        $this->authorizeProgramUser($user);
 
         // Check if already PIC
         if ($program->pics()->where('user_id', $request->user_id)->exists()) {
@@ -439,7 +468,6 @@ class ProgramController extends Controller
 
         $program->pics()->attach($request->user_id);
 
-        $user = User::find($request->user_id);
         ActivityLog::log('updated', "Added {$user->name} as PIC for: {$program->name}", $program);
 
         return back()->with('success', 'PIC berhasil ditambahkan!');
@@ -447,11 +475,42 @@ class ProgramController extends Controller
 
     public function removePic(Program $program, User $user)
     {
+        Gate::authorize('update', $program);
+
         $program->pics()->detach($user->id);
 
         ActivityLog::log('updated', "Removed {$user->name} as PIC from: {$program->name}", $program);
 
         return back()->with('success', 'PIC berhasil dihapus dari program!');
+    }
+
+    private function authorizeDepartmentSelection(int $departmentId): void
+    {
+        $user = auth()->user();
+
+        if ($user->isKabinet() && $user->department_id !== $departmentId) {
+            abort(403, 'Anda tidak dapat mengelola program departemen lain.');
+        }
+    }
+
+    private function authorizeProgramUser(User $programUser): void
+    {
+        $user = auth()->user();
+
+        if ($user->isKabinet() && $programUser->department_id !== $user->department_id) {
+            abort(403, 'Anda tidak dapat menambahkan user dari departemen lain.');
+        }
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    private function programUsersFor(User $user): Collection
+    {
+        return User::active()
+            ->when($user->isKabinet(), fn ($query) => $query->where('department_id', $user->department_id))
+            ->orderBy('name')
+            ->get();
     }
 
     public function myPrograms()

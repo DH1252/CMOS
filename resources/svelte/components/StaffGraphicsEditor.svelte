@@ -343,7 +343,12 @@
   }
 </script>
 
-<div class="staff-graphics-editor space-y-6">
+<div
+  class="staff-graphics-editor space-y-6"
+  role="group"
+  aria-label={field.label || "Editor gambar staff"}
+  aria-describedby={field.error ? `${field.name}-error` : undefined}
+>
   <input
     type="hidden"
     name={field.name}
@@ -380,6 +385,7 @@
       type="button"
       role="switch"
       aria-checked={disableOverlays}
+      aria-label="Sembunyikan overlay pada gambar staff"
       onclick={() => setDisableOverlays(!disableOverlays)}
       class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors {disableOverlays
         ? 'bg-primary'
@@ -408,9 +414,10 @@
         Atur urutan tampilan daftar pengurus. Urutan ini berlaku lintas gambar
         dan akan mengikuti urutan ini di halaman publik.
       </p>
-      <div class="space-y-2">
+      <div class="space-y-2" role="list" aria-label="Urutan staff">
         {#each effectiveOrder as staff, index (staff.id)}
           <div
+            role="listitem"
             draggable="true"
             ondragstart={(e) => onStaffDragStart(e, index)}
             ondragover={(e) => onStaffDragOver(e, index)}
@@ -732,12 +739,14 @@
                           type="text"
                           class="entity-control w-full text-sm"
                           placeholder="Nama (ex: Panji)"
+                          aria-label={`Nama staff ${oIndex + 1} pada gambar ${gIndex + 1}`}
                           bind:value={overlay.name}
                         />
                         <input
                           type="text"
                           class="entity-control w-full text-sm"
                           placeholder="Jabatan (ex: Ketua Himpunan)"
+                          aria-label={`Jabatan staff ${oIndex + 1} pada gambar ${gIndex + 1}`}
                           bind:value={overlay.role}
                         />
 

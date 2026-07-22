@@ -46,6 +46,81 @@
 
   const nativeSelectClass = (field) =>
     `entity-select ${field.multiple ? "entity-select-multiple" : ""}`;
+
+  // Suggestion link: a select with `suggestFrom` watches the named text
+  // field and auto-selects the best-matching option by keyword until the
+  // user manually picks one.
+  const suggestionSources = $derived.by(() => {
+    const map = {};
+    for (const f of fields) {
+      if (f.type === "select" && f.suggestFrom) {
+        (map[f.suggestFrom] ||= []).push(f);
+      }
+    }
+    return map;
+  });
+
+  const existingSuggestionMappings = $derived.by(() =>
+    Object.fromEntries(
+      fields
+        .filter(
+          (field) =>
+            field.type === "select" &&
+            field.suggestFrom &&
+            String(field.value ?? "") !== "",
+        )
+        .map((field) => [field.name, true]),
+    ),
+  );
+  let manualSlugOverride = $state({});
+
+  const fieldErrorId = (field) => `${field.name}-error`;
+  const fieldNoteId = (field) => `${field.name}-note`;
+  const fieldDescriptionIds = (field) =>
+    [
+      field.note ? fieldNoteId(field) : null,
+      field.error ? fieldErrorId(field) : null,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
+
+  function suggestOptionValue(selectField, name) {
+    const lower = (name || "").toLowerCase();
+    let best = "";
+    let bestScore = 0;
+    for (const option of selectField.options || []) {
+      let score = 0;
+      for (const keyword of option.keywords || []) {
+        if (lower.includes(keyword)) {
+          score += keyword.length <= 6 ? 10 : 4;
+        }
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        best = String(option.value);
+      }
+    }
+    return best;
+  }
+
+  function handleSuggestionInput(sourceName, value) {
+    const targets = suggestionSources[sourceName];
+    if (!targets) return;
+    for (const target of targets) {
+      if (
+        existingSuggestionMappings[target.name] ||
+        manualSlugOverride[target.name]
+      )
+        continue;
+      const select = document.getElementById(target.name);
+      if (!select) continue;
+      select.value = suggestOptionValue(target, value);
+    }
+  }
+
+  function handleSuggestionManualChange(field) {
+    manualSlugOverride = { ...manualSlugOverride, [field.name]: true };
+  }
 </script>
 
 <div class="mx-auto max-w-4xl">
@@ -84,11 +159,15 @@
                     value={field.checkboxValue || "1"}
                     class="entity-checkbox-input"
                     checked={isChecked(field)}
+                    aria-invalid={Boolean(field.error)}
+                    aria-describedby={fieldDescriptionIds(field)}
                   />
                   <span class="entity-checkbox-copy">
                     <span class="entity-checkbox-label">{field.label}</span>
                     {#if field.note}
-                      <span class="entity-checkbox-note">{field.note}</span>
+                      <span id={fieldNoteId(field)} class="entity-checkbox-note"
+                        >{field.note}</span
+                      >
                     {/if}
                   </span>
                 </label>
@@ -107,6 +186,7 @@
                     rows={field.rows || 4}
                     class="entity-control entity-textarea"
                     aria-invalid={Boolean(field.error)}
+                    aria-describedby={fieldDescriptionIds(field)}
                     placeholder={field.placeholder || ""}
                     value={field.value || ""}
                   />
@@ -116,8 +196,10 @@
                     name={field.name}
                     class={nativeSelectClass(field)}
                     aria-invalid={Boolean(field.error)}
+                    aria-describedby={fieldDescriptionIds(field)}
                     required={field.required}
                     multiple={field.multiple}
+                    onchange={() => handleSuggestionManualChange(field)}
                   >
                     {#if field.placeholder && !field.multiple}
                       <option value="">{field.placeholder}</option>
@@ -139,21 +221,32 @@
                     type={field.type || "text"}
                     class="entity-control"
                     aria-invalid={Boolean(field.error)}
+                    aria-describedby={fieldDescriptionIds(field)}
                     value={field.value || ""}
                     placeholder={field.placeholder || ""}
                     required={field.required}
                     min={field.min}
                     max={field.max}
+                    oninput={(e) =>
+                      handleSuggestionInput(field.name, e.currentTarget.value)}
                   />
                 {/if}
 
                 {#if field.note}
-                  <small class="entity-field-note">{field.note}</small>
+                  <small id={fieldNoteId(field)} class="entity-field-note"
+                    >{field.note}</small
+                  >
                 {/if}
               {/if}
 
               {#if field.error}
-                <div class="entity-field-error" role="alert">{field.error}</div>
+                <div
+                  id={fieldErrorId(field)}
+                  class="entity-field-error"
+                  role="alert"
+                >
+                  {field.error}
+                </div>
               {/if}
             </div>
           {/each}

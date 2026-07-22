@@ -148,6 +148,7 @@
         type="text"
         name="q"
         class="board-filter-input"
+        aria-label="Cari artikel informasi"
         placeholder="Cari judul atau konten artikel..."
         value={filters.query || ""}
       />

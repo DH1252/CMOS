@@ -272,6 +272,7 @@
             </span>
             <input
               type="text"
+              aria-label="Cari kompetisi"
               placeholder="Cari nama lomba, organizer, atau deskripsi..."
               bind:value={searchQuery}
               class="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm font-medium transition-all duration-200 placeholder:text-gray-400 hover:border-gray-300 focus:border-[#2a0078] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#2a0078]"

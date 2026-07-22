@@ -45,7 +45,7 @@ class AuthController extends Controller
             'password' => 'required|min:6',
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt([...$credentials, 'status' => 'active'], $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             ActivityLog::log('login', 'User logged in');

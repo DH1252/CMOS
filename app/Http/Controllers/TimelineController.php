@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\Timeline;
 use App\Services\GoogleCalendarService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class TimelineController extends Controller
 {
@@ -35,7 +36,7 @@ class TimelineController extends Controller
                 extract($__viewData, EXTR_SKIP);
 
                 $today = now()->toDateString();
-                $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+                $canCreate = auth()->user()->can('create', \App\Models\Timeline::class);
 
                 $statusFor = function ($timeline) use ($today) {
                     if ($timeline->end_date->toDateString() < $today) {
@@ -55,14 +56,15 @@ class TimelineController extends Controller
                     'icon' => 'fas fa-calendar-alt',
                     'actions' => array_values(array_filter([
                         ['href' => route('timelines.calendar'), 'label' => 'Kalender', 'icon' => 'fas fa-calendar-days', 'tone' => 'secondary'],
-                        $canManage ? ['href' => route('timelines.create'), 'label' => 'Tambah Timeline', 'icon' => 'fas fa-plus', 'tone' => 'primary'] : null,
+                        $canCreate ? ['href' => route('timelines.create'), 'label' => 'Tambah Timeline', 'icon' => 'fas fa-plus', 'tone' => 'primary'] : null,
                     ])),
                     'summary' => [
                         ['label' => 'Total', 'value' => $timelines->count()],
                         ['label' => 'Berlangsung', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'success')->count()],
                         ['label' => 'Akan Datang', 'value' => $timelines->filter(fn ($timeline) => $statusFor($timeline)['tone'] === 'info')->count()],
                     ],
-                    'items' => $timelines->map(function ($timeline) use ($statusFor, $canManage) {
+                    'items' => $timelines->map(function ($timeline) use ($statusFor) {
+                        $canManage = auth()->user()->can('update', $timeline);
                         $scope = match ($timeline->type) {
                             'global' => ['label' => 'Global', 'tone' => 'primary'],
                             'department' => ['label' => 'Departemen', 'tone' => 'info'],
@@ -112,7 +114,7 @@ class TimelineController extends Controller
                     'emptyState' => [
                         'title' => 'Belum ada timeline',
                         'text' => 'Timeline organisasi akan tampil di sini setelah dibuat.',
-                        'action' => $canManage ? [
+                        'action' => $canCreate ? [
                             'href' => route('timelines.create'),
                             'label' => 'Tambah Timeline',
                             'icon' => 'fas fa-plus',
@@ -130,8 +132,6 @@ class TimelineController extends Controller
         return \Inertia\Inertia::render(
             'pages/TimelineCalendarPage',
             (static function (): array {
-                $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
-
                 $props = [
                     'title' => 'Kalender Timeline',
                     'description' => 'Pantau timeline, program kerja, dan deadline task dalam satu kalender interaktif.',
@@ -140,7 +140,7 @@ class TimelineController extends Controller
                         'label' => 'List View',
                         'icon' => 'fas fa-list',
                     ],
-                    'createAction' => $canManage ? [
+                    'createAction' => auth()->user()->can('create', \App\Models\Timeline::class) ? [
                         'href' => route('timelines.create'),
                         'label' => 'Tambah Timeline',
                         'icon' => 'fas fa-plus',
@@ -363,7 +363,10 @@ class TimelineController extends Controller
             abort(403, 'Anda tidak memiliki akses ke departemen ini.');
         }
 
-        $departments = Department::active()->orderBy('name')->get();
+        $departments = Department::active()
+            ->when($user->isKabinet(), fn ($query) => $query->whereKey($user->department_id))
+            ->orderBy('name')
+            ->get();
 
         $timelines = $department
             ? Timeline::with(['program'])->where('department_id', $department->id)->orderBy('start_date')->get()
@@ -375,7 +378,9 @@ class TimelineController extends Controller
                 extract($__viewData, EXTR_SKIP);
 
                 $today = now()->toDateString();
-                $canManage = auth()->user()->hasRole(['admin', 'bph', 'kabinet']);
+                $canManage = $department
+                    ? auth()->user()->can('manageContext', [\App\Models\Timeline::class, 'department', $department->id])
+                    : auth()->user()->can('create', \App\Models\Timeline::class);
 
                 $statusFor = function ($timeline) use ($today) {
                     if ($timeline->end_date->toDateString() < $today) {
@@ -542,6 +547,9 @@ class TimelineController extends Controller
 
     public function create(Request $request)
     {
+        $user = $request->user();
+        Gate::authorize('create', Timeline::class);
+
         $type = $request->get('type');
         $departmentId = $request->get('department_id');
         $programId = $request->get('program_id');
@@ -552,11 +560,22 @@ class TimelineController extends Controller
             $type = 'program';
         }
 
-        $type = $type ?: 'global';
+        $type = $type ?: ($user->isKabinet() ? 'department' : 'global');
 
-        $departments = Department::active()->orderBy('name')->get();
+        if ($user->isKabinet() && $type === 'department' && ! $departmentId) {
+            $departmentId = $user->department_id;
+        }
+
+        $contextDepartmentId = $this->timelineContextDepartmentId($type, $departmentId, $programId);
+        Gate::authorize('manageContext', [Timeline::class, $type, $contextDepartmentId]);
+
+        $departments = Department::active()
+            ->when($user->isKabinet(), fn ($query) => $query->whereKey($user->department_id))
+            ->orderBy('name')
+            ->get();
         $programs = Program::with('department')
             ->where('status', '!=', 'cancelled')
+            ->when($user->isKabinet(), fn ($query) => $query->where('department_id', $user->department_id))
             ->orderBy('name')
             ->get();
 
@@ -608,6 +627,8 @@ class TimelineController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('create', Timeline::class);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -618,12 +639,21 @@ class TimelineController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
+        $contextDepartmentId = $this->timelineContextDepartmentId(
+            $validated['type'],
+            $validated['department_id'] ?? null,
+            $validated['program_id'] ?? null,
+        );
+        Gate::authorize('manageContext', [Timeline::class, $validated['type'], $contextDepartmentId]);
+
         // Clear unrelated fields based on type
         if ($validated['type'] === 'global') {
             $validated['department_id'] = null;
             $validated['program_id'] = null;
         } elseif ($validated['type'] === 'department') {
             $validated['program_id'] = null;
+        } else {
+            $validated['department_id'] = $contextDepartmentId;
         }
 
         $validated['color'] = $this->getTimelineColor($validated['type']);
@@ -666,11 +696,18 @@ class TimelineController extends Controller
 
     public function edit(Timeline $timeline)
     {
+        Gate::authorize('update', $timeline);
         $timeline->loadMissing(['department', 'program']);
 
-        $departments = Department::active()->orderBy('name')->get();
+        $user = auth()->user();
+
+        $departments = Department::active()
+            ->when($user->isKabinet(), fn ($query) => $query->whereKey($user->department_id))
+            ->orderBy('name')
+            ->get();
         $programs = Program::with('department')
             ->where('status', '!=', 'cancelled')
+            ->when($user->isKabinet(), fn ($query) => $query->where('department_id', $user->department_id))
             ->orderBy('name')
             ->get();
 
@@ -721,6 +758,8 @@ class TimelineController extends Controller
 
     public function update(Request $request, Timeline $timeline)
     {
+        Gate::authorize('update', $timeline);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -731,11 +770,20 @@ class TimelineController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
+        $contextDepartmentId = $this->timelineContextDepartmentId(
+            $validated['type'],
+            $validated['department_id'] ?? null,
+            $validated['program_id'] ?? null,
+        );
+        Gate::authorize('manageContext', [Timeline::class, $validated['type'], $contextDepartmentId]);
+
         if ($validated['type'] === 'global') {
             $validated['department_id'] = null;
             $validated['program_id'] = null;
         } elseif ($validated['type'] === 'department') {
             $validated['program_id'] = null;
+        } else {
+            $validated['department_id'] = $contextDepartmentId;
         }
 
         $validated['color'] = $this->getTimelineColor($validated['type']);
@@ -778,6 +826,8 @@ class TimelineController extends Controller
 
     public function destroy(Timeline $timeline)
     {
+        Gate::authorize('delete', $timeline);
+
         $title = $timeline->title;
         $googleEventId = $timeline->google_event_id;
         $googleCalendarId = $timeline->google_calendar_id;
@@ -811,6 +861,19 @@ class TimelineController extends Controller
         }
 
         return $redirect;
+    }
+
+    private function timelineContextDepartmentId(string $type, mixed $departmentId, mixed $programId): ?int
+    {
+        if ($type === 'department') {
+            return $departmentId ? (int) $departmentId : null;
+        }
+
+        if ($type === 'program') {
+            return $programId ? Program::findOrFail($programId)->department_id : auth()->user()->department_id;
+        }
+
+        return null;
     }
 
     private function formatGoogleSyncError(string $action): string

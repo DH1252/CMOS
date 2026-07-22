@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
 {
@@ -48,6 +49,32 @@ class TaskController extends Controller
         $globalInProgressCount = Task::global()->inProgress()->count();
         $globalPendingCount = Task::global()->pending()->count();
         $globalTodoCount = Task::global()->todo()->count();
+
+        // Overdue tasks across the entire organization (global + department + program).
+        $overdueTasks = Task::with(['assignee', 'department', 'program'])
+            ->overdue()
+            ->orderBy('deadline')
+            ->limit(20)
+            ->get()
+            ->map(fn ($task) => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'status' => $task->status,
+                'status_badge' => $task->status_badge,
+                'priority' => $task->priority,
+                'priority_label' => $task->priority_label,
+                'progress' => $task->progress,
+                'deadline' => $task->deadline?->format('Y-m-d'),
+                'deadline_fmt' => $task->deadline?->format('d M Y'),
+                'assignee_name' => $task->assignee?->name,
+                'assignee_avatar' => $task->assignee?->avatar_url,
+                'department_name' => $task->department?->name,
+                'program_name' => $task->program?->name,
+                'showHref' => route('tasks.show', $task),
+            ])
+            ->values();
+
+        $overdueCount = Task::overdue()->count();
 
         return \Inertia\Inertia::render(
             'pages/TaskHubPage',
@@ -90,10 +117,12 @@ class TaskController extends Controller
                         'title' => 'Belum ada departemen',
                         'text' => 'Departemen akan tampil di sini setelah data organisasi tersedia.',
                     ],
+                    'overdueTasks' => $overdueTasks,
+                    'overdueCount' => $overdueCount,
                 ];
 
                 return $props;
-            })(compact('departments', 'globalTasksCount', 'globalDoneCount', 'globalInProgressCount', 'globalPendingCount', 'globalTodoCount')),
+            })(compact('departments', 'globalTasksCount', 'globalDoneCount', 'globalInProgressCount', 'globalPendingCount', 'globalTodoCount', 'overdueTasks', 'overdueCount')),
         );
     }
 
@@ -245,6 +274,9 @@ class TaskController extends Controller
                                 'assignee_name' => $task->assignee?->name,
                                 'assignee_avatar' => $task->assignee?->avatar_url,
                                 'showHref' => route('tasks.show', $task),
+                                'can_update' => Gate::allows('update', $task),
+                                'can_delete' => Gate::allows('delete', $task),
+                                'can_update_status' => Gate::allows('updateStatus', $task),
                             ])->values(),
                         ];
                     })->values(),
@@ -467,6 +499,9 @@ class TaskController extends Controller
                                 'assignee_name' => $task->assignee?->name,
                                 'assignee_avatar' => $task->assignee?->avatar_url,
                                 'showHref' => route('tasks.show', $task),
+                                'can_update' => Gate::allows('update', $task),
+                                'can_delete' => Gate::allows('delete', $task),
+                                'can_update_status' => Gate::allows('updateStatus', $task),
                             ])->values(),
                         ];
                     })->values(),
@@ -605,6 +640,9 @@ class TaskController extends Controller
                                 'assignee_name' => $task->assignee?->name,
                                 'assignee_avatar' => $task->assignee?->avatar_url,
                                 'showHref' => route('tasks.show', $task),
+                                'can_update' => Gate::allows('update', $task),
+                                'can_delete' => Gate::allows('delete', $task),
+                                'can_update_status' => Gate::allows('updateStatus', $task),
                             ])->values(),
                         ];
                     })->values(),
@@ -724,6 +762,12 @@ class TaskController extends Controller
             'deadline' => 'nullable|date',
         ]);
 
+        $this->authorizeTaskStore(
+            $validated['type'],
+            $validated['type'] === 'program' ? $validated['program_id'] : null,
+            $validated['type'] === 'department' ? $validated['department_id'] : null,
+        );
+
         $task = Task::create([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
@@ -756,7 +800,7 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        $this->authorizeTaskAccess($task);
+        Gate::authorize('view', $task);
 
         $task->load(['program.department', 'department', 'assignee.role', 'creator']);
 
@@ -801,7 +845,7 @@ class TaskController extends Controller
                         'value' => $task->progress,
                         'action' => route('tasks.progress', $task),
                         'csrfToken' => csrf_token(),
-                        'canUpdate' => auth()->id() === $task->assigned_to || auth()->user()->hasRole(['admin', 'bph', 'kabinet']),
+                        'canUpdate' => auth()->user()->can('updateStatus', $task),
                     ],
                     'assignee' => $task->assignee ? [
                         'name' => $task->assignee->name,
@@ -826,7 +870,7 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
-        $this->authorizeTaskAccess($task);
+        Gate::authorize('update', $task);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -856,7 +900,7 @@ class TaskController extends Controller
      */
     public function updateStatus(Request $request, Task $task)
     {
-        $this->authorizeTaskAccess($task);
+        Gate::authorize('updateStatus', $task);
 
         $validated = $request->validate([
             'status' => 'required|in:todo,in_progress,pending,done',
@@ -897,7 +941,7 @@ class TaskController extends Controller
      */
     public function updateProgress(Request $request, Task $task)
     {
-        $this->authorizeTaskAccess($task);
+        Gate::authorize('updateStatus', $task);
 
         $validated = $request->validate([
             'progress' => 'required|integer|min:0|max:100',
@@ -924,6 +968,8 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
+        Gate::authorize('delete', $task);
+
         $title = $task->title;
 
         ActivityLog::log('deleted', "Deleted task: {$title}", $task);
@@ -986,7 +1032,7 @@ class TaskController extends Controller
      */
     public function updateInline(Request $request, Task $task)
     {
-        $this->authorizeTaskAccess($task);
+        Gate::authorize('update', $task);
 
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
@@ -1023,11 +1069,7 @@ class TaskController extends Controller
      */
     public function destroyInline(Task $task)
     {
-        $this->authorizeTaskAccess($task);
-
-        if (! auth()->user()->hasRole(['admin', 'bph', 'kabinet'])) {
-            abort(403, 'Anda tidak memiliki izin untuk menghapus task ini.');
-        }
+        Gate::authorize('delete', $task);
 
         $title = $task->title;
         ActivityLog::log('deleted', "Deleted task: {$title}", $task);
@@ -1060,6 +1102,9 @@ class TaskController extends Controller
             'created_by' => $task->created_by,
             'creator_name' => $task->creator?->name,
             'showHref' => route('tasks.show', $task),
+            'can_update' => Gate::allows('update', $task),
+            'can_delete' => Gate::allows('delete', $task),
+            'can_update_status' => Gate::allows('updateStatus', $task),
         ];
     }
 
@@ -1089,6 +1134,7 @@ class TaskController extends Controller
 
             $allowedIds = (clone $contextQuery)
                 ->where('status', $status)
+                ->when(auth()->user()->isStaff(), fn ($query) => $query->whereKey($task->id))
                 ->pluck('id')
                 ->map(fn (mixed $id) => (int) $id)
                 ->all();
@@ -1157,44 +1203,6 @@ class TaskController extends Controller
         }
     }
 
-    private function authorizeTaskAccess(Task $task): void
-    {
-        $user = auth()->user();
-
-        if ($user->hasRole(['admin', 'bph'])) {
-            return;
-        }
-
-        if ($user->isKabinet() && $user->department_id) {
-            if ($task->program_id) {
-                $task->loadMissing('program');
-                if ($task->program?->department_id === $user->department_id) {
-                    return;
-                }
-            }
-            if ($task->department_id === $user->department_id) {
-                return;
-            }
-            abort(403, 'Anda tidak memiliki akses ke task ini.');
-        }
-
-        if ($user->isStaff()) {
-            if ($task->assigned_to === $user->id) {
-                return;
-            }
-            if ($task->program_id) {
-                $task->loadMissing('program');
-                if ($task->program?->hasMemberOrPic($user->id)) {
-                    return;
-                }
-            }
-            if ($task->department_id === $user->department_id) {
-                return;
-            }
-            abort(403, 'Anda tidak memiliki akses ke task ini.');
-        }
-    }
-
     private function authorizeTaskStore(string $type, ?int $programId, ?int $departmentId): void
     {
         $user = auth()->user();
@@ -1228,5 +1236,7 @@ class TaskController extends Controller
             }
             abort(403, 'Anda tidak memiliki izin untuk membuat task di konteks ini.');
         }
+
+        abort(403, 'Anda tidak memiliki izin untuk membuat task di konteks ini.');
     }
 }

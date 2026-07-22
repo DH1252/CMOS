@@ -12,6 +12,7 @@
     icon = "fas fa-tasks",
     breadcrumbs = [],
     cards = [],
+    overdueTasks = [],
     emptyState = {
       title: "Belum ada data",
       text: "Belum ada data.",
@@ -29,6 +30,18 @@
       return "bg-[color:color-mix(in_srgb,var(--signal-danger)_16%,transparent)] text-[var(--signal-danger)]";
     return "bg-brand-light/20 text-brand-primary";
   };
+
+  const statusLabel = (status) => {
+    if (status === "in_progress") return "Berjalan";
+    if (status === "done") return "Selesai";
+    if (status === "pending") return "Tertunda";
+    return "Todo";
+  };
+  const fallbackAvatar = (name = "User") =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "User")}&background=251d39&color=f5c518&bold=true`;
+  const handleImageError = (e, name) => {
+    e.currentTarget.src = fallbackAvatar(name);
+  };
 </script>
 
 <Breadcrumbs items={breadcrumbs} />
@@ -40,6 +53,83 @@
     <PageHeader {title} {description} {icon} />
   </Card.Header>
 </Card.Root>
+
+{#if overdueTasks.length > 0}
+  <Card.Root
+    class="animate-fadeIn mb-4 rounded-[10px] border border-border bg-card shadow-none"
+  >
+    <Card.Header
+      class="flex flex-col gap-3 border-b border-border/70 pb-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <PageHeader
+        title={`Task Terlambat (${overdueTasks.length})`}
+        description="Task lewat tenggat dan belum selesai."
+        icon="fas fa-triangle-exclamation"
+        compact={true}
+        headingTag="h2"
+      />
+    </Card.Header>
+    <Card.Content class="pt-0">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {#each overdueTasks as task, index (task.id || index)}
+          <a
+            href={task.showHref}
+            class="flex flex-col gap-2 border-b border-l border-border/40 p-4 no-underline transition-colors hover:bg-muted/60"
+          >
+            <div class="flex items-start gap-2">
+              <div class="min-w-0 flex-1">
+                <p class="m-0 truncate text-sm font-semibold text-foreground">
+                  {task.title}
+                </p>
+                {#if task.program_name || task.department_name}
+                  <p class="m-0 mt-0.5 truncate text-xs text-muted-foreground">
+                    {task.program_name || task.department_name}
+                  </p>
+                {/if}
+              </div>
+              <StatusBadge
+                label={task.priority_label}
+                tone={task.priority === "high"
+                  ? "danger"
+                  : task.priority === "medium"
+                    ? "primary"
+                    : "info"}
+              />
+            </div>
+            <div class="flex items-center gap-2 text-xs text-muted-foreground">
+              {#if task.assignee_name}
+                <img
+                  src={task.assignee_avatar ||
+                    fallbackAvatar(task.assignee_name)}
+                  alt={task.assignee_name}
+                  class="h-4 w-4 rounded-full"
+                  width="16"
+                  height="16"
+                  loading="lazy"
+                  onerror={(e) => handleImageError(e, task.assignee_name)}
+                />
+                <span class="truncate">{task.assignee_name}</span>
+              {:else}
+                <i class="fas fa-user-slash"></i>
+                <span>Unassigned</span>
+              {/if}
+            </div>
+            <div
+              class="flex items-center gap-2 text-xs font-semibold text-[var(--signal-danger)]"
+            >
+              <i class="fas fa-calendar-alt"></i>
+              {task.deadline_fmt}
+              <span class="text-muted-foreground font-normal">·</span>
+              <span class="text-muted-foreground font-normal"
+                >{statusLabel(task.status)}</span
+              >
+            </div>
+          </a>
+        {/each}
+      </div>
+    </Card.Content>
+  </Card.Root>
+{/if}
 
 {#if !cards.length}
   <Card.Root

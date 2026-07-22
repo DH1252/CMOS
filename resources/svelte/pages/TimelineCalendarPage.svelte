@@ -3,6 +3,7 @@
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
   import { loadExternalScript } from "$lib/external-assets.js";
+  import { modalFocus } from "$lib/modal-focus.js";
   import EmptyStatePanel from "../components/EmptyStatePanel.svelte";
   import PageHeader from "../components/PageHeader.svelte";
 
@@ -20,7 +21,9 @@
   let calendarInstance;
   let selectedEvent = $state(null);
   let initError = $state("");
+  let eventLoadError = $state("");
   let isLoadingCalendar = $state(true);
+  let eventReturnFocus = $state(null);
   const fullCalendarScriptUrl =
     "https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js";
 
@@ -57,6 +60,11 @@
 
   const closeEvent = () => {
     selectedEvent = null;
+  };
+
+  const retryEvents = () => {
+    eventLoadError = "";
+    calendarInstance?.refetchEvents();
   };
 
   const parseRgb = (value) => {
@@ -109,7 +117,12 @@
   };
 
   const ensureEventContrast = (eventElement) => {
-    const background = parseRgb(getComputedStyle(eventElement).backgroundColor);
+    if (!eventElement.dataset.timelineBaseColor) {
+      eventElement.dataset.timelineBaseColor =
+        getComputedStyle(eventElement).backgroundColor;
+    }
+
+    const background = parseRgb(eventElement.dataset.timelineBaseColor);
     if (!background) {
       return;
     }
@@ -176,6 +189,16 @@
 
   onMount(() => {
     let active = true;
+    const themeObserver = new MutationObserver(() => {
+      calendarElement
+        ?.querySelectorAll(".fc-event")
+        .forEach(ensureEventContrast);
+    });
+
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
 
     const initializeCalendar = async () => {
       try {
@@ -216,11 +239,21 @@
             list: "Daftar",
           },
           events: eventsUrl,
+          eventSourceSuccess: (events) => {
+            eventLoadError = "";
+            return events;
+          },
+          eventSourceFailure: (error) => {
+            console.error("Failed to load calendar events.", error);
+            eventLoadError =
+              "Data kalender tidak dapat dimuat. Periksa koneksi lalu coba lagi.";
+          },
           eventDidMount: (info) => {
             ensureEventContrast(info.el);
           },
           eventClick: (info) => {
             info.jsEvent.preventDefault();
+            eventReturnFocus = info.el;
             selectedEvent = buildEventDetail(info.event);
           },
         });
@@ -243,6 +276,7 @@
 
     return () => {
       active = false;
+      themeObserver.disconnect();
       calendarInstance?.destroy();
       calendarInstance = null;
     };
@@ -251,6 +285,8 @@
 
 <Card.Root
   class="animate-fadeIn rounded-[10px] border border-border bg-card shadow-none"
+  inert={selectedEvent ? true : undefined}
+  aria-hidden={selectedEvent ? "true" : undefined}
 >
   <Card.Header class="timeline-calendar-head border-b border-border/70 pb-4">
     <div class="timeline-calendar-copy">
@@ -299,6 +335,21 @@
         compact={true}
       />
     {:else}
+      {#if eventLoadError}
+        <div class="timeline-calendar-error" role="alert">
+          <p>{eventLoadError}</p>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onclick={retryEvents}
+          >
+            <i class="fas fa-rotate-right"></i>
+            <span>Coba lagi</span>
+          </Button>
+        </div>
+      {/if}
+
       {#if isLoadingCalendar}
         <EmptyStatePanel
           title="Memuat kalender"
@@ -331,9 +382,15 @@
       role="dialog"
       aria-modal="true"
       aria-labelledby="timeline-event-title"
+      tabindex="-1"
+      use:modalFocus={{
+        initialFocus: "[data-modal-close]",
+        onClose: closeEvent,
+        returnFocus: eventReturnFocus,
+      }}
     >
       <div class="timeline-modal-head">
-        <div class="timeline-modal-head-copy">
+        <div id="timeline-event-title" class="timeline-modal-head-copy">
           <PageHeader
             title={selectedEvent.title}
             description={selectedEvent.range}
@@ -346,6 +403,7 @@
           type="button"
           variant="secondary"
           size="icon-sm"
+          data-modal-close
           aria-label="Tutup"
           onclick={closeEvent}
         >
@@ -445,6 +503,24 @@
     display: none;
   }
 
+  .timeline-calendar-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid
+      color-mix(in srgb, var(--signal-danger) 28%, var(--line-soft));
+    border-radius: 0.625rem;
+    background: color-mix(in srgb, var(--signal-danger) 7%, var(--background));
+    color: var(--text-soft);
+  }
+
+  .timeline-calendar-error p {
+    margin: 0;
+  }
+
   :global(.fc) {
     --fc-border-color: color-mix(in srgb, var(--line-soft) 84%, transparent);
     --fc-page-bg-color: transparent;
@@ -531,6 +607,10 @@
     box-shadow: none;
   }
 
+  :global(.fc .fc-event-title) {
+    text-overflow: ellipsis;
+  }
+
   :global(.fc .fc-event:hover) {
     filter: saturate(1.05);
   }
@@ -570,6 +650,10 @@
     position: relative;
     z-index: 1;
     width: min(100%, 30rem);
+    max-height: calc(100dvh - 2rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     border-radius: 0.625rem;
     background: var(--card);
     border: 1px solid var(--line-soft);
@@ -579,6 +663,7 @@
   .timeline-modal-head,
   .timeline-modal-foot {
     display: flex;
+    flex-shrink: 0;
     justify-content: space-between;
     gap: 1rem;
     padding: 1rem 1.15rem;
@@ -595,6 +680,8 @@
   }
 
   .timeline-modal-body {
+    min-height: 0;
+    overflow-y: auto;
     padding: 1rem 1.15rem;
   }
 
@@ -632,6 +719,7 @@
   }
 
   .timeline-modal-foot {
+    flex-shrink: 0;
     border-bottom: none;
     border-top: 1px solid var(--line-soft);
   }
@@ -651,6 +739,11 @@
 
     .timeline-calendar-surface {
       min-height: 34rem;
+    }
+
+    .timeline-calendar-error {
+      align-items: flex-start;
+      flex-direction: column;
     }
 
     :global(.fc .fc-toolbar) {

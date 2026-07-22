@@ -215,7 +215,7 @@ class DriveController extends Controller
             'name' => 'required|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
             'email' => 'required|email',
-            'password' => 'required|string',
+            'password' => 'required|string|max:255',
             'drive_url' => 'required|url',
         ]);
 
@@ -330,7 +330,7 @@ class DriveController extends Controller
             'name' => 'required|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
             'email' => 'required|email',
-            'password' => 'required|string',
+            'password' => 'required|string|max:255',
             'drive_url' => 'required|url',
             'is_active' => 'boolean',
         ]);

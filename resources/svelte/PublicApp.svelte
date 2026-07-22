@@ -112,7 +112,7 @@
     --taling-cream: #fff4d3;
     --taling-section: #f59b1a;
     min-height: 100vh;
-    overflow: clip;
+    overflow-x: clip;
     background: var(--taling-white);
     color: var(--taling-ink);
     font-family: var(--taling-font-sans);

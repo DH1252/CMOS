@@ -457,6 +457,7 @@
         <Input
           type="search"
           class="messages-search-input"
+          aria-label="Cari kontak"
           placeholder="Cari nama, role, atau departemen..."
           bind:value={search}
         />
@@ -584,6 +585,7 @@
         <Input
           type="text"
           class="messages-composer-input"
+          aria-label={`Tulis pesan untuk ${activeUser.name}`}
           placeholder={`Tulis pesan untuk ${activeUser.name}...`}
           bind:value={draft}
         />

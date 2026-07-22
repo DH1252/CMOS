@@ -5,6 +5,7 @@
   import { quintOut } from "svelte/easing";
   import { crossfade, fade, scale } from "svelte/transition";
   import { subscribeToLiveUpdates } from "$lib/live-updates.js";
+  import { modalFocus } from "$lib/modal-focus.js";
   import { dragPreviewSpring, dragRotateSpring } from "$lib/motion.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
@@ -102,6 +103,7 @@
   let editModalOpen = $state(false);
   let editingTask = $state(null);
   let savingEdit = $state(false);
+  let editReturnFocus = null;
   let dragPreviewNode = null;
   let landedTaskTimer;
   let dragPlacementKey = null;
@@ -756,6 +758,12 @@
   };
 
   const openEdit = (task) => {
+    const taskTrigger = document.querySelector(
+      `[data-task-id="${task.id}"] button[aria-label="Aksi task"]`,
+    );
+    editReturnFocus =
+      taskTrigger instanceof HTMLElement ? taskTrigger : document.activeElement;
+
     editingTask = {
       ...task,
       assigned_to: task.assigned_to || "",
@@ -773,6 +781,12 @@
     editModalOpen = false;
     editingTask = null;
   };
+
+  const getEditModalFocusOptions = () => ({
+    initialFocus: "#edit-title",
+    onClose: closeEdit,
+    returnFocus: editReturnFocus,
+  });
 
   const saveEdit = async () => {
     if (!editingTask?.title?.trim()) {
@@ -941,10 +955,17 @@
   });
 </script>
 
-<Breadcrumbs items={breadcrumbs} />
+<div
+  inert={editModalOpen ? true : undefined}
+  aria-hidden={editModalOpen ? "true" : undefined}
+>
+  <Breadcrumbs items={breadcrumbs} />
+</div>
 
 <Card.Root
   class="animate-fadeIn mb-4 rounded-[10px] border border-border bg-card shadow-none"
+  inert={editModalOpen ? true : undefined}
+  aria-hidden={editModalOpen ? "true" : undefined}
 >
   <Card.Header
     class="flex flex-col gap-4 border-b border-border/70 pb-4 sm:flex-row sm:items-start sm:justify-between"
@@ -980,6 +1001,8 @@
 
 <div
   class="flex min-h-[500px] snap-x snap-mandatory items-start gap-4 overflow-x-auto py-4"
+  inert={editModalOpen ? true : undefined}
+  aria-hidden={editModalOpen ? "true" : undefined}
 >
   {#each boardColumns as column, index (column.status || index)}
     <section
@@ -1001,7 +1024,7 @@
       </div>
 
       <div
-        class="grid min-h-[24rem] gap-3 p-3"
+        class="grid min-h-[24rem] grid-cols-1 gap-3 p-3"
         role="list"
         aria-label={`Kolom ${column.label || statusLabels[column.status]}`}
         ondragover={(event) => onColumnDragOver(event, column.status)}
@@ -1010,13 +1033,15 @@
       >
         {#each column.tasks as task, taskIndex (task.id || taskIndex)}
           <article
-            class={`grid cursor-grab gap-3 rounded-[10px] border border-border bg-background p-4 shadow-none transition-colors hover:bg-muted/60 active:cursor-grabbing ${draggedTaskId === task.id ? "kanban-card-dragging" : ""} ${landedTaskId === task.id ? "kanban-card-landed" : ""}`.trim()}
+            class={`flex flex-col gap-3 rounded-[10px] border border-border bg-background p-4 shadow-none transition-colors hover:bg-muted/60 ${task.can_update_status ? "cursor-grab active:cursor-grabbing" : ""} ${draggedTaskId === task.id ? "kanban-card-dragging" : ""} ${landedTaskId === task.id ? "kanban-card-landed" : ""}`.trim()}
             data-task-card="true"
             data-task-id={task.id}
-            draggable="true"
-            ondragstart={(event) => onDragStart(event, task.id, column.status)}
-            ondrag={onDragMove}
-            ondragend={onDragEnd}
+            draggable={Boolean(task.can_update_status)}
+            ondragstart={task.can_update_status
+              ? (event) => onDragStart(event, task.id, column.status)
+              : undefined}
+            ondrag={task.can_update_status ? onDragMove : undefined}
+            ondragend={task.can_update_status ? onDragEnd : undefined}
             in:receiveTask={{ key: task.id }}
             out:sendTask={{ key: task.id }}
             animate:flip={{
@@ -1027,13 +1052,13 @@
             <div class="flex items-start gap-2">
               <div class="min-w-0 flex-1">
                 <div
-                  class={`leading-tight font-bold ${task.status === "done" ? "line-through opacity-65" : ""}`.trim()}
+                  class={`leading-tight font-bold break-words ${task.status === "done" ? "line-through opacity-65" : ""}`.trim()}
                 >
                   {task.title}
                 </div>
                 {#if task.description}
                   <p
-                    class="mt-1 mb-0 line-clamp-2 text-sm leading-relaxed text-muted-foreground"
+                    class="mt-1 mb-0 line-clamp-2 text-sm leading-relaxed break-words text-muted-foreground"
                   >
                     {task.description}
                   </p>
@@ -1049,50 +1074,56 @@
                 >
                   <span>Buka</span>
                 </Button>
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger>
-                    {#snippet child({ props })}
-                      <button
-                        {...props}
-                        type="button"
-                        class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                        aria-label="Aksi task"
-                      >
-                        <i class="fas fa-ellipsis"></i>
-                      </button>
-                    {/snippet}
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Content
-                    align="end"
-                    sideOffset={8}
-                    class="w-40 p-1"
-                  >
-                    <DropdownMenu.Item onSelect={() => openEdit(task)}>
+                {#if task.can_update || task.can_delete}
+                  <DropdownMenu.Root>
+                    <DropdownMenu.Trigger>
                       {#snippet child({ props })}
-                        <div
+                        <button
                           {...props}
-                          class={`flex items-center gap-2 rounded-[8px] px-2 py-2 text-sm ${props.class || ""}`}
+                          type="button"
+                          class="inline-flex h-8 w-8 items-center justify-center rounded-[8px] border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          aria-label="Aksi task"
                         >
-                          <i class="fas fa-pen w-4"></i>
-                          <span>Edit task</span>
-                        </div>
+                          <i class="fas fa-ellipsis"></i>
+                        </button>
                       {/snippet}
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item
-                      onSelect={() => void deleteTask(task.id)}
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Content
+                      align="end"
+                      sideOffset={8}
+                      class="w-40 p-1"
                     >
-                      {#snippet child({ props })}
-                        <div
-                          {...props}
-                          class={`flex items-center gap-2 rounded-[8px] px-2 py-2 text-sm text-[var(--signal-danger)] ${props.class || ""}`}
+                      {#if task.can_update}
+                        <DropdownMenu.Item onSelect={() => openEdit(task)}>
+                          {#snippet child({ props })}
+                            <div
+                              {...props}
+                              class={`flex items-center gap-2 rounded-[8px] px-2 py-2 text-sm ${props.class || ""}`}
+                            >
+                              <i class="fas fa-pen w-4"></i>
+                              <span>Edit task</span>
+                            </div>
+                          {/snippet}
+                        </DropdownMenu.Item>
+                      {/if}
+                      {#if task.can_delete}
+                        <DropdownMenu.Item
+                          onSelect={() => void deleteTask(task.id)}
                         >
-                          <i class="fas fa-trash w-4"></i>
-                          <span>Hapus task</span>
-                        </div>
-                      {/snippet}
-                    </DropdownMenu.Item>
-                  </DropdownMenu.Content>
-                </DropdownMenu.Root>
+                          {#snippet child({ props })}
+                            <div
+                              {...props}
+                              class={`flex items-center gap-2 rounded-[8px] px-2 py-2 text-sm text-[var(--signal-danger)] ${props.class || ""}`}
+                            >
+                              <i class="fas fa-trash w-4"></i>
+                              <span>Hapus task</span>
+                            </div>
+                          {/snippet}
+                        </DropdownMenu.Item>
+                      {/if}
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Root>
+                {/if}
               </div>
             </div>
 
@@ -1164,7 +1195,7 @@
 
         {#if column.addOpen}
           <div
-            class="grid gap-3 rounded-[10px] border border-border bg-background p-4 shadow-none"
+            class="grid grid-cols-1 gap-3 rounded-[10px] border border-border bg-background p-4 shadow-none"
             transition:scale={{
               duration: reduceMotion ? 0 : 180,
               start: 0.98,
@@ -1330,10 +1361,12 @@
       onclick={closeEdit}
     ></button>
     <div
-      class="relative z-10 w-full max-w-[38rem] rounded-[10px] border border-border bg-card shadow-lg"
+      class="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-[38rem] flex-col overflow-hidden rounded-[10px] border border-border bg-card shadow-lg"
       role="dialog"
       aria-modal="true"
       aria-labelledby="task-edit-title"
+      tabindex="-1"
+      use:modalFocus={getEditModalFocusOptions()}
       transition:scale={{
         duration: reduceMotion ? 0 : 180,
         start: 0.98,
@@ -1342,9 +1375,9 @@
       }}
     >
       <div
-        class="flex items-start justify-between gap-4 border-b border-border/70 p-5"
+        class="flex shrink-0 items-start justify-between gap-4 border-b border-border/70 p-5"
       >
-        <div class="min-w-0 flex-1">
+        <div id="task-edit-title" class="min-w-0 flex-1">
           <PageHeader
             title="Edit Task"
             description="Perbarui detail task."
@@ -1365,7 +1398,7 @@
         </Button>
       </div>
 
-      <div class="grid gap-4 p-5">
+      <div class="grid min-h-0 gap-4 overflow-y-auto p-5">
         <div class="grid gap-1.5">
           <Label for="edit-title">Judul</Label>
           <Input
@@ -1462,7 +1495,7 @@
       </div>
 
       <div
-        class="flex flex-col items-center justify-between gap-3 rounded-b-[10px] border-t border-border bg-muted/20 p-5 sm:flex-row"
+        class="flex shrink-0 flex-col items-center justify-between gap-3 rounded-b-[10px] border-t border-border bg-muted/20 p-5 sm:flex-row"
       >
         <Button
           type="button"

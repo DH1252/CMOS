@@ -4,11 +4,11 @@ use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('App.Models.User.{id}', function (User $user, int $id) {
-    return (int) $user->id === (int) $id;
+    return $user->status === 'active' && (int) $user->id === (int) $id;
 });
 
 Broadcast::channel('users.{id}', function (User $user, int $id) {
-    return $user->id === $id;
+    return $user->status === 'active' && $user->id === $id;
 });
 
 Broadcast::channel('organization', function (User $user) {

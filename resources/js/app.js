@@ -1,21 +1,10 @@
 import "vite/modulepreload-polyfill";
 import { createInertiaApp, router } from "@inertiajs/svelte";
 import { hydrate, mount } from "svelte";
+import AuthLayout from "../svelte/layouts/AuthLayout.svelte";
 import { loadExternalScript } from "../svelte/lib/external-assets.js";
 
-let AuthLayout = null;
 let bootstrapModulePromise = null;
-
-const ensureAuthLayout = async () => {
-  if (AuthLayout) {
-    return AuthLayout;
-  }
-
-  const module = await import("../svelte/layouts/AuthLayout.svelte");
-  AuthLayout = module.default;
-
-  return AuthLayout;
-};
 
 const ensureBootstrapModule = async () => {
   if (!bootstrapModulePromise) {
@@ -333,13 +322,6 @@ if (shouldBootStandaloneLogin) {
 
 if (inertiaRoot && initialInertiaPage && !shouldBootStandaloneLogin) {
   void (async () => {
-    if (
-      !isPublicPage(initialInertiaPage.component) &&
-      !isGuestPage(initialInertiaPage.component)
-    ) {
-      await ensureAuthLayout();
-    }
-
     return createInertiaApp({
       page: initialInertiaPage,
       resolve: async (name) => {

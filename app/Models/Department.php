@@ -27,6 +27,57 @@ class Department extends Model
         'kaderisasi' => 'Kaderisasi (TUK)',
     ];
 
+    /**
+     * Lowercase keywords used to guess which public page a department name
+     * maps to. Abbreviations/short tokens score higher than phrases.
+     * Shared with the form for live client-side suggestion.
+     *
+     * @var array<string, array<int, string>>
+     */
+    public const SLUG_KEYWORDS = [
+        'bph' => ['bph', 'badan pengurus harian', 'badan pengurus inti', 'bpi'],
+        'personalia' => ['personalia'],
+        'dagri' => ['dagri', 'dalam negeri'],
+        'hublu' => ['hublu', 'hubungan luar', 'humas'],
+        'psdm' => ['psdm', 'pengembangan sumber daya', 'sumber daya mahasiswa'],
+        'kesma' => ['kesma', 'kesejahteraan'],
+        'risprof' => ['risprof', 'riset dan keprofesian', 'ristek', 'keprofesian', 'riset'],
+        'medfo' => ['medfo', 'medinfo', 'media dan informasi', 'media informasi'],
+        'kwu' => ['kwu', 'kewirausahaan'],
+        'kaderisasi' => ['kaderisasi', 'tuk', 'kader'],
+    ];
+
+    /**
+     * Guess the public page slug for a department name based on keyword
+     * matching. Abbreviations (<=6 chars) outweigh descriptive phrases.
+     */
+    public static function suggestSlug(?string $name): ?string
+    {
+        $haystack = mb_strtolower((string) $name);
+        if ($haystack === '') {
+            return null;
+        }
+
+        $best = null;
+        $bestScore = 0;
+
+        foreach (self::SLUG_KEYWORDS as $slug => $keywords) {
+            $score = 0;
+            foreach ($keywords as $keyword) {
+                if (str_contains($haystack, $keyword)) {
+                    $score += mb_strlen($keyword) <= 6 ? 10 : 4;
+                }
+            }
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best = $slug;
+            }
+        }
+
+        return $bestScore > 0 ? $best : null;
+    }
+
     protected $fillable = ['name', 'slug', 'description', 'cabinet_id', 'status', 'staff_graphics', 'staff_order', 'overlays_disabled'];
 
     protected $casts = [

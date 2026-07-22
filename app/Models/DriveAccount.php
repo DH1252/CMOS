@@ -20,6 +20,7 @@ class DriveAccount extends Model
     ];
 
     protected $casts = [
+        'password' => 'encrypted',
         'is_active' => 'boolean',
     ];
 
